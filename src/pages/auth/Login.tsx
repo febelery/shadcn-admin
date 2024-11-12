@@ -25,8 +25,8 @@ const loginFormSchema = z.object({
   username: z.string().min(2, {
     message: "用户名至少需要2个字符",
   }),
-  password: z.string().min(6, {
-    message: "密码至少需要6个字符",
+  password: z.string().min(4, {
+    message: "密码至少需要4个字符",
   }),
 });
 
@@ -90,8 +90,12 @@ export default function Login() {
 
         handleTwoFactorLogin(response.two_factor_key);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("登录失败:", error);
+      toast({
+        variant: "destructive",
+        description: error.message,
+      });
     }
   }
 
@@ -105,9 +109,9 @@ export default function Login() {
           // 验证成功,清除定时器
           clearInterval(checkInterval);
           // TODO: 处理登录成功后的逻辑
-          console.log("二次验证成功");
           toast({
             description: "登录成功",
+            className: "bg-green-500 text-white border-green-600",
           });
         }
       } catch (error) {

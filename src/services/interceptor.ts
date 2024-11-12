@@ -27,6 +27,12 @@ axios.interceptors.request.use(
 );
 axios.interceptors.response.use(
   (response: AxiosResponse): any => {
+    // 适配mock返回的内容
+    const { data } = response;
+    if (data?.status > 299 || data?.code > 299) {
+      return Promise.reject(data);
+    }
+
     return response;
   },
   (error) => {
