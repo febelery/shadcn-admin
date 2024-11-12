@@ -54,7 +54,8 @@ export default {
   		animation: {
   			meteor: 'meteor 5s linear infinite',
   			'background-position-spin': 'background-position-spin 3000ms infinite alternate',
-  			shine: 'shine var(--duration) infinite linear'
+  			shine: 'shine var(--duration) infinite linear',
+  			blob: "blob 7s infinite",
   		},
   		keyframes: {
   			meteor: {
@@ -88,7 +89,21 @@ export default {
   				to: {
   					'background-position': '0% 0%'
   				}
-  			}
+  			},
+  			blob: {
+  				"0%": {
+  					transform: "translate(0px, 0px) scale(1)",
+  				},
+  				"33%": {
+  					transform: "translate(30px, -50px) scale(1.1)",
+  				},
+  				"66%": {
+  					transform: "translate(-20px, 20px) scale(0.9)",
+  				},
+  				"100%": {
+  					transform: "translate(0px, 0px) scale(1)",
+  				},
+  			},
   		}
   	}
   },

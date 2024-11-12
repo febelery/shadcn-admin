@@ -1,83 +1,320 @@
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { motion, AnimatePresence } from "framer-motion";
+import { LockIcon, UserIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "react-router-dom";
+import { LoginApi, TwoFactorLoginApi } from "@/services/user";
+import { QRCodeSVG } from "qrcode.react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Particles from "@/components/ui/particles";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
+// 定义表单验证模式
+const loginFormSchema = z.object({
+  username: z.string().min(2, {
+    message: "用户名至少需要2个字符",
+  }),
+  password: z.string().min(6, {
+    message: "密码至少需要6个字符",
+  }),
+});
+
+type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 export default function Login() {
-  const { theme } = useTheme();
-  const [color, setColor] = useState("#ffffff");
+  const qrcodeExpire = 60;
+  const { toast } = useToast();
+
+  const [needTwoFactor, setNeedTwoFactor] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [countdown, setCountdown] = useState(qrcodeExpire);
 
   useEffect(() => {
-    setColor(theme === "dark" ? "#ffffff" : "#000000");
-  }, [theme]);
+    let timer: NodeJS.Timeout;
+
+    if (needTwoFactor && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+
+    if (countdown === 0) {
+      setNeedTwoFactor(false);
+      setCountdown(qrcodeExpire);
+      form.reset();
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [needTwoFactor, countdown]);
+
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
+
+  const handleBackToLogin = () => {
+    setNeedTwoFactor(false);
+    setCountdown(qrcodeExpire); // 重置倒计时
+    form.reset(); // 重置表单
+  };
+
+  async function onSubmit(formValues: LoginFormValues) {
+    try {
+      const { data: response } = await LoginApi(
+        formValues.username,
+        formValues.password
+      );
+      console.log("登录响应:", response);
+
+      if (response.need_two_factor) {
+        setCountdown(qrcodeExpire);
+        setNeedTwoFactor(true);
+        setQrCodeUrl("https://example.com/qr-code");
+
+        handleTwoFactorLogin(response.two_factor_key);
+      }
+    } catch (error) {
+      console.error("登录失败:", error);
+    }
+  }
+
+  // 开始轮询检查二次验证状态
+  async function handleTwoFactorLogin(twoFactorKey: string) {
+    const checkInterval = setInterval(async () => {
+      try {
+        const { data: response } = await TwoFactorLoginApi(twoFactorKey);
+        console.log("二次验证响应:", response);
+        if (response.token) {
+          // 验证成功,清除定时器
+          clearInterval(checkInterval);
+          // TODO: 处理登录成功后的逻辑
+          console.log("二次验证成功");
+          toast({
+            description: "登录成功",
+          });
+        }
+      } catch (error) {
+        console.error("二次验证检查失败:", error);
+      }
+    }, 2000);
+
+    // 倒计时结束时清除轮询
+    setTimeout(() => {
+      clearInterval(checkInterval);
+    }, qrcodeExpire * 1000);
+  }
 
   return (
-    <div className="flex h-screen w-full items-center justify-center px-4 bg-gradient-to-br from-background to-secondary/20">
-      <Particles
-        className="absolute inset-0"
-        quantity={150}
-        ease={100}
-        color={color}
-        refresh
-      />
-      <Card className="mx-auto max-w-sm w-[100%] border-2 shadow-lg backdrop-blur-sm bg-background/80">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">登录</CardTitle>
-          <p className="text-sm text-muted-foreground text-center">
-            请输入您的账号信息
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name" className="font-medium">
-                用户名
-              </Label>
-              <Input
-                id="name"
-                type="name"
-                required
-                className="transition-all duration-200 hover:border-primary focus:border-primary"
-              />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password" className="font-medium">
-                  密码
-                </Label>
-                <Link
-                  to="#"
-                  className="ml-auto inline-block text-sm text-primary hover:underline"
-                >
-                  忘记密码?
-                </Link>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                required
-                className="transition-all duration-200 hover:border-primary focus:border-primary"
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full font-medium hover:opacity-90 transition-opacity"
-            >
-              登录
-            </Button>
-          </div>
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            还没有账号?{" "}
-            <Link to="#" className="text-primary hover:underline font-medium">
-              联系我们
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="flex h-screen w-full items-center justify-center px-4 bg-gradient-to-br from-background to-secondary/20 relative overflow-hidden">
+      <div className="absolute inset-0 w-full h-full pointer-events-none">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
+      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Card className="mx-auto w-[380px] border shadow-lg bg-background/95">
+          <AnimatePresence mode="wait">
+            {!needTwoFactor ? (
+              <motion.div
+                key="login"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <CardHeader className="space-y-3 pb-4">
+                  <motion.div
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="w-16 h-16 mx-auto mb-2 rounded-full bg-primary/10 flex items-center justify-center"
+                  >
+                    <LockIcon className="w-8 h-8 text-primary" />
+                  </motion.div>
+                  <CardTitle className="text-xl font-medium text-center">
+                    登录
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground text-center">
+                    请输入您的账号信息
+                  </p>
+                </CardHeader>
+
+                <CardContent>
+                  <Form {...form}>
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-5"
+                    >
+                      <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>用户名</FormLabel>
+                            <div className="relative">
+                              <UserIcon className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                              <FormControl>
+                                <Input className="pl-9 h-10" {...field} />
+                              </FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex items-center justify-between">
+                              <FormLabel>密码</FormLabel>
+                              <Link
+                                to="#"
+                                className="text-xs text-primary hover:underline"
+                              >
+                                忘记密码?
+                              </Link>
+                            </div>
+                            <div className="relative">
+                              <LockIcon className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                              <FormControl>
+                                <Input
+                                  type={showPassword ? "text" : "password"}
+                                  className="pl-9 pr-9 h-10"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                              >
+                                {showPassword ? (
+                                  <EyeOffIcon className="w-4 h-4" />
+                                ) : (
+                                  <EyeIcon className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Button type="submit" className="w-full h-10">
+                        登录
+                      </Button>
+                    </form>
+                  </Form>
+
+                  <div className="mt-8 text-center text-sm text-muted-foreground">
+                    还没有账号?{" "}
+                    <Link to="#" className="text-primary hover:underline">
+                      联系我们
+                    </Link>
+                  </div>
+                </CardContent>
+              </motion.div>
+            ) : (
+              // 二维码验证界面
+              <motion.div
+                key="2fa"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <CardHeader className="space-y-3 pb-4">
+                  <motion.div
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    className="w-16 h-16 mx-auto mb-2"
+                  >
+                    <div className="relative w-full h-full">
+                      <div className="absolute inset-0 w-full h-full rounded-full border-4 border-muted" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="flex items-baseline">
+                          <span className="text-xl font-semibold">
+                            {countdown}
+                          </span>
+                        </div>
+                      </div>
+                      <svg
+                        className="absolute inset-0 w-full h-full rotate-[-90deg]"
+                        viewBox="0 0 100 100"
+                      >
+                        <circle
+                          className="transition-all duration-1000 ease-linear"
+                          cx="50"
+                          cy="50"
+                          r="48"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          strokeDasharray={`${
+                            (countdown / qrcodeExpire) * 301
+                          } 301`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </div>
+                  </motion.div>
+                  <CardTitle className="text-xl font-medium text-center">
+                    二次验证
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground text-center">
+                    请使用微信扫描二维码
+                  </p>
+                </CardHeader>
+
+                <CardContent className="space-y-6">
+                  <div className="flex justify-center">
+                    <QRCodeSVG
+                      value={qrCodeUrl}
+                      size={192}
+                      level="H"
+                      marginSize={1}
+                      className="p-2 bg-white rounded-lg"
+                    />
+                  </div>
+
+                  <div className="text-center">
+                    <Button
+                      variant="ghost"
+                      className="text-sm text-muted-foreground"
+                      onClick={handleBackToLogin}
+                    >
+                      返回登录
+                    </Button>
+                  </div>
+                </CardContent>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Card>
+      </motion.div>
     </div>
   );
 }
