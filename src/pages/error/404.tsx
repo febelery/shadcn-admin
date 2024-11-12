@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Particles from "@/components/ui/particles";
