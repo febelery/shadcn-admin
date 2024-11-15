@@ -13,8 +13,8 @@ Mock.mock(new RegExp("/auth/admin$"), "post", function (options) {
   return {
     avatar: "https://wximg.chuanbaoguancha.cn/FiTobW1ALPNQB8NfnK_bGCx-onth",
     expire_at: 1731989664,
-    name: "川观新闻",
-    nickname: "川观新闻",
+    name: "Ross",
+    nickname: "Ross",
     need_two_factor: true,
     two_factor_key: "1234567890",
     token:
@@ -36,3 +36,13 @@ Mock.mock(new RegExp("/auth/admin/two-factor"), "post", function () {
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzE5ODk2NjQsImlhdCI6IjIwMjQtMTEtMTJUMTI6MTQ6MjQuODg3OTI1NTg2KzA4OjAwIiwianRpIjoicXVkZ0ExektLYjJDMzdwZTBmTmxPUT09IiwibmFtZSI6IuW3neinguaWsOmXuyIsInByb3ZpZGVyIjoiYWRtaW4iLCJzdGF0dXMiOjF9.LMXN1vG-JqIEPydYSPMxv7sOOYetuL1GVAY1WAYoAiw",
   };
 });
+
+Mock.mock(new RegExp("/user/info$"),"get",()=>{
+  return {
+    name: "Ross",
+    nickname: "Ross",
+    provider: "admin",
+    avatar: "https://wximg.chuanbaoguancha.cn/FiTobW1ALPNQB8NfnK_bGCx-onth",
+    created_at: "2024-02-19 10:55:05", 
+  }
+})

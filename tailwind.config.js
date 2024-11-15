@@ -49,13 +49,23 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
+  			},
+  			sidebar: {
+  				DEFAULT: 'hsl(var(--sidebar-background))',
+  				foreground: 'hsl(var(--sidebar-foreground))',
+  				primary: 'hsl(var(--sidebar-primary))',
+  				'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+  				accent: 'hsl(var(--sidebar-accent))',
+  				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+  				border: 'hsl(var(--sidebar-border))',
+  				ring: 'hsl(var(--sidebar-ring))'
   			}
   		},
   		animation: {
   			meteor: 'meteor 5s linear infinite',
   			'background-position-spin': 'background-position-spin 3000ms infinite alternate',
   			shine: 'shine var(--duration) infinite linear',
-  			blob: "blob 7s infinite",
+  			blob: 'blob 7s infinite'
   		},
   		keyframes: {
   			meteor: {
@@ -91,19 +101,19 @@ export default {
   				}
   			},
   			blob: {
-  				"0%": {
-  					transform: "translate(0px, 0px) scale(1)",
+  				'0%': {
+  					transform: 'translate(0px, 0px) scale(1)'
   				},
-  				"33%": {
-  					transform: "translate(30px, -50px) scale(1.1)",
+  				'33%': {
+  					transform: 'translate(30px, -50px) scale(1.1)'
   				},
-  				"66%": {
-  					transform: "translate(-20px, 20px) scale(0.9)",
+  				'66%': {
+  					transform: 'translate(-20px, 20px) scale(0.9)'
   				},
-  				"100%": {
-  					transform: "translate(0px, 0px) scale(1)",
-  				},
-  			},
+  				'100%': {
+  					transform: 'translate(0px, 0px) scale(1)'
+  				}
+  			}
   		}
   	}
   },
