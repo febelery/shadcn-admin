@@ -517,15 +517,15 @@ const sidebarMenuButtonVariants = cva(
   cn(
     // 基础样式
     "peer/menu-button flex w-full items-center gap-3 overflow-hidden rounded-md p-2 text-left text-sm",
-    "text-muted-foreground/80 transition-colors duration-150",
+    "text-sidebar-foreground transition-colors duration-150",
     "outline-none ring-ring focus-visible:ring-1",
 
-    // 悬浮状态 - 柔和的背景色
+    // 悬浮状态
     "hover:bg-accent/10 hover:text-foreground",
 
-    // 激活状态 - 明显但不突兀
+    // 激活状态
     "data-[active=true]:bg-primary/10",
-    "data-[active=true]:text-primary",
+    "data-[active=true]:text-foreground",
     "data-[active=true]:font-medium",
 
     // 图标样式
@@ -754,7 +754,7 @@ const SidebarMenuSubButton = React.forwardRef<
       className={cn(
         // 基础样式
         "flex h-8 min-w-0 items-center gap-3 overflow-hidden rounded-md px-2",
-        "text-muted-foreground/80 transition-colors duration-150",
+        "text-muted-foreground transition-colors duration-150",
         "outline-none ring-ring focus-visible:ring-1",
 
         // 悬浮状态
@@ -762,13 +762,13 @@ const SidebarMenuSubButton = React.forwardRef<
 
         // 激活状态
         "data-[active=true]:bg-primary/10",
-        "data-[active=true]:text-primary",
+        "data-[active=true]:text-foreground",
         "data-[active=true]:font-medium",
 
         // 图标样式
         "[&>svg]:size-4 [&>svg]:shrink-0",
-        "[&>svg]:text-muted-foreground/70",
-        "data-[active=true]:[&>svg]:text-primary",
+        "[&>svg]:text-muted-foreground",
+        "data-[active=true]:[&>svg]:text-foreground",
         "hover:[&>svg]:text-foreground",
 
         // 文字样式

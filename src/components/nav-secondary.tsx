@@ -17,18 +17,19 @@ export function NavSecondary() {
   return (
     <SidebarGroup className="mt-auto">
       <SidebarGroupContent>
-        <SidebarMenu>
+        <SidebarMenu className="gap-1">
           <SidebarMenuItem key="theme-toggle">
             <SidebarMenuButton asChild size="sm">
               <ModeToggle showLabel={!collapsed} />
             </SidebarMenuButton>
           </SidebarMenuItem>
-        </SidebarMenu>
 
-        <SidebarMenu>
           <SidebarMenuItem key="sidebar-toggle">
             <SidebarMenuButton asChild size="sm">
-              <SidebarTrigger className="justify-start" showLabel={true} />
+              <SidebarTrigger 
+                className="h-7 w-fit gap-2 px-2" 
+                showLabel={!collapsed} 
+              />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
