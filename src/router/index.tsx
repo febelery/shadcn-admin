@@ -1,5 +1,11 @@
 import { createBrowserRouter } from "react-router-dom";
 
+export const adminRoutes = Object.values(
+  import.meta.glob<any>("./admin/*.ts", { eager: true })
+)
+  .map((module) => module.default)
+  .filter(Boolean);
+
 export const router = createBrowserRouter(
   [
     {
@@ -30,7 +36,7 @@ export const router = createBrowserRouter(
     {
       path: "/admin",
       lazy: async () => ({
-        Component: (await import("@/components/app-sidebar")).AppSidebar,
+        Component: (await import("@/components/admin-sidebar")).AdminSidebar,
       }),
       errorElement: (
         <div className="mockup-window bg-base-300 border">
@@ -47,10 +53,7 @@ export const router = createBrowserRouter(
           index: true,
           // lazy: async () => ({}),
         },
-        {
-          path: "404",
-          Component: (await import("@/pages/error/404")).default,
-        },
+        ...adminRoutes,
       ],
     },
   ],

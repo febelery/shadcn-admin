@@ -514,17 +514,42 @@ const SidebarMenuItem = React.forwardRef<
 SidebarMenuItem.displayName = "SidebarMenuItem";
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  cn(
+    // 基础样式
+    "peer/menu-button flex w-full items-center gap-3 overflow-hidden rounded-md p-2 text-left text-sm",
+    "text-muted-foreground/80 transition-colors duration-150",
+    "outline-none ring-ring focus-visible:ring-1",
+
+    // 悬浮状态 - 柔和的背景色
+    "hover:bg-accent/10 hover:text-foreground",
+
+    // 激活状态 - 明显但不突兀
+    "data-[active=true]:bg-primary/10",
+    "data-[active=true]:text-primary",
+    "data-[active=true]:font-medium",
+
+    // 图标样式
+    "[&>svg]:size-4 [&>svg]:shrink-0",
+    "[&>svg]:text-muted-foreground/70",
+    "data-[active=true]:[&>svg]:text-primary",
+    "hover:[&>svg]:text-foreground",
+
+    // 文字样式
+    "[&>span:last-child]:truncate",
+
+    // 特殊状态
+    "group-has-[[data-sidebar=menu-action]]/menu-item:pr-8",
+    "group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2"
+  ),
   {
     variants: {
       variant: {
-        default: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-        outline:
-          "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
+        default: "",
+        outline: "bg-background shadow-[0_0_0_1px_hsl(var(--border))]",
       },
       size: {
-        default: "h-8 text-sm",
         sm: "h-7 text-xs",
+        default: "h-9",
         lg: "h-12 text-sm group-data-[collapsible=icon]:!p-0",
       },
     },
@@ -692,7 +717,10 @@ const SidebarMenuSub = React.forwardRef<
     ref={ref}
     data-sidebar="menu-sub"
     className={cn(
-      "mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border py-0.5 pl-2.5 pr-[15px]",
+      "mx-2 flex min-w-0 flex-col gap-1",
+      "border-l border-border/30",
+      "py-1 pl-2",
+      "animate-in fade-in-0 duration-100",
       "group-data-[collapsible=icon]:hidden",
       className
     )}
@@ -724,10 +752,31 @@ const SidebarMenuSubButton = React.forwardRef<
       data-size={size}
       data-active={isActive}
       className={cn(
-        "flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground outline-none ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground",
-        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
-        size === "sm" && "text-xs",
+        // 基础样式
+        "flex h-8 min-w-0 items-center gap-3 overflow-hidden rounded-md px-2",
+        "text-muted-foreground/80 transition-colors duration-150",
+        "outline-none ring-ring focus-visible:ring-1",
+
+        // 悬浮状态
+        "hover:bg-accent/10 hover:text-foreground",
+
+        // 激活状态
+        "data-[active=true]:bg-primary/10",
+        "data-[active=true]:text-primary",
+        "data-[active=true]:font-medium",
+
+        // 图标样式
+        "[&>svg]:size-4 [&>svg]:shrink-0",
+        "[&>svg]:text-muted-foreground/70",
+        "data-[active=true]:[&>svg]:text-primary",
+        "hover:[&>svg]:text-foreground",
+
+        // 文字样式
+        "[&>span:last-child]:truncate",
+        size === "sm" && "text-xs h-7",
         size === "md" && "text-sm",
+
+        // 特殊状态
         "group-data-[collapsible=icon]:hidden",
         className
       )}
