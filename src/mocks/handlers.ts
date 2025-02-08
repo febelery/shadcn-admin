@@ -26,9 +26,9 @@ const users = [
         expire_at: 1731989664,
         name: "Ross",
         nickname: "Ross",
-        need_two_factor: true,
+        need_two_factor: false,
         two_factor_key: "1234567890",
-        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        token: "through_token",
       },
       {
         status: 200,
@@ -51,7 +51,7 @@ const users = [
 
     return HttpResponse.json(
       {
-        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        token: "through_t",
       },
       {
         status: 200,
@@ -59,7 +59,34 @@ const users = [
     );
   }),
 
-  http.get(buildMockApiUrl("/user/info"), () => {
+  http.get(buildMockApiUrl("/user/info"), ({ request }) => {
+    const authHeader = request.headers.get("Authorization");
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return HttpResponse.json(
+        {
+          status: 401,
+          message: "未授权访问",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const token = authHeader.split(" ")[1];
+    if (token !== "through_token") {
+      return HttpResponse.json(
+        {
+          status: 401,
+          message: "无效的访问令牌",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
     return HttpResponse.json(
       {
         name: "Ross",
@@ -73,8 +100,6 @@ const users = [
       }
     );
   }),
-
-  
 ];
 
 const handlers = [...users];

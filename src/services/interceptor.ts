@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { auth } from "@/lib/auth";
 
 export interface ErrorResponse<T = unknown> {
   status: number;
@@ -14,10 +15,12 @@ if (import.meta.env.VITE_API_BASE_URL) {
 
 axios.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // const token = getToken();
-    // if (token) {
-    //   config.headers.set("Content-Type", "application/json");
-    // }
+    const token = auth.getToken();
+
+    if (token) {
+      config.headers.set("Authorization", `Bearer ${token}`);
+      config.headers.set("Content-Type", "application/json");
+    }
 
     return config;
   },
@@ -36,8 +39,16 @@ axios.interceptors.response.use(
     return response;
   },
   (error) => {
-    if ([401].includes(error?.response.status)) {
-      return Promise.reject(new Error(error.response.data.message || "Error"));
+    if ([401].includes(error?.response?.status)) {
+      // 清除本地存储的 token
+      auth.removeToken();
+      // 获取当前页面路径
+      const redirect = encodeURIComponent(location.pathname + location.search);
+      // 跳转到登录页面，并携带 redirect 参数
+      window.location.href = `/login?redirect=${redirect}`;
+      return Promise.reject(
+        new Error(error.response?.data?.message || "未授权，请重新登录")
+      );
     }
 
     return Promise.reject(error);

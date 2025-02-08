@@ -1,13 +1,7 @@
 "use client";
 
 import { useRequest } from "ahooks";
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CreditCard,
-  LogOut,
-} from "lucide-react";
+import { BadgeCheck, Bell, ChevronsUpDown, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -25,6 +19,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { UserInfoApi } from "@/services/user";
+import { useNavigate } from "react-router-dom";
+import { auth } from "@/lib/auth";
 
 export interface User {
   name: string;
@@ -33,6 +29,7 @@ export interface User {
 
 export function NavUser() {
   const { isMobile } = useSidebar();
+  const navigate = useNavigate();
 
   const {
     data: { data: user } = {},
@@ -95,20 +92,21 @@ export function NavUser() {
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
+                账户
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell />
-                Notifications
+                通知
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
+            <DropdownMenuItem
+              onClick={() => {
+                auth.removeToken();
+                navigate(`/login`);
+              }}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
               退出
             </DropdownMenuItem>
           </DropdownMenuContent>

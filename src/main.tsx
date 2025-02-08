@@ -4,6 +4,7 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "@/router";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SuspenseWrapper } from "@/components/suspense-wrapper";
 import "./services/interceptor";
 import "./index.css";
 
@@ -22,7 +23,9 @@ enableMocking().then(() => {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <RouterProvider router={router} />
+        <SuspenseWrapper>
+          <RouterProvider router={router} />
+        </SuspenseWrapper>
         <Toaster />
       </ThemeProvider>
     </StrictMode>

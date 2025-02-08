@@ -15,7 +15,6 @@ export type RouteConfig = {
   meta?: {
     title: string;
     icon?: LucideIcon;
-    requiresAuth?: boolean;
     order?: number;
   };
   children?: RouteConfig[];

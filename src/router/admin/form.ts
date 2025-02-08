@@ -5,7 +5,6 @@ export default {
   path: "form",
   meta: {
     title: "表单",
-    requiresAuth: true,
     icon: GalleryVertical,
     order: 1,
   },

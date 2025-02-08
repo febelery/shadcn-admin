@@ -6,7 +6,6 @@ export default {
   Component: lazy(() => import("@/pages/error/500")),
   meta: {
     title: "投票",
-    requiresAuth: true,
     icon: ChartNoAxesColumn,
     order: 1,
   },

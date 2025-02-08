@@ -5,7 +5,7 @@ import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { LockIcon, UserIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LoginApi, TwoFactorLoginApi } from "@/services/user";
 import { QRCodeSVG } from "qrcode.react";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { auth } from "@/lib/auth";
 
 const QRCODE_EXPIRE = 60;
 const TWO_FACTOR_POLL_INTERVAL = 2000;
@@ -43,6 +44,7 @@ export default function Login() {
       password: "",
     },
   });
+  const navigate = useNavigate();
 
   const [state, setState] = useState({
     needTwoFactor: false,
@@ -149,6 +151,25 @@ export default function Login() {
             qrCodeUrl: "https://example.com/qr-code",
           });
           handleTwoFactorLogin(response.two_factor_key);
+        } else if (response.token) {
+          // 保存 token
+          auth.setToken(response.token);
+
+          // 获取 redirect 或使用默认路径
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get("redirect");
+          const redirectPath = redirect
+            ? decodeURIComponent(redirect)
+            : "/admin";
+
+          // 显示成功提示
+          toast({
+            description: "登录成功",
+            className: "bg-green-500 text-white border-green-600",
+          });
+
+          // 跳转到目标页面
+          navigate(redirectPath, { replace: true });
         }
       } catch (error: any) {
         console.error("登录失败:", error);
@@ -160,7 +181,7 @@ export default function Login() {
         });
       }
     },
-    [handleTwoFactorLogin]
+    [handleTwoFactorLogin, navigate, toast]
   );
 
   const loginForm = () => (
