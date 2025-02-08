@@ -19,7 +19,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export default function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const menuItems = React.useMemo(() => {
     return convertRoutesToMenuItems(adminRoutes);
   }, []);

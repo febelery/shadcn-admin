@@ -1,3 +1,4 @@
+import { lazy } from "react";
 import { GalleryVertical, ListFilter, FilePlus } from "lucide-react";
 
 export default {
@@ -11,7 +12,7 @@ export default {
   children: [
     {
       path: "list",
-      Component: (await import("@/pages/error/401")).default,
+      Component: lazy(() => import("@/pages/error/401")),
       meta: {
         title: "表单列表",
         icon: ListFilter,
@@ -19,7 +20,7 @@ export default {
     },
     {
       path: "create",
-      Component: (await import("@/pages/error/500")).default,
+      Component: lazy(() => import("@/pages/error/500")),
       meta: {
         title: "新建表单",
         icon: FilePlus,

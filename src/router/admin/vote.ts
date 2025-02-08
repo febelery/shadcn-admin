@@ -1,8 +1,9 @@
+import { lazy } from "react";
 import { ChartNoAxesColumn } from "lucide-react";
 
 export default {
   path: "vote",
-  Component: (await import("@/pages/error/500")).default,
+  Component: lazy(() => import("@/pages/error/500")),
   meta: {
     title: "投票",
     requiresAuth: true,

@@ -1,3 +1,4 @@
+import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 
 export const adminRoutes = Object.values(
@@ -13,31 +14,23 @@ export const router = createBrowserRouter(
     },
     {
       path: "/login",
-      lazy: async () => ({
-        Component: (await import("@/pages/auth/login")).default,
-      }),
+      Component: lazy(() => import("@/pages/auth/login")),
     },
     {
       path: "*",
-      Component: (await import("@/pages/error/404")).default,
+      Component: lazy(() => import("@/pages/error/404")),
     },
     {
       path: "/401",
-      lazy: async () => ({
-        Component: (await import("@/pages/error/401")).default,
-      }),
+      Component: lazy(() => import("@/pages/error/401")),
     },
     {
       path: "/500",
-      lazy: async () => ({
-        Component: (await import("@/pages/error/500")).default,
-      }),
+      Component: lazy(() => import("@/pages/error/500")),
     },
     {
       path: "/admin",
-      lazy: async () => ({
-        Component: (await import("@/components/admin-sidebar")).AdminSidebar,
-      }),
+      Component: lazy(() => import("@/components/admin-sidebar")),
       errorElement: (
         <div className="mockup-window bg-base-300 border">
           <div className="bg-base-200 flex items-center justify-center h-[calc(100vh-4rem)]">
