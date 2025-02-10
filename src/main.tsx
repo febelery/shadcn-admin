@@ -9,7 +9,10 @@ import "./services/interceptor";
 import "./index.css";
 
 async function enableMocking() {
-  if (process.env.NODE_ENV !== "development") {
+  if (
+    import.meta.env.MODE !== "development" ||
+    import.meta.env.VITE_MOCK !== "true"
+  ) {
     return;
   }
 
