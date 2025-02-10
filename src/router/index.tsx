@@ -49,6 +49,7 @@ const routes = [
   {
     path: "/admin",
     Component: lazy(() => import("@/components/admin-sidebar")),
+    handle: { basePath: "/admin" }, // 设置基础路径，非常重要
     loader: authLoader,
     // shouldRevalidate: () => true, // 强制重新验证
     errorElement: (

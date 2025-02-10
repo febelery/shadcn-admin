@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Command } from "lucide-react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useMatches } from "react-router-dom";
 
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
@@ -22,9 +22,26 @@ import {
 export default function AdminSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
+  const matches = useMatches();
+
+  const basePath =
+    (matches.find((match) => match.handle) as any)?.handle?.basePath ||
+    "/admin";
+
   const menuItems = React.useMemo(() => {
-    return convertRoutesToMenuItems(adminRoutes);
+    return convertRoutesToMenuItems(adminRoutes, basePath);
   }, []);
+
+  const hideMenu = React.useMemo(() => {
+    return matches.some((match) => {
+      const handle = match.handle as { hiddenMenu?: boolean } | undefined;
+      return handle?.hiddenMenu;
+    });
+  }, [matches]);
+
+  if (hideMenu) {
+    return <Outlet />;
+  }
 
   return (
     <SidebarProvider>

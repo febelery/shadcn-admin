@@ -3,7 +3,7 @@ import { GalleryVertical, ListFilter, FilePlus } from "lucide-react";
 
 export default {
   path: "form",
-  meta: {
+  handle: {
     title: "表单",
     icon: GalleryVertical,
     order: 1,
@@ -12,16 +12,18 @@ export default {
     {
       path: "list",
       Component: lazy(() => import("@/pages/error/401")),
-      meta: {
+      handle: {
         title: "表单列表",
+        name: "form-list",
         icon: ListFilter,
       },
     },
     {
       path: "create",
       Component: lazy(() => import("@/pages/error/500")),
-      meta: {
+      handle: {
         title: "新建表单",
+        name: "form-create",
         icon: FilePlus,
       },
     },

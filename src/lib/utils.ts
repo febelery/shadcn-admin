@@ -12,37 +12,40 @@ export type MenuItem = {
 
 export type RouteConfig = {
   path: string;
-  meta?: {
+  handle?: {
     title: string;
     icon?: LucideIcon;
     order?: number;
+    hiddenInMenu?: boolean; // 在菜单中隐藏
+    hiddenMenu?: boolean; // 隐藏菜单
+    name?: string;
   };
   children?: RouteConfig[];
 };
 
 export function convertRoutesToMenuItems(
   routes: RouteConfig[],
-  parentPath: string = "/admin"
+  parentPath: string
 ): MenuItem[] {
   return routes
-    .filter((route) => route.meta?.title)
-    .sort((a, b) => (a.meta?.order || 0) - (b.meta?.order || 0))
+    .filter((route) => route.handle?.title && !route.handle?.hiddenInMenu)
+    .sort((a, b) => (a.handle?.order || 0) - (b.handle?.order || 0))
     .map((route) => {
       const path = `${parentPath}/${route.path}`.replace(/\/+/g, "/");
 
       const menuItem: MenuItem = {
-        title: route.meta?.title || "",
+        title: route.handle?.title || "",
         url: path,
-        icon: route.meta?.icon,
+        icon: route.handle?.icon,
       };
 
       if (route.children?.length) {
         const childItems = route.children
-          .filter(child => child.meta?.title)
-          .map(child => ({
-            title: child.meta?.title || "",
+          .filter((child) => child.handle?.title && !child.handle?.hiddenInMenu)
+          .map((child) => ({
+            title: child.handle?.title || "",
             url: `${path}/${child.path}`.replace(/\/+/g, "/"),
-            icon: child.meta?.icon
+            icon: child.handle?.icon,
           }));
 
         if (childItems.length > 0) {
