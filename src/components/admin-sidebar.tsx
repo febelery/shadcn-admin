@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Command } from "lucide-react";
 import { Outlet, useMatches } from "react-router-dom";
-
+import { useIsMobile } from "@/hooks/use-mobile";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
@@ -17,11 +17,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 export default function AdminSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
+  const isMobile = useIsMobile();
   const matches = useMatches();
 
   const basePath =
@@ -45,6 +47,9 @@ export default function AdminSidebar({
 
   return (
     <SidebarProvider>
+      {isMobile && (
+        <SidebarTrigger className="fixed left-4 top-4 z-50 rounded-lg bg-background/95 p-2 shadow-md backdrop-blur supports-[backdrop-filter]:bg-background/60" />
+      )}
       <Sidebar variant="floating" {...props} collapsible="icon">
         <SidebarHeader>
           <SidebarMenu>
