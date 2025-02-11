@@ -533,6 +533,7 @@ const sidebarMenuButtonVariants = cva(
     "data-[active=true]:bg-primary/10",
     "data-[active=true]:text-foreground",
     "data-[active=true]:font-medium",
+    // "data-[active=true]:w-[85%]", // 激活状态下的宽度(因为不能兼容第一级,所以暂时注释)
 
     // 图标样式
     "[&>svg]:size-4 [&>svg]:shrink-0",
@@ -723,7 +724,7 @@ const SidebarMenuSub = React.forwardRef<
     ref={ref}
     data-sidebar="menu-sub"
     className={cn(
-      "mx-2 flex min-w-0 flex-col gap-1",
+      "ml-4 flex min-w-0 flex-col gap-1",
       "border-l border-border/30",
       "py-1 pl-2",
       "animate-in fade-in-0 duration-100",

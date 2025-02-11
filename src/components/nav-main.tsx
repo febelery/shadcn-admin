@@ -16,8 +16,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 
 type MenuItem = {
@@ -34,7 +32,9 @@ function NavMenuItem({ item }: { item: MenuItem }) {
 
   const hasSubItems = item.items && item.items.length > 0;
   const activeSubItem = hasSubItems
-    ? item.items?.find((subItem) => location.pathname === subItem.url)
+    ? item.items?.find((subItem) => {
+        return location.pathname.startsWith(subItem.url);
+      })
     : null;
 
   React.useEffect(() => {
@@ -49,20 +49,16 @@ function NavMenuItem({ item }: { item: MenuItem }) {
     <Collapsible asChild defaultOpen={Boolean(activeSubItem)}>
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton
-            asChild
-            tooltip={item.title}
-            isActive={isActive} // 只在完全匹配时激活
-          >
+          <SidebarMenuButton asChild tooltip={item.title} isActive={isActive}>
             {hasSubItems ? (
-              <div className="w-full flex items-center gap-2 cursor-pointer">
+              <div className="w-full flex items-center gap-2 cursor-pointer select-none">
                 {item.icon && <item.icon />}
-                <span>{item.title}</span>
+                <span className="select-none">{item.title}</span>
               </div>
             ) : (
-              <Link to={item.url}>
+              <Link to={item.url} className="select-none">
                 {item.icon && <item.icon />}
-                <span>{item.title}</span>
+                <span className="select-none">{item.title}</span>
               </Link>
             )}
           </SidebarMenuButton>
@@ -70,41 +66,24 @@ function NavMenuItem({ item }: { item: MenuItem }) {
         {hasSubItems && (
           <>
             <CollapsibleTrigger asChild>
-              <SidebarMenuAction className="data-[state=open]:rotate-90 transition-transform duration-200">
+              <SidebarMenuAction className="data-[state=open]:rotate-90 transition-transform duration-200 select-none">
                 <ChevronRight />
-                <span className="sr-only">Toggle</span>
+                <span className="sr-only select-none">Toggle</span>
               </SidebarMenuAction>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <SidebarMenuSub className="w-full">
-                {item.items?.map((subItem, index) => (
-                  <motion.div
-                    key={subItem.title}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 25,
-                      mass: 0.5,
-                      delay: index * 0.05,
-                    }}
-                  >
-                    <SidebarMenuSubItem className="w-full">
-                      <SidebarMenuSubButton
-                        asChild
-                        isActive={location.pathname === subItem.url}
-                      >
-                        <Link to={subItem.url}>
-                          {subItem.icon && <subItem.icon />}
-                          <span>{subItem.title}</span>
-                        </Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  </motion.div>
-                ))}
-              </SidebarMenuSub>
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <SidebarMenuSub>
+                  {item.items?.map((subItem) => (
+                    <NavMenuItem key={subItem.title} item={subItem} />
+                  ))}
+                </SidebarMenuSub>
+              </motion.div>
             </CollapsibleContent>
           </>
         )}

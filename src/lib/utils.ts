@@ -40,14 +40,7 @@ export function convertRoutesToMenuItems(
       };
 
       if (route.children?.length) {
-        const childItems = route.children
-          .filter((child) => child.handle?.title && !child.handle?.hiddenInMenu)
-          .map((child) => ({
-            title: child.handle?.title || "",
-            url: `${path}/${child.path}`.replace(/\/+/g, "/"),
-            icon: child.handle?.icon,
-          }));
-
+        const childItems = convertRoutesToMenuItems(route.children, path);
         if (childItems.length > 0) {
           menuItem.items = childItems;
         }
