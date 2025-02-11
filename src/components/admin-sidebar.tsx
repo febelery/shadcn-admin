@@ -48,7 +48,7 @@ export default function AdminSidebar({
   return (
     <SidebarProvider>
       {isMobile && (
-        <SidebarTrigger className="fixed left-4 top-4 z-50 rounded-lg bg-background/95 p-2 shadow-md backdrop-blur supports-[backdrop-filter]:bg-background/60" />
+        <SidebarTrigger className="fixed left-4 top-4 z-50 rounded-lg bg-background/95 p-2 shadow-md backdrop-blur-sm supports-backdrop-filter:bg-background/60" />
       )}
       <Sidebar variant="floating" {...props} collapsible="icon">
         <SidebarHeader>

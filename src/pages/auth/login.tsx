@@ -368,7 +368,7 @@ export default function Login() {
   );
 
   return (
-    <div className="flex h-screen w-full items-center justify-center px-4 bg-gradient-to-br from-background to-secondary/20 relative overflow-hidden">
+    <div className="flex h-screen w-full items-center justify-center px-4 bg-linear-to-br from-background to-secondary/20 relative overflow-hidden">
       <div className="absolute inset-0 w-full h-full pointer-events-none">
         <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
         <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />

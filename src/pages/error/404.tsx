@@ -24,7 +24,7 @@ export default function NotFoundError() {
         refresh
       />
       <div className="relative m-auto flex h-full w-full flex-col items-center justify-center gap-2">
-        <h1 className="text-[7rem] font-bold leading-tight bg-gradient-to-b from-foreground to-muted-foreground/80 bg-clip-text text-transparent">
+        <h1 className="text-[7rem] font-bold leading-tight bg-linear-to-b from-foreground to-muted-foreground/80 bg-clip-text text-transparent">
           404
         </h1>
         <HyperText
