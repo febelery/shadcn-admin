@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @plugin 'tailwindcss-animate';
 
@@ -115,16 +115,42 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+  ::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+    background-color: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply shadow-inner;
+    background-color: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-sm;
+    background-color: hsl(var(--muted-foreground));
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--primary)/80%);
+  }
+
+  ::selection,
+  ::-moz-selection,
+  ::-webkit-selection {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+
   *,
   ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+  ::before {
+    @apply border-border;
   }
-}
 
-@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
@@ -145,8 +171,8 @@
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 240 10% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
+    --chart-1: 173 58% 39%;
+    --chart-2: 12 76% 61%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
@@ -159,6 +185,11 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --color-1: 0 100% 63%;
+    --color-2: 270 100% 63%;
+    --color-3: 210 100% 63%;
+    --color-4: 195 100% 63%;
+    --color-5: 90 100% 63%;
   }
   .dark {
     --background: 240 10% 3.9%;
@@ -181,10 +212,10 @@
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
     --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
+    --chart-2: 340 75% 55%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --chart-5: 160 60% 45%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -193,6 +224,11 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --color-1: 0 100% 63%;
+    --color-2: 270 100% 63%;
+    --color-3: 210 100% 63%;
+    --color-4: 195 100% 63%;
+    --color-5: 90 100% 63%;
   }
 }
 @layer base {

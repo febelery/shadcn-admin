@@ -36,7 +36,7 @@ axios.interceptors.response.use(
       return Promise.reject(data);
     }
 
-    return response;
+    return data;
   },
   (error) => {
     if ([401].includes(error?.response?.status)) {

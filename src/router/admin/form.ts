@@ -1,5 +1,10 @@
 import { lazy } from "react";
-import { GalleryVertical, ListFilter, FilePlus } from "lucide-react";
+import {
+  GalleryVertical,
+  ListFilter,
+  FilePlus,
+  ChartNoAxesColumn,
+} from "lucide-react";
 
 export default {
   path: "form",
@@ -13,7 +18,7 @@ export default {
       path: "list",
       Component: lazy(() => import("@/pages/error/401")),
       handle: {
-        title: "表单列表",
+        title: "列表",
         name: "form-list",
         icon: ListFilter,
       },
@@ -22,10 +27,37 @@ export default {
       path: "create",
       Component: lazy(() => import("@/pages/error/500")),
       handle: {
-        title: "新建表单",
+        title: "创建",
         name: "form-create",
         icon: FilePlus,
       },
+    },
+    {
+      path: "result",
+      handle: {
+        title: "数据",
+        icon: ListFilter,
+      },
+      children: [
+        {
+          path: "statistics",
+          Component: lazy(() => import("@/pages/form/statistics")),
+          handle: {
+            title: "统计",
+            name: "form-result-statistics",
+            icon: ChartNoAxesColumn,
+          },
+        },
+        {
+          path: "reports",
+          Component: lazy(() => import("@/pages/error/500")),
+          handle: {
+            title: "报表",
+            name: "form-result-reports",
+            icon: FilePlus,
+          },
+        },
+      ],
     },
   ],
 };

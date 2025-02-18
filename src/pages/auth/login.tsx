@@ -9,7 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { LoginApi, TwoFactorLoginApi } from "@/services/user";
 import { QRCodeSVG } from "qrcode.react";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -32,7 +32,6 @@ const loginFormSchema = z.object({
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 export default function Login() {
-  const { toast } = useToast();
   const pollIntervalRef = useRef<{
     pollInterval: NodeJS.Timeout | null;
     cleanupTimeout: NodeJS.Timeout | null;
@@ -95,10 +94,7 @@ export default function Login() {
           const { data: response } = await TwoFactorLoginApi(twoFactorKey);
           if (response.token) {
             clearAllTimers();
-            toast({
-              description: "登录成功",
-              className: "bg-green-500 text-white border-green-600",
-            });
+            toast.success("登录成功");
           }
         } catch (error) {
           console.error("二次验证检查失败:", error);
@@ -163,10 +159,7 @@ export default function Login() {
             : "/admin";
 
           // 显示成功提示
-          toast({
-            description: "登录成功",
-            className: "bg-green-500 text-white border-green-600",
-          });
+          toast.success("登录成功");
 
           // 跳转到目标页面
           navigate(redirectPath, { replace: true });
