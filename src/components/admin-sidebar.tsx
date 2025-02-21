@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Command } from "lucide-react";
 import { Outlet, useMatches } from "react-router-dom";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";

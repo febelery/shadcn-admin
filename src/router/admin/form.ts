@@ -49,11 +49,11 @@ export default {
           },
         },
         {
-          path: "reports",
-          Component: lazy(() => import("@/pages/error/500")),
+          path: "records",
+          Component: lazy(() => import("@/pages/form/records")),
           handle: {
-            title: "报表",
-            name: "form-result-reports",
+            title: "记录",
+            name: "form-result-records",
             icon: FilePlus,
           },
         },

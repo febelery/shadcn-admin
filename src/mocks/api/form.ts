@@ -372,28 +372,37 @@ export default [
         switch (type) {
           case "radio":
           case "select": {
-            data = Array.from({ length: 5 }, (_, i) => ({
-              name: `选项${i + 1} ${Math.floor(Math.random() * 100)}`,
-              value: Math.floor(Math.random() * 100),
-            }));
+            data = Array.from(
+              { length: Math.floor(Math.random() * 20) },
+              (_, i) => ({
+                name: `选项${i + 1} ${Math.floor(Math.random() * 100)}`,
+                value: Math.floor(Math.random() * 100),
+              })
+            );
             total = data.length;
             return { data, total };
           }
 
           case "checkbox": {
-            data = Array.from({ length: 8 }, (_, i) => ({
-              name: `多选项${i + 1} ${Math.floor(Math.random() * 100)}`,
-              value: Math.floor(Math.random() * 80),
-            }));
+            data = Array.from(
+              { length: Math.floor(Math.random() * 20) },
+              (_, i) => ({
+                name: `多选项${i + 1} ${Math.floor(Math.random() * 100)}`,
+                value: Math.floor(Math.random() * 80),
+              })
+            );
             total = data.length;
             return { data, total };
           }
 
           case "rate": {
-            data = Array.from({ length: 5 }, (_, i) => ({
-              name: `${i + 1}星`,
-              value: Math.floor(Math.random() * 50),
-            }));
+            data = Array.from(
+              { length: Math.floor(Math.random() * 20) },
+              (_, i) => ({
+                name: `${i + 1}星`,
+                value: Math.floor(Math.random() * 50),
+              })
+            );
             total = data.length;
             return { data, total };
           }
@@ -447,6 +456,140 @@ export default [
       };
 
       const { data, total } = generateMockData();
+
+      return HttpResponse.json({
+        data,
+        meta: {
+          page,
+          page_size: pageSize,
+          total,
+          page_total: Math.ceil(total / pageSize),
+        },
+      });
+    }
+  ),
+
+  http.get(
+    buildMockApiUrl("/form/:formId/record"),
+    async ({ params, request }) => {
+      const { formId } = params;
+
+      const url = new URL(request.url);
+      const searchParams = new URLSearchParams(url.search);
+
+      const page = Number(searchParams.get("page")) || 1;
+      const pageSize = Number(searchParams.get("page_size")) || 20;
+
+      const mockData = [
+        {
+          id: "TASK-8782",
+          title:
+            "You can't compress the program without quantifying the open-source SSD pixel!",
+          status: "in progress",
+          label: "documentation",
+          image:
+            "https://sjsccdn.chuanbaoguancha.cn/fmcm_sjsc/252/picture/2012-11-13/p_52ac8e43ea9c5a0178bb0973adb005a8_9504/thumb_b7b248d751.jpg",
+          priority: "medium",
+        },
+        {
+          id: "TASK-sbbbb",
+          title: "rye multi-byte pixel!",
+          status: "backlog",
+          label: "documentation",
+          image:
+            "https://sjsccdn.chuanbaoguancha.cn/fmcm_sjsc/252/picture/2012-11-13/p_7a7d298083a92bac19b7c65715e11313_9526/thumb_0579eee492.jpg",
+          priority: "medium",
+        },
+        {
+          id: "TASK-7878",
+          title:
+            "Try to calculate the EXE feed, maybe it will index the multi-byte pixel!",
+          status: "backlog",
+          label: "documentation",
+          image:
+            "https://sjsccdn.chuanbaoguancha.cn/fmcm_sjsc/252/picture/2012-11-13/p_7a7d298083a92bac19b7c65715e11313_9526/thumb_0579eee492.jpg",
+          priority: "medium",
+        },
+        {
+          id: "TASK-7262",
+          title:
+            "The UTF8 application is down, parse the neural bandwidth so we can back up the PNG firewall!",
+          status: "done",
+          label: "feature",
+          image:
+            "https://sjsccdn.chuanbaoguancha.cn/fmcm_sjsc/1/picture/2012-11-09/p_4b3e49d44ef7bfedc2f1b52a214fe23c_9141/thumb_17ad4c7f58.jpg",
+          priority: "high",
+        },
+        {
+          id: "TASK-abc",
+          title:
+            "Try to calculate the EXE feed, maybe it will index the multi-byte pixel!",
+          status: "backlog",
+          label: "documentation",
+          image:
+            "https://sjsccdn.chuanbaoguancha.cn/fmcm_sjsc/252/picture/2012-11-13/p_7a7d298083a92bac19b7c65715e11313_9526/thumb_0579eee492.jpg",
+          priority: "medium",
+        },
+        {
+          id: "TASK-1138",
+          title:
+            "Generating the driver won't do anything, we need to quantify the 1080p SMTP bandwidth!",
+          status: "in progress",
+          label: "feature",
+          image:
+            "https://sjsccdn.chuanbaoguancha.cn/fmcm_sjsc/158/picture/2012-11-14/p_7dfc5575d8296269025a84d14a1fea8c_9635/thumb_2c6a272f1d.jpg",
+          priority: "medium",
+        },
+        {
+          id: "TASK-def",
+          title:
+            "Try to calculate the EXE feed, maybe it will index the multi-byte pixel!",
+          status: "backlog",
+          label: "documentation",
+          image:
+            "https://sjsccdn.chuanbaoguancha.cn/fmcm_sjsc/252/picture/2012-11-13/p_7a7d298083a92bac19b7c65715e11313_9526/thumb_0579eee492.jpg",
+          priority: "medium",
+        },
+        {
+          id: "TASK-7184",
+          title: "We need to program the back-end THX pixel!",
+          status: "todo",
+          label: "feature",
+          priority: "low",
+        },
+        {
+          id: "TASK-5160",
+          title:
+            "Calculating the bus won't do anything, we need to navigate the back-end JSON protocol!",
+          status: "in progress",
+          label: "documentation",
+          image:
+            "https://sjsccdn.chuanbaoguancha.cn/fmcm_sjsc/143/picture/2012-11-19/p_1978f0dc4a82f0e084c99683753eb37c_10047/thumb_c25506b688.jpg",
+          priority: "high",
+        },
+        {
+          id: "TASK-bcc",
+          title:
+            "to calculate the EXE feed, maybe it will index th Trye multi-byte pixel!",
+          status: "backlog",
+          label: "documentation",
+          image:
+            "https://sjsccdn.chuanbaoguancha.cn/fmcm_sjsc/252/picture/2012-11-13/p_7a7d298083a92bac19b7c65715e11313_9526/thumb_0579eee492.jpg",
+          priority: "medium",
+        },
+        {
+          id: "TASK-5618",
+          title:
+            "Generating the driver won't do anything, we need to index the online SSL application!",
+          status: "done",
+          label: "documentation",
+          priority: "medium",
+        },
+      ];
+
+      const total = mockData.length;
+      const startIndex = (page - 1) * pageSize;
+      const data = mockData.slice(startIndex, startIndex + pageSize);
 
       return HttpResponse.json({
         data,
