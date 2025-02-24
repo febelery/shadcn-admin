@@ -4,7 +4,6 @@ import type {
   DataTableFilterField,
   Filter,
   FilterOperator,
-  JoinOperator,
   StringKeyOf,
 } from "./types";
 import {
@@ -64,6 +63,7 @@ import { dataTableConfig } from "./config";
 import { getDefaultFilterOperator, getFilterOperators } from "./utils";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { BorderBeam } from "@/components/magicui/border-beam";
 
 interface DataTableFilterListProps<TData> {
   filterFields: DataTableFilterField<TData>[];
@@ -78,7 +78,6 @@ export function DataTableFilterList<TData>({
 }: DataTableFilterListProps<TData>) {
   const id = useId();
   const [filters, setFilters] = useState<Filter<TData>[]>(activeFilters);
-  const [joinOperator, setJoinOperator] = useState<JoinOperator>("and");
   const [isFiltersValid, setIsFiltersValid] = useState(true);
 
   useEffect(() => {
@@ -91,7 +90,6 @@ export function DataTableFilterList<TData>({
 
   const handleReset = () => {
     setFilters([]);
-    setJoinOperator("and");
     setIsFiltersValid(true);
     onFiltersChange([]);
   };
@@ -742,12 +740,12 @@ export function DataTableFilterList<TData>({
           >
             <ListFilter className="size-3" aria-hidden="true" />
             筛选
-            {filters.length > 0 && (
+            {activeFilters.length > 0 && (
               <Badge
                 variant="secondary"
                 className="h-[1.14rem] rounded-[0.2rem] px-[0.32rem] font-mono font-normal text-[0.65rem]"
               >
-                {filters.length}
+                {activeFilters.length}
               </Badge>
             )}
           </Button>
@@ -761,6 +759,7 @@ export function DataTableFilterList<TData>({
             filters.length > 0 ? "gap-3.5" : "gap-2"
           )}
         >
+          <BorderBeam duration={8} size={100} />
           <div className="flex items-center justify-between">
             {filters.length > 0 ? (
               <h4 className="font-medium leading-none">筛选</h4>
@@ -777,7 +776,7 @@ export function DataTableFilterList<TData>({
               className="rounded"
               variant="outline"
               onClick={addFilter}
-              disabled={!areAllFiltersComplete(filters)}
+              disabled={!areAllFiltersComplete(filters) || !isFiltersValid}
             >
               添加
             </Button>
@@ -786,7 +785,6 @@ export function DataTableFilterList<TData>({
             <div className="flex max-h-40 flex-col gap-2 overflow-y-auto py-0.5 pr-1">
               {filters.map((filter, index) => {
                 const filterId = `${id}-filter-${filter.rowId}`;
-                const joinOperatorListboxId = `${filterId}-join-operator-listbox`;
                 const fieldListboxId = `${filterId}-field-listbox`;
                 const fieldTriggerId = `${filterId}-field-trigger`;
                 const operatorListboxId = `${filterId}-operator-listbox`;
@@ -800,35 +798,9 @@ export function DataTableFilterList<TData>({
                           <span className="text-muted-foreground text-sm">
                             条件
                           </span>
-                        ) : index === 1 ? (
-                          <Select
-                            value={joinOperator}
-                            onValueChange={(value: JoinOperator) =>
-                              setJoinOperator(value)
-                            }
-                          >
-                            <SelectTrigger
-                              aria-label="选择连接操作符"
-                              aria-controls={joinOperatorListboxId}
-                              className="h-8 rounded lowercase"
-                            >
-                              <SelectValue placeholder={joinOperator} />
-                            </SelectTrigger>
-                            <SelectContent
-                              id={joinOperatorListboxId}
-                              position="popper"
-                              className="min-w-[var(--radix-select-trigger-width)] lowercase"
-                            >
-                              {dataTableConfig.joinOperators.map((op) => (
-                                <SelectItem key={op.value} value={op.value}>
-                                  {op.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
                         ) : (
                           <span className="text-muted-foreground text-sm">
-                            {joinOperator}
+                            并且
                           </span>
                         )}
                       </div>
@@ -998,7 +970,7 @@ export function DataTableFilterList<TData>({
                   size="sm"
                   className="rounded"
                   onClick={handleConfirm}
-                  disabled={!isFiltersValid}
+                  disabled={!areAllFiltersComplete(filters) || !isFiltersValid}
                 >
                   确认
                 </Button>
