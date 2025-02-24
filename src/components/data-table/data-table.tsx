@@ -234,9 +234,9 @@ export function DataTable<TData, TValue>({
                           key={cell.id}
                           className={cn(
                             cell.column.getIsPinned() == "left" &&
-                              `sticky left-0 z-50 bg-background dark:shadow-[inset_-8px_0_8px_-4px_rgba(255,255,255,0.08)] shadow-[inset_-8px_0_8px_-4px_rgba(0,0,0,0.08)]`,
+                              `sticky left-0 z-50 bg-background dark:shadow-[inset_-8px_0_8px_-4px_rgba(255,255,255,0.05)] shadow-[inset_-8px_0_8px_-4px_rgba(0,0,0,0.05)]`,
                             cell.column.getIsPinned() == "right" &&
-                              `sticky right-0 z-50 bg-background dark:shadow-[inset_8px_0_8px_-4px_rgba(255,255,255,0.08)] shadow-[inset_8px_0_8px_-4px_rgba(0,0,0,0.08)]`
+                              `sticky right-0 z-50 bg-background dark:shadow-[inset_8px_0_8px_-4px_rgba(255,255,255,0.05)] shadow-[inset_8px_0_8px_-4px_rgba(0,0,0,0.05)]`
                           )}
                         >
                           {flexRender(
