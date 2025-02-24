@@ -197,7 +197,7 @@ export function DataTable<TData, TValue>({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <DataTableToolbar
         table={table}
         filterFields={filterFields}
@@ -208,22 +208,23 @@ export function DataTable<TData, TValue>({
       >
         {toolbarContent}
       </DataTableToolbar>
-      <div className="rounded-md border m-auto">
+      <div className="rounded-lg border bg-card shadow-sm transition-all hover:shadow-md">
         <div className="w-full overflow-auto">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow key={headerGroup.id} className="border-b bg-muted/50">
                   {headerGroup.headers.map((header) => {
                     return (
                       <TableHead
                         key={header.id}
                         colSpan={header.colSpan}
                         className={cn(
+                          "py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
                           header.column.getIsPinned() === "left" &&
-                            "sticky left-0 z-50 bg-background",
+                            "sticky left-0 z-50 bg-muted/50 backdrop-blur-sm",
                           header.column.getIsPinned() === "right" &&
-                            "sticky right-0 z-50 bg-background"
+                            "sticky right-0 z-50 bg-muted/50 backdrop-blur-sm"
                         )}
                       >
                         {header.isPlaceholder
@@ -244,6 +245,7 @@ export function DataTable<TData, TValue>({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
+                    className="transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                   >
                     {row.getVisibleCells().map((cell) => {
                       //bug: 对于多个pinned的列，会出现sticky重叠
@@ -280,7 +282,11 @@ export function DataTable<TData, TValue>({
           </Table>
         </div>
       </div>
-      {showPagination && <DataTablePagination table={table} meta={meta} />}
+      {showPagination && (
+        <div className="rounded-md bg-card px-4">
+          <DataTablePagination table={table} meta={meta} />
+        </div>
+      )}
     </div>
   );
 }
