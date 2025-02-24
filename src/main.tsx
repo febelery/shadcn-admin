@@ -44,7 +44,7 @@ enableMocking().then(() => {
               <RouterProvider router={router} />
             </NuqsAdapter>
           </SuspenseWrapper>
-          <Toaster />
+          <Toaster richColors />
         </ThemeProvider>
       </QueryClientProvider>
     </StrictMode>
