@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Loader2, XCircle } from "lucide-react";
 
 import {
   ColumnFiltersState,
@@ -168,14 +169,31 @@ export function DataTable<TData, TValue>({
     }));
   };
 
-  // 添加加载状态处理
+  // 加载状态
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex h-[400px] w-full items-center justify-center rounded-md border border-dashed">
+        <div className="flex flex-col items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <p>加载中...</p>
+        </div>
+      </div>
+    );
   }
 
-  // 添加错误状态处理
+  // 错误处理
   if (error) {
-    return <div>Error: {(error as Error).message}</div>;
+    return (
+      <div className="flex h-[400px] w-full items-center justify-center rounded-md border border-dashed">
+        <div className="flex flex-col items-center gap-2 text-destructive">
+          <XCircle className="h-8 w-8" />
+          <p>加载失败</p>
+          <p className="text-sm text-muted-foreground">
+            {(error as Error).message}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
