@@ -1,6 +1,5 @@
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableFilterField } from "@/components/data-table/types";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 import { type ColumnDef } from "@tanstack/react-table";

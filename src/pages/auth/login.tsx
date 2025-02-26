@@ -136,7 +136,7 @@ export default function Login() {
     async (formValues: LoginFormValues) => {
       try {
         updateState({ loginError: "" });
-        const { data: response } = await LoginApi(
+        const response = await LoginApi(
           formValues.username,
           formValues.password
         );
