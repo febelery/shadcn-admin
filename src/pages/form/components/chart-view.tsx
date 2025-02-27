@@ -29,7 +29,7 @@ export function ChartView({ field, data }: ChartViewProps) {
   const chartHeight = useMemo(() => {
     const baseHeight = 45;
     const minHeight = 150;
-    const maxHeight = 500;
+    const maxHeight = 400;
     const padding = 60;
     const calculatedHeight = Math.max(
       minHeight,
