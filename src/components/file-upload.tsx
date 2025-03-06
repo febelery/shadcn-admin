@@ -1,8 +1,9 @@
 import { FilePond, registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
-import { qiniuUptokenApi } from "@/services/common";
 import { useState, useEffect } from "react";
 import { getUrlType } from "@/lib/utils";
+import { useQiniuUpload } from "@/hooks/use-qiniu-upload";
+import { fetchWithRetries } from "@/lib/utils";
 
 // 注册需要的FilePond插件
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
@@ -71,43 +72,6 @@ const zhCN = {
   labelMaxTotalFileSize: "最大文件总大小是 {filesize}",
 };
 
-// 优化错误信息映射表命名和结构
-const UPLOAD_ERROR_MESSAGES: Record<string, string> = {
-  "file exists": "文件已存在",
-  "bad token": "上传凭证无效",
-  "file too large": "文件大小超出限制",
-  "invalid file type": "不支持的文件类型",
-  "bucket not exist": "存储空间不存在",
-  "file type not allowed": "文件类型不允许",
-  "token expired": "上传凭证已过期",
-  "user canceled": "用户取消上传",
-  "network error": "网络连接错误",
-};
-
-// 优化延迟函数命名
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// 优化 fetch 重试函数
-const fetchWithRetries = async (
-  url: string,
-  maxRetries = 6,
-  baseDelay = 1000
-) => {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response;
-    } catch (error) {
-      if (attempt === maxRetries - 1) throw error;
-      await sleep(baseDelay * Math.pow(2, attempt));
-    }
-  }
-  throw new Error("Fetch failed after retries");
-};
-
 // 添加 MIME 类型格式验证
 type MimeType = `${string}/${string}`; // 例如: "image/png", "video/mp4"
 
@@ -150,8 +114,8 @@ export function FileUpload({
   accept,
   multiple = true,
   maxFiles = 1,
-  maxTotalFileSize = undefined,
-  maxFileSize = undefined,
+  maxTotalFileSize,
+  maxFileSize,
   defaultFiles = maxFiles > 1 ? [] : "",
 }: FileUploadProps) {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>(() => {
@@ -160,6 +124,8 @@ export function FileUpload({
     }
     return defaultFiles ? [defaultFiles] : [];
   });
+
+  const { uploadToQiniu } = useQiniuUpload();
 
   useEffect(() => {
     if (onUploadComplete) {
@@ -175,13 +141,6 @@ export function FileUpload({
     }
   }, [defaultFiles]);
 
-  const getTranslatedError = (error: string | Error): string => {
-    if (typeof error === "string") {
-      return UPLOAD_ERROR_MESSAGES[error] || error;
-    }
-    return error instanceof Error ? error.message : "未知错误";
-  };
-
   // 处理文件上传前的准备工作
   const handleBeforeUpload = async (
     _fieldName: string,
@@ -190,53 +149,26 @@ export function FileUpload({
     load: any,
     error: any,
     progress: any,
-    abort: any,
-    _transfer: any,
-    _options: any
+    abort: any
   ) => {
     try {
-      // 获取七牛上传token
-      const data = await qiniuUptokenApi({
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        modified: file.lastModified,
+      const response = await uploadToQiniu(file, {
+        onProgress: (percent) => {
+          progress(true, percent, 100);
+        },
+        onError: (err) => {
+          error(err);
+        },
       });
 
-      const formData = new FormData();
-      formData.append("token", data.uptoken);
-      formData.append("file", file);
-
-      const request = new XMLHttpRequest();
-      request.open("POST", "https://up-z0.qiniup.com", true);
-
-      request.upload.onprogress = (e) => {
-        progress(e.lengthComputable, e.loaded, e.total);
-      };
-
-      request.onload = () => {
-        if (request.status >= 200 && request.status < 300) {
-          load(request.responseText);
-        } else {
-          const response = JSON.parse(request.responseText);
-
-          error(getTranslatedError(response.error));
-        }
-      };
-
-      request.send(formData);
-
+      load(JSON.stringify(response));
       return {
-        timeout: 10,
         abort: () => {
-          request.abort();
           abort();
         },
       };
-    } catch (error: any) {
-      error({
-        message: getTranslatedError(error),
-      });
+    } catch (err: any) {
+      error(err);
       return false;
     }
   };
@@ -278,8 +210,8 @@ export function FileUpload({
         styleButtonRemoveItemPosition="right"
         allowMultiple={multiple}
         maxFiles={maxFiles}
-        maxFileSize={maxFileSize}
-        maxTotalFileSize={maxTotalFileSize}
+        maxFileSize={maxFileSize || "999MB"}
+        maxTotalFileSize={maxTotalFileSize || "999MB"}
         acceptedFileTypes={validateAcceptedTypes(accept)}
         // 配置图片编辑器
         imageEditEditor={imageEditEditor}

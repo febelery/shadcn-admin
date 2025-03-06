@@ -4,8 +4,7 @@ import { buildMockApiUrl } from "@/lib/utils";
 export default [
   http.get(buildMockApiUrl("/qiniu/uptoken"), async ({ request }) => {
     return HttpResponse.json({
-      uptoken:
-        "uZy0zNDgxMTI3MTlfX2FjZmU0MTgxLmpwZyJ9",
+      uptoken: "xxx",
     });
   }),
 ];

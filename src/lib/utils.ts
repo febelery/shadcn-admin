@@ -126,3 +126,27 @@ export const getUrlType = (url: string): FileType => {
     return "unknown";
   }
 };
+
+// 通用的上传相关工具函数
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+export const fetchWithRetries = async (
+  url: string,
+  maxRetries = 6,
+  baseDelay = 1000
+) => {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response;
+    } catch (error) {
+      if (attempt === maxRetries - 1) throw error;
+      await sleep(baseDelay * Math.pow(2, attempt));
+    }
+  }
+  throw new Error("Fetch failed after retries");
+};
