@@ -6,13 +6,6 @@ interface QiniuUploadOptions {
   onError?: (error: string) => void;
 }
 
-interface FileInfo {
-  name: string;
-  size: number;
-  type: string;
-  modified: number;
-}
-
 export const useQiniuUpload = () => {
   const uploadToQiniu = async (
     file: File,
