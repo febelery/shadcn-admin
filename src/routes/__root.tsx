@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
-import GeneralError from '@/pages/errors/internal-server-error'
+import GeneralError from '@/pages/errors/general-error'
 import NotFoundError from '@/pages/errors/not-found-error'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { TanStackRouterDevtools } from '@tanstack/router-devtools'

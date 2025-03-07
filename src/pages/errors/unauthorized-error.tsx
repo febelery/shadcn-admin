@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import AnimatedGridPattern from '@/components/ui/animated-grid-pattern'
+import {AnimatedGridPattern} from '@/components/magicui/animated-grid-pattern'
 import { Button } from '@/components/ui/button'
 import GradualSpacing from '@/components/ui/gradual-spacing'
 

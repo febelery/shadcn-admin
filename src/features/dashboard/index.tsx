@@ -10,9 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { TopNav } from '@/components/layout/top-nav'
-import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ThemeSwitch } from '@/components/mode-toggle'
 import { Search } from '@/components/search'
-import { ThemeSwitch } from '@/components/theme-switch'
 import { Overview } from './components/overview'
 import { RecentSales } from './components/recent-sales'
 
@@ -25,7 +24,6 @@ export default function Dashboard() {
         <div className='ml-auto flex items-center space-x-4'>
           <Search />
           <ThemeSwitch />
-          <ProfileDropdown />
         </div>
       </Header>
 
@@ -71,14 +69,14 @@ export default function Dashboard() {
                     strokeLinecap='round'
                     strokeLinejoin='round'
                     strokeWidth='2'
-                    className='h-4 w-4 text-muted-foreground'
+                    className='text-muted-foreground h-4 w-4'
                   >
                     <path d='M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' />
                   </svg>
                 </CardHeader>
                 <CardContent>
                   <div className='text-2xl font-bold'>$45,231.89</div>
-                  <p className='text-xs text-muted-foreground'>
+                  <p className='text-muted-foreground text-xs'>
                     +20.1% from last month
                   </p>
                 </CardContent>
@@ -96,7 +94,7 @@ export default function Dashboard() {
                     strokeLinecap='round'
                     strokeLinejoin='round'
                     strokeWidth='2'
-                    className='h-4 w-4 text-muted-foreground'
+                    className='text-muted-foreground h-4 w-4'
                   >
                     <path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' />
                     <circle cx='9' cy='7' r='4' />
@@ -105,7 +103,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className='text-2xl font-bold'>+2350</div>
-                  <p className='text-xs text-muted-foreground'>
+                  <p className='text-muted-foreground text-xs'>
                     +180.1% from last month
                   </p>
                 </CardContent>
@@ -121,7 +119,7 @@ export default function Dashboard() {
                     strokeLinecap='round'
                     strokeLinejoin='round'
                     strokeWidth='2'
-                    className='h-4 w-4 text-muted-foreground'
+                    className='text-muted-foreground h-4 w-4'
                   >
                     <rect width='20' height='14' x='2' y='5' rx='2' />
                     <path d='M2 10h20' />
@@ -129,7 +127,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className='text-2xl font-bold'>+12,234</div>
-                  <p className='text-xs text-muted-foreground'>
+                  <p className='text-muted-foreground text-xs'>
                     +19% from last month
                   </p>
                 </CardContent>
@@ -147,14 +145,14 @@ export default function Dashboard() {
                     strokeLinecap='round'
                     strokeLinejoin='round'
                     strokeWidth='2'
-                    className='h-4 w-4 text-muted-foreground'
+                    className='text-muted-foreground h-4 w-4'
                   >
                     <path d='M22 12h-4l-3 9L9 3l-3 9H2' />
                   </svg>
                 </CardHeader>
                 <CardContent>
                   <div className='text-2xl font-bold'>+573</div>
-                  <p className='text-xs text-muted-foreground'>
+                  <p className='text-muted-foreground text-xs'>
                     +201 since last hour
                   </p>
                 </CardContent>

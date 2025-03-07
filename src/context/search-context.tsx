@@ -15,6 +15,9 @@ interface Props {
 export function SearchProvider({ children }: Props) {
   const [open, setOpen] = React.useState(false)
 
+  // 添加key确保热更新时完全重新渲染
+  const memoizedValue = React.useMemo(() => ({ open, setOpen }), [open])
+
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
@@ -26,19 +29,28 @@ export function SearchProvider({ children }: Props) {
     return () => document.removeEventListener('keydown', down)
   }, [])
 
+  if (!children) {
+    return null
+  }
+
   return (
-    <SearchContext.Provider value={{ open, setOpen }}>
+    <SearchContext.Provider value={memoizedValue}>
       {children}
       <CommandMenu />
     </SearchContext.Provider>
   )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
+// 修改useSearch hook使其在热更新时更稳定
 export const useSearch = () => {
   const searchContext = React.useContext(SearchContext)
 
   if (!searchContext) {
+    // 开发环境下提供警告而非错误
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('useSearch在SearchContext.Provider外部使用，返回默认值')
+      return { open: false, setOpen: () => {} }
+    }
     throw new Error('useSearch has to be used within <SearchContext.Provider>')
   }
 

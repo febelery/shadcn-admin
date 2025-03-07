@@ -5,17 +5,25 @@ import {
   QueryCache,
   QueryClient,
   QueryClientProvider,
+  MutationCache,
 } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-import { useAuthStore } from '@/stores/authStore'
+import '@/services/interceptor'
+import { useAuthStore } from '@/stores/auth'
 import { handleServerError } from '@/utils/handle-server-error'
 import { toast } from '@/hooks/use-toast'
-import { ThemeProvider } from './context/theme-context'
+import { ThemeProvider } from './components/theme-provider'
 import './index.css'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
 
 const queryClient = new QueryClient({
+  // 全局缓存失效
+  mutationCache: new MutationCache({
+    onSuccess: () => {
+      queryClient.invalidateQueries()
+    },
+  }),
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
@@ -31,7 +39,7 @@ const queryClient = new QueryClient({
         )
       },
       refetchOnWindowFocus: import.meta.env.PROD,
-      staleTime: 10 * 1000, // 10s
+      staleTime: 10 * 1000,
     },
     mutations: {
       onError: (error) => {
@@ -56,7 +64,7 @@ const queryClient = new QueryClient({
             variant: 'destructive',
             title: 'Session expired!',
           })
-          useAuthStore.getState().auth.reset()
+          useAuthStore.getState().reset()
           const redirect = `${router.history.location.href}`
           router.navigate({ to: '/sign-in', search: { redirect } })
         }
@@ -90,17 +98,34 @@ declare module '@tanstack/react-router' {
   }
 }
 
+const enableMocking = async () => {
+  if (
+    import.meta.env.MODE !== 'development' ||
+    import.meta.env.VITE_MOCK !== 'true'
+  ) {
+    return
+  }
+
+  const { worker } = await import('./mocks/browser')
+  return worker.start({
+    onUnhandledRequest: 'bypass',
+  })
+}
+
 // Render the app
 const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
-  root.render(
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme='light' storageKey='vite-ui-theme'>
-          <RouterProvider router={router} />
-        </ThemeProvider>
-      </QueryClientProvider>
-    </StrictMode>
-  )
+
+  enableMocking().then(() => {
+    root.render(
+      <StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider defaultTheme='light' storageKey='theme'>
+            <RouterProvider router={router} />
+          </ThemeProvider>
+        </QueryClientProvider>
+      </StrictMode>
+    )
+  })
 }

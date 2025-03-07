@@ -16,9 +16,8 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ThemeSwitch } from '@/components/mode-toggle'
 import { Search } from '@/components/search'
-import { ThemeSwitch } from '@/components/theme-switch'
 import { apps } from './data/apps'
 
 const appText = new Map<string, string>([
@@ -54,7 +53,6 @@ export default function Apps() {
         <Search />
         <div className='ml-auto flex items-center gap-4'>
           <ThemeSwitch />
-          <ProfileDropdown />
         </div>
       </Header>
 
@@ -111,7 +109,7 @@ export default function Apps() {
           </Select>
         </div>
         <Separator className='shadow-sm' />
-        <ul className='faded-bottom no-scrollbar grid gap-4 overflow-auto pb-16 pt-4 md:grid-cols-2 lg:grid-cols-3'>
+        <ul className='faded-bottom no-scrollbar grid gap-4 overflow-auto pt-4 pb-16 md:grid-cols-2 lg:grid-cols-3'>
           {filteredApps.map((app) => (
             <li
               key={app.name}
@@ -119,7 +117,7 @@ export default function Apps() {
             >
               <div className='mb-8 flex items-center justify-between'>
                 <div
-                  className={`flex size-10 items-center justify-center rounded-lg bg-muted p-2`}
+                  className={`bg-muted flex size-10 items-center justify-center rounded-lg p-2`}
                 >
                   {app.logo}
                 </div>

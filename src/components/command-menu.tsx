@@ -7,7 +7,6 @@ import {
   IconSun,
 } from '@tabler/icons-react'
 import { useSearch } from '@/context/search-context'
-import { useTheme } from '@/context/theme-context'
 import {
   CommandDialog,
   CommandEmpty,
@@ -17,6 +16,7 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
+import { useTheme } from '@/components/theme-provider'
 import { sidebarData } from './layout/data/sidebar-data'
 import { ScrollArea } from './ui/scroll-area'
 
@@ -35,10 +35,10 @@ export function CommandMenu() {
 
   return (
     <CommandDialog modal open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder='Type a command or search...' />
+      <CommandInput placeholder='输入命令或搜索...' />
       <CommandList>
         <ScrollArea type='hover' className='h-72 pr-1'>
-          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandEmpty>没有找到结果。</CommandEmpty>
           {sidebarData.navGroups.map((group) => (
             <CommandGroup key={group.title} heading={group.title}>
               {group.items.map((navItem, i) => {
@@ -52,7 +52,7 @@ export function CommandMenu() {
                       }}
                     >
                       <div className='mr-2 flex h-4 w-4 items-center justify-center'>
-                        <IconArrowRightDashed className='size-2 text-muted-foreground/80' />
+                        <IconArrowRightDashed className='text-muted-foreground/80 size-2' />
                       </div>
                       {navItem.title}
                     </CommandItem>
@@ -67,7 +67,7 @@ export function CommandMenu() {
                     }}
                   >
                     <div className='mr-2 flex h-4 w-4 items-center justify-center'>
-                      <IconArrowRightDashed className='size-2 text-muted-foreground/80' />
+                      <IconArrowRightDashed className='text-muted-foreground/80 size-2' />
                     </div>
                     {subItem.title}
                   </CommandItem>
