@@ -35,3 +35,7 @@ src/
 ├── services/ # API 服务
 └── main.tsx # 入口文件
 ```
+
+## 注意
+
+当使用msw时，如果cookie中存在`:`，会导致无法正常加载组件

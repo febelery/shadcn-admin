@@ -1,4 +1,5 @@
 import * as React from 'react'
+import Cookies from 'js-cookie'
 import { Slot } from '@radix-ui/react-slot'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { VariantProps, cva } from 'class-variance-authority'
@@ -86,8 +87,14 @@ const SidebarProvider = React.forwardRef<
           _setOpen(openState)
         }
 
-        // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        try {
+          Cookies.set(SIDEBAR_COOKIE_NAME, String(openState), {
+            path: '/',
+            expires: SIDEBAR_COOKIE_MAX_AGE / (60 * 60 * 24), // 转换为天数
+          })
+        } catch (error) {
+          console.warn('Failed to set sidebar cookie:', error)
+        }
       },
       [setOpenProp, open]
     )
