@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { TopNav } from '@/components/layout/top-nav'
-import { ModeToggle } from '@/components/mode-toggle'
 import { Overview } from './components/overview'
 import { RecentSales } from './components/recent-sales'
 
@@ -20,9 +19,6 @@ export default function Dashboard() {
       {/* ===== Top Heading ===== */}
       <Header>
         <TopNav links={topNav} />
-        <div className='ml-auto flex items-center space-x-4'>
-          <ModeToggle />
-        </div>
       </Header>
 
       {/* ===== Main ===== */}

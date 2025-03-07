@@ -14,9 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { ModeToggle } from '@/components/mode-toggle'
 import { apps } from './data/apps'
 
 const appText = new Map<string, string>([
@@ -47,13 +45,6 @@ export default function Apps() {
 
   return (
     <>
-      {/* ===== Top Heading ===== */}
-      <Header>
-        <div className='ml-auto flex items-center gap-4'>
-          <ModeToggle />
-        </div>
-      </Header>
-
       {/* ===== Content ===== */}
       <Main fixed>
         <div>

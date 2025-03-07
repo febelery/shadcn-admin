@@ -3,7 +3,9 @@ import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import { useAuthStore } from '@/stores/auth'
 import { cn } from '@/lib/utils'
 import { SearchProvider } from '@/context/search-context'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { SidebarProvider } from '@/components/ui/sidebar'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import SkipToMain from '@/components/skip-to-main'
 
@@ -22,9 +24,14 @@ export const Route = createFileRoute('/_authenticated')({
 
 function RouteComponent() {
   const defaultOpen = Cookies.get('sidebar:state') !== 'false'
+  const isMobile = useIsMobile()
+
   return (
     <SearchProvider>
       <SidebarProvider defaultOpen={defaultOpen}>
+        {isMobile && (
+          <SidebarTrigger className='bg-background/95 supports-backdrop-filter:bg-background/60 fixed top-4 left-4 z-50 rounded-lg p-2 shadow-md backdrop-blur-sm' />
+        )}
         <SkipToMain />
         <AppSidebar />
         <div
