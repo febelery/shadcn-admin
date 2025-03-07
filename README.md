@@ -15,11 +15,12 @@
 ## 技术栈
 
 - React 19
-- TypeScript 5
-- Vite 5
+- TypeScript
+- Vite
 - TailwindCSS
 - Shadcn/UI
 - Framer Motion
+- msw
 
 ## 项目结构
 
