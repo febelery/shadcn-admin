@@ -34,7 +34,7 @@ export function NavAction({
           <SidebarMenuItem key='侧边栏'>
             <SidebarMenuButton size='sm' onClick={toggleSidebar}>
               <PanelLeft />
-              <span>收起菜单</span>
+              <span>切换侧边栏</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
