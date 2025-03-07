@@ -16,8 +16,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { ThemeSwitch } from '@/components/mode-toggle'
-import { Search } from '@/components/search'
+import { ModeToggle } from '@/components/mode-toggle'
 import { apps } from './data/apps'
 
 const appText = new Map<string, string>([
@@ -50,9 +49,8 @@ export default function Apps() {
     <>
       {/* ===== Top Heading ===== */}
       <Header>
-        <Search />
         <div className='ml-auto flex items-center gap-4'>
-          <ThemeSwitch />
+          <ModeToggle />
         </div>
       </Header>
 

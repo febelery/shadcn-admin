@@ -2,7 +2,7 @@ import { IconMoon, IconSun } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/components/theme-provider'
 
-export function ThemeSwitch() {
+export function ModeToggle() {
   const { theme, setTheme } = useTheme()
 
   const toggleTheme = () => {

@@ -21,8 +21,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { ThemeSwitch } from '@/components/mode-toggle'
-import { Search } from '@/components/search'
+import { ModeToggle } from '@/components/mode-toggle'
 import { NewChat } from './components/new-chat'
 import { type ChatUser, type Convo } from './data/chat-types'
 // Fake Data
@@ -65,9 +64,8 @@ export default function Chats() {
     <>
       {/* ===== Top Heading ===== */}
       <Header>
-        <Search />
         <div className='ml-auto flex items-center space-x-4'>
-          <ThemeSwitch />
+          <ModeToggle />
         </div>
       </Header>
 
