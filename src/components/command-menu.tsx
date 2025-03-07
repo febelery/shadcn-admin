@@ -76,17 +76,17 @@ export function CommandMenu() {
             </CommandGroup>
           ))}
           <CommandSeparator />
-          <CommandGroup heading='Theme'>
+          <CommandGroup heading='主题'>
             <CommandItem onSelect={() => runCommand(() => setTheme('light'))}>
-              <IconSun /> <span>Light</span>
+              <IconSun /> <span>浅色</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => setTheme('dark'))}>
               <IconMoon className='scale-90' />
-              <span>Dark</span>
+              <span>深色</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => setTheme('system'))}>
               <IconDeviceLaptop />
-              <span>System</span>
+              <span>系统</span>
             </CommandItem>
           </CommandGroup>
         </ScrollArea>
