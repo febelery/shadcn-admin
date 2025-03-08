@@ -4,8 +4,7 @@ import { useAuthStore } from '@/stores/auth'
 import { cn } from '@/lib/utils'
 import { SearchProvider } from '@/context/search-context'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { SidebarProvider } from '@/components/ui/sidebar'
-import { SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 
 export const Route = createFileRoute('/_authenticated')({
@@ -31,7 +30,7 @@ function RouteComponent() {
         {isMobile && (
           <SidebarTrigger className='bg-background/95 supports-backdrop-filter:bg-background/60 fixed top-4 left-4 z-50 rounded-lg p-2 shadow-md backdrop-blur-sm' />
         )}
-        <AppSidebar />
+        <AppSidebar variant='sidebar' />
         <div
           id='content'
           className={cn(
