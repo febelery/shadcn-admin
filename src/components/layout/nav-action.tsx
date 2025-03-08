@@ -27,14 +27,14 @@ export function NavAction({
             <SidebarMenuButton size='sm' onClick={toggleTheme}>
               <IconSun className='size-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90' />
               <IconMoon className='absolute size-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0' />
-              <span>{theme == 'dark' ? '深色' : '浅色'}主题</span>
+              <span>{theme == 'light' ? '深色' : '浅色'}主题</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem key='侧边栏'>
             <SidebarMenuButton size='sm' onClick={toggleSidebar}>
               <PanelLeft />
-              <span>切换侧边栏</span>
+              <span>折叠侧边栏</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
