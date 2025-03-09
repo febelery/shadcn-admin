@@ -5,6 +5,7 @@ import { Link } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
+import Editor from '@/components/ui/editor'
 import {
   Form,
   FormControl,
@@ -22,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 
 const profileFormSchema = z.object({
   username: z
@@ -135,21 +135,19 @@ export default function ProfileForm() {
             <FormItem>
               <FormLabel>Bio</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder='Tell us a little bit about yourself'
-                  className='resize-none'
-                  {...field}
+                <Editor
+                  placeholder='告诉我们一些关于你自己的信息'
+                  value={field.value}
+                  onChange={field.onChange}
+                  light={true}
                 />
               </FormControl>
-              <FormDescription>
-                You can <span>@mention</span> other users and organizations to
-                link to them.
-              </FormDescription>
+              <FormDescription>富文本编辑器。</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div>
+        <div className='space-y-1'>
           {fields.map((field, index) => (
             <FormField
               control={form.control}
