@@ -9,11 +9,12 @@ import {
 } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import '@/services/interceptor'
+import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth'
 import { handleServerError } from '@/utils/handle-server-error'
-import { toast } from '@/hooks/use-toast'
 import { ThemeProvider } from './components/theme-provider'
 import './index.css'
+import { setupGlobalZodMessages } from './lib/zod-messages'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
 
@@ -44,13 +45,9 @@ const queryClient = new QueryClient({
     mutations: {
       onError: (error) => {
         handleServerError(error)
-
         if (error instanceof AxiosError) {
           if (error.response?.status === 304) {
-            toast({
-              variant: 'destructive',
-              title: 'Content not modified!',
-            })
+            toast.error('内容未修改')
           }
         }
       },
@@ -60,23 +57,20 @@ const queryClient = new QueryClient({
     onError: (error) => {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
-          toast({
-            variant: 'destructive',
-            title: 'Session expired!',
-          })
+          toast.error('登陆信息已过期')
           useAuthStore.getState().reset()
           const redirect = `${router.history.location.href}`
           router.navigate({ to: '/login', search: { redirect } })
         }
         if (error.response?.status === 500) {
-          toast({
-            variant: 'destructive',
-            title: 'Internal Server Error!',
-          })
+          toast.error('服务器错误')
           router.navigate({ to: '/500' })
         }
         if (error.response?.status === 403) {
-          // router.navigate("/forbidden", { replace: true });
+          router.navigate({
+            to: '/403',
+            replace: true,
+          })
         }
       }
     },
@@ -111,6 +105,9 @@ const enableMocking = async () => {
     onUnhandledRequest: 'bypass',
   })
 }
+
+// 设置全局 Zod 错误消息
+setupGlobalZodMessages()
 
 // Render the app
 const rootElement = document.getElementById('root')!
