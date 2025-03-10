@@ -3,7 +3,7 @@ import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
 import GeneralError from '@/pages/errors/general-error'
 import NotFoundError from '@/pages/errors/not-found-error'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { TanStackRouterDevtools } from '@tanstack/router-devtools'
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { Toaster as ToasterSonner } from '@/components/ui/sonner'
 import { Toaster } from '@/components/ui/toaster'
 
