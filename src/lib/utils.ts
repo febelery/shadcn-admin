@@ -9,79 +9,6 @@ export const buildMockApiUrl = (path: string) => {
   return `${import.meta.env.VITE_API_BASE_URL}${path}`
 }
 
-export type FileType =
-  | 'image'
-  | 'video'
-  | 'pdf'
-  | 'word'
-  | 'excel'
-  | 'powerpoint'
-  | 'audio'
-  | 'archive'
-  | 'text'
-  | 'unknown'
-
-const FILE_EXTENSION_MAP: Record<FileType, string[]> = {
-  image: [
-    'jpg',
-    'jpeg',
-    'png',
-    'gif',
-    'bmp',
-    'webp',
-    'heif',
-    'heic',
-    'svg',
-    'ico',
-  ],
-  video: [
-    'mp4',
-    'webm',
-    'ogg',
-    'mov',
-    'avi',
-    'flv',
-    'wmv',
-    'mkv',
-    '3gp',
-    'm4v',
-  ],
-  pdf: ['pdf'],
-  word: ['doc', 'docx', 'rtf'],
-  excel: ['xls', 'xlsx', 'csv'],
-  powerpoint: ['ppt', 'pptx'],
-  audio: ['mp3', 'wav', 'aac', 'ogg', 'm4a', 'flac', 'wma'],
-  archive: ['zip', 'rar', '7z', 'tar', 'gz', 'bz2'],
-  text: ['txt', 'md', 'json', 'xml', 'html', 'css', 'js', 'ts'],
-  unknown: [],
-}
-
-const EXTENSION_TO_TYPE = Object.entries(FILE_EXTENSION_MAP).reduce(
-  (acc, [type, extensions]) => {
-    extensions.forEach((ext) => {
-      acc[ext] = type as FileType
-    })
-    return acc
-  },
-  {} as Record<string, FileType>
-)
-
-export const getUrlType = (url: string): FileType => {
-  try {
-    const pathname = new URL(url).pathname
-    const extensionMatch = pathname.match(/\.([a-zA-Z0-9]+)(?:[?#]|$)/)
-    const extension = extensionMatch ? extensionMatch[1].toLowerCase() : ''
-
-    return EXTENSION_TO_TYPE[extension] || 'unknown'
-  } catch {
-    return 'unknown'
-  }
-}
-
-// 通用的上传相关工具函数
-export const sleep = (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms))
-
 export const fetchWithRetries = async (
   url: string,
   maxRetries = 6,
@@ -96,8 +23,62 @@ export const fetchWithRetries = async (
       return response
     } catch (error) {
       if (attempt === maxRetries - 1) throw error
-      await sleep(baseDelay * Math.pow(2, attempt))
+      await new Promise((resolve) =>
+        setTimeout(resolve, baseDelay * Math.pow(2, attempt))
+      )
     }
   }
   throw new Error('Fetch failed after retries')
+}
+
+export const getMimeTypeFromUrl = (url: string): string => {
+  // 去掉查询参数和锚点
+  const cleanUrl = url.split('?')[0].split('#')[0]
+  const extension = cleanUrl.split('.').pop()?.toLowerCase()
+
+  const mimeTypes: { [key: string]: string } = {
+    // 图片
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    svg: 'image/svg+xml',
+    // 视频
+    mp4: 'video/mp4',
+    webm: 'video/webm',
+    ogg: 'video/ogg',
+    // 音频
+    mp3: 'audio/mpeg',
+    wav: 'audio/wav',
+    flac: 'audio/flac',
+    // 文档
+    pdf: 'application/pdf',
+    txt: 'text/plain',
+    html: 'text/html',
+    htm: 'text/html',
+    css: 'text/css',
+    js: 'application/javascript',
+    json: 'application/json',
+    xml: 'application/xml',
+    // Office 文件
+    doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xls: 'application/vnd.ms-excel',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ppt: 'application/vnd.ms-powerpoint',
+    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    // 压缩包
+    zip: 'application/zip',
+    rar: 'application/vnd.rar',
+    '7z': 'application/x-7z-compressed',
+    tar: 'application/x-tar',
+    gz: 'application/gzip',
+  }
+
+  if (extension && mimeTypes[extension]) {
+    return mimeTypes[extension]
+  }
+
+  return 'application/octet-stream'
 }

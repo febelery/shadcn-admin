@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from '@tanstack/react-router'
+import { FileType } from '@/lib/file'
 import { cn } from '@/lib/utils'
 import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { FileUpload } from '@/components/file/upload'
 
 const profileFormSchema = z.object({
   username: z.string().min(2).max(30, {
@@ -34,6 +36,7 @@ const profileFormSchema = z.object({
     })
     .email(),
   bio: z.string().max(160).min(4),
+  avatars: z.array(z.string().url()),
   urls: z
     .array(
       z.object({
@@ -51,6 +54,9 @@ const defaultValues: Partial<ProfileFormValues> = {
   urls: [
     { value: 'https://shadcn.com' },
     { value: 'http://twitter.com/shadcn' },
+  ],
+  avatars: [
+    'https://gw.alipayobjects.com/zos/antfincdn/LlvErxo8H9/photo-1503185912284-5271ff81b9a8.webp',
   ],
 }
 
@@ -139,6 +145,26 @@ export default function ProfileForm() {
               </FormControl>
               <FormDescription>富文本编辑器。</FormDescription>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name='avatars'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>头像</FormLabel>
+              <FormControl>
+                <FileUpload
+                  value={field.value}
+                  onChange={(files) => {
+                    field.onChange(files)
+                  }}
+                  listType='card'
+                  maxCount={10}
+                  acceptTypes={[FileType.IMAGE, FileType.VIDEO, FileType.AUDIO]}
+                />
+              </FormControl>
             </FormItem>
           )}
         />
