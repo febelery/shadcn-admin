@@ -1,4 +1,4 @@
-import { IconSearch } from '@tabler/icons-react'
+import { SearchIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSearch } from '@/context/search-context'
 import { Label } from '@/components/ui/label'
@@ -23,7 +23,7 @@ export function Search({ className = '', placeholder = '搜索' }: Props) {
           className='flex h-8 w-8 items-center justify-center rounded-md'
           onClick={() => setOpen(true)}
         >
-          <IconSearch size={18} className='text-muted-foreground' />
+          <SearchIcon size={18} className='text-muted-foreground' />
           <span className='sr-only'>{placeholder}</span>
         </Button>
         <Separator />
@@ -41,7 +41,7 @@ export function Search({ className = '', placeholder = '搜索' }: Props) {
           )}
           onClick={() => setOpen(true)}
         >
-          <IconSearch
+          <SearchIcon
             size={18}
             aria-hidden='true'
             className='text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 select-none'

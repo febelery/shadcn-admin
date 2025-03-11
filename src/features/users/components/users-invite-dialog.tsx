@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { IconMailPlus, IconSend } from '@tabler/icons-react'
+import { MailPlusIcon, SendIcon } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import {
@@ -71,7 +71,7 @@ export function UsersInviteDialog({ open, onOpenChange }: Props) {
       <DialogContent className='sm:max-w-md'>
         <DialogHeader className='text-left'>
           <DialogTitle className='flex items-center gap-2'>
-            <IconMailPlus /> Invite User
+            <MailPlusIcon /> Invite User
           </DialogTitle>
           <DialogDescription>
             Invite new user to join your team by sending them an email
@@ -144,7 +144,7 @@ export function UsersInviteDialog({ open, onOpenChange }: Props) {
             <Button variant='outline'>Cancel</Button>
           </DialogClose>
           <Button type='submit' form='user-invite-form'>
-            Invite <IconSend />
+            Invite <SendIcon size={18} />
           </Button>
         </DialogFooter>
       </DialogContent>

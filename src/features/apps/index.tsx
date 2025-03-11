@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import {
-  IconAdjustmentsHorizontal,
-  IconSortAscendingLetters,
-  IconSortDescendingLetters,
-} from '@tabler/icons-react'
+  Settings2Icon,
+  ArrowUpDownIcon,
+  ArrowDownUpIcon,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -78,19 +78,19 @@ export default function Apps() {
           <Select value={sort} onValueChange={setSort}>
             <SelectTrigger className='w-16'>
               <SelectValue>
-                <IconAdjustmentsHorizontal size={18} />
+                <Settings2Icon size={18} />
               </SelectValue>
             </SelectTrigger>
             <SelectContent align='end'>
               <SelectItem value='ascending'>
                 <div className='flex items-center gap-4'>
-                  <IconSortAscendingLetters size={16} />
+                  <ArrowUpDownIcon size={16} />
                   <span>Ascending</span>
                 </div>
               </SelectItem>
               <SelectItem value='descending'>
                 <div className='flex items-center gap-4'>
-                  <IconSortDescendingLetters size={16} />
+                  <ArrowDownUpIcon size={16} />
                   <span>Descending</span>
                 </div>
               </SelectItem>

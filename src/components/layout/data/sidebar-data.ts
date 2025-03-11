@@ -1,17 +1,17 @@
 import {
-  IconBrowserCheck,
-  IconChecklist,
-  IconHelp,
-  IconLayoutDashboard,
-  IconMessages,
-  IconNotification,
-  IconPackages,
-  IconPalette,
-  IconSettings,
-  IconTool,
-  IconUserCog,
-  IconUsers,
-} from '@tabler/icons-react'
+  ListCheckIcon,
+  HelpCircleIcon,
+  MessageSquareIcon,
+  BellIcon,
+  LayoutDashboardIcon,
+  PackageIcon,
+  PaletteIcon,
+  SettingsIcon,
+  WrenchIcon,
+  UserCogIcon,
+  UsersIcon,
+  MonitorCogIcon,
+} from 'lucide-react'
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
@@ -22,28 +22,28 @@ export const sidebarData: SidebarData = {
         {
           title: 'Dashboard',
           url: '/',
-          icon: IconLayoutDashboard,
+          icon: LayoutDashboardIcon,
         },
         {
           title: 'Tasks',
           url: '/tasks',
-          icon: IconChecklist,
+          icon: ListCheckIcon,
         },
         {
           title: 'Apps',
           url: '/apps',
-          icon: IconPackages,
+          icon: PackageIcon,
         },
         {
           title: 'Chats',
           url: '/chats',
           badge: '3',
-          icon: IconMessages,
+          icon: MessageSquareIcon,
         },
         {
           title: 'Users',
           url: '/users',
-          icon: IconUsers,
+          icon: UsersIcon,
         },
       ],
     },
@@ -52,39 +52,39 @@ export const sidebarData: SidebarData = {
       items: [
         {
           title: 'Settings',
-          icon: IconSettings,
+          icon: SettingsIcon,
           items: [
             {
               title: 'Profile',
               url: '/settings',
-              icon: IconUserCog,
+              icon: UserCogIcon,
             },
             {
               title: 'Account',
               url: '/settings/account',
-              icon: IconTool,
+              icon: WrenchIcon,
             },
             {
               title: 'Appearance',
               url: '/settings/appearance',
-              icon: IconPalette,
+              icon: PaletteIcon,
             },
             {
               title: 'Notifications',
               url: '/settings/notifications',
-              icon: IconNotification,
+              icon: BellIcon,
             },
             {
               title: 'Display',
               url: '/settings/display',
-              icon: IconBrowserCheck,
+              icon: MonitorCogIcon,
             },
           ],
         },
         {
           title: 'Help Center',
           url: '/help-center',
-          icon: IconHelp,
+          icon: HelpCircleIcon,
         },
       ],
     },
