@@ -249,22 +249,40 @@ export const FileUpload = ({
             onClick={() => previewFile(file)}
           >
             {isFileType(file, FileType.IMAGE) && file.url ? (
-              <div className='bg-muted/20 relative h-full w-full'>
+              <div
+                className={cn(
+                  'bg-muted/20 relative h-full w-full',
+                  'bg-blue-500/20'
+                )}
+              >
                 <img
                   src={file.url}
                   alt={file.name}
                   className='h-full w-full object-cover'
+                  onError={(e) => {
+                    // 图片加载失败时移除 src，显示背景色
+                    e.currentTarget.style.display = 'none'
+                  }}
                 />
                 <div className='bg-foreground/5 absolute inset-0 flex items-center justify-center'>
                   <FileTypeIcon file={file} />
                 </div>
               </div>
             ) : isFileType(file, FileType.VIDEO) && file.url ? (
-              <div className='bg-muted/20 relative h-full w-full'>
+              <div
+                className={cn(
+                  'bg-muted/20 relative h-full w-full',
+                  'bg-blue-500/20'
+                )}
+              >
                 <img
                   src={file.url + '?vframe/png/offset/0'}
                   alt={file.name}
                   className='h-full w-full object-cover'
+                  onError={(e) => {
+                    // 视频封面加载失败时移除 src，显示背景色
+                    e.currentTarget.style.display = 'none'
+                  }}
                 />
                 <div className='bg-foreground/5 absolute inset-0 flex items-center justify-center'>
                   <FileTypeIcon file={file} />
@@ -336,23 +354,39 @@ export const FileUpload = ({
           onClick={() => file.status === 'done' && previewFile(file)}
         >
           {isFileType(file, FileType.IMAGE) && file.url ? (
-            <div className='relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md'>
+            <div
+              className={cn(
+                'relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md',
+                'bg-blue-500/20'
+              )}
+            >
               <img
                 src={file.url}
                 alt={file.name}
                 className='h-full w-full object-cover'
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                }}
               />
               <div className='bg-foreground/5 absolute inset-0 flex items-center justify-center'>
                 <FileTypeIcon file={file} size={16} />
               </div>
             </div>
           ) : isFileType(file, FileType.VIDEO) && file.url ? (
-            <div className='relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md'>
+            <div
+              className={cn(
+                'relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md',
+                'bg-blue-500/20'
+              )}
+            >
               <div className='absolute inset-0 flex items-center justify-center bg-black/30'>
                 <img
                   src={file.url + '?vframe/png/offset/0'}
                   alt={file.name}
                   className='h-full w-full object-cover'
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                  }}
                 />
                 <div className='bg-foreground/5 absolute inset-0 flex items-center justify-center'>
                   <FileTypeIcon file={file} size={16} />
@@ -507,7 +541,7 @@ export const FileUpload = ({
   )
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn('space-y-6 select-none', className)}>
       {listType === 'list' && fileList.length < maxCount && <UploadArea />}
       {listType === 'card'
         ? renderCardMode()

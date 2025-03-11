@@ -57,6 +57,7 @@ const defaultValues: Partial<ProfileFormValues> = {
   ],
   avatars: [
     'https://gw.alipayobjects.com/zos/antfincdn/LlvErxo8H9/photo-1503185912284-5271ff81b9a8.webp',
+    'https://vodpub6.v.news.cn/yqfbzx-original/20230922/20230922be3bb397c3a344769e52e6e1b569178d_40f92446eef440d7815697bc6dce6a22.mp4',
   ],
 }
 
