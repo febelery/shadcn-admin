@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Home, Search } from 'lucide-react'
+import { ArrowLeft, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Globe } from '@/components/magicui/globe'
 import HyperText from '@/components/magicui/hyper-text'
