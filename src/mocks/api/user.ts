@@ -19,7 +19,7 @@ export default [
 
     return HttpResponse.json(
       {
-        avatar: 'https://wximg.chuanbaoguancha.cn/FiTobW1ALPNQB8NfnK_bGCx-onth',
+        avatar: 'https://wximg.chuanbaoguancha.cn/mkt/cgxw-108a6c4a-Su.png',
         expire_at: 1731989664,
         name: 'Ross',
         nickname: 'Ross',
@@ -48,7 +48,7 @@ export default [
 
     return HttpResponse.json(
       {
-        avatar: 'https://wximg.chuanbaoguancha.cn/FiTobW1ALPNQB8NfnK_bGCx-onth',
+        avatar: 'https://wximg.chuanbaoguancha.cn/mkt/cgxw-108a6c4a-Su.png',
         expire_at: 1731989664,
         name: 'Ross',
         nickname: 'Ross',
@@ -93,7 +93,7 @@ export default [
         name: 'Ross',
         nickname: 'Ross',
         provider: 'admin',
-        avatar: 'https://wximg.chuanbaoguancha.cn/FiTobW1ALPNQB8NfnK_bGCx-onth',
+        avatar: 'https://wximg.chuanbaoguancha.cn/mkt/cgxw-108a6c4a-Su.png',
         created_at: '2024-02-19 10:55:05',
       },
       {
