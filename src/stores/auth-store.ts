@@ -1,13 +1,14 @@
 import { create } from 'zustand'
+import axios from 'axios'
 import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
 
-const ACCESS_TOKEN = 'thisisjustarandomstring'
+const ACCESS_TOKEN = 'access_token'
 
 interface AuthUser {
-  accountNo: string
+  name: string
   email: string
+  avatar: string
   role: string[]
-  exp: number
 }
 
 interface AuthState {
@@ -18,12 +19,14 @@ interface AuthState {
     setAccessToken: (accessToken: string) => void
     resetAccessToken: () => void
     reset: () => void
+    login: (data: { name: string; password: string }) => Promise<void>
+    logout: () => Promise<void>
   }
 }
 
-export const useAuthStore = create<AuthState>()((set) => {
+export const useAuthStore = create<AuthState>()((set, get) => {
   const cookieState = getCookie(ACCESS_TOKEN)
-  const initToken = cookieState ? JSON.parse(cookieState) : ''
+  const initToken = cookieState ? cookieState : ''
   return {
     auth: {
       user: null,
@@ -32,7 +35,7 @@ export const useAuthStore = create<AuthState>()((set) => {
       accessToken: initToken,
       setAccessToken: (accessToken) =>
         set((state) => {
-          setCookie(ACCESS_TOKEN, JSON.stringify(accessToken))
+          setCookie(ACCESS_TOKEN, accessToken)
           return { ...state, auth: { ...state.auth, accessToken } }
         }),
       resetAccessToken: () =>
@@ -48,6 +51,28 @@ export const useAuthStore = create<AuthState>()((set) => {
             auth: { ...state.auth, user: null, accessToken: '' },
           }
         }),
+      login: async (data) => {
+        try {
+          const response = await axios.post('/api/login', data)
+          const { user, accessToken } = response.data
+          set((state) => {
+            setCookie(ACCESS_TOKEN, accessToken)
+            return {
+              ...state,
+              auth: { ...state.auth, user, accessToken },
+            }
+          })
+        } catch (error) {
+          if (axios.isAxiosError(error) && error.response) {
+             throw error.response.data
+          }
+          throw error
+        }
+      },
+      logout: async () => {
+        await axios.post('/api/logout')
+        get().auth.reset()
+      },
     },
   }
 })
