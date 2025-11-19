@@ -90,18 +90,39 @@ declare module '@tanstack/react-router' {
 // Render the app
 const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
-  root.render(
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <FontProvider>
-            <DirectionProvider>
-              <RouterProvider router={router} />
-            </DirectionProvider>
-          </FontProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </StrictMode>
-  )
+  const renderApp = () => {
+    const root = ReactDOM.createRoot(rootElement)
+    root.render(
+      <StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <FontProvider>
+              <DirectionProvider>
+                <RouterProvider router={router} />
+              </DirectionProvider>
+            </FontProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </StrictMode>
+    )
+  }
+
+  // Enable mocking in development
+  if (import.meta.env.DEV) {
+    import('./mocks/browser')
+      .then(({ worker }) => {
+        return worker.start({
+          onUnhandledRequest: 'bypass',
+        })
+      })
+      .then(() => {
+        renderApp()
+      })
+      .catch((error) => {
+        console.error('Failed to start MSW worker:', error)
+        renderApp()
+      })
+  } else {
+    renderApp()
+  }
 }
