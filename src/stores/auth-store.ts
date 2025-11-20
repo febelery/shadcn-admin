@@ -1,5 +1,5 @@
-import { create } from 'zustand'
 import axios from 'axios'
+import { create } from 'zustand'
 import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
 
 const ACCESS_TOKEN = 'access_token'
@@ -21,6 +21,7 @@ interface AuthState {
     reset: () => void
     login: (data: { name: string; password: string }) => Promise<void>
     logout: () => Promise<void>
+    fetchUser: () => Promise<void>
   }
 }
 
@@ -64,7 +65,7 @@ export const useAuthStore = create<AuthState>()((set, get) => {
           })
         } catch (error) {
           if (axios.isAxiosError(error) && error.response) {
-             throw error.response.data
+            throw error.response.data
           }
           throw error
         }
@@ -72,6 +73,21 @@ export const useAuthStore = create<AuthState>()((set, get) => {
       logout: async () => {
         await axios.post('/api/logout')
         get().auth.reset()
+      },
+      fetchUser: async () => {
+        try {
+          const response = await axios.get('/api/me')
+          const user = response.data
+          set((state) => ({
+            ...state,
+            auth: { ...state.auth, user },
+          }))
+        } catch (error) {
+          // 如果获取用户信息失败，清除 token
+          if (axios.isAxiosError(error) && error.response?.status === 401) {
+            get().auth.reset()
+          }
+        }
       },
     },
   }

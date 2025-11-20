@@ -1,10 +1,12 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { AuthenticatedLayout } from '@/components/layout/authenticated-layout'
 import { useAuthStore } from '@/stores/auth-store'
+import { AuthenticatedLayout } from '@/components/layout/authenticated-layout'
 
 export const Route = createFileRoute('/_authenticated')({
-  beforeLoad: ({ location }) => {
-    const { isLogged } = { isLogged: !!useAuthStore.getState().auth.accessToken }
+  beforeLoad: async ({ location }) => {
+    const authStore = useAuthStore.getState()
+    const { isLogged } = { isLogged: !!authStore.auth.accessToken }
+
     if (!isLogged) {
       throw redirect({
         to: '/sign-in',
@@ -12,6 +14,11 @@ export const Route = createFileRoute('/_authenticated')({
           redirect: location.href,
         },
       })
+    }
+
+    // 如果已登录但没有用户信息，尝试获取
+    if (!authStore.auth.user) {
+      await authStore.auth.fetchUser()
     }
   },
   component: AuthenticatedLayout,
