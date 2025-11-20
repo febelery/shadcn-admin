@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { ArrowRight, ChevronRight } from 'lucide-react'
 import { useSearch } from '@/context/search-provider'
+import { useSidebarData } from '@/hooks/use-sidebar-data'
 import {
   CommandDialog,
   CommandEmpty,
@@ -11,12 +12,12 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
-import { sidebarData } from './layout/data/sidebar-data'
 import { ScrollArea } from './ui/scroll-area'
 
 export function CommandMenu() {
   const navigate = useNavigate()
   const { open, setOpen } = useSearch()
+  const { sidebarData } = useSidebarData()
 
   const runCommand = React.useCallback(
     (command: () => unknown) => {
@@ -41,7 +42,7 @@ export function CommandMenu() {
                       key={`${navItem.url}-${i}`}
                       value={navItem.title}
                       onSelect={() => {
-                        runCommand(() => navigate({ to: navItem.url }))
+                        runCommand(() => navigate({ to: navItem.url! }))
                       }}
                     >
                       <div className='flex size-4 items-center justify-center'>
@@ -56,7 +57,7 @@ export function CommandMenu() {
                     key={`${navItem.title}-${subItem.url}-${i}`}
                     value={`${navItem.title}-${subItem.url}`}
                     onSelect={() => {
-                      runCommand(() => navigate({ to: subItem.url }))
+                      runCommand(() => navigate({ to: subItem.url! }))
                     }}
                   >
                     <div className='flex size-4 items-center justify-center'>

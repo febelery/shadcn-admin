@@ -4,7 +4,7 @@ type NavItem = {
   title: string
   url?: LinkProps['to'] | (string & {})
   badge?: string
-  icon?: React.ElementType
+  icon?: string
   items?: NavItem[]
 }
 

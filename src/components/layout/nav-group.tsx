@@ -6,6 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import { DynamicIcon } from '@/components/ui/dynamic-icon'
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -75,7 +76,7 @@ function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
         tooltip={item.title}
       >
         <Link to={item.url} onClick={() => setOpenMobile(false)}>
-          {item.icon && <item.icon />}
+          {item.icon && <DynamicIcon name={item.icon} />}
           <span>{item.title}</span>
           {item.badge && <NavBadge>{item.badge}</NavBadge>}
         </Link>
@@ -101,7 +102,7 @@ function SidebarMenuCollapsible({
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
           <SidebarMenuButton tooltip={item.title}>
-            {item.icon && <item.icon />}
+            {item.icon && <DynamicIcon name={item.icon} />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
             <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180' />
@@ -120,7 +121,7 @@ function SidebarMenuCollapsible({
                     <div>
                       <CollapsibleTrigger asChild>
                         <SidebarMenuSubButton className='cursor-pointer'>
-                          {subItem.icon && <subItem.icon />}
+                          {subItem.icon && <DynamicIcon name={subItem.icon} />}
                           <span>{subItem.title}</span>
                           {subItem.badge && (
                             <NavBadge>{subItem.badge}</NavBadge>
@@ -153,7 +154,7 @@ function SidebarMenuCollapsible({
                       to={subItem.url!}
                       onClick={() => setOpenMobile(false)}
                     >
-                      {subItem.icon && <subItem.icon />}
+                      {subItem.icon && <DynamicIcon name={subItem.icon} />}
                       <span>{subItem.title}</span>
                       {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
                     </Link>
@@ -186,7 +187,7 @@ function RecursiveSidebarMenuSubItem({
         <div>
           <CollapsibleTrigger asChild>
             <SidebarMenuSubButton>
-              {item.icon && <item.icon />}
+              {item.icon && <DynamicIcon name={item.icon} />}
               <span>{item.title}</span>
               {item.badge && <NavBadge>{item.badge}</NavBadge>}
               <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180' />
@@ -209,7 +210,7 @@ function RecursiveSidebarMenuSubItem({
   return (
     <SidebarMenuSubButton asChild isActive={checkIsActive(href, item)}>
       <Link to={item.url!} onClick={() => setOpenMobile(false)}>
-        {item.icon && <item.icon />}
+        {item.icon && <DynamicIcon name={item.icon} />}
         <span>{item.title}</span>
         {item.badge && <NavBadge>{item.badge}</NavBadge>}
       </Link>
@@ -232,7 +233,7 @@ function SidebarMenuCollapsedDropdown({
             tooltip={item.title}
             isActive={checkIsActive(href, item)}
           >
-            {item.icon && <item.icon />}
+            {item.icon && <DynamicIcon name={item.icon} />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
             <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
@@ -248,7 +249,7 @@ function SidebarMenuCollapsedDropdown({
               {sub.items ? (
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
-                    {sub.icon && <sub.icon />}
+                    {sub.icon && <DynamicIcon name={sub.icon} />}
                     <span>{sub.title}</span>
                     {sub.badge && <NavBadge>{sub.badge}</NavBadge>}
                   </DropdownMenuSubTrigger>
@@ -267,7 +268,7 @@ function SidebarMenuCollapsedDropdown({
                   to={sub.url!}
                   className={`${checkIsActive(href, sub) ? 'bg-secondary' : ''}`}
                 >
-                  {sub.icon && <sub.icon />}
+                  {sub.icon && <DynamicIcon name={sub.icon} />}
                   <span className='max-w-52 text-wrap'>{sub.title}</span>
                   {sub.badge && (
                     <span className='ms-auto text-xs'>{sub.badge}</span>
@@ -293,7 +294,7 @@ function RecursiveDropdownMenuItem({
     return (
       <DropdownMenuSub>
         <DropdownMenuSubTrigger>
-          {item.icon && <item.icon />}
+          {item.icon && <DynamicIcon name={item.icon} />}
           <span>{item.title}</span>
           {item.badge && <NavBadge>{item.badge}</NavBadge>}
         </DropdownMenuSubTrigger>
@@ -316,7 +317,7 @@ function RecursiveDropdownMenuItem({
         to={item.url!}
         className={`${checkIsActive(href, item) ? 'bg-secondary' : ''}`}
       >
-        {item.icon && <item.icon />}
+        {item.icon && <DynamicIcon name={item.icon} />}
         <span className='max-w-52 text-wrap'>{item.title}</span>
         {item.badge && <span className='ms-auto text-xs'>{item.badge}</span>}
       </Link>
