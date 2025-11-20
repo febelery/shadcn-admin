@@ -7,8 +7,19 @@ import { LongText } from '@/components/long-text'
 import { callTypes, roles } from '../data/data'
 import { type User } from '../data/schema'
 import { DataTableRowActions } from './data-table-row-actions'
+import { DragHandle } from './drag-handle'
 
 export const usersColumns: ColumnDef<User>[] = [
+  {
+    id: 'drag',
+    header: () => null,
+    cell: ({ row }) => <DragHandle id={row.original.id} />,
+    enableSorting: false,
+    enableHiding: false,
+    meta: {
+      className: 'w-10',
+    },
+  },
   {
     id: 'select',
     header: ({ table }) => (
