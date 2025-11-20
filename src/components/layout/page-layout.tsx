@@ -1,6 +1,5 @@
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler'
 import { ConfigDrawer } from '@/components/config-drawer'
-import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { Header } from './header'
 import { Main } from './main'
@@ -50,7 +49,6 @@ export function PageLayout({
             <div className='ms-auto flex items-center space-x-4'>
               <AnimatedThemeToggler />
               <ConfigDrawer />
-              <ProfileDropdown />
             </div>
           </>
         )}
