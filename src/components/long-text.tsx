@@ -26,7 +26,7 @@ export function LongText({
   const ref = useRef<HTMLDivElement>(null)
   const [isOverflown, setIsOverflown] = useState(false)
 
-  // Use ref callback to check overflow when element is mounted
+  // 使用 ref 回调在元素挂载时检查溢出
   const refCallback = (node: HTMLDivElement | null) => {
     ref.current = node
     if (node && checkOverflow(node)) {

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { User } from './data/schema'
+import { type User } from './data/schema'
 
 export const getUsers = async (): Promise<User[]> => {
   const response = await axios.get('/api/users')

@@ -41,40 +41,40 @@ export function UsersDeleteDialog({
             className='stroke-destructive me-1 inline-block'
             size={18}
           />{' '}
-          Delete User
+          删除用户
         </span>
       }
       desc={
         <div className='space-y-4'>
           <p className='mb-2'>
-            Are you sure you want to delete{' '}
-            <span className='font-bold'>{currentRow.username}</span>?
+            您确定要删除{' '}
+            <span className='font-bold'>{currentRow.username}</span> 吗？
             <br />
-            This action will permanently remove the user with the role of{' '}
+            此操作将永久删除角色为{' '}
             <span className='font-bold'>
               {currentRow.role.toUpperCase()}
             </span>{' '}
-            from the system. This cannot be undone.
+            的用户。此操作无法撤销。
           </p>
 
           <Label className='my-2'>
-            Username:
+            用户名：
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder='Enter username to confirm deletion.'
+              placeholder='输入用户名以确认删除。'
             />
           </Label>
 
           <Alert variant='destructive'>
-            <AlertTitle>Warning!</AlertTitle>
+            <AlertTitle>警告！</AlertTitle>
             <AlertDescription>
-              Please be careful, this operation can not be rolled back.
+              请注意，此操作无法回滚。
             </AlertDescription>
           </Alert>
         </div>
       }
-      confirmText='Delete'
+      confirmText='删除'
       destructive
     />
   )

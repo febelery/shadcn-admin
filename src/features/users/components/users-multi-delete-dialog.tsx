@@ -29,21 +29,21 @@ export function UsersMultiDeleteDialog<TData>({
 
   const handleDelete = () => {
     if (value.trim() !== CONFIRM_WORD) {
-      toast.error(`Please type "${CONFIRM_WORD}" to confirm.`)
+      toast.error(`请输入 "${CONFIRM_WORD}" 以确认。`)
       return
     }
 
     onOpenChange(false)
 
     toast.promise(sleep(2000), {
-      loading: 'Deleting users...',
+      loading: '正在删除用户...',
       success: () => {
         table.resetRowSelection()
-        return `Deleted ${selectedRows.length} ${
-          selectedRows.length > 1 ? 'users' : 'user'
+        return `已删除 ${selectedRows.length} ${
+          selectedRows.length > 1 ? '个用户' : '个用户'
         }`
       },
-      error: 'Error',
+      error: '错误',
     })
   }
 
@@ -59,35 +59,35 @@ export function UsersMultiDeleteDialog<TData>({
             className='stroke-destructive me-1 inline-block'
             size={18}
           />{' '}
-          Delete {selectedRows.length}{' '}
-          {selectedRows.length > 1 ? 'users' : 'user'}
+          删除 {selectedRows.length}{' '}
+          {selectedRows.length > 1 ? '个用户' : '个用户'}
         </span>
       }
       desc={
         <div className='space-y-4'>
           <p className='mb-2'>
-            Are you sure you want to delete the selected users? <br />
-            This action cannot be undone.
+            您确定要删除所选用户吗？ <br />
+            此操作无法撤销。
           </p>
 
           <Label className='my-4 flex flex-col items-start gap-1.5'>
-            <span className=''>Confirm by typing "{CONFIRM_WORD}":</span>
+            <span className=''>请输入 "{CONFIRM_WORD}" 以确认：</span>
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder={`Type "${CONFIRM_WORD}" to confirm.`}
+              placeholder={`输入 "${CONFIRM_WORD}" 以确认。`}
             />
           </Label>
 
           <Alert variant='destructive'>
-            <AlertTitle>Warning!</AlertTitle>
+            <AlertTitle>警告！</AlertTitle>
             <AlertDescription>
-              Please be careful, this operation can not be rolled back.
+              请注意，此操作无法回滚。
             </AlertDescription>
           </Alert>
         </div>
       }
-      confirmText='Delete'
+      confirmText='删除'
       destructive
     />
   )
