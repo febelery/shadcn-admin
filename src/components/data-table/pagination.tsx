@@ -38,10 +38,13 @@ export function DataTablePagination<TData>({
       style={{ overflowClipMargin: 1 }}
     >
       <div className='flex w-full items-center justify-between'>
-        <div className='flex w-[100px] items-center justify-center text-sm font-medium @2xl/content:hidden'>
-          Page {currentPage} of {totalPages}
+        <div className='flex min-w-[120px] items-center justify-center text-sm font-medium @2xl/content:hidden'>
+          <span className='whitespace-nowrap'>
+            第 {currentPage} / {totalPages} 页
+          </span>
         </div>
         <div className='flex items-center gap-2 @max-2xl/content:flex-row-reverse'>
+          <span className='text-muted-foreground whitespace-nowrap'>每页</span>
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
@@ -59,68 +62,84 @@ export function DataTablePagination<TData>({
               ))}
             </SelectContent>
           </Select>
-          <p className='hidden text-sm font-medium sm:block'>Rows per page</p>
+          <span className='text-muted-foreground whitespace-nowrap'>条</span>
         </div>
       </div>
 
       <div className='flex items-center sm:space-x-6 lg:space-x-8'>
-        <div className='flex w-[100px] items-center justify-center text-sm font-medium @max-3xl/content:hidden'>
-          Page {currentPage} of {totalPages}
+        <div className='flex min-w-18 items-center justify-center text-sm font-medium @max-3xl/content:hidden'>
+          <span className='whitespace-nowrap'>
+            第 {currentPage} / {totalPages} 页
+          </span>
         </div>
         <div className='flex items-center space-x-2'>
           <Button
             variant='outline'
-            className='size-8 p-0 @max-md/content:hidden'
+            className='size-8 shrink-0 p-0 @max-md/content:hidden'
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
+            title='首页'
           >
-            <span className='sr-only'>Go to first page</span>
+            <span className='sr-only'>转到第一页</span>
             <DoubleArrowLeftIcon className='h-4 w-4' />
           </Button>
           <Button
             variant='outline'
-            className='size-8 p-0'
+            className='size-8 shrink-0 p-0'
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
+            title='上一页'
           >
-            <span className='sr-only'>Go to previous page</span>
+            <span className='sr-only'>转到上一页</span>
             <ChevronLeftIcon className='h-4 w-4' />
           </Button>
 
-          {/* Page number buttons */}
-          {pageNumbers.map((pageNumber, index) => (
-            <div key={`${pageNumber}-${index}`} className='flex items-center'>
-              {pageNumber === '...' ? (
-                <span className='text-muted-foreground px-1 text-sm'>...</span>
-              ) : (
-                <Button
-                  variant={currentPage === pageNumber ? 'default' : 'outline'}
-                  className='h-8 min-w-8 px-2'
-                  onClick={() => table.setPageIndex((pageNumber as number) - 1)}
-                >
-                  <span className='sr-only'>Go to page {pageNumber}</span>
-                  {pageNumber}
-                </Button>
-              )}
-            </div>
-          ))}
+          {/* 页码按钮 */}
+          <div className='flex items-center space-x-1'>
+            {pageNumbers.map((pageNumber, index) => (
+              <div
+                key={`${pageNumber}-${index}`}
+                className='flex shrink-0 items-center'
+              >
+                {pageNumber === '...' ? (
+                  <span className='text-muted-foreground px-1 text-sm'>
+                    ...
+                  </span>
+                ) : (
+                  <Button
+                    variant={currentPage === pageNumber ? 'default' : 'outline'}
+                    className='h-8 min-w-8 px-2'
+                    onClick={() =>
+                      table.setPageIndex((pageNumber as number) - 1)
+                    }
+                    title={`第 ${pageNumber} 页`}
+                  >
+                    <span className='sr-only'>转到第 {pageNumber} 页</span>
+                    {pageNumber}
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
 
           <Button
             variant='outline'
-            className='size-8 p-0'
+            className='size-8 shrink-0 p-0'
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
+            title='下一页'
           >
-            <span className='sr-only'>Go to next page</span>
+            <span className='sr-only'>转到下一页</span>
             <ChevronRightIcon className='h-4 w-4' />
           </Button>
           <Button
             variant='outline'
-            className='size-8 p-0 @max-md/content:hidden'
+            className='size-8 shrink-0 p-0 @max-md/content:hidden'
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
+            title='末页'
           >
-            <span className='sr-only'>Go to last page</span>
+            <span className='sr-only'>转到最后一页</span>
             <DoubleArrowRightIcon className='h-4 w-4' />
           </Button>
         </div>
