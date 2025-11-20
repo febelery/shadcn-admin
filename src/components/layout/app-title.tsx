@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { appConfig } from '@/config/env'
 import { Command } from 'lucide-react'
 import {
   SidebarMenu,
@@ -22,7 +23,7 @@ export function AppTitle() {
               <Command className='size-4' />
             </div>
             <div className='grid flex-1 text-start text-sm leading-tight'>
-              <span className='truncate font-semibold'>Shadcn Admin</span>
+              <span className='truncate font-semibold'>{appConfig.name}</span>
               <span className='truncate text-xs'>Vite + ShadcnUI</span>
             </div>
           </Link>

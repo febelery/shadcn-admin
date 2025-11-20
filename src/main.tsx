@@ -7,7 +7,12 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
-import { RouterProvider, createRouter } from '@tanstack/react-router'
+import {
+  RouterProvider,
+  createRouter,
+  createHashHistory,
+} from '@tanstack/react-router'
+import { appConfig } from '@/config/env'
 import { toast } from 'sonner'
 import { zhCN } from 'zod/locales'
 import { useAuthStore } from '@/stores/auth-store'
@@ -15,9 +20,7 @@ import { handleServerError } from '@/lib/handle-server-error'
 import { DirectionProvider } from './context/direction-provider'
 import { FontProvider } from './context/font-provider'
 import { ThemeProvider } from './context/theme-provider'
-// Generated Routes
 import { routeTree } from './routeTree.gen'
-// Styles
 import './styles/index.css'
 
 // Set global Zod locale
@@ -82,6 +85,7 @@ const router = createRouter({
   context: { queryClient },
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
+  history: appConfig.useHashRouter ? createHashHistory() : undefined,
 })
 
 // Register the router instance for type safety

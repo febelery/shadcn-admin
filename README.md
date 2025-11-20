@@ -231,11 +231,19 @@ npx shadcn@latest add [component-name]
 
 ### 环境变量
 
-创建 `.env` 文件来配置环境变量：
+创建 `.env.development` 文件来配置环境变量：
 
 ```env
+# 应用配置
+VITE_APP_NAME=Your Project Name
+
 # API 配置
 VITE_API_URL=your_api_url
+
+# 路由配置
+# 设置为 true 使用 hash 路由模式 (createHashHistory)
+# 设置为 false 或不设置使用 history 路由模式 (默认)
+VITE_HASH_ROUTER=false
 ```
 
 ## 📝 代码规范

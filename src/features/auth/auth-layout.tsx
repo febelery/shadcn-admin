@@ -1,5 +1,6 @@
 import { Logo } from '@/assets/logo'
 import { SplineScene } from '@/components/ui/spline-scene'
+import { appConfig } from '@/config/env'
 
 type AuthLayoutProps = {
   children: React.ReactNode
@@ -12,7 +13,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         <div className='absolute inset-0 bg-zinc-900' />
         <div className='relative z-20 flex items-center p-10 text-lg font-medium'>
           <Logo className='mr-2 h-6 w-6' />
-          Shadcn Admin
+          {appConfig.name}
         </div>
         <div className='relative z-10 flex-1'>
           <SplineScene
