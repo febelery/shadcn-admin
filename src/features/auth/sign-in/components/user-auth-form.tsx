@@ -21,13 +21,8 @@ import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
 
 const formSchema = z.object({
-  name: z
-    .string()
-    .min(2, 'Name must be at least 2 characters long'),
-  password: z
-    .string()
-    .min(1, 'Please enter your password')
-    .min(7, 'Password must be at least 7 characters long'),
+  name: z.string().min(2),
+  password: z.string().min(7),
 })
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
@@ -56,9 +51,9 @@ export function UserAuthForm({
 
     try {
       await auth.login(data)
-      
+
       toast.success(`Welcome back, ${data.name}!`)
-      
+
       // Redirect to the stored location or default to dashboard
       const targetPath = redirectTo || '/'
       navigate({ to: targetPath, replace: true })

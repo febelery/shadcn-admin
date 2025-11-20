@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
+import { z } from 'zod'
 import { AxiosError } from 'axios'
 import {
   QueryCache,
@@ -8,6 +9,7 @@ import {
 } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { toast } from 'sonner'
+import { zhCN } from 'zod/locales'
 import { useAuthStore } from '@/stores/auth-store'
 import { handleServerError } from '@/lib/handle-server-error'
 import { DirectionProvider } from './context/direction-provider'
@@ -17,6 +19,9 @@ import { ThemeProvider } from './context/theme-provider'
 import { routeTree } from './routeTree.gen'
 // Styles
 import './styles/index.css'
+
+// Set global Zod locale
+z.config(zhCN())
 
 const queryClient = new QueryClient({
   defaultOptions: {
