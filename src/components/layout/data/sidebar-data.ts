@@ -147,6 +147,22 @@ export const sidebarData: SidebarData = {
           ],
         },
         {
+          title: 'Nested Test',
+          icon: Bug,
+          items: [
+            {
+              title: 'Level 2',
+              url: '/nested/level2',
+              items: [
+                {
+                  title: 'Level 3',
+                  url: '/nested/level2/level3',
+                },
+              ],
+            },
+          ],
+        },
+        {
           title: 'Help Center',
           url: '/help-center',
           icon: HelpCircle,
