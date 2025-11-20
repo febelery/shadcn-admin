@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef } from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { flushSync } from 'react-dom'
 import { cn } from '@/lib/utils'
+import { useTheme } from '@/context/theme-provider'
 
 interface AnimatedThemeTogglerProps
   extends React.ComponentPropsWithoutRef<'button'> {
@@ -13,34 +14,34 @@ export const AnimatedThemeToggler = ({
   duration = 400,
   ...props
 }: AnimatedThemeTogglerProps) => {
-  const [isDark, setIsDark] = useState(false)
+  const { theme, resolvedTheme, setTheme } = useTheme()
   const buttonRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    const updateTheme = () => {
-      setIsDark(document.documentElement.classList.contains('dark'))
-    }
-
-    updateTheme()
-
-    const observer = new MutationObserver(updateTheme)
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    })
-
-    return () => observer.disconnect()
-  }, [])
+  const isDark = resolvedTheme === 'dark'
 
   const toggleTheme = useCallback(async () => {
     if (!buttonRef.current) return
 
+    // 切换逻辑：根据当前主题决定下一个主题
+    // system -> 根据系统偏好切换到对应的 light/dark
+    // light -> dark
+    // dark -> light
+    let nextTheme: 'light' | 'dark' | 'system'
+    if (theme === 'system') {
+      // 如果当前是 system，根据系统偏好切换到相反的主题
+      const systemPrefersDark = window.matchMedia(
+        '(prefers-color-scheme: dark)'
+      ).matches
+      nextTheme = systemPrefersDark ? 'light' : 'dark'
+    } else if (theme === 'light') {
+      nextTheme = 'dark'
+    } else {
+      // theme === 'dark'
+      nextTheme = 'light'
+    }
+
     await document.startViewTransition(() => {
       flushSync(() => {
-        const newTheme = !isDark
-        setIsDark(newTheme)
-        document.documentElement.classList.toggle('dark')
-        localStorage.setItem('theme', newTheme ? 'dark' : 'light')
+        setTheme(nextTheme)
       })
     }).ready
 
@@ -66,7 +67,7 @@ export const AnimatedThemeToggler = ({
         pseudoElement: '::view-transition-new(root)',
       }
     )
-  }, [isDark, duration])
+  }, [theme, setTheme, duration])
 
   return (
     <button
