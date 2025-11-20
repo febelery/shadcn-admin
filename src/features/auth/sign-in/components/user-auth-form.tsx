@@ -2,12 +2,11 @@ import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -17,6 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { RainbowButton } from '@/components/ui/rainbow-button'
 import { PasswordInput } from '@/components/password-input'
 
 const formSchema = z.object({
@@ -98,19 +98,19 @@ export function UserAuthForm({
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
               <FormMessage />
-              <Link
+              {/* <Link
                 to='/forgot-password'
                 className='text-muted-foreground absolute end-0 -top-0.5 text-sm font-medium hover:opacity-75'
               >
                 忘记密码？
-              </Link>
+              </Link> */}
             </FormItem>
           )}
         />
-        <Button className='mt-2' disabled={isLoading}>
+        <RainbowButton className='mt-2' disabled={isLoading}>
           {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
           登录
-        </Button>
+        </RainbowButton>
       </form>
     </Form>
   )
