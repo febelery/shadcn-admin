@@ -11,12 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { ConfigDrawer } from '@/components/config-drawer'
-import { Header } from '@/components/layout/header'
-import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
-import { Search } from '@/components/search'
-import { ThemeSwitch } from '@/components/theme-switch'
+import { PageLayout } from '@/components/layout/page-layout'
 import { apps } from './data/apps'
 
 const route = getRouteApi('/_authenticated/apps/')
@@ -82,46 +77,30 @@ export function Apps() {
   }
 
   return (
-    <>
-      {/* ===== Top Heading ===== */}
-      <Header>
-        <Search />
-        <div className='ms-auto flex items-center gap-4'>
-          <ThemeSwitch />
-          <ConfigDrawer />
-          <ProfileDropdown />
+    <PageLayout
+      mainFixed
+      title='App Integrations'
+      description="Here's a list of your apps for the integration!"
+    >
+      <div className='my-4 flex items-end justify-between sm:my-0 sm:items-center'>
+        <div className='flex flex-col gap-4 sm:my-4 sm:flex-row'>
+          <Input
+            placeholder='Filter apps...'
+            className='h-9 w-40 lg:w-[250px]'
+            value={searchTerm}
+            onChange={handleSearch}
+          />
+          <Select value={appType} onValueChange={handleTypeChange}>
+            <SelectTrigger className='w-36'>
+              <SelectValue>{appText.get(appType)}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>All Apps</SelectItem>
+              <SelectItem value='connected'>Connected</SelectItem>
+              <SelectItem value='notConnected'>Not Connected</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      </Header>
-
-      {/* ===== Content ===== */}
-      <Main fixed>
-        <div>
-          <h1 className='text-2xl font-bold tracking-tight'>
-            App Integrations
-          </h1>
-          <p className='text-muted-foreground'>
-            Here&apos;s a list of your apps for the integration!
-          </p>
-        </div>
-        <div className='my-4 flex items-end justify-between sm:my-0 sm:items-center'>
-          <div className='flex flex-col gap-4 sm:my-4 sm:flex-row'>
-            <Input
-              placeholder='Filter apps...'
-              className='h-9 w-40 lg:w-[250px]'
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            <Select value={appType} onValueChange={handleTypeChange}>
-              <SelectTrigger className='w-36'>
-                <SelectValue>{appText.get(appType)}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>All Apps</SelectItem>
-                <SelectItem value='connected'>Connected</SelectItem>
-                <SelectItem value='notConnected'>Not Connected</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           <Select value={sort} onValueChange={handleSortChange}>
             <SelectTrigger className='w-16'>
@@ -173,7 +152,6 @@ export function Apps() {
             </li>
           ))}
         </ul>
-      </Main>
-    </>
+      </PageLayout>
   )
 }
