@@ -1,3 +1,4 @@
+import React from 'react'
 import { useLayout } from '@/context/layout-provider'
 import { useMenuData } from '@/hooks/use-menu-data'
 import {
@@ -11,12 +12,12 @@ import { AppTitle } from './app-title'
 import { NavGroup } from './nav-group'
 import { NavUser } from './nav-user'
 
-export function AppSidebar() {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { collapsible, variant } = useLayout()
   const { menuData } = useMenuData()
 
   return (
-    <Sidebar collapsible={collapsible} variant={variant}>
+    <Sidebar collapsible={collapsible} variant={variant} {...props}>
       <SidebarHeader>
         <AppTitle />
       </SidebarHeader>

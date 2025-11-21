@@ -7,8 +7,10 @@ import {
   LogOut,
   Sparkles,
 } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,9 +27,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { SignOutDialog } from '@/components/sign-out-dialog'
-import { useAuthStore } from '@/stores/auth-store'
 
-export function NavUser() {
+export function NavUser({ isTopbar = false }: { isTopbar?: boolean }) {
   const { isMobile } = useSidebar()
   const [open, setOpen] = useDialogState()
   const { auth } = useAuthStore()
@@ -39,20 +40,46 @@ export function NavUser() {
         <SidebarMenuItem>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarMenuButton
-                size='lg'
-                className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-              >
-                <Avatar className='h-8 w-8 rounded-lg'>
-                  <AvatarImage src={user?.avatar || '/avatars/01.png'} alt={user?.name || 'User'} />
-                  <AvatarFallback className='rounded-lg'>{user?.name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
-                </Avatar>
-                <div className='grid flex-1 text-start text-sm leading-tight'>
-                  <span className='truncate font-semibold'>{user?.name || 'User'}</span>
-                  <span className='truncate text-xs'>{user?.email || 'user@example.com'}</span>
-                </div>
-                <ChevronsUpDown className='ms-auto size-4' />
-              </SidebarMenuButton>
+              {isTopbar ? (
+                <Button
+                  variant='ghost'
+                  className='relative h-8 w-8 rounded-full'
+                >
+                  <Avatar className='h-8 w-8'>
+                    <AvatarImage
+                      src={user?.avatar || '/avatars/01.png'}
+                      alt={user?.name || 'User'}
+                    />
+                    <AvatarFallback>
+                      {user?.name?.[0]?.toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              ) : (
+                <SidebarMenuButton
+                  size='lg'
+                  className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+                >
+                  <Avatar className='h-8 w-8 rounded-lg'>
+                    <AvatarImage
+                      src={user?.avatar || '/avatars/01.png'}
+                      alt={user?.name || 'User'}
+                    />
+                    <AvatarFallback className='rounded-lg'>
+                      {user?.name?.[0]?.toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className='grid flex-1 text-start text-sm leading-tight'>
+                    <span className='truncate font-semibold'>
+                      {user?.name || 'User'}
+                    </span>
+                    <span className='truncate text-xs'>
+                      {user?.email || 'user@example.com'}
+                    </span>
+                  </div>
+                  <ChevronsUpDown className='ms-auto size-4' />
+                </SidebarMenuButton>
+              )}
             </DropdownMenuTrigger>
             <DropdownMenuContent
               className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
@@ -63,12 +90,21 @@ export function NavUser() {
               <DropdownMenuLabel className='p-0 font-normal'>
                 <div className='flex items-center gap-2 px-1 py-1.5 text-start text-sm'>
                   <Avatar className='h-8 w-8 rounded-lg'>
-                    <AvatarImage src={user?.avatar || '/avatars/01.png'} alt={user?.name || 'User'} />
-                    <AvatarFallback className='rounded-lg'>{user?.name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                    <AvatarImage
+                      src={user?.avatar || '/avatars/01.png'}
+                      alt={user?.name || 'User'}
+                    />
+                    <AvatarFallback className='rounded-lg'>
+                      {user?.name?.[0]?.toUpperCase() || 'U'}
+                    </AvatarFallback>
                   </Avatar>
                   <div className='grid flex-1 text-start text-sm leading-tight'>
-                    <span className='truncate font-semibold'>{user?.name || 'User'}</span>
-                    <span className='truncate text-xs'>{user?.email || 'user@example.com'}</span>
+                    <span className='truncate font-semibold'>
+                      {user?.name || 'User'}
+                    </span>
+                    <span className='truncate text-xs'>
+                      {user?.email || 'user@example.com'}
+                    </span>
                   </div>
                 </div>
               </DropdownMenuLabel>
