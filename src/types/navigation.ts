@@ -20,8 +20,8 @@ export type NavGroup = {
 }
 
 /**
- * 完整的侧边栏数据结构
+ * 完整的菜单数据结构
  */
-export type SidebarData = {
+export type MenuData = {
   navGroups: NavGroup[]
 }

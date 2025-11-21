@@ -1,7 +1,7 @@
+import { type MenuData } from '@/types/navigation'
 import { http, HttpResponse } from 'msw'
-import { type SidebarData } from '@/types/navigation'
 
-const sidebarData: SidebarData = {
+const menuData: MenuData = {
   navGroups: [
     {
       title: 'General',
@@ -153,8 +153,8 @@ const sidebarData: SidebarData = {
   ],
 }
 
-export const sidebarHandlers = [
-  http.get('/api/sidebar', () => {
-    return HttpResponse.json(sidebarData)
+export const menuHandlers = [
+  http.get('/api/menu', () => {
+    return HttpResponse.json(menuData)
   }),
 ]

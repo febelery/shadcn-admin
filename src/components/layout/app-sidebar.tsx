@@ -1,5 +1,5 @@
 import { useLayout } from '@/context/layout-provider'
-import { useSidebarData } from '@/hooks/use-sidebar-data'
+import { useMenuData } from '@/hooks/use-menu-data'
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +13,7 @@ import { NavUser } from './nav-user'
 
 export function AppSidebar() {
   const { collapsible, variant } = useLayout()
-  const { sidebarData } = useSidebarData()
+  const { menuData } = useMenuData()
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
@@ -21,7 +21,7 @@ export function AppSidebar() {
         <AppTitle />
       </SidebarHeader>
       <SidebarContent>
-        {sidebarData.navGroups.map((props) => (
+        {menuData.navGroups.map((props) => (
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>

@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { ArrowRight, ChevronRight } from 'lucide-react'
 import { useSearch } from '@/context/search-provider'
-import { useSidebarData } from '@/hooks/use-sidebar-data'
+import { useMenuData } from '@/hooks/use-menu-data'
 import {
   CommandDialog,
   CommandEmpty,
@@ -17,7 +17,7 @@ import { ScrollArea } from './ui/scroll-area'
 export function CommandMenu() {
   const navigate = useNavigate()
   const { open, setOpen } = useSearch()
-  const { sidebarData } = useSidebarData()
+  const { menuData } = useMenuData()
 
   const runCommand = React.useCallback(
     (command: () => unknown) => {
@@ -33,7 +33,7 @@ export function CommandMenu() {
       <CommandList>
         <ScrollArea type='hover' className='h-72 pe-1'>
           <CommandEmpty>未找到结果。</CommandEmpty>
-          {sidebarData.navGroups.map((group) => (
+          {menuData.navGroups.map((group) => (
             <CommandGroup key={group.title} heading={group.title}>
               {group.items.map((navItem, i) => {
                 if (navItem.url)
