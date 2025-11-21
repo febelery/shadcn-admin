@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios'
-import { QueryCache, QueryClient } from '@tanstack/react-query'
+import { keepPreviousData, QueryCache, QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { handleServerError } from '@/lib/handle-server-error'
@@ -83,6 +83,7 @@ export const createAppQueryClient = () => {
         retry: shouldRetry,
         refetchOnWindowFocus: import.meta.env.PROD,
         staleTime: 10_000,
+        placeholderData: keepPreviousData, // 全局默认保留旧数据，避免闪烁
       },
       mutations: {
         onError: handleMutationError,

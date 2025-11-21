@@ -26,7 +26,7 @@ export function Tasks() {
       : search.priority || undefined,
   }
 
-  const { data, isLoading } = useQuery({
+  const { data, isFetching } = useQuery({
     queryKey: ['tasks', queryParams],
     queryFn: () => getTasks(queryParams),
   })
@@ -43,7 +43,7 @@ export function Tasks() {
         <TasksTable
           data={data?.data || []}
           total={data?.meta.total || 0}
-          isLoading={isLoading}
+          isLoading={isFetching}
         />
       </PageLayout>
 

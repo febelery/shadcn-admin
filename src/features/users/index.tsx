@@ -27,7 +27,7 @@ export function Users() {
       : search.role || undefined,
   }
 
-  const { data, isLoading } = useQuery({
+  const { data, isFetching } = useQuery({
     queryKey: ['users', queryParams],
     queryFn: () => getUsers(queryParams),
   })
@@ -46,7 +46,7 @@ export function Users() {
           total={data?.meta.total || 0}
           search={search}
           navigate={navigate}
-          isLoading={isLoading}
+          isLoading={isFetching}
         />
       </PageLayout>
 
