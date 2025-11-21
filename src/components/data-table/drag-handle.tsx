@@ -25,4 +25,3 @@ export function DragHandle({ id }: { id: string }) {
     </Button>
   )
 }
-

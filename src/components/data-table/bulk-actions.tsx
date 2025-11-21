@@ -37,17 +37,17 @@ export function DataTableBulkActions<TData>({
   const toolbarRef = useRef<HTMLDivElement>(null)
   const [announcement, setAnnouncement] = useState('')
 
-  // Announce selection changes to screen readers
+  // 告知屏幕阅读器选择变化
   useEffect(() => {
     if (selectedCount > 0) {
-      const message = `${selectedCount} ${entityName}${selectedCount > 1 ? 's' : ''} selected. Bulk actions toolbar is available.`
+      const message = `${selectedCount} ${entityName}${selectedCount > 1 ? 's' : ''} 已选中。批量操作工具栏可用。`
 
-      // Use queueMicrotask to defer state update and avoid cascading renders
+      // 使用 queueMicrotask 延迟状态更新并避免级联渲染
       queueMicrotask(() => {
         setAnnouncement(message)
       })
 
-      // Clear announcement after a delay
+      // 延迟后清除公告
       const timer = setTimeout(() => setAnnouncement(''), 3000)
       return () => clearTimeout(timer)
     }
@@ -88,12 +88,12 @@ export function DataTableBulkActions<TData>({
         buttons[buttons.length - 1]?.focus()
         break
       case 'Escape': {
-        // Check if the Escape key came from a dropdown trigger or content
-        // We can't check dropdown state because Radix UI closes it before our handler runs
+        // 检查 Escape 键是否来自下拉触发器或内容
+        // 我们不能检查下拉状态，因为 Radix UI 在我们处理程序运行之前关闭它
         const target = event.target as HTMLElement
         const activeElement = document.activeElement as HTMLElement
 
-        // Check if the event target or currently focused element is a dropdown trigger
+        // 检查事件目标或当前焦点元素是否是下拉触发器
         const isFromDropdownTrigger =
           target?.getAttribute('data-slot') === 'dropdown-menu-trigger' ||
           activeElement?.getAttribute('data-slot') ===
@@ -101,17 +101,17 @@ export function DataTableBulkActions<TData>({
           target?.closest('[data-slot="dropdown-menu-trigger"]') ||
           activeElement?.closest('[data-slot="dropdown-menu-trigger"]')
 
-        // Check if the focused element is inside dropdown content (which is portaled)
+        // 检查焦点元素是否在下拉内容中 (这是端接的)
         const isFromDropdownContent =
           activeElement?.closest('[data-slot="dropdown-menu-content"]') ||
           target?.closest('[data-slot="dropdown-menu-content"]')
 
         if (isFromDropdownTrigger || isFromDropdownContent) {
-          // Escape was meant for the dropdown - don't clear selection
+          // Escape 键用于下拉 - 不要清除选中
           return
         }
 
-        // Escape was meant for the toolbar - clear selection
+        // Escape 键用于工具栏 - 清除选中
         event.preventDefault()
         handleClearSelection()
         break
@@ -125,7 +125,7 @@ export function DataTableBulkActions<TData>({
 
   return (
     <>
-      {/* Live region for screen reader announcements */}
+      {/* 屏幕阅读器公告区域 */}
       <div
         aria-live='polite'
         aria-atomic='true'
@@ -138,7 +138,7 @@ export function DataTableBulkActions<TData>({
       <div
         ref={toolbarRef}
         role='toolbar'
-        aria-label={`Bulk actions for ${selectedCount} selected ${entityName}${selectedCount > 1 ? 's' : ''}`}
+        aria-label={`批量操作 for ${selectedCount} 已选中 ${entityName}${selectedCount > 1 ? 's' : ''}`}
         aria-describedby='bulk-actions-description'
         tabIndex={-1}
         onKeyDown={handleKeyDown}
@@ -163,15 +163,15 @@ export function DataTableBulkActions<TData>({
                 size='icon'
                 onClick={handleClearSelection}
                 className='size-6 rounded-full'
-                aria-label='Clear selection'
-                title='Clear selection (Escape)'
+                aria-label='清除选中'
+                title='清除选中 (Escape)'
               >
                 <X />
-                <span className='sr-only'>Clear selection</span>
+                <span className='sr-only'>清除选中</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Clear selection (Escape)</p>
+              <p>清除选中 (Escape)</p>
             </TooltipContent>
           </Tooltip>
 
@@ -188,7 +188,7 @@ export function DataTableBulkActions<TData>({
             <Badge
               variant='default'
               className='min-w-8 rounded-lg'
-              aria-label={`${selectedCount} selected`}
+              aria-label={`${selectedCount} 已选中`}
             >
               {selectedCount}
             </Badge>{' '}
@@ -196,7 +196,7 @@ export function DataTableBulkActions<TData>({
               {entityName}
               {selectedCount > 1 ? 's' : ''}
             </span>{' '}
-            selected
+            已选中
           </div>
 
           <Separator
