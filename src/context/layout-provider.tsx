@@ -27,9 +27,9 @@ type LayoutContextType = {
 
   navType: NavType
   setNavType: (navType: NavType) => void
-  
-  // Computed properties based on navType
-  shouldShowPageHeader: boolean
+
+  isTopbarLayout: boolean
+  isSidebarLayout: boolean
 }
 
 const LayoutContext = createContext<LayoutContextType | null>(null)
@@ -89,8 +89,8 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     setVariant,
     navType,
     setNavType,
-    // Computed: only show page header in sidebar mode
-    shouldShowPageHeader: navType === 'sidebar',
+    isTopbarLayout: navType === 'topbar',
+    isSidebarLayout: navType !== 'topbar',
   }
 
   return <LayoutContext value={contextValue}>{children}</LayoutContext>

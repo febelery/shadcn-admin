@@ -38,8 +38,7 @@ export function PageLayout({
   mainFixed,
   children,
 }: PageLayoutProps) {
-  const { navType } = useLayout()
-  const isSidebarLayout = navType !== 'topbar'
+  const { isSidebarLayout } = useLayout()
   return (
     <>
       {isSidebarLayout && (

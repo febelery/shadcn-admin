@@ -25,13 +25,13 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
 
 function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const defaultOpen = getCookie('sidebar_state') !== 'false'
-  const { navType } = useLayout()
+  const { isTopbarLayout } = useLayout()
 
   return (
     <SidebarProvider
       defaultOpen={defaultOpen}
-      open={navType === 'topbar' ? false : undefined}
-      className={cn(navType === 'topbar' ? 'flex-col' : '')}
+      open={isTopbarLayout ? false : undefined}
+      className={cn(isTopbarLayout ? 'h-svh flex-col' : '')}
     >
       <SkipToMain />
       <LayoutContent>{children}</LayoutContent>
@@ -40,14 +40,23 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
 }
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
-  const { navType } = useLayout()
+  const { isTopbarLayout } = useLayout()
 
-  if (navType === 'topbar') {
+  if (isTopbarLayout) {
     return (
       <>
         <AppSidebar className='md:hidden' />
         <AppTopbar />
-        <main className='bg-background flex-1'>{children ?? <Outlet />}</main>
+        <div
+          className={cn(
+            'bg-background flex-1',
+
+            // 如果布局是固定的，确保这个容器不会溢出
+            'has-data-[layout=fixed]:flex has-data-[layout=fixed]:flex-col has-data-[layout=fixed]:overflow-hidden'
+          )}
+        >
+          {children ?? <Outlet />}
+        </div>
       </>
     )
   }
@@ -57,15 +66,13 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <SidebarInset
         className={cn(
-          // Set content container, so we can use container queries
+          // 设置内容容器，以便我们可以使用容器查询
           '@container/content',
 
-          // If layout is fixed, set the height
-          // to 100svh to prevent overflow
+          // 如果布局是固定的，设置高度为 100svh 以防止溢出
           'has-data-[layout=fixed]:h-svh',
 
-          // If layout is fixed and sidebar is inset,
-          // set the height to 100svh - spacing (total margins) to prevent overflow
+          // 如果布局是固定的，并且侧边栏是内嵌的，设置高度为 100svh - 间距（总边距）以防止溢出
           'peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]'
         )}
       >
