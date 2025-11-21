@@ -1,13 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  type SortingState,
   type VisibilityState,
   getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
 import { type DragEndEvent, type UniqueIdentifier } from '@dnd-kit/core'
@@ -26,14 +20,18 @@ import { usersColumns as columns } from './users-columns'
 
 type DataTableProps = {
   data: User[]
+  total: number
   search: Record<string, unknown>
   navigate: NavigateFn
+  isLoading?: boolean
 }
 
 export function UsersTable({
   data: initialData,
+  total,
   search,
   navigate,
+  isLoading,
 }: DataTableProps) {
   // 本地数据状态，用于拖拽排序
   const [data, setData] = useState(() => initialData)
@@ -46,7 +44,6 @@ export function UsersTable({
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [sorting, setSorting] = useState<SortingState>([])
 
   // 生成可拖拽项的 ID 列表
   const dataIds = useMemo<UniqueIdentifier[]>(
@@ -60,12 +57,15 @@ export function UsersTable({
     onColumnFiltersChange,
     pagination,
     onPaginationChange,
+    sorting,
+    onSortingChange,
     ensurePageInRange,
   } = useTableUrlState({
     search,
     navigate,
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     globalFilter: { enabled: false },
+    sorting: { enabled: true },
     columnFilters: [
       // username per-column text filter
       { columnId: 'username', searchKey: 'username', type: 'string' },
@@ -78,51 +78,49 @@ export function UsersTable({
   const table = useReactTable({
     data,
     columns,
-    getRowId: (row) => row.id,
+    pageCount: Math.ceil(total / pagination.pageSize),
     state: {
-      sorting,
-      pagination,
+      sorting: sorting || [],
+      columnVisibility,
       rowSelection,
       columnFilters,
-      columnVisibility,
+      pagination,
     },
     enableRowSelection: true,
-    onPaginationChange,
-    onColumnFiltersChange,
+    manualPagination: true,
+    manualFiltering: true,
+    manualSorting: true,
     onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
+    onSortingChange,
     onColumnVisibilityChange: setColumnVisibility,
-    getPaginationRowModel: getPaginationRowModel(),
+    onColumnFiltersChange,
+    onPaginationChange,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
   useEffect(() => {
-    ensurePageInRange(table.getPageCount())
-  }, [table, ensurePageInRange])
+    ensurePageInRange(total)
+  }, [total, ensurePageInRange])
 
-  // 处理拖拽结束事件
-  function handleDragEnd(event: DragEndEvent) {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
-    if (active && over && active.id !== over.id) {
-      const oldIndex = dataIds.indexOf(active.id)
-      const newIndex = dataIds.indexOf(over.id)
-      setData((data) => {
-        return arrayMove(data, oldIndex, newIndex)
+    if (over && active.id !== over.id) {
+      setData((prevData) => {
+        const activeIndex = dataIds.indexOf(active.id)
+        const overIndex = dataIds.indexOf(over.id)
+        return arrayMove(prevData, activeIndex, overIndex)
       })
     }
+    // Log the drag event details
+    console.log('Drag ended:', {
+      activeId: active.id,
+      overId: over?.id,
+      data,
+    })
   }
 
   return (
-    <div
-      className={cn(
-        'max-sm:has-[div[role="toolbar"]]:mb-16',
-        'flex flex-1 flex-col gap-4'
-      )}
-    >
+    <div className={cn('flex h-full flex-col gap-4')}>
       <DataTableToolbar
         table={table}
         searchPlaceholder='Filter users...'
@@ -145,7 +143,11 @@ export function UsersTable({
           },
         ]}
       />
-      <DataTable table={table} onReorder={handleDragEnd} />
+      <DataTable
+        table={table}
+        onReorder={handleDragEnd}
+        isLoading={isLoading}
+      />
       <DataTablePagination table={table} className='mt-auto' />
       <DataTableBulkActions table={table} />
     </div>

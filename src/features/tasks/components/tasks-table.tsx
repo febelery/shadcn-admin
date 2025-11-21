@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import {
-  type SortingState,
   type VisibilityState,
   getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
@@ -27,18 +21,14 @@ const route = getRouteApi('/_authenticated/tasks/')
 
 type DataTableProps = {
   data: Task[]
+  total: number
+  isLoading?: boolean
 }
 
-export function TasksTable({ data }: DataTableProps) {
+export function TasksTable({ data, total, isLoading }: DataTableProps) {
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
-  const [sorting, setSorting] = useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-
-  // Local state management for table (uncomment to use local-only state, not synced with URL)
-  // const [globalFilter, onGlobalFilterChange] = useState('')
-  // const [columnFilters, onColumnFiltersChange] = useState<ColumnFiltersState>([])
-  // const [pagination, onPaginationChange] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
 
   // Synced with URL states (updated to match route search schema defaults)
   const {
@@ -48,12 +38,15 @@ export function TasksTable({ data }: DataTableProps) {
     onColumnFiltersChange,
     pagination,
     onPaginationChange,
+    sorting,
+    onSortingChange,
     ensurePageInRange,
   } = useTableUrlState({
     search: route.useSearch(),
     navigate: route.useNavigate() as any,
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     globalFilter: { enabled: true, key: 'filter' },
+    sorting: { enabled: true },
     columnFilters: [
       { columnId: 'status', searchKey: 'status', type: 'array' },
       { columnId: 'priority', searchKey: 'priority', type: 'array' },
@@ -64,8 +57,9 @@ export function TasksTable({ data }: DataTableProps) {
   const table = useReactTable({
     data,
     columns,
+    pageCount: Math.ceil(total / pagination.pageSize),
     state: {
-      sorting,
+      sorting: sorting || [],
       columnVisibility,
       rowSelection,
       columnFilters,
@@ -73,42 +67,27 @@ export function TasksTable({ data }: DataTableProps) {
       pagination,
     },
     enableRowSelection: true,
+    manualPagination: true,
+    manualFiltering: true,
+    manualSorting: true,
     onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
+    onSortingChange,
     onColumnVisibilityChange: setColumnVisibility,
-    globalFilterFn: (row, _columnId, filterValue) => {
-      const id = String(row.getValue('id')).toLowerCase()
-      const title = String(row.getValue('title')).toLowerCase()
-      const searchValue = String(filterValue).toLowerCase()
-
-      return id.includes(searchValue) || title.includes(searchValue)
-    },
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    onPaginationChange,
-    onGlobalFilterChange,
     onColumnFiltersChange,
+    onGlobalFilterChange,
+    onPaginationChange,
+    getCoreRowModel: getCoreRowModel(),
   })
 
-  const pageCount = table.getPageCount()
   useEffect(() => {
-    ensurePageInRange(pageCount)
-  }, [pageCount, ensurePageInRange])
+    ensurePageInRange(total)
+  }, [total, ensurePageInRange])
 
   return (
-    <div
-      className={cn(
-        'max-sm:has-[div[role="toolbar"]]:mb-16', // Add margin bottom to the table on mobile when the toolbar is visible
-        'flex flex-1 flex-col gap-4'
-      )}
-    >
+    <div className={cn('flex h-full flex-col gap-4')}>
       <DataTableToolbar
         table={table}
-        searchPlaceholder='Filter by title or ID...'
+        searchPlaceholder='Filter tasks...'
         filters={[
           {
             columnId: 'status',
@@ -122,7 +101,7 @@ export function TasksTable({ data }: DataTableProps) {
           },
         ]}
       />
-      <DataTable table={table} />
+      <DataTable table={table} isLoading={isLoading} />
       <DataTablePagination table={table} className='mt-auto' />
       <DataTableBulkActions table={table} />
     </div>

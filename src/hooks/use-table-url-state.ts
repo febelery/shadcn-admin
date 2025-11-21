@@ -3,6 +3,7 @@ import type {
   ColumnFiltersState,
   OnChangeFn,
   PaginationState,
+  SortingState,
 } from '@tanstack/react-table'
 
 type SearchRecord = Record<string, unknown>
@@ -28,6 +29,11 @@ type UseTableUrlStateParams = {
     enabled?: boolean
     key?: string
     trim?: boolean
+  }
+  sorting?: {
+    enabled?: boolean
+    sortByKey?: string
+    sortOrderKey?: string
   }
   columnFilters?: Array<
     | {
@@ -58,6 +64,9 @@ type UseTableUrlStateReturn = {
   // Pagination
   pagination: PaginationState
   onPaginationChange: OnChangeFn<PaginationState>
+  // Sorting
+  sorting?: SortingState
+  onSortingChange?: OnChangeFn<SortingState>
   // Helpers
   ensurePageInRange: (
     pageCount: number,
@@ -73,6 +82,7 @@ export function useTableUrlState(
     navigate,
     pagination: paginationCfg,
     globalFilter: globalFilterCfg,
+    sorting: sortingCfg,
     columnFilters: columnFiltersCfg = [],
   } = params
 
@@ -84,6 +94,10 @@ export function useTableUrlState(
   const globalFilterKey = globalFilterCfg?.key ?? ('filter' as string)
   const globalFilterEnabled = globalFilterCfg?.enabled ?? true
   const trimGlobal = globalFilterCfg?.trim ?? true
+
+  const sortingEnabled = sortingCfg?.enabled ?? true
+  const sortByKey = sortingCfg?.sortByKey ?? ('sortBy' as string)
+  const sortOrderKey = sortingCfg?.sortOrderKey ?? ('sortOrder' as string)
 
   // Build initial column filters from the current search params
   const initialColumnFilters: ColumnFiltersState = useMemo(() => {
@@ -118,6 +132,24 @@ export function useTableUrlState(
       typeof rawPageSize === 'number' ? rawPageSize : defaultPageSize
     return { pageIndex: Math.max(0, pageNum - 1), pageSize: pageSizeNum }
   }, [search, pageKey, pageSizeKey, defaultPage, defaultPageSize])
+
+  // Build initial sorting state from URL params
+  const initialSorting: SortingState = useMemo(() => {
+    if (!sortingEnabled) return []
+    const sortBy = (search as SearchRecord)[sortByKey]
+    const sortOrder = (search as SearchRecord)[sortOrderKey]
+    if (typeof sortBy === 'string' && sortBy.trim() !== '') {
+      return [
+        {
+          id: sortBy,
+          desc: sortOrder === 'desc',
+        },
+      ]
+    }
+    return []
+  }, [search, sortByKey, sortOrderKey, sortingEnabled])
+
+  const [sorting, setSorting] = useState<SortingState>(initialSorting)
 
   const onPaginationChange: OnChangeFn<PaginationState> = (updater) => {
     const next = typeof updater === 'function' ? updater(pagination) : updater
@@ -157,6 +189,21 @@ export function useTableUrlState(
           })
         }
       : undefined
+
+  const onSortingChange: OnChangeFn<SortingState> | undefined = sortingEnabled
+    ? (updater) => {
+        const next = typeof updater === 'function' ? updater(sorting) : updater
+        setSorting(next)
+        navigate({
+          search: (prev) => ({
+            ...(prev as SearchRecord),
+            [pageKey]: undefined,
+            [sortByKey]: next.length > 0 ? next[0].id : undefined,
+            [sortOrderKey]: next.length > 0 ? (next[0].desc ? 'desc' : 'asc') : undefined,
+          }),
+        })
+      }
+    : undefined
 
   const onColumnFiltersChange: OnChangeFn<ColumnFiltersState> = (updater) => {
     const next =
@@ -214,6 +261,8 @@ export function useTableUrlState(
     onColumnFiltersChange,
     pagination,
     onPaginationChange,
+    sorting: sortingEnabled ? sorting : undefined,
+    onSortingChange,
     ensurePageInRange,
   }
 }

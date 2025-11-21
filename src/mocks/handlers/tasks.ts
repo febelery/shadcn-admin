@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { http, HttpResponse } from 'msw'
 
-faker.seed(12345)
+faker.seed(202511)
 
 export const tasks = Array.from({ length: 100 }, () => {
   const statuses = [
@@ -29,7 +29,58 @@ export const tasks = Array.from({ length: 100 }, () => {
 })
 
 export const tasksHandlers = [
-  http.get('/api/tasks', () => {
-    return HttpResponse.json(tasks)
+  http.get('/api/tasks', async ({ request }) => {
+    await new Promise((resolve) => setTimeout(resolve, 200))
+
+    const url = new URL(request.url)
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const pageSize = parseInt(url.searchParams.get('pageSize') || '10')
+    const sortBy = url.searchParams.get('sortBy') || 'createdAt'
+    const sortOrder = url.searchParams.get('sortOrder') || 'desc'
+    const search = url.searchParams.get('search') || ''
+    const status = url.searchParams.get('status') || ''
+    const priority = url.searchParams.get('priority') || ''
+    const label = url.searchParams.get('label') || ''
+
+    // Filter
+    const filteredTasks = tasks.filter((task) => {
+      const matchesSearch =
+        !search ||
+        task.title.toLowerCase().includes(search.toLowerCase()) ||
+        task.id.toLowerCase().includes(search.toLowerCase())
+
+      const matchesStatus = !status || task.status === status
+      const matchesPriority = !priority || task.priority === priority
+      const matchesLabel = !label || task.label === label
+
+      return matchesSearch && matchesStatus && matchesPriority && matchesLabel
+    })
+
+    // Sort
+    filteredTasks.sort((a, b) => {
+      const aValue = a[sortBy as keyof typeof a]
+      const bValue = b[sortBy as keyof typeof b]
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1
+      return 0
+    })
+
+    // Paginate
+    const total = filteredTasks.length
+    const totalPages = Math.ceil(total / pageSize)
+    const start = (page - 1) * pageSize
+    const end = start + pageSize
+    const paginatedTasks = filteredTasks.slice(start, end)
+
+    return HttpResponse.json({
+      data: paginatedTasks,
+      meta: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+      },
+    })
   }),
 ]

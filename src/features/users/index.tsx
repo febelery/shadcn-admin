@@ -1,5 +1,5 @@
-import { getRouteApi } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { getRouteApi } from '@tanstack/react-router'
 import { PageLayout } from '@/components/layout/page-layout'
 import { getUsers } from './api'
 import { UsersDialogs } from './components/users-dialogs'
@@ -11,11 +11,25 @@ const route = getRouteApi('/_authenticated/users/')
 
 export function Users() {
   const search = route.useSearch()
-  const navigate = route.useNavigate()
+  const navigate = route.useNavigate() as any
 
-  const { data: users = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: getUsers,
+  const queryParams = {
+    page: search.page || 1,
+    pageSize: search.pageSize || 10,
+    sortBy: search.sortBy as string | undefined,
+    sortOrder: search.sortOrder as 'asc' | 'desc' | undefined,
+    search: search.username as string | undefined,
+    status: Array.isArray(search.status)
+      ? search.status.join(',')
+      : search.status || undefined,
+    role: Array.isArray(search.role)
+      ? search.role.join(',')
+      : search.role || undefined,
+  }
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['users', queryParams],
+    queryFn: () => getUsers(queryParams),
   })
 
   return (
@@ -27,7 +41,13 @@ export function Users() {
         actions={<UsersPrimaryButtons />}
         mainClassName='flex flex-1 flex-col gap-4 sm:gap-6'
       >
-        <UsersTable data={users} search={search} navigate={navigate} />
+        <UsersTable
+          data={data?.data || []}
+          total={data?.meta.total || 0}
+          search={search}
+          navigate={navigate}
+          isLoading={isLoading}
+        />
       </PageLayout>
 
       <UsersDialogs />

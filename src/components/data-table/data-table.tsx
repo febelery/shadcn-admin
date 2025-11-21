@@ -23,6 +23,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -35,6 +36,7 @@ import {
 interface DataTableProps<TData> {
   table: TanstackTable<TData>
   onReorder?: (event: DragEndEvent) => void
+  isLoading?: boolean
 }
 
 // 可拖拽行组件
@@ -73,7 +75,11 @@ function DraggableRow<TData>({ row }: { row: Row<TData> }) {
   )
 }
 
-export function DataTable<TData>({ table, onReorder }: DataTableProps<TData>) {
+export function DataTable<TData>({
+  table,
+  onReorder,
+  isLoading,
+}: DataTableProps<TData>) {
   const sortableId = useId()
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
@@ -117,7 +123,17 @@ export function DataTable<TData>({ table, onReorder }: DataTableProps<TData>) {
         ))}
       </TableHeader>
       <TableBody className='**:data-[slot=table-cell]:first:w-8'>
-        {table.getRowModel().rows?.length ? (
+        {isLoading ? (
+          Array.from({ length: 10 }).map((_, index) => (
+            <TableRow key={index}>
+              {table.getVisibleFlatColumns().map((column) => (
+                <TableCell key={column.id}>
+                  <Skeleton className='h-6 w-full' />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))
+        ) : table.getRowModel().rows?.length ? (
           onReorder ? (
             <SortableContext
               items={dataIds}
@@ -155,7 +171,7 @@ export function DataTable<TData>({ table, onReorder }: DataTableProps<TData>) {
               colSpan={table.getAllColumns().length}
               className='h-24 text-center'
             >
-              No results.
+              没有数据
             </TableCell>
           </TableRow>
         )}
