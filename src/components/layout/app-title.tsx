@@ -1,12 +1,12 @@
 import { Link } from '@tanstack/react-router'
 import { appConfig } from '@/config/env'
-import { Command } from 'lucide-react'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { AppIcon } from '@/components/app-icon'
 
 export function AppTitle() {
   const { setOpenMobile } = useSidebar()
@@ -19,12 +19,10 @@ export function AppTitle() {
           asChild
         >
           <Link to='/' onClick={() => setOpenMobile(false)}>
-            <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
-              <Command className='size-4' />
-            </div>
+            <AppIcon />
             <div className='grid flex-1 text-start text-sm leading-tight'>
-              <span className='truncate font-semibold'>{appConfig.name}</span>
-              <span className='truncate text-xs'>Vite + ShadcnUI</span>
+              <span className='truncate font-semibold'>{appConfig.title}</span>
+              <span className='truncate text-xs'>{appConfig.subtitle}</span>
             </div>
           </Link>
         </SidebarMenuButton>

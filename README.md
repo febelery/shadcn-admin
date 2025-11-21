@@ -235,7 +235,7 @@ npx shadcn@latest add [component-name]
 
 ```env
 # 应用配置
-VITE_APP_NAME=Your Project Name
+VITE_APP_TITLE=Your Project Name
 
 # API 配置
 VITE_API_URL=your_api_url

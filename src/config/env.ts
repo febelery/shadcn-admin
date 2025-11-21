@@ -22,14 +22,35 @@ function getBoolEnv(key: string, defaultValue: boolean): boolean {
 }
 
 /**
+ * 获取可选的环境变量值
+ */
+function getOptionalEnv(key: string): string | undefined {
+  const value = import.meta.env[key]
+  return value || undefined
+}
+
+/**
  * 应用配置
  */
 export const appConfig = {
   /**
-   * 应用名称
+   * 应用标题
    * 默认值: 'Shadcn Admin'
    */
-  name: getEnv('VITE_APP_NAME', 'Shadcn Admin'),
+  title: getEnv('VITE_APP_TITLE', 'Shadcn Admin'),
+
+  /**
+   * 应用副标题
+   * 默认值: 'Vite + ShadcnUI'
+   */
+  subtitle: getEnv('VITE_APP_SUBTITLE', 'Vite + ShadcnUI'),
+
+  /**
+   * 应用图标 URL
+   * 如果设置了此值，将显示图片；否则显示默认的 Command 图标
+   * 默认值: undefined
+   */
+  icon: getOptionalEnv('VITE_APP_ICON'),
 
   /**
    * API 基础 URL
