@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
-import { getRouteApi } from '@tanstack/react-router'
 import {
   type VisibilityState,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { type TableState } from '@/types/table'
 import { cn } from '@/lib/utils'
-import { useTableUrlState } from '@/hooks/use-table-url-state'
 import {
   DataTable,
   DataTablePagination,
@@ -17,20 +16,24 @@ import { type Task } from '../data/schema'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { tasksColumns as columns } from './tasks-columns'
 
-const route = getRouteApi('/_authenticated/tasks/')
-
 type DataTableProps = {
   data: Task[]
   total: number
   isLoading?: boolean
+  tableState: TableState
 }
 
-export function TasksTable({ data, total, isLoading }: DataTableProps) {
+export function TasksTable({
+  data,
+  total,
+  isLoading,
+  tableState,
+}: DataTableProps) {
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
-  // Synced with URL states (updated to match route search schema defaults)
+  // 从父组件接收表格状态
   const {
     globalFilter,
     onGlobalFilterChange,
@@ -41,17 +44,7 @@ export function TasksTable({ data, total, isLoading }: DataTableProps) {
     sorting,
     onSortingChange,
     ensurePageInRange,
-  } = useTableUrlState({
-    search: route.useSearch(),
-    navigate: route.useNavigate() as any,
-    pagination: { defaultPage: 1, defaultPageSize: 10 },
-    globalFilter: { enabled: true, key: 'filter' },
-    sorting: { enabled: true },
-    columnFilters: [
-      { columnId: 'status', searchKey: 'status', type: 'array' },
-      { columnId: 'priority', searchKey: 'priority', type: 'array' },
-    ],
-  })
+  } = tableState
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({

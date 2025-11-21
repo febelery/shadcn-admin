@@ -6,27 +6,14 @@ import type {
 } from '@tanstack/react-table'
 
 /**
- * URL 搜索参数记录类型
+ * API 参数记录类型
  */
-export type SearchRecord = Record<string, unknown>
+export type ApiParams = Record<string, unknown>
 
 /**
- * 导航函数类型用于更新 URL 搜索参数
+ * useTableState hook 的配置选项
  */
-export type NavigateFn = (opts: {
-  search:
-    | true
-    | SearchRecord
-    | ((prev: SearchRecord) => Partial<SearchRecord> | SearchRecord)
-  replace?: boolean
-}) => void
-
-/**
- * 配置 useTableUrlState hook
- */
-export type UseTableUrlStateParams = {
-  search: SearchRecord
-  navigate: NavigateFn
+export type TableStateOptions = {
   pagination?: {
     pageKey?: string
     pageSizeKey?: string
@@ -63,9 +50,9 @@ export type UseTableUrlStateParams = {
 }
 
 /**
- * 返回类型 useTableUrlState hook
+ * useTableState hook 返回的表格状态
  */
-export type UseTableUrlStateReturn = {
+export type TableState = {
   // 全局过滤器
   globalFilter?: string
   onGlobalFilterChange?: OnChangeFn<string>
@@ -78,7 +65,9 @@ export type UseTableUrlStateReturn = {
   // 排序
   sorting?: SortingState
   onSortingChange?: OnChangeFn<SortingState>
-  // 助手
+  // 生成 API 参数
+  getApiParams: () => ApiParams
+  // 助手：确保页码在有效范围内
   ensurePageInRange: (
     pageCount: number,
     opts?: { resetTo?: 'first' | 'last' }

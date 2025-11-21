@@ -4,11 +4,10 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { type NavigateFn } from '@/types/table'
+import { type TableState } from '@/types/table'
 import { type DragEndEvent, type UniqueIdentifier } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { cn } from '@/lib/utils'
-import { useTableUrlState } from '@/hooks/use-table-url-state'
 import {
   DataTable,
   DataTablePagination,
@@ -22,17 +21,15 @@ import { usersColumns as columns } from './users-columns'
 type DataTableProps = {
   data: User[]
   total: number
-  search: Record<string, unknown>
-  navigate: NavigateFn
   isLoading?: boolean
+  tableState: TableState
 }
 
 export function UsersTable({
   data: initialData,
   total,
-  search,
-  navigate,
   isLoading,
+  tableState,
 }: DataTableProps) {
   // 本地数据状态，用于拖拽排序
   const [data, setData] = useState(() => initialData)
@@ -52,7 +49,7 @@ export function UsersTable({
     [data]
   )
 
-  // Synced with URL states (keys/defaults mirror users route search schema)
+  // 从父组件接收表格状态
   const {
     columnFilters,
     onColumnFiltersChange,
@@ -61,19 +58,7 @@ export function UsersTable({
     sorting,
     onSortingChange,
     ensurePageInRange,
-  } = useTableUrlState({
-    search,
-    navigate,
-    pagination: { defaultPage: 1, defaultPageSize: 10 },
-    globalFilter: { enabled: false },
-    sorting: { enabled: true },
-    columnFilters: [
-      // username per-column text filter
-      { columnId: 'username', searchKey: 'username', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'array' },
-      { columnId: 'role', searchKey: 'role', type: 'array' },
-    ],
-  })
+  } = tableState
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({

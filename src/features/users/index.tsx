@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getRouteApi } from '@tanstack/react-router'
+import { useTableState } from '@/hooks/use-table-state'
 import { PageLayout } from '@/components/layout/page-layout'
 import { getUsers } from './api'
 import { UsersDialogs } from './components/users-dialogs'
@@ -7,24 +7,33 @@ import { UsersPrimaryButtons } from './components/users-primary-buttons'
 import { UsersProvider } from './components/users-provider'
 import { UsersTable } from './components/users-table'
 
-const route = getRouteApi('/_authenticated/users/')
-
 export function Users() {
-  const search = route.useSearch()
-  const navigate = route.useNavigate() as any
+  const tableState = useTableState({
+    pagination: { defaultPage: 1, defaultPageSize: 10 },
+    globalFilter: { enabled: false },
+    sorting: { enabled: true },
+    columnFilters: [
+      { columnId: 'username', searchKey: 'username', type: 'string' },
+      { columnId: 'status', searchKey: 'status', type: 'array' },
+      { columnId: 'role', searchKey: 'role', type: 'array' },
+    ],
+  })
+
+  // 使用 getApiParams 生成 API 查询参数
+  const apiParams = tableState.getApiParams()
 
   const queryParams = {
-    page: search.page || 1,
-    pageSize: search.pageSize || 10,
-    sortBy: search.sortBy as string | undefined,
-    sortOrder: search.sortOrder as 'asc' | 'desc' | undefined,
-    search: search.username as string | undefined,
-    status: Array.isArray(search.status)
-      ? search.status.join(',')
-      : search.status || undefined,
-    role: Array.isArray(search.role)
-      ? search.role.join(',')
-      : search.role || undefined,
+    page: (apiParams.page as number) || 1,
+    pageSize: (apiParams.pageSize as number) || 10,
+    sortBy: apiParams.sortBy as string | undefined,
+    sortOrder: apiParams.sortOrder as 'asc' | 'desc' | undefined,
+    search: apiParams.username as string | undefined,
+    status: Array.isArray(apiParams.status)
+      ? apiParams.status.join(',')
+      : (apiParams.status as string) || undefined,
+    role: Array.isArray(apiParams.role)
+      ? apiParams.role.join(',')
+      : (apiParams.role as string) || undefined,
   }
 
   const { data, isFetching } = useQuery({
@@ -44,9 +53,8 @@ export function Users() {
         <UsersTable
           data={data?.data || []}
           total={data?.meta.total || 0}
-          search={search}
-          navigate={navigate}
           isLoading={isFetching}
+          tableState={tableState}
         />
       </PageLayout>
 

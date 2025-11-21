@@ -58,7 +58,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       <SidebarInset
         className={cn(
           // Set content container, so we can use container queries
-          // '@container/content',
+          '@container/content',
 
           // If layout is fixed, set the height
           // to 100svh to prevent overflow
