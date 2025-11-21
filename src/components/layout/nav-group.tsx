@@ -2,6 +2,7 @@ import { type ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
 import { type NavItem, type NavGroup } from '@/types/navigation'
 import { ChevronRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import {
   Collapsible,
   CollapsibleContent,
@@ -88,6 +89,7 @@ function SidebarMenuCollapsible({
   href: string
 }) {
   const { setOpenMobile } = useSidebar()
+  const hasActive = hasActiveChild(href, item)
   return (
     <Collapsible
       asChild
@@ -96,7 +98,10 @@ function SidebarMenuCollapsible({
     >
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton tooltip={item.title}>
+          <SidebarMenuButton
+            tooltip={item.title}
+            className={cn(hasActive && 'text-foreground font-semibold')}
+          >
             {item.icon && <DynamicIcon name={item.icon} />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
@@ -115,7 +120,13 @@ function SidebarMenuCollapsible({
                   >
                     <div>
                       <CollapsibleTrigger asChild>
-                        <SidebarMenuSubButton className='cursor-pointer'>
+                        <SidebarMenuSubButton
+                          className={cn(
+                            'cursor-pointer',
+                            hasActiveChild(href, subItem) &&
+                              'text-foreground font-semibold'
+                          )}
+                        >
                           {subItem.icon && <DynamicIcon name={subItem.icon} />}
                           <span>{subItem.title}</span>
                           {subItem.badge && (
@@ -181,7 +192,11 @@ function RecursiveSidebarMenuSubItem({
       >
         <div>
           <CollapsibleTrigger asChild>
-            <SidebarMenuSubButton>
+            <SidebarMenuSubButton
+              className={cn(
+                hasActiveChild(href, item) && 'text-foreground font-semibold'
+              )}
+            >
               {item.icon && <DynamicIcon name={item.icon} />}
               <span>{item.title}</span>
               {item.badge && <NavBadge>{item.badge}</NavBadge>}
@@ -220,6 +235,7 @@ function SidebarMenuCollapsedDropdown({
   item: NavItem
   href: string
 }) {
+  const hasActive = hasActiveChild(href, item)
   return (
     <SidebarMenuItem>
       <DropdownMenu>
@@ -227,6 +243,7 @@ function SidebarMenuCollapsedDropdown({
           <SidebarMenuButton
             tooltip={item.title}
             isActive={checkIsActive(href, item)}
+            className={cn(hasActive && 'text-foreground font-semibold')}
           >
             {item.icon && <DynamicIcon name={item.icon} />}
             <span>{item.title}</span>
@@ -239,39 +256,46 @@ function SidebarMenuCollapsedDropdown({
             {item.title} {item.badge ? `(${item.badge})` : ''}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {item.items?.map((sub) => (
-            <DropdownMenuItem key={`${sub.title}-${sub.url}`} asChild>
-              {sub.items ? (
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
+          {item.items?.map((sub) => {
+            const hasActive = hasActiveChild(href, sub)
+            return (
+              <DropdownMenuItem key={`${sub.title}-${sub.url}`} asChild>
+                {sub.items ? (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger
+                      className={cn(
+                        hasActive && 'text-foreground font-semibold'
+                      )}
+                    >
+                      {sub.icon && <DynamicIcon name={sub.icon} />}
+                      <span>{sub.title}</span>
+                      {sub.badge && <NavBadge>{sub.badge}</NavBadge>}
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      {sub.items.map((subSub) => (
+                        <RecursiveDropdownMenuItem
+                          key={`${subSub.title}-${subSub.url}`}
+                          item={subSub}
+                          href={href}
+                        />
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                ) : (
+                  <Link
+                    to={sub.url!}
+                    className={`${checkIsActive(href, sub) ? 'bg-secondary' : ''}`}
+                  >
                     {sub.icon && <DynamicIcon name={sub.icon} />}
-                    <span>{sub.title}</span>
-                    {sub.badge && <NavBadge>{sub.badge}</NavBadge>}
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    {sub.items.map((subSub) => (
-                      <RecursiveDropdownMenuItem
-                        key={`${subSub.title}-${subSub.url}`}
-                        item={subSub}
-                        href={href}
-                      />
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              ) : (
-                <Link
-                  to={sub.url!}
-                  className={`${checkIsActive(href, sub) ? 'bg-secondary' : ''}`}
-                >
-                  {sub.icon && <DynamicIcon name={sub.icon} />}
-                  <span className='max-w-52 text-wrap'>{sub.title}</span>
-                  {sub.badge && (
-                    <span className='ms-auto text-xs'>{sub.badge}</span>
-                  )}
-                </Link>
-              )}
-            </DropdownMenuItem>
-          ))}
+                    <span className='max-w-52 text-wrap'>{sub.title}</span>
+                    {sub.badge && (
+                      <span className='ms-auto text-xs'>{sub.badge}</span>
+                    )}
+                  </Link>
+                )}
+              </DropdownMenuItem>
+            )
+          })}
         </DropdownMenuContent>
       </DropdownMenu>
     </SidebarMenuItem>
@@ -286,9 +310,12 @@ function RecursiveDropdownMenuItem({
   href: string
 }) {
   if (item.items) {
+    const hasActive = hasActiveChild(href, item)
     return (
       <DropdownMenuSub>
-        <DropdownMenuSubTrigger>
+        <DropdownMenuSubTrigger
+          className={cn(hasActive && 'text-foreground font-semibold')}
+        >
           {item.icon && <DynamicIcon name={item.icon} />}
           <span>{item.title}</span>
           {item.badge && <NavBadge>{item.badge}</NavBadge>}
@@ -320,7 +347,22 @@ function RecursiveDropdownMenuItem({
   )
 }
 
-function checkIsActive(href: string, item: NavItem, mainNav = false): boolean {
+// 检查父级是否有激活的子项（排除自身）
+export function hasActiveChild(href: string, item: NavItem): boolean {
+  if (!item.items) return false
+  // 检查是否有子项激活，但排除自身激活
+  const isSelfActive = href === item.url || href.split('?')[0] === item.url
+  if (isSelfActive) return false
+  // 检查子项是否有激活的
+  return item.items.some((child) => checkIsActive(href, child))
+}
+
+// 导出 checkIsActive 供其他组件使用
+export function checkIsActive(
+  href: string,
+  item: NavItem,
+  mainNav = false
+): boolean {
   return (
     href === item.url || // /endpint?search=param
     href.split('?')[0] === item.url || // endpoint

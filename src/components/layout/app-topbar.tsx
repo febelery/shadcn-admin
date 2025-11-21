@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useLocation } from '@tanstack/react-router'
 import { type NavItem } from '@/types/navigation'
 import { ChevronDown } from 'lucide-react'
 import { motion } from 'motion/react'
@@ -20,10 +20,12 @@ import { DynamicIcon } from '@/components/ui/dynamic-icon'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { AppTitle } from '@/components/layout/app-title'
+import { hasActiveChild, checkIsActive } from '@/components/layout/nav-group'
 import { NavUser } from '@/components/layout/nav-user'
 
 export function AppTopbar() {
   const { menuData } = useMenuData()
+  const href = useLocation({ select: (location) => location.href })
 
   const [hoveredPath, setHoveredPath] = useState<string | null>(null)
 
@@ -86,6 +88,13 @@ export function AppTopbar() {
             }
 
             // Otherwise render as a dropdown
+            const hasActive = group.items.some((item) => {
+              // 如果 item 本身激活
+              if (checkIsActive(href, item)) return true
+              // 如果 item 有激活的子项
+              if (hasActiveChild(href, item)) return true
+              return false
+            })
             return (
               <DropdownMenu key={group.title}>
                 <DropdownMenuTrigger asChild>
@@ -93,7 +102,8 @@ export function AppTopbar() {
                     variant='ghost'
                     className={cn(
                       'text-muted-foreground hover:text-foreground relative h-9 px-4 py-2 hover:bg-transparent data-[state=open]:bg-transparent',
-                      'text-sm font-medium'
+                      'text-sm font-medium',
+                      hasActive && 'text-foreground font-semibold'
                     )}
                     onMouseEnter={() => setHoveredPath(group.title)}
                     onMouseLeave={() => setHoveredPath(null)}
@@ -117,7 +127,7 @@ export function AppTopbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align='start' className='w-48'>
                   {group.items.map((item) => (
-                    <TopNavItem key={item.title} item={item} />
+                    <TopNavItem key={item.title} item={item} href={href} />
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -135,11 +145,14 @@ export function AppTopbar() {
   )
 }
 
-function TopNavItem({ item }: { item: NavItem }) {
+function TopNavItem({ item, href }: { item: NavItem; href: string }) {
   if (item.items) {
+    const hasActive = hasActiveChild(href, item)
     return (
       <DropdownMenuSub>
-        <DropdownMenuSubTrigger>
+        <DropdownMenuSubTrigger
+          className={cn(hasActive && 'text-foreground font-semibold')}
+        >
           {item.icon && (
             <DynamicIcon name={item.icon} className='mr-2 size-4' />
           )}
@@ -147,7 +160,7 @@ function TopNavItem({ item }: { item: NavItem }) {
         </DropdownMenuSubTrigger>
         <DropdownMenuSubContent>
           {item.items.map((sub) => (
-            <TopNavItem key={sub.title} item={sub} />
+            <TopNavItem key={sub.title} item={sub} href={href} />
           ))}
         </DropdownMenuSubContent>
       </DropdownMenuSub>
