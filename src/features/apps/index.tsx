@@ -25,11 +25,8 @@ const appText = new Map<AppType, string>([
 ])
 
 export function Apps() {
-  const {
-    filter = '',
-    type = 'all',
-    sort: initSort = 'asc',
-  } = route.useSearch()
+  const search = route.useSearch()
+  const { filter = '', type = 'all', sort: initSort = 'asc' } = search
   const navigate = route.useNavigate()
 
   const [sort, setSort] = useState(initSort)
@@ -54,26 +51,26 @@ export function Apps() {
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
     navigate({
-      search: (prev) => ({
-        ...prev,
+      search: {
+        ...search,
         filter: e.target.value || undefined,
-      }),
+      },
     })
   }
 
   const handleTypeChange = (value: AppType) => {
     setAppType(value)
     navigate({
-      search: (prev) => ({
-        ...prev,
+      search: {
+        ...search,
         type: value === 'all' ? undefined : value,
-      }),
+      },
     })
   }
 
   const handleSortChange = (sort: 'asc' | 'desc') => {
     setSort(sort)
-    navigate({ search: (prev) => ({ ...prev, sort }) })
+    navigate({ search: { ...search, sort } })
   }
 
   return (
@@ -102,56 +99,53 @@ export function Apps() {
           </Select>
         </div>
 
-          <Select value={sort} onValueChange={handleSortChange}>
-            <SelectTrigger className='w-16'>
-              <SelectValue>
-                <SlidersHorizontal size={18} />
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent align='end'>
-              <SelectItem value='asc'>
-                <div className='flex items-center gap-4'>
-                  <ArrowUpAZ size={16} />
-                  <span>Ascending</span>
-                </div>
-              </SelectItem>
-              <SelectItem value='desc'>
-                <div className='flex items-center gap-4'>
-                  <ArrowDownAZ size={16} />
-                  <span>Descending</span>
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Separator className='shadow-sm' />
-        <ul className='faded-bottom no-scrollbar grid gap-4 overflow-auto pt-4 pb-16 md:grid-cols-2 lg:grid-cols-3'>
-          {filteredApps.map((app) => (
-            <li
-              key={app.name}
-              className='rounded-lg border p-4 hover:shadow-md'
-            >
-              <div className='mb-8 flex items-center justify-between'>
-                <div
-                  className={`bg-muted flex size-10 items-center justify-center rounded-lg p-2`}
-                >
-                  {app.logo}
-                </div>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className={`${app.connected ? 'border border-blue-300 bg-blue-50 hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-950 dark:hover:bg-blue-900' : ''}`}
-                >
-                  {app.connected ? 'Connected' : 'Connect'}
-                </Button>
+        <Select value={sort} onValueChange={handleSortChange}>
+          <SelectTrigger className='w-16'>
+            <SelectValue>
+              <SlidersHorizontal size={18} />
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent align='end'>
+            <SelectItem value='asc'>
+              <div className='flex items-center gap-4'>
+                <ArrowUpAZ size={16} />
+                <span>Ascending</span>
               </div>
-              <div>
-                <h2 className='mb-1 font-semibold'>{app.name}</h2>
-                <p className='line-clamp-2 text-gray-500'>{app.desc}</p>
+            </SelectItem>
+            <SelectItem value='desc'>
+              <div className='flex items-center gap-4'>
+                <ArrowDownAZ size={16} />
+                <span>Descending</span>
               </div>
-            </li>
-          ))}
-        </ul>
-      </PageLayout>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <Separator className='shadow-sm' />
+      <ul className='faded-bottom no-scrollbar grid gap-4 overflow-auto pt-4 pb-16 md:grid-cols-2 lg:grid-cols-3'>
+        {filteredApps.map((app) => (
+          <li key={app.name} className='rounded-lg border p-4 hover:shadow-md'>
+            <div className='mb-8 flex items-center justify-between'>
+              <div
+                className={`bg-muted flex size-10 items-center justify-center rounded-lg p-2`}
+              >
+                {app.logo}
+              </div>
+              <Button
+                variant='outline'
+                size='sm'
+                className={`${app.connected ? 'border border-blue-300 bg-blue-50 hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-950 dark:hover:bg-blue-900' : ''}`}
+              >
+                {app.connected ? 'Connected' : 'Connect'}
+              </Button>
+            </div>
+            <div>
+              <h2 className='mb-1 font-semibold'>{app.name}</h2>
+              <p className='line-clamp-2 text-gray-500'>{app.desc}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </PageLayout>
   )
 }

@@ -19,6 +19,7 @@ interface PageLayoutProps {
 
   // 主容器
   mainFluid?: boolean // 流式布局
+  mainFixed?: boolean
   mainClassName?: string
 
   // 内容
@@ -31,9 +32,10 @@ export function PageLayout({
   actions,
   headerContent,
   headerLeft,
-  headerFixed,
+  headerFixed = true,
   mainFluid,
   mainClassName,
+  mainFixed,
   children,
 }: PageLayoutProps) {
   const { navType } = useLayout()
@@ -56,7 +58,7 @@ export function PageLayout({
           )}
         </Header>
       )}
-      <Main fluid={mainFluid} className={mainClassName}>
+      <Main fluid={mainFluid} className={mainClassName} fixed={mainFixed}>
         {title && (
           <PageHeader title={title} description={description}>
             {actions}

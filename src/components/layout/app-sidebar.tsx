@@ -22,7 +22,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <AppTitle />
       </SidebarHeader>
       <SidebarContent>
-        {menuData.navGroups.map((props) => (
+        {menuData.navGroups?.map((props) => (
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>

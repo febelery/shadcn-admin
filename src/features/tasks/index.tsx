@@ -45,7 +45,6 @@ export function Tasks() {
   return (
     <TasksProvider>
       <PageLayout
-        headerFixed
         title='Tasks'
         description="Here's a list of your tasks for this month!"
         actions={<TasksPrimaryButtons />}

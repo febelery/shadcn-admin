@@ -44,7 +44,6 @@ export function Users() {
   return (
     <UsersProvider>
       <PageLayout
-        headerFixed
         title='User List'
         description='Manage your users and their roles here.'
         actions={<UsersPrimaryButtons />}
