@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { type SidebarData } from '@/components/layout/types'
+import { type SidebarData } from '@/types/navigation'
 import axios from 'axios'
 
 export function useSidebarData() {

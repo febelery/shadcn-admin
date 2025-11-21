@@ -4,10 +4,11 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { type NavigateFn } from '@/types/table'
 import { type DragEndEvent, type UniqueIdentifier } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { cn } from '@/lib/utils'
-import { type NavigateFn, useTableUrlState } from '@/hooks/use-table-url-state'
+import { useTableUrlState } from '@/hooks/use-table-url-state'
 import {
   DataTable,
   DataTablePagination,

@@ -5,74 +5,11 @@ import type {
   PaginationState,
   SortingState,
 } from '@tanstack/react-table'
-
-type SearchRecord = Record<string, unknown>
-
-export type NavigateFn = (opts: {
-  search:
-    | true
-    | SearchRecord
-    | ((prev: SearchRecord) => Partial<SearchRecord> | SearchRecord)
-  replace?: boolean
-}) => void
-
-type UseTableUrlStateParams = {
-  search: SearchRecord
-  navigate: NavigateFn
-  pagination?: {
-    pageKey?: string
-    pageSizeKey?: string
-    defaultPage?: number
-    defaultPageSize?: number
-  }
-  globalFilter?: {
-    enabled?: boolean
-    key?: string
-    trim?: boolean
-  }
-  sorting?: {
-    enabled?: boolean
-    sortByKey?: string
-    sortOrderKey?: string
-  }
-  columnFilters?: Array<
-    | {
-        columnId: string
-        searchKey: string
-        type?: 'string'
-        // Optional transformers for custom types
-        serialize?: (value: unknown) => unknown
-        deserialize?: (value: unknown) => unknown
-      }
-    | {
-        columnId: string
-        searchKey: string
-        type: 'array'
-        serialize?: (value: unknown) => unknown
-        deserialize?: (value: unknown) => unknown
-      }
-  >
-}
-
-type UseTableUrlStateReturn = {
-  // Global filter
-  globalFilter?: string
-  onGlobalFilterChange?: OnChangeFn<string>
-  // Column filters
-  columnFilters: ColumnFiltersState
-  onColumnFiltersChange: OnChangeFn<ColumnFiltersState>
-  // Pagination
-  pagination: PaginationState
-  onPaginationChange: OnChangeFn<PaginationState>
-  // Sorting
-  sorting?: SortingState
-  onSortingChange?: OnChangeFn<SortingState>
-  // Helpers
-  ensurePageInRange: (
-    pageCount: number,
-    opts?: { resetTo?: 'first' | 'last' }
-  ) => void
-}
+import type {
+  SearchRecord,
+  UseTableUrlStateParams,
+  UseTableUrlStateReturn,
+} from '@/types/table'
 
 export function useTableUrlState(
   params: UseTableUrlStateParams

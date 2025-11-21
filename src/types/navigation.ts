@@ -1,6 +1,9 @@
 import { type LinkProps } from '@tanstack/react-router'
 
-type NavItem = {
+/**
+ * 导航项可以是链接或可折叠菜单
+ */
+export type NavItem = {
   title: string
   url?: LinkProps['to'] | (string & {})
   badge?: string
@@ -8,15 +11,17 @@ type NavItem = {
   items?: NavItem[]
 }
 
-type NavGroup = {
+/**
+ * 导航组包含多个导航项
+ */
+export type NavGroup = {
   title: string
   items: NavItem[]
 }
 
-type SidebarData = {
+/**
+ * 完整的侧边栏数据结构
+ */
+export type SidebarData = {
   navGroups: NavGroup[]
 }
-
-type NavCollapsible = NavItem
-type NavLink = NavItem
-export type { SidebarData, NavGroup, NavItem, NavCollapsible, NavLink }

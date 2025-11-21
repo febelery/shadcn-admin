@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
+import { type NavItem, type NavGroup } from '@/types/navigation'
 import { ChevronRight } from 'lucide-react'
 import {
   Collapsible,
@@ -30,14 +31,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
-import {
-  type NavCollapsible,
-  type NavItem,
-  type NavLink,
-  type NavGroup as NavGroupProps,
-} from './types'
 
-export function NavGroup({ title, items }: NavGroupProps) {
+export function NavGroup({ title, items }: NavGroup) {
   const { state, isMobile } = useSidebar()
   const href = useLocation({ select: (location) => location.href })
   return (
@@ -66,7 +61,7 @@ function NavBadge({ children }: { children: ReactNode }) {
   return <Badge className='rounded-full px-1 py-0 text-xs'>{children}</Badge>
 }
 
-function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
+function SidebarMenuLink({ item, href }: { item: NavItem; href: string }) {
   const { setOpenMobile } = useSidebar()
   return (
     <SidebarMenuItem>
@@ -89,7 +84,7 @@ function SidebarMenuCollapsible({
   item,
   href,
 }: {
-  item: NavCollapsible
+  item: NavItem
   href: string
 }) {
   const { setOpenMobile } = useSidebar()
@@ -222,7 +217,7 @@ function SidebarMenuCollapsedDropdown({
   item,
   href,
 }: {
-  item: NavCollapsible
+  item: NavItem
   href: string
 }) {
   return (

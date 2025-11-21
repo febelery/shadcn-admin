@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { type SidebarData } from '@/components/layout/types'
+import { type SidebarData } from '@/types/navigation'
 
 const sidebarData: SidebarData = {
   navGroups: [
