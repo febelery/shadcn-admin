@@ -51,7 +51,7 @@ export function Users() {
       >
         <UsersTable
           data={data?.data || []}
-          total={data?.meta.total || 0}
+          total={data?.meta?.total || 0}
           isLoading={isFetching}
           tableState={tableState}
         />
