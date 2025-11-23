@@ -67,7 +67,6 @@ export function ConfigDrawer({
         </SheetHeader>
         <div className='space-y-6 overflow-y-auto px-4'>
           <ThemeConfig />
-          <NavConfig />
           <SidebarConfig />
           <LayoutConfig />
           <DirConfig />
@@ -213,40 +212,6 @@ function ThemeConfig() {
       <div id='theme-description' className='sr-only'>
         在系统偏好、浅色模式或深色模式之间选择
       </div>
-    </div>
-  )
-}
-
-function NavConfig() {
-  const { navType, setNavType } = useLayout()
-  return (
-    <div>
-      <SectionTitle
-        title='导航模式'
-        showReset={navType !== 'sidebar'}
-        onReset={() => setNavType('sidebar')}
-      />
-      <Radio
-        value={navType}
-        onValueChange={(val) => setNavType(val as 'sidebar' | 'topbar')}
-        className='grid w-full max-w-md grid-cols-3 gap-4'
-        aria-label='选择导航模式'
-      >
-        {[
-          {
-            value: 'sidebar',
-            label: '侧边栏',
-            icon: IconSidebarSidebar,
-          },
-          {
-            value: 'topbar',
-            label: '顶栏',
-            icon: IconLayoutFull, // Using LayoutFull icon as a proxy for Topbar for now, or we could create a new one
-          },
-        ].map((item) => (
-          <RadioGroupItem key={item.value} item={item} />
-        ))}
-      </Radio>
     </div>
   )
 }

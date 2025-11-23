@@ -3,7 +3,6 @@ import { getCookie, setCookie } from '@/lib/cookies'
 
 export type Collapsible = 'offcanvas' | 'icon' | 'none'
 export type Variant = 'inset' | 'sidebar' | 'floating'
-export type NavType = 'sidebar' | 'topbar'
 
 // Cookie constants following the pattern from sidebar.tsx
 const LAYOUT_COLLAPSIBLE_COOKIE_NAME = 'layout_collapsible'
@@ -24,12 +23,6 @@ type LayoutContextType = {
   defaultVariant: Variant
   variant: Variant
   setVariant: (variant: Variant) => void
-
-  navType: NavType
-  setNavType: (navType: NavType) => void
-
-  isTopbarLayout: boolean
-  isSidebarLayout: boolean
 }
 
 const LayoutContext = createContext<LayoutContextType | null>(null)
@@ -49,11 +42,6 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     return (saved as Variant) || DEFAULT_VARIANT
   })
 
-  const [navType, _setNavType] = useState<NavType>(() => {
-    const saved = getCookie('layout_nav_type')
-    return (saved as NavType) || 'sidebar'
-  })
-
   const setCollapsible = (newCollapsible: Collapsible) => {
     _setCollapsible(newCollapsible)
     setCookie(
@@ -68,15 +56,9 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     setCookie(LAYOUT_VARIANT_COOKIE_NAME, newVariant, LAYOUT_COOKIE_MAX_AGE)
   }
 
-  const setNavType = (newNavType: NavType) => {
-    _setNavType(newNavType)
-    setCookie('layout_nav_type', newNavType, LAYOUT_COOKIE_MAX_AGE)
-  }
-
   const resetLayout = () => {
     setCollapsible(DEFAULT_COLLAPSIBLE)
     setVariant(DEFAULT_VARIANT)
-    setNavType('sidebar')
   }
 
   const contextValue: LayoutContextType = {
@@ -87,10 +69,6 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     defaultVariant: DEFAULT_VARIANT,
     variant,
     setVariant,
-    navType,
-    setNavType,
-    isTopbarLayout: navType === 'topbar',
-    isSidebarLayout: navType !== 'topbar',
   }
 
   return <LayoutContext value={contextValue}>{children}</LayoutContext>
