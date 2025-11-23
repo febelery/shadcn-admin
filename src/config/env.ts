@@ -40,12 +40,6 @@ export const appConfig = {
   title: getEnv('VITE_APP_TITLE', 'Shadcn Admin'),
 
   /**
-   * 应用副标题
-   * 默认值: 'Vite + ShadcnUI'
-   */
-  subtitle: getEnv('VITE_APP_SUBTITLE', 'Vite + ShadcnUI'),
-
-  /**
    * 应用图标 URL
    * 如果设置了此值，将显示图片；否则显示默认的 Command 图标
    * 默认值: undefined

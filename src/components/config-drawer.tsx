@@ -55,7 +55,7 @@ export function ConfigDrawer({
           className={showLabel ? 'h-auto w-auto gap-2 px-0' : 'size-4'}
         >
           <Settings aria-hidden='true' className='size-4 shrink-0' />
-          {showLabel && <span className='font-normal'>外观设置</span>}
+          {showLabel && <span className='text-sm font-normal'>外观设置</span>}
         </Button>
       </SheetTrigger>
       <SheetContent className='flex flex-col'>

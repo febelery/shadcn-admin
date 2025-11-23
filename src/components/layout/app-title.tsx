@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { appConfig } from '@/config/env'
+import { cn } from '@/lib/utils'
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -25,19 +26,21 @@ export function AppTitle() {
             <Link to='/' onClick={() => setOpenMobile(false)}>
               <AppIcon />
               {!isCollapsed && (
-                <div className='grid flex-1 text-start text-sm leading-tight'>
-                  <span className='truncate font-semibold'>
-                    {appConfig.title}
-                  </span>
-                  <span className='truncate text-xs'>{appConfig.subtitle}</span>
-                </div>
+                <span className='truncate text-xl font-semibold'>
+                  {appConfig.title}
+                </span>
               )}
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
 
-      <SidebarTrigger className='transition-[width,height,padding] duration-200 ease-linear' />
+      <SidebarTrigger
+        className={cn(
+          'transition-[width,height,padding] duration-200 ease-linear',
+          isCollapsed && 'mt-4'
+        )}
+      />
     </>
   )
 }
