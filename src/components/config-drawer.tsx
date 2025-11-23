@@ -27,7 +27,11 @@ import {
 } from '@/components/ui/sheet'
 import { useSidebar } from './ui/sidebar'
 
-export function ConfigDrawer() {
+export function ConfigDrawer({
+  showLabel = false,
+}: {
+  showLabel?: boolean
+} = {}) {
   const { setOpen } = useSidebar()
   const { resetDir } = useDirection()
   const { resetTheme } = useTheme()
@@ -48,9 +52,10 @@ export function ConfigDrawer() {
           variant='ghost'
           aria-label='打开主题设置'
           aria-describedby='config-drawer-description'
-          className='rounded-full'
+          className={showLabel ? 'h-auto w-auto gap-2 px-0' : 'size-4'}
         >
-          <Settings aria-hidden='true' />
+          <Settings aria-hidden='true' className='size-4 shrink-0' />
+          {showLabel && <span className='font-normal'>外观设置</span>}
         </Button>
       </SheetTrigger>
       <SheetContent className='flex flex-col'>

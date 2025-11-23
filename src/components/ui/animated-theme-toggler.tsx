@@ -7,11 +7,13 @@ import { useTheme } from '@/context/theme-provider'
 interface AnimatedThemeTogglerProps
   extends React.ComponentPropsWithoutRef<'button'> {
   duration?: number
+  showLabel?: boolean
 }
 
 export const AnimatedThemeToggler = ({
   className,
   duration = 400,
+  showLabel = false,
   ...props
 }: AnimatedThemeTogglerProps) => {
   const { theme, resolvedTheme, setTheme } = useTheme()
@@ -76,7 +78,8 @@ export const AnimatedThemeToggler = ({
       className={cn(className)}
       {...props}
     >
-      {isDark ? <Moon size={16} /> : <Sun size={16} />}
+      {isDark ? <Moon size={16} className='size-4 shrink-0' /> : <Sun size={16} className='size-4 shrink-0' />}
+      {showLabel && <span>切换主题</span>}
       <span className='sr-only'>Toggle theme</span>
     </button>
   )
