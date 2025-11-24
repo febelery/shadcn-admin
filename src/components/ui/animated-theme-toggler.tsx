@@ -3,9 +3,10 @@ import { Moon, Sun } from 'lucide-react'
 import { flushSync } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
+import { Button } from '@/components/ui/button'
 
 interface AnimatedThemeTogglerProps
-  extends React.ComponentPropsWithoutRef<'button'> {
+  extends React.ComponentPropsWithoutRef<typeof Button> {
   duration?: number
   showLabel?: boolean
 }
@@ -72,15 +73,29 @@ export const AnimatedThemeToggler = ({
   }, [theme, setTheme, duration])
 
   return (
-    <button
+    <Button
       ref={buttonRef}
       onClick={toggleTheme}
-      className={cn(className)}
+      size='icon'
+      variant='ghost'
+      aria-label='切换主题'
+      className={cn(
+        showLabel ? 'h-auto w-auto gap-2 px-0' : 'size-4',
+        className
+      )}
       {...props}
     >
-      {isDark ? <Moon size={16} className='size-4 shrink-0' /> : <Sun size={16} className='size-4 shrink-0' />}
-      {showLabel && <span className='font-normal text-sm'>切换主题</span>}
+      {isDark ? (
+        <Moon aria-hidden='true' className='size-4 shrink-0' />
+      ) : (
+        <Sun aria-hidden='true' className='size-4 shrink-0' />
+      )}
+      {showLabel && (
+        <span className='shrink-0 text-sm font-normal whitespace-nowrap'>
+          切换主题
+        </span>
+      )}
       <span className='sr-only'>Toggle theme</span>
-    </button>
+    </Button>
   )
 }

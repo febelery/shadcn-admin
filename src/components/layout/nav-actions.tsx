@@ -40,13 +40,12 @@ export function NavActions({
                 'peer/menu-button ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent active:text-sidebar-accent-foreground flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-start text-sm outline-hidden transition-[width,height,padding] focus-visible:ring-2',
                 'group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-2',
                 '[&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
+                '[&>button]:flex [&>button]:h-auto [&>button]:min-w-0 [&>button]:items-center [&>button]:gap-2 [&>button]:p-0 [&>button]:hover:bg-transparent',
+                'group-data-[collapsible=icon]:[&>button]:size-4!',
                 'h-7 text-xs'
               )}
             >
-              <AnimatedThemeToggler
-                showLabel={!isCollapsed}
-                className='flex h-auto min-w-0 items-center justify-center gap-2'
-              />
+              <AnimatedThemeToggler showLabel={!isCollapsed} />
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
