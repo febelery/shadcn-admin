@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { getCellKey, getLineCount } from '@/lib/data-grid'
-import { cn } from '@/lib/utils'
+import { cn, sleep } from '@/lib/utils'
 import { useBadgeOverflow } from '@/hooks/use-badge-overflow'
 import { useDebouncedCallback } from '@/hooks/use-debounced-callback'
 import { Badge } from '@/components/ui/badge'
@@ -1555,7 +1555,8 @@ export function FileCell<TData>({
           setUploadingFiles(uploadingIds)
 
           // Simulate upload delay (in real app, this would be actual upload)
-          await new Promise((resolve) => setTimeout(resolve, 800))
+          // todo: 后续调用真实上传接口
+          await sleep(800)
 
           // Replace temp files with real ones
           const finalFiles = filesWithTemp.map(

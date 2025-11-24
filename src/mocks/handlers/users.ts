@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { http, HttpResponse } from 'msw'
+import { sleep } from '@/lib/utils'
 
 faker.seed(1230)
 
@@ -34,7 +35,7 @@ export const users = Array.from({ length: 500 }, () => {
 
 export const usersHandlers = [
   http.get('/api/users', async ({ request }) => {
-    await new Promise((resolve) => setTimeout(resolve, 200))
+    await sleep(200)
 
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')

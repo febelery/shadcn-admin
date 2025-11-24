@@ -24,6 +24,7 @@ import type {
 import { useVirtualizer, type Virtualizer } from '@tanstack/react-virtual'
 import { toast } from 'sonner'
 import { getCellKey, getRowHeightValue, parseCellKey } from '@/lib/data-grid'
+import { sleep } from '@/lib/utils'
 import { DataGridCell } from '@/components/data-grid/data-grid-cell'
 
 const DEFAULT_ROW_HEIGHT = 'short'
@@ -597,7 +598,7 @@ function useDataGrid<TData>({
             currentTableRowCount < expectedRowCount &&
             attempts < maxAttempts
           ) {
-            await new Promise((resolve) => setTimeout(resolve, 100))
+            await sleep(100)
             currentTableRowCount =
               tableRef.current?.getRowModel().rows.length ?? 0
             attempts++

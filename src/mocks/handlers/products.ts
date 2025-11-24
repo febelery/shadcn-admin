@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { http, HttpResponse } from 'msw'
+import { sleep } from '@/lib/utils'
 import type { Product } from '@/features/products/data/schema'
 
 faker.seed(2024)
@@ -62,7 +63,7 @@ Array.from({ length: 100 }, () => {
 
 export const productsHandlers = [
   http.get('/api/products', async () => {
-    await new Promise((resolve) => setTimeout(resolve, 300))
+    await sleep(300)
     const products = Array.from(productsMap.values())
     return HttpResponse.json({
       data: products,
@@ -73,7 +74,7 @@ export const productsHandlers = [
   }),
 
   http.delete('/api/products', async ({ request }) => {
-    await new Promise((resolve) => setTimeout(resolve, 200))
+    await sleep(200)
     const body = (await request.json()) as { ids: string[] }
     body.ids.forEach((id) => {
       productsMap.delete(id)
