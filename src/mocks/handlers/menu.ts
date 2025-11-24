@@ -32,6 +32,11 @@ const menuData: MenuData = {
           url: '/users',
           icon: 'Users',
         },
+        {
+          title: 'Products',
+          url: '/products',
+          icon: 'shopping-cart',
+        },
       ],
     },
     {
