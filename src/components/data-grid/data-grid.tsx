@@ -134,6 +134,7 @@ export function DataGrid<TData>({
                   (sort) => sort.id === header.column.id
                 )
                 const isSortable = header.column.getCanSort()
+                const isPinned = header.column.getIsPinned()
 
                 return (
                   <div
@@ -153,6 +154,7 @@ export function DataGrid<TData>({
                     tabIndex={-1}
                     className={cn('relative', {
                       'border-r': header.column.id !== 'select',
+                      'bg-background/80 backdrop-blur-sm': isPinned,
                     })}
                     style={{
                       ...getCommonPinningStyles({ column: header.column }),

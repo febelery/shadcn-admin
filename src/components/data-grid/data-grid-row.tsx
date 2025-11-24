@@ -95,6 +95,7 @@ function DataGridRowImpl<TData>({
         const isCellFocused =
           focusedCell?.rowIndex === virtualRowIndex &&
           focusedCell?.columnId === cell.column.id
+        const isPinned = cell.column.getIsPinned()
 
         return (
           <div
@@ -106,6 +107,7 @@ function DataGridRowImpl<TData>({
             tabIndex={-1}
             className={cn({
               'border-r': cell.column.id !== 'select',
+              'bg-background/80 backdrop-blur-sm': isPinned,
             })}
             style={{
               ...getCommonPinningStyles({ column: cell.column }),
