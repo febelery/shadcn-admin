@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { IconFacebook, IconGithub } from '@/assets/brand-icons'
+import { IconGmail, IconGithub } from '@/assets/brand-icons'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,10 +18,7 @@ import { PasswordInput } from '@/components/password-input'
 
 const formSchema = z
   .object({
-    email: z.email({
-      error: (iss) =>
-        iss.input === '' ? '请输入您的邮箱' : undefined,
-    }),
+    name: z.string().min(2, '账号长度至少为 2 个字符'),
     password: z
       .string()
       .min(1, '请输入您的密码')
@@ -42,7 +39,7 @@ export function SignUpForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
+      name: '',
       password: '',
       confirmPassword: '',
     },
@@ -50,7 +47,6 @@ export function SignUpForm({
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
-    // eslint-disable-next-line no-console
     console.log(data)
 
     setTimeout(() => {
@@ -67,12 +63,12 @@ export function SignUpForm({
       >
         <FormField
           control={form.control}
-          name='email'
+          name='name'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>邮箱</FormLabel>
+              <FormLabel>账号</FormLabel>
               <FormControl>
-                <Input placeholder='name@example.com' {...field} />
+                <Input placeholder='请输入您的账号' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -134,7 +130,7 @@ export function SignUpForm({
             type='button'
             disabled={isLoading}
           >
-            <IconFacebook className='h-4 w-4' /> Facebook
+            <IconGmail className='h-4 w-4' /> Google
           </Button>
         </div>
       </form>

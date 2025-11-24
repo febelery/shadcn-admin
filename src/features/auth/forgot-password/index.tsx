@@ -3,7 +3,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -13,32 +12,29 @@ import { ForgotPasswordForm } from './components/forgot-password-form'
 export function ForgotPassword() {
   return (
     <AuthLayout>
-      <Card className='gap-4'>
-        <CardHeader>
-          <CardTitle className='text-lg tracking-tight'>
-            Forgot Password
+      <Card className='p-6'>
+        <CardHeader className='flex flex-col items-center space-y-2 text-center'>
+          <CardTitle className='text-2xl font-semibold tracking-tight'>
+            忘记密码
           </CardTitle>
-          <CardDescription>
-            Enter your registered email and <br /> we will send you a link to
-            reset your password.
+          <CardDescription className='text-muted-foreground text-sm'>
+            输入您注册的邮箱，我们将向您发送重置密码的链接
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className='grid gap-4'>
           <ForgotPasswordForm />
         </CardContent>
-        <CardFooter>
-          <p className='text-muted-foreground mx-auto px-8 text-center text-sm text-balance'>
-            Don't have an account?{' '}
-            <Link
-              to='/sign-up'
-              className='hover:text-primary underline underline-offset-4'
-            >
-              Sign up
-            </Link>
-            .
-          </p>
-        </CardFooter>
       </Card>
+      <p className='text-muted-foreground px-8 text-center text-sm'>
+        还没有账户？{' '}
+        <Link
+          to='/sign-up'
+          className='hover:text-primary underline underline-offset-4'
+        >
+          注册
+        </Link>
+        .
+      </p>
     </AuthLayout>
   )
 }

@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageLayout } from '@/components/layout/page-layout'
-import { TopNav } from '@/components/layout/top-nav'
 import { Analytics } from './components/analytics'
 import { Overview } from './components/overview'
 import { RecentSales } from './components/recent-sales'
@@ -16,8 +15,6 @@ import { RecentSales } from './components/recent-sales'
 export function Dashboard() {
   return (
     <PageLayout>
-      <TopNav links={topNav} className='my-2'/>
-      {/* ===== Main ===== */}
       <div className='mb-2 flex items-center justify-between space-y-2'>
         <h1 className='text-2xl font-bold tracking-tight'>Dashboard</h1>
         <div className='flex items-center space-x-2'>
@@ -174,30 +171,3 @@ export function Dashboard() {
     </PageLayout>
   )
 }
-
-const topNav = [
-  {
-    title: 'Overview',
-    href: 'dashboard/overview',
-    isActive: true,
-    disabled: false,
-  },
-  {
-    title: 'Customers',
-    href: 'dashboard/customers',
-    isActive: false,
-    disabled: true,
-  },
-  {
-    title: 'Products',
-    href: 'dashboard/products',
-    isActive: false,
-    disabled: true,
-  },
-  {
-    title: 'Settings',
-    href: 'dashboard/settings',
-    isActive: false,
-    disabled: true,
-  },
-]
