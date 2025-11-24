@@ -1,29 +1,17 @@
-import { useId, useMemo } from 'react'
+import { useMemo } from 'react'
 import {
   flexRender,
   type Row,
   type Table as TanstackTable,
 } from '@tanstack/react-table'
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  type UniqueIdentifier,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core'
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+import { type DragEndEvent } from '@dnd-kit/core'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Sortable,
+  SortableContent,
+  SortableItem,
+} from '@/components/ui/sortable'
 import {
   Table,
   TableBody,
@@ -33,68 +21,58 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-interface DataTableProps<TData> {
+interface DataTableProps<TData extends object & { id: string }> {
   table: TanstackTable<TData>
-  onReorder?: (event: DragEndEvent) => void
+  onReorder?: (
+    event: DragEndEvent & { activeIndex: number; overIndex: number }
+  ) => void
   isLoading?: boolean
 }
 
 // 可拖拽行组件
-function DraggableRow<TData>({ row }: { row: Row<TData> }) {
-  const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: (row.original as { id: string }).id,
-  })
+function DraggableRow<TData extends object & { id: string }>({
+  row,
+}: {
+  row: Row<TData>
+}) {
+  const rowId = row.original.id
 
   return (
-    <TableRow
-      data-state={row.getIsSelected() && 'selected'}
-      data-dragging={isDragging}
-      ref={setNodeRef}
-      className={cn(
-        'group/row relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80',
-        'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted'
-      )}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition: transition,
-      }}
-    >
-      {row.getVisibleCells().map((cell) => (
-        <TableCell
-          key={cell.id}
-          className={cn(
-            'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
-            cell.column.columnDef.meta?.className,
-            cell.column.columnDef.meta?.tdClassName
-          )}
-        >
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-        </TableCell>
-      ))}
-    </TableRow>
+    <SortableItem value={rowId} asChild>
+      <TableRow
+        data-state={row.getIsSelected() && 'selected'}
+        className={cn(
+          'group/row relative z-0',
+          'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted'
+        )}
+      >
+        {row.getVisibleCells().map((cell) => (
+          <TableCell
+            key={cell.id}
+            className={cn(
+              'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+              cell.column.columnDef.meta?.className,
+              cell.column.columnDef.meta?.tdClassName
+            )}
+          >
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        ))}
+      </TableRow>
+    </SortableItem>
   )
 }
 
-export function DataTable<TData>({
+export function DataTable<TData extends object & { id: string }>({
   table,
   onReorder,
   isLoading,
 }: DataTableProps<TData>) {
-  const sortableId = useId()
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  )
-
-  // 生成可拖拽项的 ID 列表
+  // 生成可拖拽项的数据列表
   const rows = table.getFilteredRowModel().rows
-  const dataIds = useMemo<UniqueIdentifier[]>(
-    () => rows.map((row) => (row.original as { id: string }).id),
-    [rows]
-  )
+  const data = useMemo(() => rows.map((row) => row.original), [rows])
 
-  const content = (
+  const tableContent = (
     <Table>
       <TableHeader className='bg-muted sticky top-0 z-10'>
         {table.getHeaderGroups().map((headerGroup) => (
@@ -135,14 +113,11 @@ export function DataTable<TData>({
           ))
         ) : table.getRowModel().rows?.length ? (
           onReorder ? (
-            <SortableContext
-              items={dataIds}
-              strategy={verticalListSortingStrategy}
-            >
+            <SortableContent withoutSlot>
               {table.getRowModel().rows.map((row) => (
                 <DraggableRow key={row.id} row={row} />
               ))}
-            </SortableContext>
+            </SortableContent>
           ) : (
             table.getRowModel().rows.map((row) => (
               <TableRow
@@ -182,18 +157,18 @@ export function DataTable<TData>({
   if (onReorder) {
     return (
       <div className='overflow-hidden rounded-md border'>
-        <DndContext
-          collisionDetection={closestCenter}
-          modifiers={[restrictToVerticalAxis]}
-          onDragEnd={onReorder}
-          sensors={sensors}
-          id={sortableId}
+        {/* @ts-expect-error - TypeScript 无法正确推断条件类型，但运行时类型是正确的 */}
+        <Sortable<TData>
+          value={data}
+          onMove={onReorder}
+          orientation='vertical'
+          getItemValue={(item: TData) => item.id}
         >
-          {content}
-        </DndContext>
+          {tableContent}
+        </Sortable>
       </div>
     )
   }
 
-  return <div className='overflow-hidden rounded-md border'>{content}</div>
+  return <div className='overflow-hidden rounded-md border'>{tableContent}</div>
 }

@@ -1,8 +1,11 @@
 import { type ColumnDef } from '@tanstack/react-table'
+import { GripVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { DataTableColumnHeader, DragHandle } from '@/components/data-table'
+import { SortableItemHandle } from '@/components/ui/sortable'
+import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
 import { callTypes, roles } from '../data/data'
 import { type User } from '../data/schema'
@@ -12,7 +15,18 @@ export const usersColumns: ColumnDef<User>[] = [
   {
     id: 'drag',
     header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original.id} />,
+    cell: () => (
+      <SortableItemHandle asChild>
+        <Button
+          variant='ghost'
+          size='icon'
+          className='text-muted-foreground size-7 cursor-grab hover:bg-transparent active:cursor-grabbing'
+        >
+          <GripVertical className='text-muted-foreground size-4' />
+          <span className='sr-only'>Drag to reorder</span>
+        </Button>
+      </SortableItemHandle>
+    ),
     enableSorting: false,
     enableHiding: false,
     meta: {

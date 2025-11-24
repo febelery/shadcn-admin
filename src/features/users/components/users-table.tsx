@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   type VisibilityState,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
 import { type TableState } from '@/types/table'
-import { type DragEndEvent, type UniqueIdentifier } from '@dnd-kit/core'
+import { type DragEndEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { cn } from '@/lib/utils'
 import {
@@ -42,12 +42,6 @@ export function UsersTable({
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-
-  // 生成可拖拽项的 ID 列表
-  const dataIds = useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ id }) => id) || [],
-    [data]
-  )
 
   // 从父组件接收表格状态
   const {
@@ -88,19 +82,13 @@ export function UsersTable({
     ensurePageInRange(total)
   }, [total, ensurePageInRange])
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (over && active.id !== over.id) {
-      setData((prevData) => {
-        const activeIndex = dataIds.indexOf(active.id)
-        const overIndex = dataIds.indexOf(over.id)
-        return arrayMove(prevData, activeIndex, overIndex)
-      })
-    }
+  const handleDragEnd = (event: DragEndEvent & { activeIndex: number; overIndex: number }) => {
+    const { activeIndex, overIndex } = event
+    setData((prevData) => arrayMove(prevData, activeIndex, overIndex))
     // Log the drag event details
     console.log('Drag ended:', {
-      activeId: active.id,
-      overId: over?.id,
+      activeIndex,
+      overIndex,
       data,
     })
   }
