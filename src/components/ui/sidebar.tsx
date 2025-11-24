@@ -263,9 +263,10 @@ function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, state, isMobile } = useSidebar()
+  const isCollapsed = state === 'collapsed'
 
-  return (
+  const button = (
     <Button
       data-sidebar='trigger'
       data-slot='sidebar-trigger'
@@ -281,6 +282,124 @@ function SidebarTrigger({
       <PanelLeftIcon />
       <span className='sr-only'>切换侧边栏</span>
     </Button>
+  )
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent
+        side='right'
+        align='center'
+        hidden={!isCollapsed || isMobile}
+      >
+        切换侧边栏
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+/**
+ * 浮动侧边栏触发器
+ * 支持拖拽的浮动按钮，用于移动端
+ */
+function SidebarFloatingTrigger({
+  className,
+  onClick,
+  ...props
+}: React.ComponentProps<typeof Button>) {
+  const { toggleSidebar } = useSidebar()
+  const [position, setPosition] = React.useState({ x: 16, y: 16 })
+  const [isDragging, setIsDragging] = React.useState(false)
+  const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 })
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const positionRef = React.useRef(position)
+  const dragStartRef = React.useRef(dragStart)
+  const isDraggingRef = React.useRef(isDragging)
+
+  // 同步 ref 值
+  React.useEffect(() => {
+    positionRef.current = position
+    dragStartRef.current = dragStart
+    isDraggingRef.current = isDragging
+  }, [position, dragStart, isDragging])
+
+  // 处理触摸开始
+  const handleTouchStart = React.useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0]
+    const currentPos = positionRef.current
+    setDragStart({
+      x: touch.clientX - currentPos.x,
+      y: touch.clientY - currentPos.y,
+    })
+    setIsDragging(true)
+  }, [])
+
+  // 处理触摸移动
+  const handleTouchMove = React.useCallback((e: React.TouchEvent) => {
+    if (!isDraggingRef.current) return
+
+    const touch = e.touches[0]
+    const start = dragStartRef.current
+    const newX = touch.clientX - start.x
+    const newY = touch.clientY - start.y
+
+    // 限制在屏幕范围内
+    const maxX = window.innerWidth - (containerRef.current?.offsetWidth || 36)
+    const maxY = window.innerHeight - (containerRef.current?.offsetHeight || 36)
+
+    const clampedX = Math.max(0, Math.min(newX, maxX))
+    const clampedY = Math.max(0, Math.min(newY, maxY))
+
+    setPosition({ x: clampedX, y: clampedY })
+  }, [])
+
+  // 处理触摸结束
+  const handleTouchEnd = React.useCallback(() => {
+    if (isDraggingRef.current) {
+      setIsDragging(false)
+    }
+  }, [])
+
+  const button = (
+    <Button
+      data-sidebar='trigger'
+      data-slot='sidebar-trigger'
+      variant='ghost'
+      size='icon'
+      className={cn(
+        'size-9 rounded-full',
+        'bg-background/80 backdrop-blur-md',
+        'border-border border shadow-lg',
+        'active:scale-95',
+        !isDragging && 'transition-all duration-200',
+        className
+      )}
+      onClick={(event) => {
+        onClick?.(event)
+        toggleSidebar()
+      }}
+      {...props}
+    >
+      <PanelLeftIcon />
+      <span className='sr-only'>切换侧边栏</span>
+    </Button>
+  )
+
+  return (
+    <div
+      ref={containerRef}
+      className={cn('fixed z-50', isDragging && 'select-none')}
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+        touchAction: 'none',
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {button}
+    </div>
   )
 }
 
@@ -732,5 +851,6 @@ export {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
+  SidebarFloatingTrigger,
   useSidebar,
 }
