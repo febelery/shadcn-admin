@@ -6,12 +6,9 @@ import {
 } from '@tanstack/react-table'
 import { type TableState } from '@/types/table'
 import { cn } from '@/lib/utils'
-import {
-  DataTable,
-  DataTablePagination,
-  DataTableToolbar,
-} from '@/components/data-table'
-import { priorities, statuses } from '../data/data'
+import { ColumnVisibility } from '@/components/column-visibility'
+import { DataTable, DataTablePagination } from '@/components/data-table'
+import { FilterMenu } from '@/components/filter-menu'
 import { type Task } from '../data/schema'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { tasksColumns as columns } from './tasks-columns'
@@ -29,14 +26,10 @@ export function TasksTable({
   isLoading,
   tableState,
 }: DataTableProps) {
-  // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
-  // 从父组件接收表格状态
   const {
-    globalFilter,
-    onGlobalFilterChange,
     columnFilters,
     onColumnFiltersChange,
     pagination,
@@ -56,7 +49,6 @@ export function TasksTable({
       columnVisibility,
       rowSelection,
       columnFilters,
-      globalFilter,
       pagination,
     },
     enableRowSelection: true,
@@ -67,7 +59,6 @@ export function TasksTable({
     onSortingChange,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnFiltersChange,
-    onGlobalFilterChange,
     onPaginationChange,
     getCoreRowModel: getCoreRowModel(),
   })
@@ -78,22 +69,16 @@ export function TasksTable({
 
   return (
     <div className={cn('flex h-full flex-col gap-4')}>
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder='Filter tasks...'
-        filters={[
-          {
-            columnId: 'status',
-            title: 'Status',
-            options: statuses,
-          },
-          {
-            columnId: 'priority',
-            title: 'Priority',
-            options: priorities,
-          },
-        ]}
-      />
+      <div className='flex items-center justify-between'>
+        <FilterMenu
+          table={table}
+          mode='remote'
+          onFiltersChange={onColumnFiltersChange}
+          filters={tableState.filters}
+          align='start'
+        />
+        <ColumnVisibility table={table} />
+      </div>
       <DataTable table={table} isLoading={isLoading} />
       <DataTablePagination table={table} className='mt-auto' />
       <DataTableBulkActions table={table} />

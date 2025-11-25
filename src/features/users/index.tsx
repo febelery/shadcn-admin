@@ -1,44 +1,49 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTableState } from '@/hooks/use-table-state'
+import { type FilterConfig } from '@/components/filter-menu'
 import { PageLayout } from '@/components/layout/page-layout'
 import { getUsers } from './api'
 import { UsersDialogs } from './components/users-dialogs'
 import { UsersPrimaryButtons } from './components/users-primary-buttons'
 import { UsersProvider } from './components/users-provider'
 import { UsersTable } from './components/users-table'
+import { roles } from './data/data'
 
 export function Users() {
+  // 定义筛选器配置
+  const filterConfigs: FilterConfig[] = [
+    {
+      columnId: 'username',
+      title: 'Username',
+    },
+    {
+      columnId: 'status',
+      title: 'Status',
+      options: [
+        { label: 'Active', value: 'active' },
+        { label: 'Inactive', value: 'inactive' },
+        { label: 'Invited', value: 'invited' },
+        { label: 'Suspended', value: 'suspended' },
+      ],
+      allowedOperators: ['is', 'isNot'],
+    },
+    {
+      columnId: 'role',
+      title: 'Role',
+      options: roles.map((role) => ({ ...role })),
+      allowedOperators: ['is', 'isNot'],
+    },
+  ]
+
   const tableState = useTableState({
     pagination: { defaultPage: 1, defaultPageSize: 10 },
-    globalFilter: { enabled: false },
     sorting: { enabled: true },
-    columnFilters: [
-      { columnId: 'username', searchKey: 'username', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'array' },
-      { columnId: 'role', searchKey: 'role', type: 'array' },
-    ],
+    filters: filterConfigs,
   })
 
-  // 使用 getApiParams 生成 API 查询参数
-  const apiParams = tableState.getApiParams()
-
-  const queryParams = {
-    page: (apiParams.page as number) || 1,
-    pageSize: (apiParams.pageSize as number) || 10,
-    sortBy: apiParams.sortBy as string | undefined,
-    sortOrder: apiParams.sortOrder as 'asc' | 'desc' | undefined,
-    search: apiParams.username as string | undefined,
-    status: Array.isArray(apiParams.status)
-      ? apiParams.status.join(',')
-      : (apiParams.status as string) || undefined,
-    role: Array.isArray(apiParams.role)
-      ? apiParams.role.join(',')
-      : (apiParams.role as string) || undefined,
-  }
-
   const { data, isFetching } = useQuery({
-    queryKey: ['users', queryParams],
-    queryFn: () => getUsers(queryParams),
+    queryKey: ['users', tableState.getQueryParams()],
+    queryFn: () => getUsers(tableState.getQueryParams()),
   })
 
   return (

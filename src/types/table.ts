@@ -4,72 +4,106 @@ import type {
   PaginationState,
   SortingState,
 } from '@tanstack/react-table'
+import type { FilterConfig } from '@/components/filter-menu'
 
 /**
- * API 参数记录类型
+ * API 查询参数
  */
-export type ApiParams = Record<string, unknown>
+export type QueryParams = Record<string, unknown>
 
 /**
- * useTableState hook 的配置选项
+ * useTableState 配置选项
  */
-export type TableStateOptions = {
+export interface TableStateOptions {
+  /**
+   * 分页配置
+   */
   pagination?: {
+    /**
+     * 页码参数名，默认为 'page'
+     */
     pageKey?: string
+    /**
+     * 每页数量参数名，默认为 'pageSize'
+     */
     pageSizeKey?: string
+    /**
+     * 默认页码，默认为 1
+     */
     defaultPage?: number
+    /**
+     * 默认每页数量，默认为 10
+     */
     defaultPageSize?: number
   }
-  globalFilter?: {
-    enabled?: boolean
-    key?: string
-    trim?: boolean
-  }
+  /**
+   * 排序配置
+   */
   sorting?: {
+    /**
+     * 是否启用排序，默认为 true
+     */
     enabled?: boolean
+    /**
+     * 排序字段参数名，默认为 'sortBy'
+     */
     sortByKey?: string
+    /**
+     * 排序方向参数名，默认为 'sortOrder'
+     */
     sortOrderKey?: string
   }
-  columnFilters?: Array<
-    | {
-        columnId: string
-        searchKey: string
-        type?: 'string'
-        // 可选的转换器用于自定义类型
-        serialize?: (value: unknown) => unknown
-        deserialize?: (value: unknown) => unknown
-      }
-    | {
-        columnId: string
-        searchKey: string
-        type: 'array'
-        serialize?: (value: unknown) => unknown
-        deserialize?: (value: unknown) => unknown
-      }
-  >
+  /**
+   * 筛选器配置
+   * 定义哪些列可以筛选
+   * columnId 会直接作为 API 参数名使用
+   */
+  filters?: FilterConfig[]
 }
 
 /**
- * useTableState hook 返回的表格状态
+ * 表格状态
  */
-export type TableState = {
-  // 全局过滤器
-  globalFilter?: string
-  onGlobalFilterChange?: OnChangeFn<string>
-  // 列过滤器
+export interface TableState {
+  /**
+   * 列筛选条件
+   */
   columnFilters: ColumnFiltersState
+  /**
+   * 列筛选条件变更回调
+   */
   onColumnFiltersChange: OnChangeFn<ColumnFiltersState>
-  // 分页
+  /**
+   * 分页状态
+   */
   pagination: PaginationState
+  /**
+   * 分页变更回调
+   */
   onPaginationChange: OnChangeFn<PaginationState>
-  // 排序
+  /**
+   * 排序状态
+   */
   sorting?: SortingState
+  /**
+   * 排序变更回调
+   */
   onSortingChange?: OnChangeFn<SortingState>
-  // 生成 API 参数
-  getApiParams: () => ApiParams
-  // 助手：确保页码在有效范围内
+  /**
+   * 生成查询参数
+   * 自动将筛选、分页、排序条件转换为API查询参数
+   */
+  getQueryParams: () => QueryParams
+  /**
+   * 确保页码在有效范围内
+   */
   ensurePageInRange: (
     pageCount: number,
     opts?: { resetTo?: 'first' | 'last' }
   ) => void
+  /**
+   * 筛选器配置
+   * 传递给 FilterMenu 组件使用
+   */
+  filters?: FilterConfig[]
 }

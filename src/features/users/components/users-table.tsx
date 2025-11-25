@@ -8,12 +8,9 @@ import { type TableState } from '@/types/table'
 import { type DragEndEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { cn } from '@/lib/utils'
-import {
-  DataTable,
-  DataTablePagination,
-  DataTableToolbar,
-} from '@/components/data-table'
-import { roles } from '../data/data'
+import { ColumnVisibility } from '@/components/column-visibility'
+import { DataTable, DataTablePagination } from '@/components/data-table'
+import { FilterMenu } from '@/components/filter-menu'
 import { type User } from '../data/schema'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { usersColumns as columns } from './users-columns'
@@ -39,11 +36,9 @@ export function UsersTable({
     setData(initialData)
   }, [initialData])
 
-  // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
-  // 从父组件接收表格状态
   const {
     columnFilters,
     onColumnFiltersChange,
@@ -82,41 +77,26 @@ export function UsersTable({
     ensurePageInRange(total)
   }, [total, ensurePageInRange])
 
-  const handleDragEnd = (event: DragEndEvent & { activeIndex: number; overIndex: number }) => {
+  const handleDragEnd = (
+    event: DragEndEvent & { activeIndex: number; overIndex: number }
+  ) => {
     const { activeIndex, overIndex } = event
     setData((prevData) => arrayMove(prevData, activeIndex, overIndex))
-    // Log the drag event details
-    console.log('Drag ended:', {
-      activeIndex,
-      overIndex,
-      data,
-    })
   }
 
   return (
     <div className={cn('flex h-full flex-col gap-4')}>
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder='Filter users...'
-        searchKey='username'
-        filters={[
-          {
-            columnId: 'status',
-            title: 'Status',
-            options: [
-              { label: 'Active', value: 'active' },
-              { label: 'Inactive', value: 'inactive' },
-              { label: 'Invited', value: 'invited' },
-              { label: 'Suspended', value: 'suspended' },
-            ],
-          },
-          {
-            columnId: 'role',
-            title: 'Role',
-            options: roles.map((role) => ({ ...role })),
-          },
-        ]}
-      />
+      <div className='flex items-center justify-between'>
+        <FilterMenu
+          table={table}
+          mode='remote'
+          onFiltersChange={onColumnFiltersChange}
+          filters={tableState.filters}
+          align='start'
+        />
+        <ColumnVisibility table={table} />
+      </div>
+
       <DataTable
         table={table}
         onReorder={handleDragEnd}

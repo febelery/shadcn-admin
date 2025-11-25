@@ -1,120 +1,59 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import type {
   ColumnFiltersState,
   OnChangeFn,
   PaginationState,
   SortingState,
 } from '@tanstack/react-table'
-import type { ApiParams, TableStateOptions, TableState } from '@/types/table'
+import type { FilterValue } from '@/types/data-grid'
+import type { TableState, TableStateOptions, QueryParams } from '@/types/table'
 
 /**
  * 表格状态管理 Hook
  *
- * 功能：
- * - 管理表格的内部状态（分页、排序、过滤等）
- * - 生成 API 请求参数
- * - 不操作页面 URL，仅用于构建 API 请求
+ * 基于 FilterMenu 的筛选格式，自动将筛选、分页、排序条件转换为API查询参数
  */
-export function useTableState(params: TableStateOptions): TableState {
+export function useTableState(options: TableStateOptions = {}): TableState {
   const {
-    pagination: paginationCfg,
-    globalFilter: globalFilterCfg,
-    sorting: sortingCfg,
-    columnFilters: columnFiltersCfg = [],
-  } = params
+    pagination: paginationCfg = {},
+    sorting: sortingCfg = {},
+    filters = [],
+  } = options
 
-  const pageKey = paginationCfg?.pageKey ?? ('page' as string)
-  const pageSizeKey = paginationCfg?.pageSizeKey ?? ('pageSize' as string)
-  const defaultPage = paginationCfg?.defaultPage ?? 1
-  const defaultPageSize = paginationCfg?.defaultPageSize ?? 10
+  const pageKey = paginationCfg.pageKey ?? 'page'
+  const pageSizeKey = paginationCfg.pageSizeKey ?? 'pageSize'
+  const defaultPage = paginationCfg.defaultPage ?? 1
+  const defaultPageSize = paginationCfg.defaultPageSize ?? 10
 
-  const globalFilterKey = globalFilterCfg?.key ?? ('filter' as string)
-  const globalFilterEnabled = globalFilterCfg?.enabled ?? true
-  const trimGlobal = globalFilterCfg?.trim ?? true
+  const sortByKey = sortingCfg.sortByKey ?? 'sortBy'
+  const sortOrderKey = sortingCfg.sortOrderKey ?? 'sortOrder'
+  const sortingEnabled = sortingCfg.enabled ?? true
 
-  const sortingEnabled = sortingCfg?.enabled ?? true
-  const sortByKey = sortingCfg?.sortByKey ?? ('sortBy' as string)
-  const sortOrderKey = sortingCfg?.sortOrderKey ?? ('sortOrder' as string)
-
-  // 使用内部 state 管理列过滤器
+  // 列筛选状态
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
-  // 使用内部 state 管理分页
+  // 分页状态
   const [pagination, setPagination] = useState<PaginationState>(() => ({
     pageIndex: Math.max(0, defaultPage - 1),
     pageSize: defaultPageSize,
   }))
 
-  // 使用内部 state 管理排序
+  // 排序状态
   const [sorting, setSorting] = useState<SortingState>([])
 
-  // 分页变更处理：仅更新内部 state
-  const onPaginationChange: OnChangeFn<PaginationState> = useCallback(
-    (updater) => {
-      setPagination((prev) => {
-        const next = typeof updater === 'function' ? updater(prev) : updater
-        return next
-      })
-    },
-    []
-  )
+  // 创建可筛选的列ID集合
+  // 用于快速检查某个列是否允许筛选
+  const filterableColumnIds = useMemo(() => {
+    return new Set(filters.map((filter) => filter.columnId))
+  }, [filters])
 
-  // 全局过滤器 state
-  const [globalFilter, setGlobalFilter] = useState<string | undefined>(() => {
-    if (!globalFilterEnabled) return undefined
-    return ''
-  })
-
-  // 全局过滤器变更处理：仅更新内部 state，并在筛选条件变化时重置页码
-  const onGlobalFilterChangeBase = useCallback<OnChangeFn<string>>(
-    (updater) => {
-      setGlobalFilter((prev) => {
-        const next =
-          typeof updater === 'function' ? updater(prev ?? '') : updater
-        const trimmedNext = trimGlobal ? next.trim() : next
-        const trimmedPrev = trimGlobal ? (prev ?? '').trim() : (prev ?? '')
-
-        // 检测全局过滤器是否真的发生了变化
-        const filterChanged = trimmedPrev !== trimmedNext
-
-        if (filterChanged) {
-          // 筛选条件变化时，重置页码到第一页
-          setPagination((p) => ({
-            ...p,
-            pageIndex: defaultPage - 1,
-          }))
-        }
-        return trimmedNext
-      })
-    },
-    [trimGlobal, defaultPage]
-  )
-
-  const onGlobalFilterChange: OnChangeFn<string> | undefined =
-    globalFilterEnabled ? onGlobalFilterChangeBase : undefined
-
-  // 排序变更处理：仅更新内部 state
-  const onSortingChangeBase = useCallback<OnChangeFn<SortingState>>(
-    (updater) => {
-      setSorting((prev) => {
-        const next = typeof updater === 'function' ? updater(prev) : updater
-        return next
-      })
-    },
-    []
-  )
-
-  const onSortingChange: OnChangeFn<SortingState> | undefined = sortingEnabled
-    ? onSortingChangeBase
-    : undefined
-
-  // 列过滤器变更处理：仅更新内部 state，并在筛选条件变化时重置页码
+  // 列筛选变更处理
   const onColumnFiltersChange: OnChangeFn<ColumnFiltersState> = useCallback(
     (updater) => {
       setColumnFilters((prev) => {
         const next = typeof updater === 'function' ? updater(prev) : updater
+
         // 检测筛选条件是否真的发生了变化
-        // 比较数组长度和每个过滤器的 id 和 value
         const filtersChanged =
           prev.length !== next.length ||
           prev.some(
@@ -132,22 +71,44 @@ export function useTableState(params: TableStateOptions): TableState {
                 JSON.stringify(prev[index].value)
           )
 
+        // 筛选条件变化时，重置页码到第一页
         if (filtersChanged) {
-          // 筛选条件变化时，重置页码到第一页
           setPagination((p) => ({
             ...p,
             pageIndex: defaultPage - 1,
           }))
         }
+
         return next
       })
     },
     [defaultPage]
   )
 
-  // 生成 API 参数：将内部 state 转换为 API 请求参数
-  const getApiParams = useCallback((): ApiParams => {
-    const params: ApiParams = {}
+  // 分页变更处理
+  const onPaginationChange: OnChangeFn<PaginationState> = useCallback(
+    (updater) => {
+      setPagination((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater
+        return next
+      })
+    },
+    []
+  )
+
+  // 排序变更处理
+  const onSortingChange: OnChangeFn<SortingState> = useCallback((updater) => {
+    setSorting((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      return next
+    })
+  }, [])
+
+  // 生成查询参数
+  // 自动将筛选、分页、排序条件转换为API查询参数
+  // 使用 useMemo 缓存结果，确保引用稳定
+  const queryParams = useMemo((): QueryParams => {
+    const params: QueryParams = {}
 
     // 添加分页参数
     const currentPage = pagination.pageIndex + 1
@@ -158,36 +119,53 @@ export function useTableState(params: TableStateOptions): TableState {
       params[pageSizeKey] = pagination.pageSize
     }
 
-    // 添加全局过滤器参数
-    if (globalFilterEnabled && globalFilter && globalFilter.trim() !== '') {
-      params[globalFilterKey] = globalFilter
-    }
-
     // 添加排序参数
     if (sortingEnabled && sorting.length > 0) {
       params[sortByKey] = sorting[0].id
       params[sortOrderKey] = sorting[0].desc ? 'desc' : 'asc'
     }
 
-    // 添加列过滤器参数
-    for (const cfg of columnFiltersCfg) {
-      const found = columnFilters.find((f) => f.id === cfg.columnId)
-      const serialize = cfg.serialize ?? ((v: unknown) => v)
-      if (cfg.type === 'string') {
-        const value =
-          typeof found?.value === 'string' ? (found.value as string) : ''
-        if (value.trim() !== '') {
-          params[cfg.searchKey] = serialize(value)
-        }
-      } else {
-        // default to array type
-        const value = Array.isArray(found?.value)
-          ? (found!.value as unknown[])
-          : []
-        if (value.length > 0) {
-          params[cfg.searchKey] = serialize(value)
-        }
+    // 添加筛选参数
+    // 使用 JSON 字符串方式序列化筛选条件，这是业界最佳实践
+    // 格式：status='{"operator":"isNot","value":"active"}' (URL编码后)
+    // 优点：结构清晰、易于扩展、兼容性好
+    // 直接使用 columnId 作为 API 参数名，无需映射
+    for (const filter of columnFilters) {
+      // 只处理在 filters 配置中定义的列
+      if (!filterableColumnIds.has(filter.id)) continue
+
+      const filterValue = filter.value as FilterValue | undefined
+      if (!filterValue) continue
+
+      const { operator, value, value2 } = filterValue
+
+      // 构建筛选对象
+      // 对于不需要值的操作符，只传递 operator
+      let filterObj: Record<string, unknown> | null = null
+
+      if (
+        operator === 'isEmpty' ||
+        operator === 'isNotEmpty' ||
+        operator === 'isTrue' ||
+        operator === 'isFalse'
+      ) {
+        // 只包含 operator
+        filterObj = { operator }
+      } else if (operator === 'between' && value2 !== undefined) {
+        // 范围查询：包含 operator, value, value2
+        filterObj = { operator, value, value2 }
+      } else if (value !== undefined && value !== null && value !== '') {
+        // 普通查询：包含 operator 和 value
+        filterObj = { operator, value }
       }
+
+      // 跳过无效的筛选条件
+      if (!filterObj) continue
+
+      // 将筛选对象序列化为 JSON 字符串
+      // 直接使用 columnId 作为 API 参数名
+      // axios 会自动进行 URL 编码
+      params[filter.id] = JSON.stringify(filterObj)
     }
 
     return params
@@ -197,18 +175,20 @@ export function useTableState(params: TableStateOptions): TableState {
     defaultPageSize,
     pageKey,
     pageSizeKey,
-    globalFilterEnabled,
-    globalFilter,
-    globalFilterKey,
     sortingEnabled,
     sorting,
     sortByKey,
     sortOrderKey,
-    columnFiltersCfg,
     columnFilters,
+    filterableColumnIds,
   ])
 
-  // 确保页码在有效范围内：仅更新内部 state
+  // getQueryParams 返回缓存的 queryParams
+  const getQueryParams = useCallback((): QueryParams => {
+    return queryParams
+  }, [queryParams])
+
+  // 确保页码在有效范围内
   const ensurePageInRange = useCallback(
     (
       pageCount: number,
@@ -228,16 +208,30 @@ export function useTableState(params: TableStateOptions): TableState {
     [pagination.pageIndex, defaultPage]
   )
 
-  return {
-    globalFilter: globalFilterEnabled ? (globalFilter ?? '') : undefined,
-    onGlobalFilterChange,
-    columnFilters,
-    onColumnFiltersChange,
-    pagination,
-    onPaginationChange,
-    sorting: sortingEnabled ? sorting : undefined,
-    onSortingChange,
-    getApiParams,
-    ensurePageInRange,
-  }
+  // 使用 useMemo 确保返回对象的引用在状态变化时更新
+  return useMemo(
+    () => ({
+      columnFilters,
+      onColumnFiltersChange,
+      pagination,
+      onPaginationChange,
+      sorting: sortingEnabled ? sorting : undefined,
+      onSortingChange: sortingEnabled ? onSortingChange : undefined,
+      getQueryParams,
+      ensurePageInRange,
+      filters,
+    }),
+    [
+      columnFilters,
+      onColumnFiltersChange,
+      pagination,
+      onPaginationChange,
+      sorting,
+      sortingEnabled,
+      onSortingChange,
+      getQueryParams,
+      ensurePageInRange,
+      filters,
+    ]
+  )
 }

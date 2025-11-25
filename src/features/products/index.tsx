@@ -9,9 +9,9 @@ import { useWindowSize } from '@/hooks/use-window-size'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ColumnVisibility } from '@/components/column-visibility'
 import { DataGrid } from '@/components/data-grid/data-grid'
-import { DataGridFilterMenu } from '@/components/data-grid/data-grid-filter-menu'
 import { DataGridRowHeightMenu } from '@/components/data-grid/data-grid-row-height-menu'
 import { DataGridSortMenu } from '@/components/data-grid/data-grid-sort-menu'
+import { FilterMenu } from '@/components/filter-menu'
 import { PageLayout } from '@/components/layout/page-layout'
 import { getProducts, createProduct, deleteProducts } from './api'
 import type { Product } from './data/schema'
@@ -282,7 +282,7 @@ export function Products() {
             aria-orientation='horizontal'
             className='flex items-center gap-2 self-end'
           >
-            <DataGridFilterMenu table={table} align='end' />
+            <FilterMenu table={table} align='end' />
             <DataGridSortMenu table={table} align='end' />
             <DataGridRowHeightMenu table={table} align='end' />
             <ColumnVisibility table={table} align='end' />
