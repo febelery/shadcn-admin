@@ -4,6 +4,7 @@ import * as React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useDataGrid } from '@/hooks/use-data-grid'
+import { useWindowSize } from '@/hooks/use-window-size'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DataGrid } from '@/components/data-grid/data-grid'
 import { PageLayout } from '@/components/layout/page-layout'
@@ -11,16 +12,18 @@ import { getProducts, createProduct, deleteProducts } from './api'
 import type { Product } from './data/schema'
 
 export function Products() {
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['products'],
     queryFn: getProducts,
   })
 
-  const [products, setProducts] = React.useState<Product[]>(data?.data || [])
+  const [products, setProducts] = React.useState<Product[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
 
   React.useEffect(() => {
     if (data?.data) {
       setProducts(data.data)
+      setIsLoading(false)
     }
   }, [data])
 
@@ -206,25 +209,20 @@ export function Products() {
 
   const onRowsDelete = React.useCallback(
     async (rows: Product[]) => {
-      const ids = rows.map((row) => row.id)
-      setProducts((prev) => prev.filter((row) => !ids.includes(row.id)))
+      // 先更新本地状态
+      setProducts((prev) => prev.filter((row) => !rows.includes(row)))
 
       // 通过接口删除
       try {
+        const ids = rows.map((row) => row.id)
         await deleteProductsAsync(ids)
       } catch (error) {
         // 如果删除失败，恢复本地状态
-        setProducts((prev) =>
-          [...prev, ...rows].sort((a, b) => {
-            const indexA = products.findIndex((p) => p.id === a.id)
-            const indexB = products.findIndex((p) => p.id === b.id)
-            return indexA - indexB
-          })
-        )
+        setProducts((prev) => [...prev, ...rows])
         console.error('Failed to delete products:', error)
       }
     },
-    [deleteProductsAsync, products]
+    [deleteProductsAsync]
   )
 
   const { table, ...dataGridProps } = useDataGrid({
@@ -232,9 +230,13 @@ export function Products() {
     data: products,
     onDataChange: setProducts,
     onRowsDelete,
+    getRowId: (row) => row.id,
     enableSearch: true,
     readOnly: true,
   })
+
+  const windowSize = useWindowSize({ defaultHeight: 760 })
+  const height = Math.max(400, windowSize.height - 150)
 
   return (
     <PageLayout
@@ -245,19 +247,16 @@ export function Products() {
     >
       {isLoading ? (
         <div className='flex min-h-0 flex-1 flex-col gap-4 rounded-md border p-4'>
-          <div className='flex flex-1 flex-col gap-3'>
-            {Array.from({ length: 10 }).map((_, rowIndex) => (
-              <div key={rowIndex} className='flex gap-4'>
-                {Array.from({ length: 12 }).map((_, colIndex) => (
-                  <Skeleton key={colIndex} className='h-8 flex-1' />
-                ))}
-              </div>
-            ))}
+          <div className='flex items-center gap-2 self-end'>
+            <Skeleton className='h-7 w-18' />
+            <Skeleton className='h-7 w-18' />
+            <Skeleton className='h-7 w-18' />
           </div>
+          <Skeleton className='h-full w-full' />
         </div>
       ) : (
         <div className='flex min-h-0 flex-1'>
-          <DataGrid {...dataGridProps} table={table} />
+          <DataGrid {...dataGridProps} table={table} height={height} />
         </div>
       )}
     </PageLayout>

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { sleep } from '@/lib/utils'
 import type { Product } from './data/schema'
 
 export interface ProductsResponse {
@@ -11,6 +12,7 @@ export interface ProductsResponse {
 }
 
 export const getProducts = async (): Promise<ProductsResponse> => {
+  await sleep(200)
   const response = await axios.get('/api/products')
   return response.data
 }
@@ -23,4 +25,3 @@ export const createProduct = async (product: Product): Promise<Product> => {
 export const deleteProducts = async (ids: string[]): Promise<void> => {
   await axios.delete('/api/products', { data: { ids } })
 }
-

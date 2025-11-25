@@ -23,7 +23,7 @@ export function DataGrid<TData>({
   footerRef,
   table,
   rowVirtualizer,
-  height,
+  height = 600,
   searchState,
   columnSizeVars,
   onRowAdd,
@@ -56,36 +56,6 @@ export function DataGrid<TData>({
     [onRowAdd]
   )
 
-  // 当使用 flex 布局时，监听容器尺寸变化并触发虚拟滚动器重新测量
-  React.useLayoutEffect(() => {
-    if (height !== undefined) return // 如果提供了固定高度，不需要监听
-
-    const gridElement = dataGridRef.current
-    if (!gridElement) return
-
-    // 使用 ResizeObserver 监听容器尺寸变化
-    const resizeObserver = new ResizeObserver(() => {
-      // 延迟测量，确保布局已完成
-      requestAnimationFrame(() => {
-        rowVirtualizer.measure()
-      })
-    })
-
-    resizeObserver.observe(gridElement)
-
-    // 初始测量，使用双重 requestAnimationFrame 确保布局已完成
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        rowVirtualizer.measure()
-      })
-    })
-
-    return () => {
-      resizeObserver.disconnect()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rowVirtualizer, height])
-
   return (
     <div
       data-slot='grid-wrapper'
@@ -103,10 +73,7 @@ export function DataGrid<TData>({
         data-slot='grid'
         tabIndex={0}
         ref={dataGridRef}
-        className={cn(
-          'relative grid overflow-auto rounded-md border select-none focus:outline-none',
-          height === undefined && 'min-h-0 flex-1'
-        )}
+        className='relative grid overflow-auto rounded-md border select-none focus:outline-none'
         style={{
           ...columnSizeVars,
           ...(height !== undefined && { maxHeight: `${height}px` }),
@@ -134,7 +101,6 @@ export function DataGrid<TData>({
                   (sort) => sort.id === header.column.id
                 )
                 const isSortable = header.column.getCanSort()
-                const isPinned = header.column.getIsPinned()
 
                 return (
                   <div
@@ -154,7 +120,6 @@ export function DataGrid<TData>({
                     tabIndex={-1}
                     className={cn('relative', {
                       'border-r': header.column.id !== 'select',
-                      'bg-background/80 backdrop-blur-sm': isPinned,
                     })}
                     style={{
                       ...getCommonPinningStyles({ column: header.column }),
