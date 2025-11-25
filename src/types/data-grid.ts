@@ -5,6 +5,8 @@ export type RowHeightValue = 'short' | 'medium' | 'tall' | 'extra-tall'
 export interface CellSelectOption {
   label: string
   value: string
+  icon?: React.ComponentType<{ className?: string }>
+  count?: number
 }
 
 export type CellOpts =
@@ -188,4 +190,65 @@ export interface FileCellData {
   size: number
   type: string
   url?: string
+}
+
+// Filter types
+export type TextFilterOperator =
+  | 'contains'
+  | 'notContains'
+  | 'equals'
+  | 'notEquals'
+  | 'startsWith'
+  | 'endsWith'
+  | 'isEmpty'
+  | 'isNotEmpty'
+
+export type NumberFilterOperator =
+  | 'equals'
+  | 'notEquals'
+  | 'lessThan'
+  | 'lessThanOrEqual'
+  | 'greaterThan'
+  | 'greaterThanOrEqual'
+  | 'between'
+  | 'isEmpty'
+  | 'isNotEmpty'
+
+export type DateFilterOperator =
+  | 'equals'
+  | 'notEquals'
+  | 'before'
+  | 'after'
+  | 'onOrBefore'
+  | 'onOrAfter'
+  | 'between'
+  | 'isEmpty'
+  | 'isNotEmpty'
+
+export type SelectFilterOperator =
+  | 'is'
+  | 'isNot'
+  | 'isAnyOf'
+  | 'isNoneOf'
+  | 'isEmpty'
+  | 'isNotEmpty'
+
+export type BooleanFilterOperator = 'isTrue' | 'isFalse'
+
+export type FilterOperator =
+  | TextFilterOperator
+  | NumberFilterOperator
+  | DateFilterOperator
+  | SelectFilterOperator
+  | BooleanFilterOperator
+
+export interface FilterValue {
+  operator: FilterOperator
+  value?: string | number | string[]
+  value2?: string | number
+}
+
+export interface Option {
+  label: string
+  value: string
 }

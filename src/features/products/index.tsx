@@ -3,10 +3,15 @@
 import * as React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
+import { getFilterFn } from '@/lib/data-grid-filters'
 import { useDataGrid } from '@/hooks/use-data-grid'
 import { useWindowSize } from '@/hooks/use-window-size'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DataGrid } from '@/components/data-grid/data-grid'
+import { DataGridFilterMenu } from '@/components/data-grid/data-grid-filter-menu'
+import { DataGridRowHeightMenu } from '@/components/data-grid/data-grid-row-height-menu'
+import { DataGridSortMenu } from '@/components/data-grid/data-grid-sort-menu'
+import { DataGridViewMenu } from '@/components/data-grid/data-grid-view-menu'
 import { PageLayout } from '@/components/layout/page-layout'
 import { getProducts, createProduct, deleteProducts } from './api'
 import type { Product } from './data/schema'
@@ -27,12 +32,15 @@ export function Products() {
     }
   }, [data])
 
+  const filterFn = React.useMemo(() => getFilterFn<Product>(), [])
+
   const columns = React.useMemo<ColumnDef<Product>[]>(
     () => [
       {
         id: 'name',
         accessorKey: 'name',
         header: '产品名称',
+        filterFn,
         meta: {
           label: '产品名称',
           cell: {
@@ -45,6 +53,7 @@ export function Products() {
         id: 'description',
         accessorKey: 'description',
         header: '描述',
+        filterFn,
         meta: {
           label: '描述',
           cell: {
@@ -57,6 +66,7 @@ export function Products() {
         id: 'category',
         accessorKey: 'category',
         header: '分类',
+        filterFn,
         meta: {
           label: '分类',
           cell: {
@@ -77,6 +87,7 @@ export function Products() {
         id: 'brand',
         accessorKey: 'brand',
         header: '品牌',
+        filterFn,
         meta: {
           label: '品牌',
           cell: {
@@ -89,6 +100,7 @@ export function Products() {
         id: 'price',
         accessorKey: 'price',
         header: '价格',
+        filterFn,
         meta: {
           label: '价格',
           cell: {
@@ -104,6 +116,7 @@ export function Products() {
         id: 'stock',
         accessorKey: 'stock',
         header: '库存',
+        filterFn,
         meta: {
           label: '库存',
           cell: {
@@ -118,6 +131,7 @@ export function Products() {
         id: 'inStock',
         accessorKey: 'inStock',
         header: '有货',
+        filterFn,
         meta: {
           label: '有货',
           cell: {
@@ -130,6 +144,7 @@ export function Products() {
         id: 'tags',
         accessorKey: 'tags',
         header: '标签',
+        filterFn,
         meta: {
           label: '标签',
           cell: {
@@ -152,6 +167,7 @@ export function Products() {
         id: 'rating',
         accessorKey: 'rating',
         header: '评分',
+        filterFn,
         meta: {
           label: '评分',
           cell: {
@@ -167,6 +183,7 @@ export function Products() {
         id: 'releaseDate',
         accessorKey: 'releaseDate',
         header: '发布日期',
+        filterFn,
         meta: {
           label: '发布日期',
           cell: {
@@ -179,6 +196,7 @@ export function Products() {
         id: 'imageUrl',
         accessorKey: 'imageUrl',
         header: '图片链接',
+        filterFn,
         meta: {
           label: '图片链接',
           cell: {
@@ -188,7 +206,7 @@ export function Products() {
         minSize: 200,
       },
     ],
-    []
+    [filterFn]
   )
 
   const queryClient = useQueryClient()
@@ -247,17 +265,32 @@ export function Products() {
     >
       {isLoading ? (
         <div className='flex min-h-0 flex-1 flex-col gap-4 rounded-md border p-4'>
-          <div className='flex items-center gap-2 self-end'>
-            <Skeleton className='h-7 w-18' />
-            <Skeleton className='h-7 w-18' />
-            <Skeleton className='h-7 w-18' />
+          <div className='flex flex-1 flex-col gap-3'>
+            {Array.from({ length: 26 }).map((_, rowIndex) => (
+              <div key={rowIndex} className='flex gap-4'>
+                {Array.from({ length: 6 }).map((_, colIndex) => (
+                  <Skeleton key={colIndex} className='h-8 flex-1' />
+                ))}
+              </div>
+            ))}
           </div>
-          <Skeleton className='h-full w-full' />
         </div>
       ) : (
-        <div className='flex min-h-0 flex-1'>
-          <DataGrid {...dataGridProps} table={table} height={height} />
-        </div>
+        <>
+          <div
+            role='toolbar'
+            aria-orientation='horizontal'
+            className='flex items-center gap-2 self-end'
+          >
+            <DataGridFilterMenu table={table} align='end' />
+            <DataGridSortMenu table={table} align='end' />
+            <DataGridRowHeightMenu table={table} align='end' />
+            <DataGridViewMenu table={table} align='end' />
+          </div>
+          <div className='flex min-h-0 flex-1'>
+            <DataGrid {...dataGridProps} table={table} height={height} />
+          </div>
+        </>
       )}
     </PageLayout>
   )

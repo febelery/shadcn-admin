@@ -4,6 +4,7 @@ import * as React from 'react'
 import {
   type ColumnDef,
   getCoreRowModel,
+  getFilteredRowModel,
   getSortedRowModel,
   type RowSelectionState,
   type SortingState,
@@ -1801,6 +1802,7 @@ function useDataGrid<TData>({
       onSortingChange,
       columnResizeMode: 'onChange',
       getCoreRowModel: getCoreRowModel(),
+      getFilteredRowModel: getFilteredRowModel(),
       getSortedRowModel: getSortedRowModel(),
       meta: {
         ...dataGridPropsRef.current.meta,
