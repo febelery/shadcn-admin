@@ -17,15 +17,34 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 
-interface DataGridViewMenuProps<TData>
+interface ColumnVisibilityProps<TData>
   extends React.ComponentProps<typeof PopoverContent> {
   table: Table<TData>
+  /**
+   * 按钮文本，默认为 "视图"
+   */
+  buttonLabel?: string
+  /**
+   * 是否显示按钮，默认为 true
+   */
+  showButton?: boolean
+  /**
+   * 自定义触发按钮，如果提供则使用自定义按钮
+   */
+  trigger?: React.ReactNode
 }
 
-export function DataGridViewMenu<TData>({
+/**
+ * 列可见性切换组件
+ * 提供搜索和切换表格列显示/隐藏的功能
+ */
+export function ColumnVisibility<TData>({
   table,
+  buttonLabel = '视图',
+  showButton = true,
+  trigger,
   ...props
-}: DataGridViewMenuProps<TData>) {
+}: ColumnVisibilityProps<TData>) {
   const columns = React.useMemo(
     () =>
       table
@@ -37,21 +56,25 @@ export function DataGridViewMenu<TData>({
     [table]
   )
 
+  const defaultTrigger = (
+    <Button
+      aria-label='Toggle columns'
+      role='combobox'
+      variant='outline'
+      size='sm'
+      className='hidden h-8 font-normal lg:flex'
+    >
+      <Settings2 className='text-muted-foreground' />
+      {buttonLabel}
+    </Button>
+  )
+
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          aria-label='Toggle columns'
-          role='combobox'
-          variant='outline'
-          size='sm'
-          className='ml-auto hidden h-8 font-normal lg:flex'
-        >
-          <Settings2 className='text-muted-foreground' />
-          视图
-        </Button>
+        {trigger ?? (showButton ? defaultTrigger : <></>)}
       </PopoverTrigger>
-      <PopoverContent className='w-44 p-0' {...props}>
+      <PopoverContent className='w-44 p-0' align='end' {...props}>
         <Command>
           <CommandInput placeholder='搜索列...' />
           <CommandList>

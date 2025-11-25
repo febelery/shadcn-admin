@@ -7,11 +7,11 @@ import { getFilterFn } from '@/lib/data-grid-filters'
 import { useDataGrid } from '@/hooks/use-data-grid'
 import { useWindowSize } from '@/hooks/use-window-size'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ColumnVisibility } from '@/components/column-visibility'
 import { DataGrid } from '@/components/data-grid/data-grid'
 import { DataGridFilterMenu } from '@/components/data-grid/data-grid-filter-menu'
 import { DataGridRowHeightMenu } from '@/components/data-grid/data-grid-row-height-menu'
 import { DataGridSortMenu } from '@/components/data-grid/data-grid-sort-menu'
-import { DataGridViewMenu } from '@/components/data-grid/data-grid-view-menu'
 import { PageLayout } from '@/components/layout/page-layout'
 import { getProducts, createProduct, deleteProducts } from './api'
 import type { Product } from './data/schema'
@@ -285,7 +285,7 @@ export function Products() {
             <DataGridFilterMenu table={table} align='end' />
             <DataGridSortMenu table={table} align='end' />
             <DataGridRowHeightMenu table={table} align='end' />
-            <DataGridViewMenu table={table} align='end' />
+            <ColumnVisibility table={table} align='end' />
           </div>
           <div className='flex min-h-0 flex-1'>
             <DataGrid {...dataGridProps} table={table} height={height} />
