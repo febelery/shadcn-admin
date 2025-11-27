@@ -1,6 +1,6 @@
 /**
- * 文件预览组件
- * 支持多种文件类型的预览和展示
+ * 文件上传缩略图组件
+ * 支持多种文件类型的缩略图展示
  */
 import * as React from 'react'
 import {
@@ -19,11 +19,12 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react'
+import { getFileIconType } from '@/lib/file-utils'
 import { cn } from '@/lib/utils'
 
-export type FilePreviewView = 'card' | 'list'
+export type FileThumbnailView = 'card' | 'list'
 
-export type FilePreviewType =
+export type FileThumbnailType =
   | 'image'
   | 'video'
   | 'audio'
@@ -37,81 +38,19 @@ export type FilePreviewType =
   | 'application'
   | 'file'
 
-interface FilePreviewProps {
+interface FileThumbnailProps {
   file: File
   url?: string // 服务器 URL（用于回显）
-  view?: FilePreviewView
+  view?: FileThumbnailView
   className?: string
   onLoadError?: (hasError: boolean) => void // 预览加载失败回调
 }
 
-function getFilePreviewType(file: File): FilePreviewType {
-  const type = file.type
-  const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
-
-  if (type.startsWith('image/')) return 'image'
-  if (type.startsWith('video/')) return 'video'
-  if (type.startsWith('audio/')) return 'audio'
-  if (type === 'application/pdf' || extension === 'pdf') return 'pdf'
-  if (
-    type === 'application/msword' ||
-    type ===
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-    ['doc', 'docx'].includes(extension)
-  )
-    return 'word'
-  if (
-    type === 'application/vnd.ms-excel' ||
-    type ===
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-    ['xls', 'xlsx', 'csv'].includes(extension)
-  )
-    return 'excel'
-  if (
-    type === 'application/vnd.ms-powerpoint' ||
-    type ===
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
-    ['ppt', 'pptx'].includes(extension)
-  )
-    return 'powerpoint'
-  if (type.startsWith('text/') || ['txt', 'md', 'rtf'].includes(extension))
-    return 'text'
-  if (
-    [
-      'html',
-      'css',
-      'js',
-      'jsx',
-      'ts',
-      'tsx',
-      'json',
-      'xml',
-      'php',
-      'py',
-      'rb',
-      'java',
-      'c',
-      'cpp',
-      'cs',
-      'go',
-      'rs',
-      'swift',
-      'kt',
-    ].includes(extension)
-  )
-    return 'code'
-  if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2'].includes(extension))
-    return 'archive'
-  if (
-    ['exe', 'msi', 'app', 'apk', 'deb', 'rpm'].includes(extension) ||
-    type.startsWith('application/')
-  )
-    return 'application'
-
-  return 'file'
+function getFileThumbnailType(file: File): FileThumbnailType {
+  return getFileIconType(file) as FileThumbnailType
 }
 
-function getFileIcon(type: FilePreviewType, size: 'sm' | 'md' | 'lg' = 'md') {
+function getFileIcon(type: FileThumbnailType, size: 'sm' | 'md' | 'lg' = 'md') {
   const sizeClasses = {
     sm: 'size-4',
     md: 'size-6',
@@ -147,7 +86,7 @@ function getFileIcon(type: FilePreviewType, size: 'sm' | 'md' | 'lg' = 'md') {
   }
 }
 
-function getFileTypeGradient(type: FilePreviewType): string {
+function getFileTypeGradient(type: FileThumbnailType): string {
   switch (type) {
     case 'image':
       return 'bg-gradient-to-br from-blue-500/10 to-cyan-500/10'
@@ -198,7 +137,7 @@ const preloadMedia = (url: string, type: 'image' | 'video') => {
  * 优先使用 blob URL 实现即时预览
  * 如果有服务器 URL，会在后台预加载，成功后无缝切换
  */
-function usePreviewUrl(file: File, serverUrl?: string, type?: FilePreviewType) {
+function usePreviewUrl(file: File, serverUrl?: string, type?: FileThumbnailType) {
   const [url, setUrl] = React.useState<string | null>(null)
 
   React.useEffect(() => {
@@ -296,10 +235,10 @@ function useMediaState(
   }
 }
 
-const LoadingIndicator = ({ view }: { view: FilePreviewView }) => {
+const LoadingIndicator = ({ view }: { view: FileThumbnailView }) => {
   const iconSize = view === 'card' ? 'size-6' : 'size-4'
   return (
-    <div className='bg-muted/50 absolute inset-0 z-10 flex items-center justify-center'>
+    <div className='bg-muted/50 pointer-events-none absolute inset-0 z-10 flex items-center justify-center'>
       <Loader2 className={cn('text-muted-foreground animate-spin', iconSize)} />
     </div>
   )
@@ -309,14 +248,14 @@ const ErrorFallback = ({
   view,
   type,
 }: {
-  view: FilePreviewView
-  type: FilePreviewType
+  view: FileThumbnailView
+  type: FileThumbnailType
 }) => {
   const iconSize = view === 'card' ? 'size-8' : 'size-4'
   const containerClass =
     view === 'card'
-      ? 'absolute inset-0 flex flex-col items-center justify-center gap-2'
-      : 'flex size-full items-center justify-center'
+      ? 'absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none'
+      : 'flex size-full items-center justify-center pointer-events-none'
 
   return (
     <div className={cn(containerClass, getFileTypeGradient(type))}>
@@ -332,14 +271,14 @@ const GenericPreview = ({
   type,
   view,
 }: {
-  type: FilePreviewType
-  view: FilePreviewView
+  type: FileThumbnailType
+  view: FileThumbnailView
 }) => {
   const iconSize = view === 'card' ? 'lg' : 'md'
   return (
     <div
       className={cn(
-        'flex size-full flex-col items-center justify-center gap-2',
+        'pointer-events-none flex size-full flex-col items-center justify-center gap-2',
         getFileTypeGradient(type)
       )}
     >
@@ -348,19 +287,19 @@ const GenericPreview = ({
   )
 }
 
-export function FilePreview({
+export function FileThumbnail({
   file,
   url,
   view = 'card',
   className,
   onLoadError,
-}: FilePreviewProps) {
-  const previewType = React.useMemo(() => getFilePreviewType(file), [file])
-  const isImage = previewType === 'image'
-  const isVideo = previewType === 'video'
+}: FileThumbnailProps) {
+  const thumbnailType = React.useMemo(() => getFileThumbnailType(file), [file])
+  const isImage = thumbnailType === 'image'
+  const isVideo = thumbnailType === 'video'
   const isMedia = isImage || isVideo
 
-  const previewUrl = usePreviewUrl(file, url, previewType)
+  const previewUrl = usePreviewUrl(file, url, thumbnailType)
   const { isLoading, hasError, mediaRef, handleLoad, handleError } =
     useMediaState(previewUrl, onLoadError)
 
@@ -377,7 +316,7 @@ export function FilePreview({
 
     const commonProps = {
       className: cn(
-        'size-full object-cover transition-opacity duration-300',
+        'size-full object-cover transition-opacity duration-300 pointer-events-none',
         isLoading && 'opacity-0',
         hasError && 'hidden'
       ),
@@ -415,7 +354,7 @@ export function FilePreview({
             )}
           </>
         )}
-        {hasError && <ErrorFallback view={view} type={previewType} />}
+        {hasError && <ErrorFallback view={view} type={thumbnailType} />}
       </>
     )
   }
@@ -423,11 +362,18 @@ export function FilePreview({
   // Card View
   if (view === 'card') {
     return (
-      <div className={cn('relative size-full overflow-hidden', className)}>
+      <div
+        className={cn(
+          'pointer-events-none relative size-full overflow-hidden',
+          className
+        )}
+      >
         {isMedia && previewUrl ? (
-          <div className='relative size-full'>{renderMedia()}</div>
+          <div className='pointer-events-none relative size-full'>
+            {renderMedia()}
+          </div>
         ) : (
-          <GenericPreview type={previewType} view={view} />
+          <GenericPreview type={thumbnailType} view={view} />
         )}
       </div>
     )
@@ -435,12 +381,18 @@ export function FilePreview({
 
   // List View
   return (
-    <div className={cn('relative flex items-center justify-center', className)}>
+    <div
+      className={cn(
+        'pointer-events-none relative flex items-center justify-center',
+        className
+      )}
+    >
       {isMedia && previewUrl ? (
         renderMedia()
       ) : (
-        <GenericPreview type={previewType} view={view} />
+        <GenericPreview type={thumbnailType} view={view} />
       )}
     </div>
   )
 }
+

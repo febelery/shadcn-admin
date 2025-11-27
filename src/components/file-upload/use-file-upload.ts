@@ -17,7 +17,7 @@ import {
   validateFile,
   createFileItem,
   getFileNameFromUrl,
-} from './file-upload-utils'
+} from '@/lib/file-utils'
 
 interface UseFileStateProps {
   value?: string | string[]

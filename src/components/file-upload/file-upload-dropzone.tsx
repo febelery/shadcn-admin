@@ -4,11 +4,11 @@
 import * as React from 'react'
 import { CloudUpload } from 'lucide-react'
 import { toast } from 'sonner'
+import { formatBytes } from '@/lib/file-utils'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useFileUploadContext } from './file-upload-context'
 import { FileUploadItem } from './file-upload-item'
-import { formatBytes } from './file-upload-utils'
 
 interface FileUploadDropzoneProps extends React.ComponentProps<'div'> {
   children?: React.ReactNode
