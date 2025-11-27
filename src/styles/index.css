@@ -106,7 +106,16 @@
     background-position: 200%;
     }
   }
-}
+  --animate-spin-around: spin-around 0.8s linear infinite
+;
+  @keyframes spin-around {
+  0% {
+    transform: rotate(-90deg);
+    }
+  100% {
+    transform: rotate(270deg);
+    }
+  }}
 
 :root {
   --color-1: oklch(66.2% 0.225 25.9);

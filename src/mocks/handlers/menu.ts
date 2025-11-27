@@ -153,6 +153,18 @@ const menuData: MenuData = {
           url: '/help-center',
           icon: 'HelpCircle',
         },
+        {
+          title: 'Components Demo',
+          url: '/components-demo/file-upload',
+          icon: 'Package',
+          items: [
+            {
+              title: 'File Upload',
+              url: '/components-demo/file-upload',
+              icon: 'Upload',
+            },
+          ],
+        },
       ],
     },
   ],
