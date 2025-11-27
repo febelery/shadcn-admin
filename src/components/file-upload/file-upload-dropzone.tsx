@@ -213,7 +213,6 @@ export function FileUploadDropzone({
                     点击选择文件
                   </Button>
                 </p>
-                <p className='text-muted-foreground text-xs'>支持粘贴图片</p>
                 {/* 空状态时的配置信息 */}
                 {configHints.length > 0 && (
                   <div className='text-muted-foreground flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs'>

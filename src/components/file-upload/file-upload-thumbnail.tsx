@@ -115,20 +115,20 @@ function getFileTypeGradient(type: FileThumbnailType): string {
   }
 }
 
-const preloadMedia = (url: string, type: 'image' | 'video') => {
+/**
+ * 为视频 URL 添加缩略图参数
+ */
+function addVideoThumbnailParam(url: string): string {
+  const separator = url.includes('?') ? '&' : '?'
+  return `${url}${separator}vframe/png/offset/1`
+}
+
+const preloadMedia = (url: string) => {
   return new Promise<void>((resolve, reject) => {
-    if (type === 'image') {
-      const img = new Image()
-      img.onload = () => resolve()
-      img.onerror = () => reject(new Error('图片加载失败'))
-      img.src = url
-    } else {
-      const video = document.createElement('video')
-      video.preload = 'metadata'
-      video.onloadedmetadata = () => resolve()
-      video.onerror = () => reject(new Error('视频加载失败'))
-      video.src = url
-    }
+    const img = new Image()
+    img.onload = () => resolve()
+    img.onerror = () => reject(new Error('图片加载失败'))
+    img.src = url
   })
 }
 
@@ -137,7 +137,11 @@ const preloadMedia = (url: string, type: 'image' | 'video') => {
  * 优先使用 blob URL 实现即时预览
  * 如果有服务器 URL，会在后台预加载，成功后无缝切换
  */
-function usePreviewUrl(file: File, serverUrl?: string, type?: FileThumbnailType) {
+function usePreviewUrl(
+  file: File,
+  serverUrl?: string,
+  type?: FileThumbnailType
+) {
   const [url, setUrl] = React.useState<string | null>(null)
 
   React.useEffect(() => {
@@ -153,15 +157,16 @@ function usePreviewUrl(file: File, serverUrl?: string, type?: FileThumbnailType)
     // 初始显示 blob
     setUrl(blob)
 
-    // 预加载服务器 URL
+    // 预加载服务器 URL（视频转换为缩略图）
     let active = true
     const preload = async () => {
       try {
-        await preloadMedia(serverUrl, type as 'image' | 'video')
+        const finalUrl =
+          type === 'video' ? addVideoThumbnailParam(serverUrl) : serverUrl
+
+        await preloadMedia(finalUrl)
         if (active) {
-          setUrl(serverUrl)
-          // 切换成功后，blob 可以释放了（但在 effect cleanup 中也会释放，这里主要是为了尽早释放内存）
-          // 注意：这里不手动 revoke，依赖 cleanup 统一处理，避免竞态
+          setUrl(finalUrl)
         }
       } catch (err) {
         console.error('Preload failed, sticking to blob url', err)
@@ -188,9 +193,7 @@ function useMediaState(
 ) {
   const [isLoading, setIsLoading] = React.useState(true)
   const [hasError, setHasError] = React.useState(false)
-  const mediaRef = React.useRef<HTMLImageElement | HTMLVideoElement | null>(
-    null
-  )
+  const mediaRef = React.useRef<HTMLImageElement | null>(null)
 
   // 当 URL 变化时重置状态
   React.useEffect(() => {
@@ -217,9 +220,7 @@ function useMediaState(
     if (!previewUrl || !mediaRef.current) return
 
     const element = mediaRef.current
-    const isComplete =
-      (element instanceof HTMLImageElement && element.complete) ||
-      (element instanceof HTMLVideoElement && element.readyState >= 2)
+    const isComplete = element instanceof HTMLImageElement && element.complete
 
     if (isComplete) {
       handleLoad()
@@ -310,49 +311,31 @@ export function FileThumbnail({
     }
   }, [isMedia, onLoadError])
 
-  // 渲染媒体内容
+  // 渲染媒体内容（图片和视频都使用 img 标签）
   const renderMedia = () => {
     if (!previewUrl) return null
-
-    const commonProps = {
-      className: cn(
-        'size-full object-cover transition-opacity duration-300 pointer-events-none',
-        isLoading && 'opacity-0',
-        hasError && 'hidden'
-      ),
-      onLoad: isImage ? handleLoad : undefined,
-      onLoadedMetadata: isVideo ? handleLoad : undefined,
-      onError: handleError,
-    }
 
     return (
       <>
         {isLoading && <LoadingIndicator view={view} />}
-        {isImage ? (
-          <img
-            ref={mediaRef as React.RefObject<HTMLImageElement>}
-            src={previewUrl}
-            alt={file.name}
-            {...commonProps}
-          />
-        ) : (
-          <>
-            <video
-              ref={mediaRef as React.RefObject<HTMLVideoElement>}
-              src={previewUrl}
-              muted
-              playsInline
-              preload='metadata'
-              {...commonProps}
-            />
-            {!isLoading && !hasError && view === 'card' && (
-              <div className='pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20'>
-                <div className='bg-background/80 rounded-full p-3 shadow-lg'>
-                  <Play className='fill-foreground text-foreground size-6' />
-                </div>
-              </div>
-            )}
-          </>
+        <img
+          ref={mediaRef}
+          src={previewUrl}
+          alt={file.name}
+          className={cn(
+            'pointer-events-none size-full object-cover transition-opacity duration-300',
+            isLoading && 'opacity-0',
+            hasError && 'hidden'
+          )}
+          onLoad={handleLoad}
+          onError={handleError}
+        />
+        {!isLoading && !hasError && isVideo && view === 'card' && (
+          <div className='pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20'>
+            <div className='bg-background/80 rounded-full p-3 shadow-lg'>
+              <Play className='fill-foreground text-foreground size-6' />
+            </div>
+          </div>
         )}
         {hasError && <ErrorFallback view={view} type={thumbnailType} />}
       </>
@@ -395,4 +378,3 @@ export function FileThumbnail({
     </div>
   )
 }
-
