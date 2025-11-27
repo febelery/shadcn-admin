@@ -5,6 +5,7 @@ import * as React from 'react'
 import type { FileUploadProps, UploadFunction } from '@/types/file-upload'
 import { cn } from '@/lib/utils'
 import { useQiniuUpload } from '@/hooks/use-qiniu-upload'
+import { FilePreview } from '@/components/ui/file-preview'
 import { FileUploadProvider } from './file-upload-context'
 import { FileUploadDropzone } from './file-upload-dropzone'
 import { useFileUpload } from './use-file-upload'
@@ -63,6 +64,16 @@ export function FileUpload({
       <div className={cn('w-full', className)} {...props}>
         {children || <FileUploadDropzone />}
       </div>
+      <FilePreview
+        open={upload.isPreviewOpen}
+        onOpenChange={upload.closePreview}
+        file={upload.previewItem?.file}
+        url={upload.previewItem?.url}
+        onPrev={upload.prevPreview}
+        onNext={upload.nextPreview}
+        hasPrev={upload.hasPrev}
+        hasNext={upload.hasNext}
+      />
     </FileUploadProvider>
   )
 }

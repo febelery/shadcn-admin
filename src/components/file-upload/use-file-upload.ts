@@ -12,12 +12,12 @@ import type {
 } from '@/types/file-upload'
 import { toast } from 'sonner'
 import { getQiniuUptoken } from '@/api/qiniu'
-import { getMimeTypeFromExtension } from '@/lib/utils'
 import {
   validateFile,
   createFileItem,
   getFileNameFromUrl,
 } from '@/lib/file-utils'
+import { getMimeTypeFromExtension } from '@/lib/utils'
 
 interface UseFileStateProps {
   value?: string | string[]
@@ -433,12 +433,56 @@ export function useFileUpload(
     [upload, itemsRef, uploadSingleFile, updateItem]
   )
 
+  // 5. Preview Management
+  const [previewId, setPreviewId] = React.useState<string | null>(null)
+  const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
+
+  const openPreview = React.useCallback((id: string) => {
+    setPreviewId(id)
+    setIsPreviewOpen(true)
+  }, [])
+
+  const closePreview = React.useCallback(() => {
+    setIsPreviewOpen(false)
+    setPreviewId(null)
+  }, [])
+
+  const previewableItems = React.useMemo(
+    () => items.filter((item) => item.file || item.url),
+    [items]
+  )
+
+  const currentPreviewIndex = React.useMemo(
+    () =>
+      previewId
+        ? previewableItems.findIndex((item) => item.id === previewId)
+        : -1,
+    [previewId, previewableItems]
+  )
+
+  const nextPreview = React.useCallback(() => {
+    if (
+      currentPreviewIndex === -1 ||
+      currentPreviewIndex === previewableItems.length - 1
+    )
+      return
+    const nextItem = previewableItems[currentPreviewIndex + 1]
+    if (nextItem) setPreviewId(nextItem.id)
+  }, [currentPreviewIndex, previewableItems])
+
+  const prevPreview = React.useCallback(() => {
+    if (currentPreviewIndex <= 0) return
+    const prevItem = previewableItems[currentPreviewIndex - 1]
+    if (prevItem) setPreviewId(prevItem.id)
+  }, [currentPreviewIndex, previewableItems])
+
   // Derived State
+  const maxFiles = validation?.maxFiles
   const isMaxFilesReached = React.useMemo(() => {
-    if (validation?.maxFiles === 1) return items.length > 0
-    if (validation?.maxFiles) return items.length >= validation.maxFiles
+    if (maxFiles === 1) return items.length > 0
+    if (maxFiles) return items.length >= maxFiles
     return false
-  }, [items.length, validation?.maxFiles])
+  }, [items.length, maxFiles])
 
   return {
     items,
@@ -447,5 +491,17 @@ export function useFileUpload(
     clearFiles,
     triggerUpload,
     disabled: disabled || isMaxFilesReached,
+    // Preview
+    previewId,
+    isPreviewOpen,
+    previewItem: previewId ? items.find((i) => i.id === previewId) : undefined,
+    openPreview,
+    closePreview,
+    nextPreview,
+    prevPreview,
+    hasPrev: currentPreviewIndex > 0,
+    hasNext:
+      currentPreviewIndex > -1 &&
+      currentPreviewIndex < previewableItems.length - 1,
   }
 }

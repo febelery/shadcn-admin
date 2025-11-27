@@ -9,6 +9,8 @@ import {
   RefreshCw,
   Copy,
   Check,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import * as ReactDOM from 'react-dom'
@@ -37,6 +39,11 @@ interface FilePreviewProps {
   onOpenChange: (open: boolean) => void
   file?: File
   url?: string
+  // 切换控制
+  onPrev?: () => void
+  onNext?: () => void
+  hasPrev?: boolean
+  hasNext?: boolean
 }
 
 export function FilePreview({
@@ -44,6 +51,10 @@ export function FilePreview({
   onOpenChange,
   file,
   url,
+  onPrev,
+  onNext,
+  hasPrev,
+  hasNext,
 }: FilePreviewProps) {
   const [scale, setScale] = React.useState(1)
   const [rotate, setRotate] = React.useState(0)
@@ -53,7 +64,7 @@ export function FilePreview({
       setScale(1)
       setRotate(0)
     }
-  }, [open])
+  }, [open, file, url]) // file/url 变化时重置
 
   const fileType = React.useMemo(
     () => (file ? getFileIconType(file) : 'file'),
@@ -84,7 +95,7 @@ export function FilePreview({
     [onOpenChange]
   )
 
-  // ESC 键关闭
+  // 键盘事件
   React.useEffect(() => {
     if (!open) return
 
@@ -92,13 +103,19 @@ export function FilePreview({
       if (e.key === 'Escape') {
         handleClose()
       }
+      if (e.key === 'ArrowLeft' && hasPrev) {
+        onPrev?.()
+      }
+      if (e.key === 'ArrowRight' && hasNext) {
+        onNext?.()
+      }
     }
 
     document.addEventListener('keydown', handleKeyDown)
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [open, handleClose])
+  }, [open, handleClose, hasPrev, hasNext, onPrev, onNext])
 
   // 图片控制按钮
   const zoomIn = React.useCallback(
@@ -152,6 +169,34 @@ export function FilePreview({
             className='relative flex h-[90vh] w-[90vw] items-center justify-center overflow-hidden rounded-lg'
             onClick={(e) => e.stopPropagation()}
           >
+            {/* 切换按钮 - 左 */}
+            {hasPrev && (
+              <button
+                type='button'
+                className='absolute top-1/2 left-4 z-50 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white/80 backdrop-blur-md transition-all hover:bg-white/20 hover:text-white'
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onPrev?.()
+                }}
+              >
+                <ChevronLeft className='size-8' />
+              </button>
+            )}
+
+            {/* 切换按钮 - 右 */}
+            {hasNext && (
+              <button
+                type='button'
+                className='absolute top-1/2 right-4 z-50 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white/80 backdrop-blur-md transition-all hover:bg-white/20 hover:text-white'
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onNext?.()
+                }}
+              >
+                <ChevronRight className='size-8' />
+              </button>
+            )}
+
             {/* 全局工具栏 */}
             <div
               className='absolute bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black/50 px-3 py-2 backdrop-blur-md'
