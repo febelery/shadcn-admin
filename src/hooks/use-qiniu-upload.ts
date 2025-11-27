@@ -78,23 +78,6 @@ function getUploadUrl(region?: string, customUrl?: string): string {
 }
 
 /**
- * 获取完整的文件URL
- */
-function getFileUrl(key: string, domain: string): string {
-  // 如果key已经是完整URL，直接返回
-  if (key.startsWith('http://') || key.startsWith('https://')) {
-    return key
-  }
-  // 拼接域名
-  const domainWithProtocol = domain.startsWith('http')
-    ? domain
-    : `https://${domain}`
-  // 移除key中可能存在的域名前缀
-  const cleanKey = key.replace(/^https?:\/\/[^/]+\//, '')
-  return `${domainWithProtocol}/${cleanKey}`
-}
-
-/**
  * 七牛云上传 Hook
  */
 export function useQiniuUpload() {
@@ -144,16 +127,15 @@ export function useQiniuUpload() {
             return
           }
 
-          const fileKey = response.key || key
-          if (!fileKey) {
-            const error = '上传响应中未找到文件标识'
+          // 优先使用 path 字段（完整的 URL），如果没有则使用 key
+          const fileUrl = response.path || response.key || key
+          if (!fileUrl) {
+            const error = '上传响应中未找到文件 URL 或标识'
             onError?.(error)
             reject(new Error(error))
             return
           }
 
-          // 获取完整URL
-          const fileUrl = getFileUrl(fileKey, config.domain)
           onSuccess?.(response)
           resolve(fileUrl)
         } else {

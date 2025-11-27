@@ -9,6 +9,7 @@ import type {
   FileUploadView,
   FileUploadCardSize,
   FileUploadValidationRule,
+  QiniuUploadConfig,
 } from '@/types/file-upload'
 import { Button } from '@/components/ui/button'
 import {
@@ -125,10 +126,7 @@ export function FileUploadDemo() {
   }, [fileType, maxSize, maxFiles, enableCustomValidation])
 
   // 使用默认的七牛上传配置（自动使用统一的 API）
-  const uploadConfig = React.useMemo(
-    () => createDefaultQiniuConfig('your-qiniu-domain.com'),
-    []
-  )
+  const uploadConfig = React.useMemo(() => createDefaultQiniuConfig('z2'), [])
 
   return (
     <PageLayout>
@@ -340,10 +338,7 @@ interface FileUploadFormExampleProps {
   validation?: FileUploadValidationRule
   view?: FileUploadView
   cardSize?: FileUploadCardSize
-  uploadConfig?: {
-    getToken: (file: File) => Promise<string>
-    domain: string
-  }
+  uploadConfig?: QiniuUploadConfig
   maxFiles?: number
 }
 

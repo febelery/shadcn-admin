@@ -231,49 +231,121 @@ export function FilePreview({
   const [isLoading, setIsLoading] = React.useState(true)
   const [hasError, setHasError] = React.useState(false)
 
-  // 创建和管理 blob URL（仅用于图片和视频的本地预览）
+  // 当前显示的 URL（优先显示 blob URL，预加载完成后切换到服务器 URL）
+  const [displayUrl, setDisplayUrl] = React.useState<string | null>(null)
+
+  // 使用 ref 跟踪预加载状态，避免不必要的状态更新
+  const preloadingUrlRef = React.useRef<string | null>(null)
+
+  // 统一的预加载函数（支持图片和视频）
+  const preloadMedia = React.useCallback(
+    (mediaUrl: string) => {
+      return new Promise<void>((resolve, reject) => {
+        if (isImage) {
+          const img = new Image()
+          img.onload = () => resolve()
+          img.onerror = () => reject(new Error('图片加载失败'))
+          img.src = mediaUrl
+        } else if (isVideo) {
+          const video = document.createElement('video')
+          video.preload = 'metadata'
+          video.onloadedmetadata = () => resolve()
+          video.onerror = () => reject(new Error('视频加载失败'))
+          video.src = mediaUrl
+        } else {
+          reject(new Error('不支持的文件类型'))
+        }
+      })
+    },
+    [isImage, isVideo]
+  )
+
+  // 创建和管理 blob URL，以及预加载服务器 URL
   React.useEffect(() => {
     if (!isImage && !isVideo) return
 
-    // 重置加载和错误状态
-    setIsLoading(true)
-    setHasError(false)
+    // 如果有服务器 URL，先预加载，加载完成后再切换
+    if (hasServerUrl && url) {
+      // 如果已经有 blob URL，先显示它
+      if (blobUrl && !displayUrl) {
+        setDisplayUrl(blobUrl)
+      }
 
-    // 如果有服务器 URL，清理 blob URL
-    if (hasServerUrl) {
-      if (blobUrl) {
-        URL.revokeObjectURL(blobUrl)
-        setBlobUrl(null)
+      // 如果还没有预加载过这个 URL，开始预加载
+      if (url !== preloadingUrlRef.current) {
+        preloadingUrlRef.current = url
+
+        // 预加载服务器 URL（不显示 loading，保持显示 blob URL）
+        preloadMedia(url)
+          .then(() => {
+            // 预加载成功，切换到服务器 URL（无缝切换）
+            setDisplayUrl(url)
+            preloadingUrlRef.current = null
+            setIsLoading(false)
+            setHasError(false)
+            onLoadError?.(false)
+            // 清理 blob URL
+            if (blobUrl) {
+              URL.revokeObjectURL(blobUrl)
+              setBlobUrl(null)
+            }
+          })
+          .catch(() => {
+            // 预加载失败，保持显示 blob URL
+            preloadingUrlRef.current = null
+            setIsLoading(false)
+            setHasError(true)
+            onLoadError?.(true)
+          })
       }
       return
     }
 
-    // 创建 blob 预览
-    const blobUrlValue = URL.createObjectURL(file)
-    setBlobUrl(blobUrlValue)
-
-    return () => {
-      URL.revokeObjectURL(blobUrlValue)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isImage, isVideo, hasServerUrl, file, url])
-
-  // 确定最终预览 URL
-  const previewUrl = React.useMemo(() => {
-    if (isImage || isVideo) {
-      if (hasServerUrl && url) return url
-      return blobUrl
-    }
-    return null
-  }, [isImage, isVideo, hasServerUrl, url, blobUrl])
-
-  // 当预览 URL 变化时，重置加载状态
-  React.useEffect(() => {
-    if (previewUrl) {
+    // 没有服务器 URL，创建 blob 预览
+    if (!blobUrl) {
+      const blobUrlValue = URL.createObjectURL(file)
+      setBlobUrl(blobUrlValue)
+      setDisplayUrl(blobUrlValue)
       setIsLoading(true)
       setHasError(false)
     }
-  }, [previewUrl])
+  }, [
+    isImage,
+    isVideo,
+    hasServerUrl,
+    file,
+    url,
+    blobUrl,
+    displayUrl,
+    preloadMedia,
+    onLoadError,
+  ])
+
+  // 确定最终预览 URL（使用 displayUrl，确保平滑切换）
+  const previewUrl = React.useMemo(() => {
+    if (isImage || isVideo) {
+      // 优先使用 displayUrl（可能是 blob URL 或已预加载完成的服务器 URL）
+      if (displayUrl) return displayUrl
+      // 如果没有 displayUrl，但有服务器 URL，直接使用（首次加载）
+      if (hasServerUrl && url) return url
+      // 最后使用 blob URL
+      return blobUrl
+    }
+    return null
+  }, [isImage, isVideo, hasServerUrl, url, blobUrl, displayUrl])
+
+  // 当预览 URL 变化时，重置加载状态（仅用于首次加载，不用于预加载切换）
+  React.useEffect(() => {
+    // 只有在没有 displayUrl 且需要首次加载时才显示 loading
+    // 如果已经有 displayUrl（比如 blob URL），说明是预加载切换，不显示 loading
+    if (previewUrl && !displayUrl) {
+      setIsLoading(true)
+      setHasError(false)
+    } else if (!previewUrl) {
+      // 没有预览 URL，不需要加载
+      setIsLoading(false)
+    }
+  }, [previewUrl, displayUrl])
 
   // 统一的加载指示器
   const LoadingIndicator = React.useMemo(() => {
@@ -327,6 +399,27 @@ export function FilePreview({
     }
   }, [isImage, isVideo, onLoadError])
 
+  // 使用 ref 来检查媒体元素的加载状态（统一处理图片和视频）
+  const mediaRef = React.useRef<HTMLImageElement | HTMLVideoElement | null>(
+    null
+  )
+
+  // 检查元素是否已经加载完成（处理缓存情况，统一处理图片和视频）
+  React.useEffect(() => {
+    if (!previewUrl || !mediaRef.current) return
+
+    const element = mediaRef.current
+    const isComplete =
+      (element instanceof HTMLImageElement && element.complete) ||
+      (element instanceof HTMLVideoElement && element.readyState >= 2)
+
+    if (isComplete) {
+      setIsLoading(false)
+      setHasError(false)
+      onLoadError?.(false)
+    }
+  }, [previewUrl, onLoadError])
+
   // 卡片视图
   if (view === 'card') {
     return (
@@ -337,6 +430,9 @@ export function FilePreview({
             {LoadingIndicator}
             {isImage ? (
               <img
+                ref={(el) => {
+                  mediaRef.current = el
+                }}
                 src={previewUrl}
                 alt={file.name}
                 className={cn(
@@ -350,6 +446,9 @@ export function FilePreview({
             ) : (
               <>
                 <video
+                  ref={(el) => {
+                    mediaRef.current = el
+                  }}
                   src={previewUrl}
                   className={cn(
                     'size-full object-cover transition-opacity',
@@ -412,6 +511,9 @@ export function FilePreview({
           {LoadingIndicator}
           {isImage ? (
             <img
+              ref={(el) => {
+                mediaRef.current = el
+              }}
               src={previewUrl}
               alt={file.name}
               className={cn(
@@ -424,6 +526,9 @@ export function FilePreview({
             />
           ) : (
             <video
+              ref={(el) => {
+                mediaRef.current = el
+              }}
               src={previewUrl}
               className={cn(
                 'size-full object-cover transition-opacity',

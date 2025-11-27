@@ -35,8 +35,6 @@ export interface FileUploadValidationRule {
 export interface QiniuUploadConfig {
   // 七牛上传token获取接口
   getToken: (file: File) => Promise<string>
-  // 七牛上传域名
-  domain: string
   // 上传区域（可选）
   region?: string
   // 上传接口地址（可选，默认根据region选择）

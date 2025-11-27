@@ -72,7 +72,7 @@ export function FileUploadItem({
             className='bg-background/70 text-foreground/70 group-hover:animate-in group-hover:fade-in group-hover:zoom-in-95 absolute top-2 right-2 hidden rounded-full p-1.5 shadow-lg backdrop-blur-sm transition-all group-hover:block'
             aria-label='删除文件'
           >
-            <X className='hover:text-destructive size-3.5 transition-all group-hover:rotate-90' />
+            <X className='size-3.5 transition-all' />
           </button>
         )}
 

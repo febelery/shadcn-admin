@@ -18,13 +18,11 @@ import { validateFile, createFileItem } from './file-upload-utils'
  * 创建默认的七牛上传配置（使用统一的 API）
  */
 export function createDefaultQiniuConfig(
-  domain: string,
   region?: string,
   uploadUrl?: string
 ): QiniuUploadConfig {
   return {
     getToken: getQiniuUptoken,
-    domain,
     region,
     uploadUrl,
   }
@@ -151,6 +149,26 @@ export function useFileUpload(
     [onChange, validation?.maxFiles]
   )
 
+  // 使用 useEffect 同步状态到外部值
+  const prevSuccessUrlsRef = React.useRef<string[]>([])
+  React.useEffect(() => {
+    const successUrls = state.items
+      .filter((item) => item.status === 'success' && item.url)
+      .map((item) => item.url!)
+      .sort()
+
+    const prevUrls = prevSuccessUrlsRef.current.sort()
+
+    // 只在成功上传的文件 URL 发生变化时更新
+    if (
+      successUrls.length !== prevUrls.length ||
+      !successUrls.every((url, index) => url === prevUrls[index])
+    ) {
+      prevSuccessUrlsRef.current = successUrls
+      updateValue(state.items)
+    }
+  }, [state.items, updateValue])
+
   // 更新单个文件项的状态（辅助函数）
   const updateItemById = React.useCallback(
     (
@@ -199,7 +217,6 @@ export function useFileUpload(
                 }
               : i
           )
-          updateValue(updated)
           return { ...prev, items: updated }
         })
 
@@ -223,7 +240,6 @@ export function useFileUpload(
       onUploadProgress,
       onUploadSuccess,
       onUploadError,
-      updateValue,
     ]
   )
 
@@ -330,22 +346,17 @@ export function useFileUpload(
   )
 
   // 删除文件
-  const removeFile = React.useCallback(
-    (id: string) => {
-      setState((prev) => {
-        const updated = prev.items.filter((item) => item.id !== id)
-        updateValue(updated)
-        return { ...prev, items: updated }
-      })
-    },
-    [updateValue]
-  )
+  const removeFile = React.useCallback((id: string) => {
+    setState((prev) => {
+      const updated = prev.items.filter((item) => item.id !== id)
+      return { ...prev, items: updated }
+    })
+  }, [])
 
   // 清空所有文件
   const clearFiles = React.useCallback(() => {
     setState({ items: [] })
-    updateValue([])
-  }, [updateValue])
+  }, [])
 
   // 手动触发上传
   const triggerUpload = React.useCallback(

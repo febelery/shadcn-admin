@@ -14,7 +14,6 @@ export const qiniuHandlers = [
         modified?: number
       }
 
-      // 模拟验证逻辑（可选）
       // 如果文件过大，返回 400
       if (body.size && body.size > 100 * 1024 * 1024) {
         // 100MB
@@ -38,14 +37,5 @@ export const qiniuHandlers = [
         statusText: 'Bad Request',
       })
     }
-  }),
-
-  // 也可以支持 GET 请求（如果需要）
-  http.get('/api/qiniu/uptoken', () => {
-    const mockToken = `mock-uptoken-${Date.now()}-${Math.random().toString(36).substring(7)}`
-
-    return HttpResponse.json({
-      uptoken: mockToken,
-    })
   }),
 ]
