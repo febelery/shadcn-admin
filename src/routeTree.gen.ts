@@ -34,6 +34,7 @@ import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_a
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
 import { Route as AuthenticatedComponentsDemoFileUploadRouteImport } from './routes/_authenticated/components-demo/file-upload'
+import { Route as AuthenticatedComponentsDemoEditorRouteImport } from './routes/_authenticated/components-demo/editor'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -169,6 +170,12 @@ const AuthenticatedComponentsDemoFileUploadRoute =
     path: '/components-demo/file-upload',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedComponentsDemoEditorRoute =
+  AuthenticatedComponentsDemoEditorRouteImport.update({
+    id: '/components-demo/editor',
+    path: '/components-demo/editor',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
@@ -182,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/components-demo/editor': typeof AuthenticatedComponentsDemoEditorRoute
   '/components-demo/file-upload': typeof AuthenticatedComponentsDemoFileUploadRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -207,6 +215,7 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/components-demo/editor': typeof AuthenticatedComponentsDemoEditorRoute
   '/components-demo/file-upload': typeof AuthenticatedComponentsDemoFileUploadRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -235,6 +244,7 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/components-demo/editor': typeof AuthenticatedComponentsDemoEditorRoute
   '/_authenticated/components-demo/file-upload': typeof AuthenticatedComponentsDemoFileUploadRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/components-demo/editor'
     | '/components-demo/file-upload'
     | '/errors/$error'
     | '/settings/account'
@@ -288,6 +299,7 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/components-demo/editor'
     | '/components-demo/file-upload'
     | '/errors/$error'
     | '/settings/account'
@@ -315,6 +327,7 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/'
+    | '/_authenticated/components-demo/editor'
     | '/_authenticated/components-demo/file-upload'
     | '/_authenticated/errors/$error'
     | '/_authenticated/settings/account'
@@ -520,6 +533,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedComponentsDemoFileUploadRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/components-demo/editor': {
+      id: '/_authenticated/components-demo/editor'
+      path: '/components-demo/editor'
+      fullPath: '/components-demo/editor'
+      preLoaderRoute: typeof AuthenticatedComponentsDemoEditorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -549,6 +569,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedComponentsDemoEditorRoute: typeof AuthenticatedComponentsDemoEditorRoute
   AuthenticatedComponentsDemoFileUploadRoute: typeof AuthenticatedComponentsDemoFileUploadRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
@@ -562,6 +583,8 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedComponentsDemoEditorRoute:
+    AuthenticatedComponentsDemoEditorRoute,
   AuthenticatedComponentsDemoFileUploadRoute:
     AuthenticatedComponentsDemoFileUploadRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,

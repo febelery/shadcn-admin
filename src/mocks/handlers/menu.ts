@@ -163,6 +163,11 @@ const menuData: MenuData = {
               url: '/components-demo/file-upload',
               icon: 'Upload',
             },
+            {
+              title: 'Editor',
+              url: '/components-demo/editor',
+              icon: 'Edit',
+            },
           ],
         },
       ],
