@@ -161,3 +161,18 @@ export function createFileItem(file: File): FileUploadItem {
   }
 }
 
+
+/**
+ * 从 URL 提取文件名
+ */
+export function getFileNameFromUrl(url: string): string {
+  try {
+    const urlObj = new URL(url)
+    const pathname = urlObj.pathname
+    const fileName = pathname.split('/').pop() || '已上传文件'
+    return decodeURIComponent(fileName)
+  } catch {
+    const fileName = url.split('/').pop() || '已上传文件'
+    return decodeURIComponent(fileName)
+  }
+}
