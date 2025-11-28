@@ -2,8 +2,8 @@ import { http, HttpResponse } from 'msw'
 
 export const authHandlers = [
   http.post('/api/login', async ({ request }) => {
-    const data = await request.json() as { name: string; password: string }
-    
+    const data = (await request.json()) as { name: string; password: string }
+
     if (data.name === 'admin' && data.password === 'asdfasdf') {
       return HttpResponse.json({
         user: {
@@ -16,10 +16,10 @@ export const authHandlers = [
       })
     }
 
-    return new HttpResponse(
-      JSON.stringify({ message: '用户名或密码错误' }),
-      { status: 400, statusText: 'Bad Request' }
-    )
+    return new HttpResponse(JSON.stringify({ message: '用户名或密码错误' }), {
+      status: 400,
+      statusText: 'Bad Request',
+    })
   }),
   http.post('/api/logout', () => {
     return new HttpResponse(null, { status: 200 })

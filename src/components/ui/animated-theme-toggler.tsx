@@ -5,8 +5,9 @@ import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
 import { Button } from '@/components/ui/button'
 
-interface AnimatedThemeTogglerProps
-  extends React.ComponentPropsWithoutRef<typeof Button> {
+interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<
+  typeof Button
+> {
   duration?: number
   showLabel?: boolean
 }

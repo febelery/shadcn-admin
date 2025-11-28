@@ -17,9 +17,7 @@ export interface QiniuUptokenResponse {
 /**
  * 获取七牛上传 token
  */
-export async function getQiniuUptoken(
-  file: File
-): Promise<string> {
+export async function getQiniuUptoken(file: File): Promise<string> {
   const response = await axios.post<QiniuUptokenResponse>(
     '/api/qiniu/uptoken',
     {
@@ -32,4 +30,3 @@ export async function getQiniuUptoken(
 
   return response.data.uptoken
 }
-

@@ -1,8 +1,4 @@
-import {
-  IconGmail,
-  IconDocker,
-  IconGithub,
-} from '@/assets/brand-icons'
+import { IconGmail, IconDocker, IconGithub } from '@/assets/brand-icons'
 
 export const apps = [
   {

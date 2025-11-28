@@ -13,8 +13,10 @@ import { useTheme } from '@/context/theme-provider'
 
 export type EditorVariant = 'basic' | 'standard' | 'full'
 
-export interface EditorProps
-  extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
+export interface EditorProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'onChange'
+> {
   placeholder?: string
   defaultValue?: string
   value?: string

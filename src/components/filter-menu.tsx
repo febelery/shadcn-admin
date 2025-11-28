@@ -120,8 +120,9 @@ export interface FilterConfig {
   allowedOperators?: FilterOperator[]
 }
 
-interface FilterMenuProps<TData>
-  extends React.ComponentProps<typeof PopoverContent> {
+interface FilterMenuProps<TData> extends React.ComponentProps<
+  typeof PopoverContent
+> {
   table: Table<TData>
   /**
    * 筛选模式，默认为 'local'

@@ -1,6 +1,6 @@
 import React, { type SVGProps } from 'react'
-import { Root as Radio, Item } from '@radix-ui/react-radio-group'
 import { CircleCheck, RotateCcw, Palette } from 'lucide-react'
+import { RadioGroup } from 'radix-ui'
 import { IconLayoutCompact } from '@/assets/custom/icon-layout-compact'
 import { IconLayoutDefault } from '@/assets/custom/icon-layout-default'
 import { IconLayoutFull } from '@/assets/custom/icon-layout-full'
@@ -125,7 +125,7 @@ function RadioGroupItem({
   isTheme?: boolean
 }) {
   return (
-    <Item
+    <RadioGroup.Item
       value={item.value}
       className={cn('group outline-none', 'transition duration-200 ease-in')}
       aria-label={`选择 ${item.label}`}
@@ -164,7 +164,7 @@ function RadioGroupItem({
       >
         {item.label}
       </div>
-    </Item>
+    </RadioGroup.Item>
   )
 }
 
@@ -177,7 +177,7 @@ function ThemeConfig() {
         showReset={theme !== defaultTheme}
         onReset={() => setTheme(defaultTheme)}
       />
-      <Radio
+      <RadioGroup.Root
         value={theme}
         onValueChange={setTheme}
         className='grid w-full max-w-md grid-cols-3 gap-4'
@@ -203,7 +203,7 @@ function ThemeConfig() {
         ].map((item) => (
           <RadioGroupItem key={item.value} item={item} isTheme />
         ))}
-      </Radio>
+      </RadioGroup.Root>
       <div id='theme-description' className='sr-only'>
         在系统偏好、浅色模式或深色模式之间选择
       </div>
@@ -220,7 +220,7 @@ function SidebarConfig() {
         showReset={defaultVariant !== variant}
         onReset={() => setVariant(defaultVariant)}
       />
-      <Radio
+      <RadioGroup.Root
         value={variant}
         onValueChange={setVariant}
         className='grid w-full max-w-md grid-cols-3 gap-4'
@@ -246,7 +246,7 @@ function SidebarConfig() {
         ].map((item) => (
           <RadioGroupItem key={item.value} item={item} />
         ))}
-      </Radio>
+      </RadioGroup.Root>
       <div id='sidebar-description' className='sr-only'>
         在内嵌、浮动或标准侧边栏布局之间选择
       </div>
@@ -270,7 +270,7 @@ function LayoutConfig() {
           setCollapsible(defaultCollapsible)
         }}
       />
-      <Radio
+      <RadioGroup.Root
         value={radioState}
         onValueChange={(v) => {
           if (v === 'default') {
@@ -303,11 +303,10 @@ function LayoutConfig() {
         ].map((item) => (
           <RadioGroupItem key={item.value} item={item} />
         ))}
-      </Radio>
+      </RadioGroup.Root>
       <div id='layout-description' className='sr-only'>
         在默认展开、紧凑图标模式或完整布局模式之间选择
       </div>
     </div>
   )
 }
-

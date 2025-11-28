@@ -14,12 +14,15 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <div className={cn('flex flex-wrap items-end justify-between gap-2', className)}>
+    <div
+      className={cn(
+        'flex flex-wrap items-end justify-between gap-2',
+        className
+      )}
+    >
       <div>
         <h1 className='text-2xl font-bold tracking-tight'>{title}</h1>
-        {description && (
-          <p className='text-muted-foreground'>{description}</p>
-        )}
+        {description && <p className='text-muted-foreground'>{description}</p>}
       </div>
       {children}
     </div>

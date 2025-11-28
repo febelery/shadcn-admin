@@ -16,4 +16,3 @@ export type {
   FileUploadValidationRule,
   QiniuUploadConfig,
 } from '@/types/file-upload'
-

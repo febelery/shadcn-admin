@@ -163,9 +163,7 @@ export function UsersActionDialog({
                 name='firstName'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      名字
-                    </FormLabel>
+                    <FormLabel className='col-span-2 text-end'>名字</FormLabel>
                     <FormControl>
                       <Input
                         placeholder='John'
@@ -183,9 +181,7 @@ export function UsersActionDialog({
                 name='lastName'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      姓氏
-                    </FormLabel>
+                    <FormLabel className='col-span-2 text-end'>姓氏</FormLabel>
                     <FormControl>
                       <Input
                         placeholder='Doe'
@@ -278,9 +274,7 @@ export function UsersActionDialog({
                 name='password'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      密码
-                    </FormLabel>
+                    <FormLabel className='col-span-2 text-end'>密码</FormLabel>
                     <FormControl>
                       <PasswordInput
                         placeholder='e.g., S3cur3P@ssw0rd'

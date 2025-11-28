@@ -17,8 +17,9 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 
-interface ColumnVisibilityProps<TData>
-  extends React.ComponentProps<typeof PopoverContent> {
+interface ColumnVisibilityProps<TData> extends React.ComponentProps<
+  typeof PopoverContent
+> {
   table: Table<TData>
   /**
    * 按钮文本，默认为 "视图"

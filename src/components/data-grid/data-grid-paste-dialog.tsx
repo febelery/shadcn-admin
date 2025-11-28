@@ -37,7 +37,8 @@ export function DataGridPasteDialog<TData>({
 }
 
 interface PasteDialogProps
-  extends Pick<
+  extends
+    Pick<
       TableMeta<unknown>,
       | 'onPasteDialogOpenChange'
       | 'onPasteWithExpansion'

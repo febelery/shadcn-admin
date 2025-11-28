@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { type User } from './data/schema'
 import { type PaginatedResponse, type QueryParams } from '@/types/api'
+import { type User } from './data/schema'
 
 export const getUsers = async (
   params?: QueryParams

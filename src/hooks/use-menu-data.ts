@@ -1,6 +1,6 @@
+import axios from 'axios'
 import { useQuery } from '@tanstack/react-query'
 import { type MenuData } from '@/types/navigation'
-import axios from 'axios'
 
 export function useMenuData() {
   const { data, isLoading } = useQuery({
@@ -14,4 +14,3 @@ export function useMenuData() {
 
   return { menuData: data || { navGroups: [] }, isLoading }
 }
-

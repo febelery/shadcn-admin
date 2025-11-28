@@ -1,8 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import * as SliderPrimitive from '@radix-ui/react-slider'
-import { Slot } from '@radix-ui/react-slot'
 import {
   AlertTriangleIcon,
   CaptionsOffIcon,
@@ -35,6 +33,7 @@ import {
   useMediaRef,
   useMediaSelector,
 } from 'media-chrome/react/media-store'
+import { Slider as SliderPrimitive, Slot as SlotPrimitive } from 'radix-ui'
 import * as ReactDOM from 'react-dom'
 import { useComposedRefs } from '@/lib/compose-refs'
 import { cn } from '@/lib/utils'
@@ -191,8 +190,10 @@ function useMediaPlayerContext(consumerName: string) {
   return context
 }
 
-interface MediaPlayerRootProps
-  extends Omit<React.ComponentProps<'div'>, 'onTimeUpdate' | 'onVolumeChange'> {
+interface MediaPlayerRootProps extends Omit<
+  React.ComponentProps<'div'>,
+  'onTimeUpdate' | 'onVolumeChange'
+> {
   onPlay?: () => void
   onPause?: () => void
   onEnded?: () => void
@@ -754,7 +755,7 @@ function MediaPlayerRootImpl(props: MediaPlayerRootProps) {
     ]
   )
 
-  const RootPrimitive = asChild ? Slot : 'div'
+  const RootPrimitive = asChild ? SlotPrimitive.Slot : 'div'
 
   return (
     <MediaPlayerContext.Provider value={contextValue}>
@@ -827,7 +828,7 @@ function MediaPlayerVideo(props: MediaPlayerVideoProps) {
     [dispatch, props.onClick]
   )
 
-  const VideoPrimitive = asChild ? Slot : 'video'
+  const VideoPrimitive = asChild ? SlotPrimitive.Slot : 'video'
 
   return (
     <VideoPrimitive
@@ -853,7 +854,7 @@ function MediaPlayerAudio(props: MediaPlayerAudioProps) {
   const mediaRefCallback = useMediaRef()
   const composedRef = useComposedRefs(ref, context.mediaRef, mediaRefCallback)
 
-  const AudioPrimitive = asChild ? Slot : 'audio'
+  const AudioPrimitive = asChild ? SlotPrimitive.Slot : 'audio'
 
   return (
     <AudioPrimitive
@@ -880,7 +881,7 @@ function MediaPlayerControls(props: MediaPlayerControlsProps) {
   )
   const controlsVisible = useStoreSelector((state) => state.controlsVisible)
 
-  const ControlsPrimitive = asChild ? Slot : 'div'
+  const ControlsPrimitive = asChild ? SlotPrimitive.Slot : 'div'
 
   return (
     <ControlsPrimitive
@@ -946,7 +947,7 @@ function MediaPlayerLoading(props: MediaPlayerLoadingProps) {
 
   if (!shouldRender) return null
 
-  const LoadingPrimitive = asChild ? Slot : 'div'
+  const LoadingPrimitive = asChild ? SlotPrimitive.Slot : 'div'
 
   return (
     <LoadingPrimitive
@@ -1074,7 +1075,7 @@ function MediaPlayerError(props: MediaPlayerErrorProps) {
 
   if (!error) return null
 
-  const ErrorPrimitive = asChild ? Slot : 'div'
+  const ErrorPrimitive = asChild ? SlotPrimitive.Slot : 'div'
 
   return (
     <ErrorPrimitive
@@ -1158,7 +1159,7 @@ function MediaPlayerVolumeIndicator(props: MediaPlayerVolumeIndicatorProps) {
   const barCount = 10
   const activeBarCount = Math.ceil(effectiveVolume * barCount)
 
-  const VolumeIndicatorPrimitive = asChild ? Slot : 'div'
+  const VolumeIndicatorPrimitive = asChild ? SlotPrimitive.Slot : 'div'
 
   return (
     <VolumeIndicatorPrimitive
@@ -1219,7 +1220,7 @@ function MediaPlayerControlsOverlay(props: MediaPlayerControlsOverlayProps) {
   )
   const controlsVisible = useStoreSelector((state) => state.controlsVisible)
 
-  const OverlayPrimitive = asChild ? Slot : 'div'
+  const OverlayPrimitive = asChild ? SlotPrimitive.Slot : 'div'
 
   return (
     <OverlayPrimitive
@@ -1290,8 +1291,9 @@ function MediaPlayerPlay(props: MediaPlayerPlayProps) {
   )
 }
 
-interface MediaPlayerSeekBackwardProps
-  extends React.ComponentProps<typeof Button> {
+interface MediaPlayerSeekBackwardProps extends React.ComponentProps<
+  typeof Button
+> {
   seconds?: number
 }
 
@@ -1350,8 +1352,9 @@ function MediaPlayerSeekBackward(props: MediaPlayerSeekBackwardProps) {
   )
 }
 
-interface MediaPlayerSeekForwardProps
-  extends React.ComponentProps<typeof Button> {
+interface MediaPlayerSeekForwardProps extends React.ComponentProps<
+  typeof Button
+> {
   seconds?: number
 }
 
@@ -1421,8 +1424,9 @@ interface SeekState {
   hasInitialPosition: boolean
 }
 
-interface MediaPlayerSeekProps
-  extends React.ComponentProps<typeof SliderPrimitive.Root> {
+interface MediaPlayerSeekProps extends React.ComponentProps<
+  typeof SliderPrimitive.Root
+> {
   withTime?: boolean
   withoutChapter?: boolean
   withoutTooltip?: boolean
@@ -2184,8 +2188,9 @@ function MediaPlayerSeek(props: MediaPlayerSeekProps) {
   return SeekSlider
 }
 
-interface MediaPlayerVolumeProps
-  extends React.ComponentProps<typeof SliderPrimitive.Root> {
+interface MediaPlayerVolumeProps extends React.ComponentProps<
+  typeof SliderPrimitive.Root
+> {
   asChild?: boolean
   expandable?: boolean
 }
@@ -2354,7 +2359,7 @@ function MediaPlayerTime(props: MediaPlayerTimeProps) {
     }
   }, [variant, mediaCurrentTime, seekableEnd])
 
-  const TimePrimitive = asChild ? Slot : 'div'
+  const TimePrimitive = asChild ? SlotPrimitive.Slot : 'div'
 
   if (variant === 'remaining' || variant === 'duration') {
     return (
@@ -2391,7 +2396,8 @@ function MediaPlayerTime(props: MediaPlayerTimeProps) {
 }
 
 interface MediaPlayerPlaybackSpeedProps
-  extends React.ComponentProps<typeof DropdownMenuTrigger>,
+  extends
+    React.ComponentProps<typeof DropdownMenuTrigger>,
     React.ComponentProps<typeof Button>,
     Omit<React.ComponentProps<typeof DropdownMenu>, 'dir'>,
     Pick<React.ComponentProps<typeof DropdownMenuContent>, 'sideOffset'> {
@@ -2555,8 +2561,9 @@ function MediaPlayerLoop(props: MediaPlayerLoopProps) {
   )
 }
 
-interface MediaPlayerFullscreenProps
-  extends React.ComponentProps<typeof Button> {}
+interface MediaPlayerFullscreenProps extends React.ComponentProps<
+  typeof Button
+> {}
 
 function MediaPlayerFullscreen(props: MediaPlayerFullscreenProps) {
   const { children, className, disabled, ...fullscreenProps } = props
@@ -2605,8 +2612,10 @@ function MediaPlayerFullscreen(props: MediaPlayerFullscreenProps) {
   )
 }
 
-interface MediaPlayerPiPProps
-  extends Omit<React.ComponentProps<typeof Button>, 'children'> {
+interface MediaPlayerPiPProps extends Omit<
+  React.ComponentProps<typeof Button>,
+  'children'
+> {
   children?:
     | React.ReactNode
     | ((isPictureInPicture: boolean) => React.ReactNode)
@@ -2682,8 +2691,9 @@ function MediaPlayerPiP(props: MediaPlayerPiPProps) {
   )
 }
 
-interface MediaPlayerCaptionsProps
-  extends React.ComponentProps<typeof Button> {}
+interface MediaPlayerCaptionsProps extends React.ComponentProps<
+  typeof Button
+> {}
 
 function MediaPlayerCaptions(props: MediaPlayerCaptionsProps) {
   const { children, className, disabled, ...captionsProps } = props
@@ -2732,8 +2742,9 @@ function MediaPlayerCaptions(props: MediaPlayerCaptionsProps) {
   )
 }
 
-interface MediaPlayerDownloadProps
-  extends React.ComponentProps<typeof Button> {}
+interface MediaPlayerDownloadProps extends React.ComponentProps<
+  typeof Button
+> {}
 
 function MediaPlayerDownload(props: MediaPlayerDownloadProps) {
   const { children, className, disabled, ...downloadProps } = props
@@ -3047,7 +3058,8 @@ function MediaPlayerPortal(props: MediaPlayerPortalProps) {
 }
 
 interface MediaPlayerTooltipProps
-  extends React.ComponentProps<typeof Tooltip>,
+  extends
+    React.ComponentProps<typeof Tooltip>,
     Pick<React.ComponentProps<typeof TooltipContent>, 'sideOffset'> {
   tooltip?: string
   shortcut?: string | string[]

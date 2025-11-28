@@ -68,9 +68,7 @@ export function UsersDeleteDialog({
 
           <Alert variant='destructive'>
             <AlertTitle>警告！</AlertTitle>
-            <AlertDescription>
-              请注意，此操作无法回滚。
-            </AlertDescription>
+            <AlertDescription>请注意，此操作无法回滚。</AlertDescription>
           </Alert>
         </div>
       }

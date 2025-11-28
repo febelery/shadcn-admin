@@ -11,8 +11,7 @@ import { DataGridRow } from '@/components/data-grid/data-grid-row'
 import { DataGridSearch } from '@/components/data-grid/data-grid-search'
 
 interface DataGridProps<TData>
-  extends ReturnType<typeof useDataGrid<TData>>,
-    React.ComponentProps<'div'> {
+  extends ReturnType<typeof useDataGrid<TData>>, React.ComponentProps<'div'> {
   height?: number
 }
 

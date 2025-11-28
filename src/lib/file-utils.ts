@@ -165,8 +165,7 @@ function getFileTypeFromExtension(extension: string): string {
   // Excel
   if (FILE_EXTENSIONS.excel.includes(extension as any)) return 'excel'
   // PowerPoint
-  if (FILE_EXTENSIONS.powerpoint.includes(extension as any))
-    return 'powerpoint'
+  if (FILE_EXTENSIONS.powerpoint.includes(extension as any)) return 'powerpoint'
   // PDF
   if (extension === 'pdf') return 'pdf'
   // 代码文件
@@ -283,4 +282,3 @@ export function getFileNameFromUrl(url: string): string {
     return decodeURIComponent(fileName)
   }
 }
-

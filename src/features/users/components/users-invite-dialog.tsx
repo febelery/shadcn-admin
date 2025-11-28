@@ -28,8 +28,7 @@ import { roles } from '../data/data'
 
 const formSchema = z.object({
   email: z.email({
-      error: (iss) =>
-      iss.input === '' ? '请输入要邀请的邮箱。' : undefined,
+    error: (iss) => (iss.input === '' ? '请输入要邀请的邮箱。' : undefined),
   }),
   role: z.string().min(1, '角色是必填项。'),
   desc: z.string().optional(),

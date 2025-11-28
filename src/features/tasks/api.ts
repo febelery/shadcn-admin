@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { type Task } from './data/schema'
 import { type PaginatedResponse, type QueryParams } from '@/types/api'
+import { type Task } from './data/schema'
 
 export const getTasks = async (
   params?: QueryParams
