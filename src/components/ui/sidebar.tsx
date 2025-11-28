@@ -421,11 +421,6 @@ function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
         'hover:group-data-[collapsible=offcanvas]:bg-sidebar group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:start-full',
         '[[data-side=left][data-collapsible=offcanvas]_&]:-end-2',
         '[[data-side=right][data-collapsible=offcanvas]_&]:-start-2',
-
-        // RTL support
-        'rtl:translate-x-1/2',
-        'rtl:in-data-[side=left]:cursor-e-resize rtl:in-data-[side=right]:cursor-w-resize',
-        'rtl:[[data-side=left][data-state=collapsed]_&]:cursor-w-resize rtl:[[data-side=right][data-state=collapsed]_&]:cursor-e-resize',
         className
       )}
       {...props}
@@ -497,15 +492,95 @@ function SidebarSeparator({
   )
 }
 
-function SidebarContent({ className, ...props }: React.ComponentProps<'div'>) {
+function SidebarContent({
+  className,
+  withFade = false,
+  fadeSize = 24,
+  ...props
+}: React.ComponentProps<'div'> & {
+  withFade?: boolean
+  fadeSize?: number
+}) {
+  const contentRef = React.useRef<HTMLDivElement>(null)
+
+  React.useLayoutEffect(() => {
+    if (!withFade) return
+
+    const container = contentRef.current
+    if (!container) return
+
+    function updateScrollState() {
+      if (!container) return
+
+      const scrollTop = container.scrollTop
+      const clientHeight = container.clientHeight
+      const scrollHeight = container.scrollHeight
+      const offset = 0
+
+      const newHasTopScroll = scrollTop > offset
+      const newHasBottomScroll =
+        scrollTop + clientHeight + offset < scrollHeight
+      const isScrollable = scrollHeight > clientHeight
+
+      // 设置 data 属性用于 CSS 选择器
+      if (newHasTopScroll && newHasBottomScroll && isScrollable) {
+        container.setAttribute('data-top-bottom-scroll', 'true')
+        container.removeAttribute('data-top-scroll')
+        container.removeAttribute('data-bottom-scroll')
+      } else {
+        container.removeAttribute('data-top-bottom-scroll')
+        if (newHasTopScroll && isScrollable) {
+          container.setAttribute('data-top-scroll', 'true')
+        } else {
+          container.removeAttribute('data-top-scroll')
+        }
+        if (newHasBottomScroll && isScrollable) {
+          container.setAttribute('data-bottom-scroll', 'true')
+        } else {
+          container.removeAttribute('data-bottom-scroll')
+        }
+      }
+    }
+
+    updateScrollState()
+    container.addEventListener('scroll', updateScrollState)
+    window.addEventListener('resize', updateScrollState)
+
+    // 使用 ResizeObserver 监听内容变化
+    const resizeObserver = new ResizeObserver(updateScrollState)
+    resizeObserver.observe(container)
+
+    return () => {
+      container.removeEventListener('scroll', updateScrollState)
+      window.removeEventListener('resize', updateScrollState)
+      resizeObserver.disconnect()
+    }
+  }, [withFade])
+
   return (
     <div
+      ref={contentRef}
       data-slot='sidebar-content'
       data-sidebar='content'
       className={cn(
         'flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden',
+        // 使用 mask-image 实现渐变遮罩，参考 scroller.tsx 的实现
+        withFade && [
+          // 顶部渐变：当有顶部滚动时显示
+          'data-[top-scroll=true]:mask-[linear-gradient(0deg,#000_calc(100%-var(--scroll-shadow-size)),transparent)]',
+          // 底部渐变：当有底部滚动时显示
+          'data-[bottom-scroll=true]:mask-[linear-gradient(180deg,#000_calc(100%-var(--scroll-shadow-size)),transparent)]',
+          // 同时有顶部和底部滚动时
+          'data-[top-bottom-scroll=true]:mask-[linear-gradient(#000,#000,transparent_0,#000_var(--scroll-shadow-size),#000_calc(100%-var(--scroll-shadow-size)),transparent)]',
+        ],
         className
       )}
+      style={
+        {
+          ...(withFade && { '--scroll-shadow-size': `${fadeSize}px` }),
+          ...props.style,
+        } as React.CSSProperties
+      }
       {...props}
     />
   )
