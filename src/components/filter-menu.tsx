@@ -927,7 +927,7 @@ function FilterInput<TData>({
                 <span className='text-muted-foreground'>{placeholder}</span>
               ) : (
                 <>
-                  <div className='flex items-center -space-x-2 rtl:space-x-reverse'>
+                  <div className='flex items-center -space-x-2'>
                     {selectedOptions.map((selectedOption) =>
                       selectedOption.icon ? (
                         <div

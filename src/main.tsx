@@ -8,7 +8,6 @@ import { zhCN } from 'zod/locales'
 import { initializeMSW } from '@/lib/msw'
 import { createAppQueryClient, setRouterInstance } from '@/lib/query-client'
 import { createAppRouter } from '@/lib/router'
-import { DirectionProvider } from '@/context/direction-provider'
 import { FontProvider } from '@/context/font-provider'
 import { ThemeProvider } from '@/context/theme-provider'
 
@@ -29,9 +28,7 @@ const renderApp = async (): Promise<void> => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <FontProvider>
-            <DirectionProvider>
-              <RouterProvider router={router} />
-            </DirectionProvider>
+            <RouterProvider router={router} />
           </FontProvider>
         </ThemeProvider>
       </QueryClientProvider>

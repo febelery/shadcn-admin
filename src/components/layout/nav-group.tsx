@@ -105,7 +105,7 @@ function SidebarMenuCollapsible({
             {item.icon && <DynamicIcon name={item.icon} />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
-            <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180' />
+            <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
           </SidebarMenuButton>
         </CollapsibleTrigger>
         <CollapsibleContent className='CollapsibleContent'>
@@ -132,7 +132,7 @@ function SidebarMenuCollapsible({
                           {subItem.badge && (
                             <NavBadge>{subItem.badge}</NavBadge>
                           )}
-                          <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180' />
+                          <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
                         </SidebarMenuSubButton>
                       </CollapsibleTrigger>
                       <CollapsibleContent className='CollapsibleContent'>
@@ -200,7 +200,7 @@ function RecursiveSidebarMenuSubItem({
               {item.icon && <DynamicIcon name={item.icon} />}
               <span>{item.title}</span>
               {item.badge && <NavBadge>{item.badge}</NavBadge>}
-              <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180' />
+              <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
             </SidebarMenuSubButton>
           </CollapsibleTrigger>
           <CollapsibleContent className='CollapsibleContent'>
@@ -348,6 +348,7 @@ function RecursiveDropdownMenuItem({
 }
 
 // 检查父级是否有激活的子项（排除自身）
+// eslint-disable-next-line react-refresh/only-export-components
 export function hasActiveChild(href: string, item: NavItem): boolean {
   if (!item.items) return false
   // 检查是否有子项激活，但排除自身激活
@@ -358,6 +359,7 @@ export function hasActiveChild(href: string, item: NavItem): boolean {
 }
 
 // 导出 checkIsActive 供其他组件使用
+// eslint-disable-next-line react-refresh/only-export-components
 export function checkIsActive(
   href: string,
   item: NavItem,

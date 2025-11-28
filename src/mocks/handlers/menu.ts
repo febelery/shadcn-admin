@@ -132,6 +132,23 @@ const menuData: MenuData = {
           ],
         },
         {
+          title: 'Components Demo',
+          url: '/components-demo/file-upload',
+          icon: 'Package',
+          items: [
+            {
+              title: 'File Upload',
+              url: '/components-demo/file-upload',
+              icon: 'Upload',
+            },
+            {
+              title: 'Editor',
+              url: '/components-demo/editor',
+              icon: 'Edit',
+            },
+          ],
+        },
+        {
           title: 'Nested Test',
           icon: 'Bug',
           items: [
@@ -152,23 +169,6 @@ const menuData: MenuData = {
           title: 'Help Center',
           url: '/help-center',
           icon: 'HelpCircle',
-        },
-        {
-          title: 'Components Demo',
-          url: '/components-demo/file-upload',
-          icon: 'Package',
-          items: [
-            {
-              title: 'File Upload',
-              url: '/components-demo/file-upload',
-              icon: 'Upload',
-            },
-            {
-              title: 'Editor',
-              url: '/components-demo/editor',
-              icon: 'Edit',
-            },
-          ],
         },
       ],
     },

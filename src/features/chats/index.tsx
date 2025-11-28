@@ -160,7 +160,7 @@ export function Chats() {
                     className='-ms-2 h-full sm:hidden'
                     onClick={() => setMobileSelectedUser(null)}
                   >
-                    <ArrowLeft className='rtl:rotate-180' />
+                    <ArrowLeft />
                   </Button>
                   <div className='flex items-center gap-2 lg:gap-4'>
                     <Avatar className='size-9 lg:size-11'>
