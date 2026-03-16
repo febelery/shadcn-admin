@@ -1,11 +1,4 @@
-import {
-  HTMLAttributes,
-  forwardRef,
-  useEffect,
-  useRef,
-  useImperativeHandle,
-  useState,
-} from 'react'
+import { HTMLAttributes, useEffect, useRef } from 'react'
 import { AiEditor, AiEditorOptions } from 'aieditor'
 import 'aieditor/dist/style.css'
 import { cn } from '@/lib/utils'
@@ -23,15 +16,12 @@ export interface EditorProps extends Omit<
   onChange?: (val: string) => void
   options?: Omit<AiEditorOptions, 'element'>
   variant?: EditorVariant
-  /**
-   * 自定义图片上传函数
-   * 返回 Promise<{ src: string }>
-   */
   onUpload?: (file: File) => Promise<{ src: string; [key: string]: any }>
   disabled?: boolean
+  ref?: React.Ref<AiEditor | null>
 }
 
-const TOOLBAR_VARIANTS: Record<EditorVariant, any[]> = {
+const TOOLBAR_VARIANTS: Record<EditorVariant, string[]> = {
   basic: [
     'undo',
     'redo',
@@ -125,67 +115,82 @@ const TOOLBAR_VARIANTS: Record<EditorVariant, any[]> = {
   ],
 }
 
+const EDITOR_STYLES = `
+  .aie-container-wrapper .aie-container {
+    border: none !important;
+    background: transparent !important;
+  }
+  .aie-container-wrapper .aie-toolbar {
+    border-bottom: 1px solid hsl(var(--border)) !important;
+    background: hsl(var(--muted) / 0.3) !important;
+  }
+  .aie-container-wrapper .aie-content {
+    background: transparent !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  aie-footer { display: none !important; }
+  .dark .aie-icon svg { fill: hsl(var(--foreground)) !important; }
+`
+
 /**
  * 富文本编辑器 (AiEditor 封装)
  */
-export const Editor = forwardRef<AiEditor | null, EditorProps>(function Editor(
-  {
-    placeholder,
-    defaultValue,
-    value,
-    onChange,
-    options,
-    variant = 'standard',
-    className,
-    onUpload,
-    disabled,
-    ...props
-  },
-  ref
-) {
+export function Editor({
+  placeholder,
+  defaultValue,
+  value,
+  onChange,
+  options,
+  variant = 'standard',
+  className,
+  onUpload,
+  disabled,
+  ref,
+  ...props
+}: EditorProps) {
   const divRef = useRef<HTMLDivElement>(null)
   const aiEditorRef = useRef<AiEditor | null>(null)
   const { theme } = useTheme()
-  const [isMounted, setIsMounted] = useState(false)
 
-  // 暴露 AiEditor 实例
-  useImperativeHandle(ref, () => aiEditorRef.current as AiEditor)
-
-  // 初始化/销毁编辑器
+  // 初始化/销毁编辑器，variant 变化时重新初始化
   useEffect(() => {
     if (!divRef.current) return
 
-    // 销毁旧实例
-    if (aiEditorRef.current) {
-      aiEditorRef.current.destroy()
-      aiEditorRef.current = null
+    const el = divRef.current
+    const isComposing = { current: false }
+
+    const onCompositionStart = () => {
+      isComposing.current = true
     }
 
+    const onCompositionEnd = () => {
+      isComposing.current = false
+      // 组合输入结束后手动触发一次 onChange
+      const html = aiEditorRef.current?.getHtml() ?? ''
+      if (onChange && html !== value) onChange(html)
+    }
+
+    el.addEventListener('compositionstart', onCompositionStart)
+    el.addEventListener('compositionend', onCompositionEnd)
+
     const editor = new AiEditor({
-      element: divRef.current,
+      element: el,
       placeholder,
-      content: value || defaultValue || '',
+      content: value ?? defaultValue ?? '',
       theme: theme as any,
       editable: !disabled,
       toolbarKeys: TOOLBAR_VARIANTS[variant],
       onChange: (ed) => {
+        // 拼音组合阶段不触发，避免候选词弹出时校验
+        if (isComposing.current) return
         const html = ed.getHtml()
-        // 避免循环更新
-        if (onChange && html !== value) {
-          onChange(html)
-        }
+        if (onChange && html !== value) onChange(html)
       },
-      // 上传适配器
       uploader: onUpload
         ? async (file: File) => {
             try {
-              const result = await onUpload(file)
-              return {
-                errorCode: 0,
-                data: result,
-              }
+              return { errorCode: 0, data: await onUpload(file) }
             } catch (error) {
-              console.error('Upload failed:', error)
               return {
                 errorCode: 1,
                 msg: error instanceof Error ? error.message : '上传失败',
@@ -197,45 +202,37 @@ export const Editor = forwardRef<AiEditor | null, EditorProps>(function Editor(
     })
 
     aiEditorRef.current = editor
-    setIsMounted(true)
+
+    if (typeof ref === 'function') ref(null)
+    else if (ref) (ref as React.RefObject<AiEditor | null>).current = null
 
     return () => {
+      el.removeEventListener('compositionstart', onCompositionStart)
+      el.removeEventListener('compositionend', onCompositionEnd)
       editor.destroy()
       aiEditorRef.current = null
-      setIsMounted(false)
+      if (typeof ref === 'function') ref(null)
+      else if (ref) (ref as React.RefObject<AiEditor | null>).current = null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [variant]) // 当 variant 变化时重新初始化
+  }, [variant])
 
-  // 监听 value 变化 (外部控制)
+  // 外部 value 变化时同步内容
   useEffect(() => {
-    if (
-      aiEditorRef.current &&
-      isMounted &&
-      value !== undefined &&
-      value !== aiEditorRef.current.getHtml()
-    ) {
-      aiEditorRef.current.setContent(value)
+    const editor = aiEditorRef.current
+    if (editor && value !== undefined && value !== editor.getHtml()) {
+      editor.setContent(value)
     }
-  }, [value, isMounted])
+  }, [value])
 
-  // 监听主题变化
+  // 主题变化
   useEffect(() => {
-    if (aiEditorRef.current && isMounted) {
-      aiEditorRef.current.changeTheme(theme as any)
-    }
-  }, [theme, isMounted])
+    aiEditorRef.current?.changeTheme(theme as any)
+  }, [theme])
 
-  // 监听 disabled 变化
+  // disabled 变化
   useEffect(() => {
-    if (aiEditorRef.current && isMounted) {
-      if (disabled) {
-        aiEditorRef.current.setEditable(false)
-      } else {
-        aiEditorRef.current.setEditable(true)
-      }
-    }
-  }, [disabled, isMounted])
+    aiEditorRef.current?.setEditable(!disabled)
+  }, [disabled])
 
   return (
     <div
@@ -248,28 +245,7 @@ export const Editor = forwardRef<AiEditor | null, EditorProps>(function Editor(
       )}
       {...props}
     >
-      <style>{`
-        .aie-container-wrapper .aie-container {
-          border: none !important;
-          background: transparent !important;
-        }
-        .aie-container-wrapper .aie-toolbar {
-          border-bottom: 1px solid hsl(var(--border)) !important;
-          background: hsl(var(--muted) / 0.3) !important;
-        }
-        .aie-container-wrapper .aie-content {
-          background: transparent !important;
-          color: hsl(var(--foreground)) !important;
-        }
-        /* 隐藏 footer */
-        aie-footer {
-          display: none !important;
-        }
-        /* 修复暗色模式下的工具栏图标颜色 */
-        .dark .aie-icon svg {
-          fill: hsl(var(--foreground)) !important;
-        }
-      `}</style>
+      <style>{EDITOR_STYLES}</style>
     </div>
   )
-})
+}

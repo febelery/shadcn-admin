@@ -41,20 +41,23 @@ interface RainbowButtonProps
   asChild?: boolean
 }
 
-const RainbowButton = React.forwardRef<HTMLButtonElement, RainbowButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? SlotPrimitive.Slot : 'button'
-    return (
-      <Comp
-        data-slot='button'
-        className={cn(rainbowButtonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
-    )
-  }
-)
-
-RainbowButton.displayName = 'RainbowButton'
+const RainbowButton = ({
+  className,
+  variant,
+  size,
+  asChild = false,
+  ref,
+  ...props
+}: RainbowButtonProps & { ref?: React.Ref<HTMLButtonElement> }) => {
+  const Comp = asChild ? SlotPrimitive.Slot : 'button'
+  return (
+    <Comp
+      data-slot='button'
+      className={cn(rainbowButtonVariants({ variant, size, className }))}
+      ref={ref}
+      {...props}
+    />
+  )
+}
 
 export { RainbowButton, rainbowButtonVariants, type RainbowButtonProps }

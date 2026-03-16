@@ -1,7 +1,10 @@
-'use client'
-
 import * as React from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Suspense, useOptimistic, useTransition } from 'react'
+import {
+  useSuspenseQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import { getFilterFn } from '@/lib/data-grid-filters'
 import { useDataGrid } from '@/hooks/use-data-grid'
@@ -11,26 +14,24 @@ import { ColumnVisibility } from '@/components/column-visibility'
 import { DataGrid } from '@/components/data-grid/data-grid'
 import { DataGridRowHeightMenu } from '@/components/data-grid/data-grid-row-height-menu'
 import { DataGridSortMenu } from '@/components/data-grid/data-grid-sort-menu'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { FilterMenu } from '@/components/filter-menu'
 import { PageLayout } from '@/components/layout/page-layout'
 import { getProducts, createProduct, deleteProducts } from './api'
 import type { Product } from './data/schema'
 
-export function Products() {
-  const { data } = useQuery({
+function ProductsInner() {
+  const { data } = useSuspenseQuery({
     queryKey: ['products'],
     queryFn: getProducts,
   })
 
-  const [products, setProducts] = React.useState<Product[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
-
-  React.useEffect(() => {
-    if (data?.data) {
-      setProducts(data.data)
-      setIsLoading(false)
-    }
-  }, [data])
+  const [optimisticProducts, removeOptimisticProducts] = useOptimistic(
+    data?.data || [],
+    (state: Product[], deletedIds: string[]) =>
+      state.filter((p) => !deletedIds.includes(p.id))
+  )
+  const [, startTransition] = useTransition()
 
   const filterFn = React.useMemo(() => getFilterFn<Product>(), [])
 
@@ -227,26 +228,23 @@ export function Products() {
 
   const onRowsDelete = React.useCallback(
     async (rows: Product[]) => {
-      // 先更新本地状态
-      setProducts((prev) => prev.filter((row) => !rows.includes(row)))
-
-      // 通过接口删除
-      try {
+      startTransition(async () => {
         const ids = rows.map((row) => row.id)
-        await deleteProductsAsync(ids)
-      } catch (error) {
-        // 如果删除失败，恢复本地状态
-        setProducts((prev) => [...prev, ...rows])
-        console.error('Failed to delete products:', error)
-      }
+        removeOptimisticProducts(ids)
+        try {
+          await deleteProductsAsync(ids)
+        } catch (error) {
+          console.error('Failed to delete products:', error)
+        }
+      })
     },
-    [deleteProductsAsync]
+    [deleteProductsAsync, removeOptimisticProducts]
   )
 
   const { table, ...dataGridProps } = useDataGrid({
     columns,
-    data: products,
-    onDataChange: setProducts,
+    data: optimisticProducts,
+    onDataChange: () => {},
     onRowsDelete,
     getRowId: (row) => row.id,
     enableSearch: true,
@@ -263,35 +261,42 @@ export function Products() {
       mainFixed
       mainClassName='flex flex-col gap-4 sm:gap-6'
     >
-      {isLoading ? (
-        <div className='flex min-h-0 flex-1 flex-col gap-4 rounded-md border p-4'>
-          <div className='flex flex-1 flex-col gap-3'>
-            {Array.from({ length: 26 }).map((_, rowIndex) => (
-              <div key={rowIndex} className='flex gap-4'>
-                {Array.from({ length: 6 }).map((_, colIndex) => (
-                  <Skeleton key={colIndex} className='h-8 flex-1' />
-                ))}
-              </div>
-            ))}
-          </div>
+      <>
+        <div
+          role='toolbar'
+          aria-orientation='horizontal'
+          className='flex items-center gap-2 self-end'
+        >
+          <FilterMenu table={table} align='end' />
+          <DataGridSortMenu table={table} align='end' />
+          <DataGridRowHeightMenu table={table} align='end' />
+          <ColumnVisibility table={table} align='end' />
         </div>
-      ) : (
-        <>
-          <div
-            role='toolbar'
-            aria-orientation='horizontal'
-            className='flex items-center gap-2 self-end'
-          >
-            <FilterMenu table={table} align='end' />
-            <DataGridSortMenu table={table} align='end' />
-            <DataGridRowHeightMenu table={table} align='end' />
-            <ColumnVisibility table={table} align='end' />
-          </div>
-          <div className='flex min-h-0 flex-1'>
-            <DataGrid {...dataGridProps} table={table} height={height} />
-          </div>
-        </>
-      )}
+        <div className='flex min-h-0 flex-1'>
+          <DataGrid {...dataGridProps} table={table} height={height} />
+        </div>
+      </>
     </PageLayout>
+  )
+}
+
+export function Products() {
+  return (
+    <ErrorBoundary >
+      <Suspense
+        fallback={
+          <div className='space-y-4 p-6 text-start'>
+            <Skeleton className='h-8 w-48' />
+            <div className='space-y-3 rounded-md border p-4'>
+              {Array.from({ length: 15 }).map((_, i) => (
+                <Skeleton key={i} className='h-10 w-full' />
+              ))}
+            </div>
+          </div>
+        }
+      >
+        <ProductsInner />
+      </Suspense>
+    </ErrorBoundary>
   )
 }

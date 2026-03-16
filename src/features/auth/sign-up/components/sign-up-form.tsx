@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useTransition } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -34,8 +34,6 @@ export function SignUpForm({
   className,
   ...props
 }: React.HTMLAttributes<HTMLFormElement>) {
-  const [isLoading, setIsLoading] = useState(false)
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -45,13 +43,13 @@ export function SignUpForm({
     },
   })
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    setIsLoading(true)
-    console.log(data)
+  const [isPending, startTransition] = useTransition()
 
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 3000)
+  function onSubmit(data: z.infer<typeof formSchema>) {
+    startTransition(async () => {
+      console.log(data)
+      await new Promise((resolve) => setTimeout(resolve, 3000))
+    })
   }
 
   return (
@@ -100,7 +98,7 @@ export function SignUpForm({
             </FormItem>
           )}
         />
-        <Button className='mt-2' disabled={isLoading}>
+        <Button className='mt-2' disabled={isPending}>
           创建账户
         </Button>
 
@@ -120,7 +118,7 @@ export function SignUpForm({
             variant='outline'
             className='w-full'
             type='button'
-            disabled={isLoading}
+            disabled={isPending}
           >
             <IconGithub className='h-4 w-4' /> GitHub
           </Button>
@@ -128,7 +126,7 @@ export function SignUpForm({
             variant='outline'
             className='w-full'
             type='button'
-            disabled={isLoading}
+            disabled={isPending}
           >
             <IconGmail className='h-4 w-4' /> Google
           </Button>

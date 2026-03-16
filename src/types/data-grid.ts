@@ -54,14 +54,12 @@ export interface UpdateCell {
 }
 
 declare module '@tanstack/react-table' {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
   interface ColumnMeta {
     label?: string
     cell?: CellOpts
   }
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
   interface TableMeta {
     dataGridRef?: React.RefObject<HTMLElement | null>
@@ -192,7 +190,6 @@ export interface FileCellData {
   url?: string
 }
 
-// Filter types
 export type TextFilterOperator =
   | 'contains'
   | 'notContains'

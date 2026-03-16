@@ -1890,7 +1890,6 @@ function useDataGrid<TData>({
     tableRef.current = table
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: we need to memoize the column size vars
   const columnSizeVars = React.useMemo(() => {
     const headers = table.getFlatHeaders()
     const colSizes: { [key: string]: number } = {}
@@ -1899,7 +1898,6 @@ function useDataGrid<TData>({
       colSizes[`--col-${header.column.id}-size`] = header.column.getSize()
     }
     return colSizes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [table.getState().columnSizingInfo, table.getState().columnSizing])
 
   const rowVirtualizer = useVirtualizer({
@@ -2222,5 +2220,4 @@ function useDataGrid<TData>({
   }
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export { useDataGrid, type UseDataGridProps }

@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { ROUTES } from '@/constants'
 import {
   Card,
   CardContent,
@@ -28,7 +29,7 @@ export function SignUp() {
       <p className='text-muted-foreground px-8 text-center text-sm'>
         已有账户？{' '}
         <Link
-          to='/sign-in'
+          to={ROUTES.SIGN_IN}
           className='hover:text-primary underline underline-offset-4'
         >
           登录

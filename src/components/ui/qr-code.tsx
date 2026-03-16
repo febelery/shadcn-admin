@@ -67,7 +67,7 @@ interface QRCodeContextValue {
 const StoreContext = React.createContext<Store | null>(null)
 
 function useStore<T>(selector: (state: StoreState) => T): T {
-  const store = React.useContext(StoreContext)
+  const store = React.use(StoreContext)
   if (!store) {
     throw new Error(`\`useQRCode\` must be used within \`${ROOT_NAME}\``)
   }
@@ -83,7 +83,7 @@ function useStore<T>(selector: (state: StoreState) => T): T {
 const QRCodeContext = React.createContext<QRCodeContextValue | null>(null)
 
 function useQRCodeContext(consumerName: string) {
-  const context = React.useContext(QRCodeContext)
+  const context = React.use(QRCodeContext)
   if (!context) {
     throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
   }
@@ -283,8 +283,8 @@ function QRCodeRoot(props: QRCodeRootProps) {
   const RootPrimitive = asChild ? SlotPrimitive.Slot : 'div'
 
   return (
-    <StoreContext.Provider value={store}>
-      <QRCodeContext.Provider value={contextValue}>
+    <StoreContext value={store}>
+      <QRCodeContext value={contextValue}>
         <RootPrimitive
           data-slot='qr-code'
           {...rootProps}
@@ -296,8 +296,8 @@ function QRCodeRoot(props: QRCodeRootProps) {
             } as React.CSSProperties
           }
         />
-      </QRCodeContext.Provider>
-    </StoreContext.Provider>
+      </QRCodeContext>
+    </StoreContext>
   )
 }
 

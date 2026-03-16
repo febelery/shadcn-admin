@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, use, useEffect, useState, Suspense } from 'react'
 import { CommandMenu } from '@/components/command-menu'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 type SearchContextType = {
   open: boolean
@@ -27,16 +28,19 @@ export function SearchProvider({ children }: SearchProviderProps) {
   }, [])
 
   return (
-    <SearchContext.Provider value={{ open, setOpen }}>
+    <SearchContext value={{ open, setOpen }}>
       {children}
-      <CommandMenu />
-    </SearchContext.Provider>
+      <ErrorBoundary>
+        <Suspense fallback={null}>
+          <CommandMenu />
+        </Suspense>
+      </ErrorBoundary>
+    </SearchContext>
   )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useSearch = () => {
-  const searchContext = useContext(SearchContext)
+  const searchContext = use(SearchContext)
 
   if (!searchContext) {
     throw new Error('useSearch has to be used within SearchProvider')

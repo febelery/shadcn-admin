@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { ROUTES } from '@/constants'
 import {
   BadgeCheck,
   Bell,
@@ -100,19 +101,19 @@ export function NavUser() {
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
-                  <Link to='/settings/account'>
+                  <Link to={ROUTES.ACCOUNT}>
                     <BadgeCheck />
                     账户
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to='/settings'>
+                  <Link to={ROUTES.SETTINGS}>
                     <CreditCard />
                     账单
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to='/settings/notifications'>
+                  <Link to={ROUTES.NOTIFICATIONS}>
                     <Bell />
                     通知
                   </Link>

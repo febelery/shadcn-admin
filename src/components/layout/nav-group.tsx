@@ -348,7 +348,6 @@ function RecursiveDropdownMenuItem({
 }
 
 // 检查父级是否有激活的子项（排除自身）
-// eslint-disable-next-line react-refresh/only-export-components
 export function hasActiveChild(href: string, item: NavItem): boolean {
   if (!item.items) return false
   // 检查是否有子项激活，但排除自身激活
@@ -359,7 +358,6 @@ export function hasActiveChild(href: string, item: NavItem): boolean {
 }
 
 // 导出 checkIsActive 供其他组件使用
-// eslint-disable-next-line react-refresh/only-export-components
 export function checkIsActive(
   href: string,
   item: NavItem,

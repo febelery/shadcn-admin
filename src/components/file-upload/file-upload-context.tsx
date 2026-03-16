@@ -12,9 +12,8 @@ const FileUploadContext = React.createContext<
   FileUploadContextValue | undefined
 >(undefined)
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function useFileUploadContext() {
-  const context = React.useContext(FileUploadContext)
+  const context = React.use(FileUploadContext)
   if (!context) {
     throw new Error('useFileUploadContext must be used within FileUpload')
   }
@@ -29,8 +28,8 @@ export function FileUploadProvider({
   value: FileUploadContextValue
 }) {
   return (
-    <FileUploadContext.Provider value={value}>
+    <FileUploadContext value={value}>
       {children}
-    </FileUploadContext.Provider>
+    </FileUploadContext>
   )
 }

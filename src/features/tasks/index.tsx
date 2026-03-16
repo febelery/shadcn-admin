@@ -1,5 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
+import { Suspense } from 'react'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { useTableState } from '@/hooks/use-table-state'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { type FilterConfig } from '@/components/filter-menu'
 import { PageLayout } from '@/components/layout/page-layout'
 import { getTasks } from './api'
@@ -9,7 +12,7 @@ import { TasksProvider } from './components/tasks-provider'
 import { TasksTable } from './components/tasks-table'
 import { priorities, statuses } from './data/data'
 
-export function Tasks() {
+function TasksInner() {
   // 定义筛选器配置
   const filterConfigs: FilterConfig[] = [
     {
@@ -30,7 +33,7 @@ export function Tasks() {
     filters: filterConfigs,
   })
 
-  const { data, isFetching } = useQuery({
+  const { data, isFetching } = useSuspenseQuery({
     queryKey: ['tasks', tableState.getQueryParams()],
     queryFn: () => getTasks(tableState.getQueryParams()),
   })
@@ -53,5 +56,26 @@ export function Tasks() {
 
       <TasksDialogs />
     </TasksProvider>
+  )
+}
+
+export function Tasks() {
+  return (
+    <ErrorBoundary>
+      <Suspense
+        fallback={
+          <div className='space-y-4 p-6'>
+            <Skeleton className='h-8 w-48' />
+            <div className='space-y-3 rounded-md border p-4'>
+              {Array.from({ length: 10 }).map((_, i) => (
+                <Skeleton key={i} className='h-10 w-full' />
+              ))}
+            </div>
+          </div>
+        }
+      >
+        <TasksInner />
+      </Suspense>
+    </ErrorBoundary>
   )
 }

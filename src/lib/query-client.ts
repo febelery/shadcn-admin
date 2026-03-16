@@ -5,6 +5,7 @@ import {
   QueryClient,
 } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { ROUTES } from '@/constants'
 import { useAuthStore } from '@/stores/auth-store'
 import { handleServerError } from '@/lib/handle-server-error'
 
@@ -50,18 +51,18 @@ const handleQueryError = (error: unknown) => {
       toast.error('会话已过期！')
       useAuthStore.getState().auth.reset()
       routerInstance.navigate({
-        to: '/sign-in',
+        to: ROUTES.SIGN_IN,
         search: { redirect: routerInstance.history.location.href },
       })
       break
 
     case 403:
-      routerInstance.navigate({ to: '/forbidden' })
+      routerInstance.navigate({ to: ROUTES.FORBIDDEN })
       break
 
     case 500:
       toast.error('服务器内部错误！')
-      routerInstance.navigate({ to: '/500' })
+      routerInstance.navigate({ to: ROUTES.SERVER_ERROR })
       break
   }
 }

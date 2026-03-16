@@ -81,7 +81,7 @@ type Direction = 'ltr' | 'rtl'
 const DirectionContext = React.createContext<Direction | undefined>(undefined)
 
 function useDirection(dirProp?: Direction): Direction {
-  const contextDir = React.useContext(DirectionContext)
+  const contextDir = React.use(DirectionContext)
   return dirProp ?? contextDir ?? 'ltr'
 }
 
@@ -141,7 +141,7 @@ function createStore(
 const StoreContext = React.createContext<Store | null>(null)
 
 function useStoreContext(consumerName: string) {
-  const context = React.useContext(StoreContext)
+  const context = React.use(StoreContext)
   if (!context) {
     throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
   }
@@ -183,7 +183,7 @@ const MediaPlayerContext = React.createContext<MediaPlayerContextValue | null>(
 )
 
 function useMediaPlayerContext(consumerName: string) {
-  const context = React.useContext(MediaPlayerContext)
+  const context = React.use(MediaPlayerContext)
   if (!context) {
     throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
   }
@@ -229,9 +229,9 @@ function MediaPlayerRoot(props: MediaPlayerRootProps) {
 
   return (
     <MediaProvider>
-      <StoreContext.Provider value={store}>
+      <StoreContext value={store}>
         <MediaPlayerRootImpl {...props} />
-      </StoreContext.Provider>
+      </StoreContext>
     </MediaProvider>
   )
 }
@@ -758,7 +758,7 @@ function MediaPlayerRootImpl(props: MediaPlayerRootProps) {
   const RootPrimitive = asChild ? SlotPrimitive.Slot : 'div'
 
   return (
-    <MediaPlayerContext.Provider value={contextValue}>
+    <MediaPlayerContext value={contextValue}>
       <RootPrimitive
         aria-labelledby={labelId}
         aria-describedby={descriptionId}
@@ -794,7 +794,7 @@ function MediaPlayerRootImpl(props: MediaPlayerRootProps) {
         {children}
         <MediaPlayerVolumeIndicator />
       </RootPrimitive>
-    </MediaPlayerContext.Provider>
+    </MediaPlayerContext>
   )
 }
 

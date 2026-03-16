@@ -81,7 +81,7 @@ const SortableRootContext =
   React.createContext<SortableRootContextValue<unknown> | null>(null)
 
 function useSortableContext(consumerName: string) {
-  const context = React.useContext(SortableRootContext)
+  const context = React.use(SortableRootContext)
   if (!context) {
     throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
   }
@@ -284,7 +284,7 @@ function SortableRoot<T>(props: SortableRootProps<T>) {
   )
 
   return (
-    <SortableRootContext.Provider
+    <SortableRootContext
       value={contextValue as SortableRootContextValue<unknown>}
     >
       <DndContext
@@ -302,7 +302,7 @@ function SortableRoot<T>(props: SortableRootProps<T>) {
           ...accessibility,
         }}
       />
-    </SortableRootContext.Provider>
+    </SortableRootContext>
   )
 }
 
@@ -330,7 +330,7 @@ function SortableContent(props: SortableContentProps) {
   const ContentPrimitive = asChild ? SlotPrimitive.Slot : 'div'
 
   return (
-    <SortableContentContext.Provider value={true}>
+    <SortableContentContext value={true}>
       <SortableContext
         items={context.items}
         strategy={strategyProp ?? context.strategy}
@@ -347,7 +347,7 @@ function SortableContent(props: SortableContentProps) {
           </ContentPrimitive>
         )}
       </SortableContext>
-    </SortableContentContext.Provider>
+    </SortableContentContext>
   )
 }
 
@@ -364,7 +364,7 @@ const SortableItemContext =
   React.createContext<SortableItemContextValue | null>(null)
 
 function useSortableItemContext(consumerName: string) {
-  const context = React.useContext(SortableItemContext)
+  const context = React.use(SortableItemContext)
   if (!context) {
     throw new Error(`\`${consumerName}\` must be used within \`${ITEM_NAME}\``)
   }
@@ -390,8 +390,8 @@ function SortableItem(props: SortableItemProps) {
     ...itemProps
   } = props
 
-  const inSortableContent = React.useContext(SortableContentContext)
-  const inSortableOverlay = React.useContext(SortableOverlayContext)
+  const inSortableContent = React.use(SortableContentContext)
+  const inSortableOverlay = React.use(SortableOverlayContext)
 
   if (!inSortableContent && !inSortableOverlay) {
     throw new Error(
@@ -444,7 +444,7 @@ function SortableItem(props: SortableItemProps) {
   const ItemPrimitive = asChild ? SlotPrimitive.Slot : 'div'
 
   return (
-    <SortableItemContext.Provider value={itemContext}>
+    <SortableItemContext value={itemContext}>
       <ItemPrimitive
         id={id}
         data-disabled={disabled}
@@ -468,7 +468,7 @@ function SortableItem(props: SortableItemProps) {
           className
         )}
       />
-    </SortableItemContext.Provider>
+    </SortableItemContext>
   )
 }
 
@@ -556,13 +556,13 @@ function SortableOverlay(props: SortableOverlayProps) {
       className={cn(!context.flatCursor && 'cursor-grabbing')}
       {...overlayProps}
     >
-      <SortableOverlayContext.Provider value={true}>
+      <SortableOverlayContext value={true}>
         {context.activeId
           ? typeof children === 'function'
             ? children({ value: context.activeId })
             : children
           : null}
-      </SortableOverlayContext.Provider>
+      </SortableOverlayContext>
     </DragOverlay>,
     container
   )

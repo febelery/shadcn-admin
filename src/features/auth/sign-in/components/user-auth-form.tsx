@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useTransition } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -33,7 +33,6 @@ export function UserAuthForm({
   redirectTo,
   ...props
 }: UserAuthFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const { auth } = useAuthStore()
 
@@ -45,27 +44,27 @@ export function UserAuthForm({
     },
   })
 
+  const [isPending, startTransition] = useTransition()
+
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    setIsLoading(true)
+    startTransition(async () => {
+      try {
+        await auth.login(data)
 
-    try {
-      await auth.login(data)
+        toast.success(`欢迎回来, ${data.name}!`)
 
-      toast.success(`欢迎回来, ${data.name}!`)
-
-      // Redirect to the stored location or default to dashboard
-      const targetPath = redirectTo || '/'
-      navigate({ to: targetPath, replace: true })
-    } catch (error: any) {
-      if (error && error.message) {
-        toast.error(error.message)
-      } else {
-        toast.error('登录失败，请重试。')
+        // Redirect to the stored location or default to dashboard
+        const targetPath = redirectTo || '/'
+        navigate({ to: targetPath, replace: true })
+      } catch (error: any) {
+        if (error && error.message) {
+          toast.error(error.message)
+        } else {
+          toast.error('登录失败，请重试。')
+        }
+        console.error(error)
       }
-      console.error(error)
-    } finally {
-      setIsLoading(false)
-    }
+    })
   }
 
   return (
@@ -107,8 +106,8 @@ export function UserAuthForm({
             </FormItem>
           )}
         />
-        <RainbowButton className='mt-2' disabled={isLoading}>
-          {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
+        <RainbowButton className='mt-2' disabled={isPending}>
+          {isPending ? <Loader2 className='animate-spin' /> : <LogIn />}
           登录
         </RainbowButton>
       </form>

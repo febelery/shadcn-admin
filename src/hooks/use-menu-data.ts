@@ -1,9 +1,9 @@
 import axios from 'axios'
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { type MenuData } from '@/types/navigation'
 
 export function useMenuData() {
-  const { data, isLoading } = useQuery({
+  const { data } = useSuspenseQuery({
     queryKey: ['menu-data'],
     queryFn: async () => {
       const response = await axios.get<MenuData>('/api/menu')
@@ -12,5 +12,5 @@ export function useMenuData() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   })
 
-  return { menuData: data || { navGroups: [] }, isLoading }
+  return { menuData: data || { navGroups: [] } }
 }

@@ -1,6 +1,14 @@
 import * as React from 'react'
 import type { ColumnSort, SortDirection, Table } from '@tanstack/react-table'
-import { ArrowDownUp, ChevronsUpDown, GripVertical, Trash2 } from 'lucide-react'
+import {
+  ArrowDownUp,
+  Check,
+  ChevronsUpDown,
+  GripVertical,
+  Plus,
+  RotateCcw,
+  Trash2,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -31,6 +39,11 @@ import {
   SortableItemHandle,
   SortableOverlay,
 } from '@/components/ui/sortable'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 const SORT_SHORTCUT_KEY = 's'
 const REMOVE_SORT_SHORTCUTS = ['backspace', 'delete']
@@ -56,12 +69,25 @@ export function DataGridSortMenu<TData>({
   const [open, setOpen] = React.useState(false)
   const addButtonRef = React.useRef<HTMLButtonElement>(null)
 
-  const sorting = table.getState().sorting
-  const onSortingChange = table.setSorting
+  // 当前已应用的排序
+  const appliedSorting = table.getState().sorting
+
+  // 待应用的排序（在弹窗中编辑的临时状态）
+  const [pendingSorting, setPendingSorting] =
+    React.useState<ColumnSort[]>(appliedSorting)
+
+  // 当弹窗打开时，同步已应用的排序到待应用状态
+  React.useEffect(() => {
+    if (open) {
+      setPendingSorting(appliedSorting)
+    }
+  }, [open, appliedSorting])
+
+  const editingSorting = pendingSorting
 
   const { columnLabels, columns } = React.useMemo(() => {
     const labels = new Map<string, string>()
-    const sortingIds = new Set(sorting.map((s) => s.id))
+    const sortingIds = new Set(editingSorting.map((s) => s.id))
     const availableColumns: { id: string; label: string }[] = []
 
     for (const column of table.getAllColumns()) {
@@ -79,43 +105,44 @@ export function DataGridSortMenu<TData>({
       columnLabels: labels,
       columns: availableColumns,
     }
-  }, [sorting, table])
+  }, [editingSorting, table])
 
   const onSortAdd = React.useCallback(() => {
     const firstColumn = columns[0]
     if (!firstColumn) return
 
-    onSortingChange((prevSorting) => [
-      ...prevSorting,
+    setPendingSorting((prev) => [
+      ...prev,
       { id: firstColumn.id, desc: false },
     ])
-  }, [columns, onSortingChange])
+  }, [columns])
 
   const onSortUpdate = React.useCallback(
     (sortId: string, updates: Partial<ColumnSort>) => {
-      onSortingChange((prevSorting) => {
-        if (!prevSorting) return prevSorting
-        return prevSorting.map((sort) =>
+      setPendingSorting((prev) =>
+        prev.map((sort) =>
           sort.id === sortId ? { ...sort, ...updates } : sort
         )
-      })
-    },
-    [onSortingChange]
-  )
-
-  const onSortRemove = React.useCallback(
-    (sortId: string) => {
-      onSortingChange((prevSorting) =>
-        prevSorting.filter((item) => item.id !== sortId)
       )
     },
-    [onSortingChange]
+    []
   )
 
-  const onSortingReset = React.useCallback(
-    () => onSortingChange(table.initialState.sorting),
-    [onSortingChange, table.initialState.sorting]
-  )
+  const onSortRemove = React.useCallback((sortId: string) => {
+    setPendingSorting((prev) => prev.filter((item) => item.id !== sortId))
+  }, [])
+
+  // 应用排序
+  const applySorting = React.useCallback(() => {
+    table.setSorting(pendingSorting)
+    setOpen(false)
+  }, [table, pendingSorting])
+
+  // 重置（立即应用空排序）
+  const onSortingReset = React.useCallback(() => {
+    setPendingSorting([])
+    table.setSorting(table.initialState.sorting)
+  }, [table])
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -146,19 +173,19 @@ export function DataGridSortMenu<TData>({
     (event: React.KeyboardEvent<HTMLButtonElement>) => {
       if (
         REMOVE_SORT_SHORTCUTS.includes(event.key.toLowerCase()) &&
-        sorting.length > 0
+        appliedSorting.length > 0
       ) {
         event.preventDefault()
         onSortingReset()
       }
     },
-    [sorting.length, onSortingReset]
+    [appliedSorting.length, onSortingReset]
   )
 
   return (
     <Sortable
-      value={sorting}
-      onValueChange={onSortingChange}
+      value={editingSorting}
+      onValueChange={(newSorting) => setPendingSorting(newSorting)}
       getItemValue={(item) => item.id}
     >
       <Popover open={open} onOpenChange={setOpen}>
@@ -171,12 +198,12 @@ export function DataGridSortMenu<TData>({
           >
             <ArrowDownUp className='text-muted-foreground' />
             排序
-            {sorting.length > 0 && (
+            {appliedSorting.length > 0 && (
               <Badge
                 variant='secondary'
                 className='h-[18.24px] rounded-[3.2px] px-[5.12px] font-mono text-[10.4px] font-normal'
               >
-                {sorting.length}
+                {appliedSorting.length}
               </Badge>
             )}
           </Button>
@@ -185,28 +212,67 @@ export function DataGridSortMenu<TData>({
           aria-labelledby={labelId}
           aria-describedby={descriptionId}
           className='flex w-full max-w-(--radix-popover-content-available-width) flex-col gap-3.5 p-4 sm:min-w-[380px]'
+          side={props.side ?? 'bottom'}
+          align={props.align ?? 'end'}
+          onOpenAutoFocus={(e) => e.preventDefault()}
           {...props}
         >
-          <div className='flex flex-col gap-1'>
-            <h4 id={labelId} className='leading-none font-medium'>
-              {sorting.length > 0 ? '排序方式' : '未应用排序'}
-            </h4>
-            <p
-              id={descriptionId}
-              className={cn(
-                'text-muted-foreground text-sm',
-                sorting.length > 0 && 'sr-only'
+          <div className='flex items-center justify-between gap-2'>
+            <div className='flex flex-col gap-1'>
+              <h4 id={labelId} className='leading-none font-medium'>
+                {editingSorting.length > 0 ? '排序方式' : '未应用排序'}
+              </h4>
+              <p
+                id={descriptionId}
+                className={cn(
+                  'text-muted-foreground text-sm',
+                  editingSorting.length > 0 && 'sr-only'
+                )}
+              >
+                {editingSorting.length > 0
+                  ? '修改排序以组织您的行。'
+                  : '添加排序以组织您的行。'}
+              </p>
+            </div>
+            <div className='flex items-center gap-1'>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size='sm'
+                    variant='ghost'
+                    className='h-8 w-8 p-0'
+                    ref={addButtonRef}
+                    onClick={onSortAdd}
+                    disabled={columns.length === 0}
+                  >
+                    <Plus className='h-4 w-4' />
+                    <span className='sr-only'>添加</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side='top'>添加</TooltipContent>
+              </Tooltip>
+              {editingSorting.length > 0 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size='sm'
+                      variant='ghost'
+                      className='h-8 w-8 p-0'
+                      onClick={onSortingReset}
+                    >
+                      <RotateCcw className='h-4 w-4' />
+                      <span className='sr-only'>重置</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side='top'>重置</TooltipContent>
+                </Tooltip>
               )}
-            >
-              {sorting.length > 0
-                ? '修改排序以组织您的行。'
-                : '添加排序以组织您的行。'}
-            </p>
+            </div>
           </div>
-          {sorting.length > 0 && (
+          {editingSorting.length > 0 && (
             <SortableContent asChild>
               <ul className='flex max-h-[300px] flex-col gap-2 overflow-y-auto p-1'>
-                {sorting.map((sort) => (
+                {editingSorting.map((sort) => (
                   <DataTableSortItem
                     key={sort.id}
                     sort={sort}
@@ -220,27 +286,14 @@ export function DataGridSortMenu<TData>({
               </ul>
             </SortableContent>
           )}
-          <div className='flex w-full items-center gap-2'>
-            <Button
-              size='sm'
-              className='rounded'
-              ref={addButtonRef}
-              onClick={onSortAdd}
-              disabled={columns.length === 0}
-            >
-              添加排序
-            </Button>
-            {sorting.length > 0 && (
-              <Button
-                variant='outline'
-                size='sm'
-                className='rounded'
-                onClick={onSortingReset}
-              >
-                重置排序
+          {editingSorting.length > 0 && (
+            <div className='flex w-full items-center justify-end gap-2 border-t pt-3'>
+              <Button size='sm' onClick={applySorting} className='rounded'>
+                <Check className='mr-2 h-4 w-4' />
+                应用
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </PopoverContent>
       </Popover>
       <SortableOverlay>

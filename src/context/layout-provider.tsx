@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, use, useState } from 'react'
 import { getCookie, setCookie } from '@/lib/cookies'
 
 export type Collapsible = 'offcanvas' | 'icon' | 'none'
@@ -74,10 +74,8 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
   return <LayoutContext value={contextValue}>{children}</LayoutContext>
 }
 
-// Define the hook for the provider
-// eslint-disable-next-line react-refresh/only-export-components
 export function useLayout() {
-  const context = useContext(LayoutContext)
+  const context = use(LayoutContext)
   if (!context) {
     throw new Error('useLayout must be used within a LayoutProvider')
   }

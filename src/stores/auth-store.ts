@@ -1,94 +1,82 @@
 import axios from 'axios'
+import { AUTH_COOKIE_KEY } from '@/constants'
 import { create } from 'zustand'
-import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
+import { getCookie, removeCookie, setCookie } from '@/lib/cookies'
 
-const ACCESS_TOKEN = 'access_token'
-
-interface AuthUser {
+export interface AuthUser {
   name: string
   email: string
   avatar: string
   role: string[]
 }
 
-interface AuthState {
-  auth: {
-    user: AuthUser | null
-    setUser: (user: AuthUser | null) => void
-    accessToken: string
-    setAccessToken: (accessToken: string) => void
-    resetAccessToken: () => void
-    reset: () => void
-    login: (data: { name: string; password: string }) => Promise<void>
-    logout: () => Promise<void>
-    fetchUser: () => Promise<void>
-  }
+interface AuthActions {
+  user: AuthUser | null
+  login: (credentials: LoginCredentials) => Promise<void>
+  logout: () => Promise<void>
+  fetchUser: () => Promise<void>
+  reset: () => void
 }
 
-export const useAuthStore = create<AuthState>()((set, get) => {
-  const cookieState = getCookie(ACCESS_TOKEN)
-  const initToken = cookieState ? cookieState : ''
-  return {
-    auth: {
-      user: null,
-      setUser: (user) =>
-        set((state) => ({ ...state, auth: { ...state.auth, user } })),
-      accessToken: initToken,
-      setAccessToken: (accessToken) =>
-        set((state) => {
-          setCookie(ACCESS_TOKEN, accessToken)
-          return { ...state, auth: { ...state.auth, accessToken } }
-        }),
-      resetAccessToken: () =>
-        set((state) => {
-          removeCookie(ACCESS_TOKEN)
-          return { ...state, auth: { ...state.auth, accessToken: '' } }
-        }),
-      reset: () =>
-        set((state) => {
-          removeCookie(ACCESS_TOKEN)
-          return {
-            ...state,
-            auth: { ...state.auth, user: null, accessToken: '' },
-          }
-        }),
-      login: async (data) => {
-        try {
-          const response = await axios.post('/api/login', data)
-          const { user, accessToken } = response.data
-          set((state) => {
-            setCookie(ACCESS_TOKEN, accessToken)
-            return {
-              ...state,
-              auth: { ...state.auth, user, accessToken },
-            }
-          })
-        } catch (error) {
-          if (axios.isAxiosError(error) && error.response) {
-            throw error.response.data
-          }
-          throw error
-        }
-      },
-      logout: async () => {
-        await axios.post('/api/logout')
-        get().auth.reset()
-      },
-      fetchUser: async () => {
-        try {
-          const response = await axios.get('/api/me')
-          const user = response.data
-          set((state) => ({
-            ...state,
-            auth: { ...state.auth, user },
-          }))
-        } catch (error) {
-          // 如果获取用户信息失败，清除 token
-          if (axios.isAxiosError(error) && error.response?.status === 401) {
-            get().auth.reset()
-          }
-        }
-      },
+interface LoginCredentials {
+  name: string
+  password: string
+}
+
+interface AuthState {
+  auth: AuthActions
+}
+
+function getToken(): string | undefined {
+  return getCookie(AUTH_COOKIE_KEY) || undefined
+}
+
+function saveToken(token: string) {
+  setCookie(AUTH_COOKIE_KEY, token)
+}
+
+function clearToken() {
+  removeCookie(AUTH_COOKIE_KEY)
+}
+
+export const useAuthStore = create<AuthState>()((set, get) => ({
+  auth: {
+    user: null,
+
+    login: async (credentials) => {
+      const { data } = await axios.post<{
+        user: AuthUser
+        accessToken: string
+      }>('/api/login', credentials)
+      saveToken(data.accessToken)
+      set((state) => ({ auth: { ...state.auth, user: data.user } }))
     },
-  }
-})
+
+    logout: async () => {
+      try {
+        await axios.post('/api/logout')
+      } finally {
+        get().auth.reset()
+      }
+    },
+
+    fetchUser: async () => {
+      if (!getToken()) throw new Error('No access token')
+
+      try {
+        const { data } = await axios.get<AuthUser>('/api/me')
+        set((state) => ({ auth: { ...state.auth, user: data } }))
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          get().auth.reset()
+        }
+        throw error
+      }
+    },
+
+    reset: () => {
+      clearToken()
+      set((state) => ({ auth: { ...state.auth, user: null } }))
+    },
+  },
+}))

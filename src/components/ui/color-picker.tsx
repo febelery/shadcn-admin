@@ -386,7 +386,7 @@ type Direction = 'ltr' | 'rtl'
 const DirectionContext = React.createContext<Direction | undefined>(undefined)
 
 function useDirection(dirProp?: Direction): Direction {
-  const contextDir = React.useContext(DirectionContext)
+  const contextDir = React.use(DirectionContext)
   return dirProp ?? contextDir ?? 'ltr'
 }
 
@@ -509,7 +509,7 @@ function createColorPickerStore(
 }
 
 function useColorPickerStoreContext(consumerName: string) {
-  const context = React.useContext(ColorPickerStoreContext)
+  const context = React.use(ColorPickerStoreContext)
   if (!context) {
     throw new Error(
       `\`${consumerName}\` must be used within \`ColorPickerRoot\``
@@ -547,7 +547,7 @@ const ColorPickerContext = React.createContext<ColorPickerContextValue | null>(
 )
 
 function useColorPickerContext(consumerName: string) {
-  const context = React.useContext(ColorPickerContext)
+  const context = React.use(ColorPickerContext)
   if (!context) {
     throw new Error(
       `\`${consumerName}\` must be used within \`ColorPickerRoot\``
@@ -634,7 +634,7 @@ function ColorPickerRoot(props: ColorPickerRootProps) {
   )
 
   return (
-    <ColorPickerStoreContext.Provider value={store}>
+    <ColorPickerStoreContext value={store}>
       <ColorPickerRootImpl
         {...rootProps}
         value={valueProp}
@@ -647,7 +647,7 @@ function ColorPickerRoot(props: ColorPickerRootProps) {
         readOnly={readOnly}
         required={required}
       />
-    </ColorPickerStoreContext.Provider>
+    </ColorPickerStoreContext>
   )
 }
 
@@ -732,7 +732,7 @@ function ColorPickerRootImpl(props: ColorPickerRootImplProps) {
 
   if (inline) {
     return (
-      <ColorPickerContext.Provider value={contextValue}>
+      <ColorPickerContext value={contextValue}>
         <RootPrimitive {...rootProps} ref={composedRef} />
         {isFormControl && (
           <VisuallyHiddenInput
@@ -745,12 +745,12 @@ function ColorPickerRootImpl(props: ColorPickerRootImplProps) {
             required={required}
           />
         )}
-      </ColorPickerContext.Provider>
+      </ColorPickerContext>
     )
   }
 
   return (
-    <ColorPickerContext.Provider value={contextValue}>
+    <ColorPickerContext value={contextValue}>
       <Popover
         defaultOpen={defaultOpen}
         open={open}
@@ -770,7 +770,7 @@ function ColorPickerRootImpl(props: ColorPickerRootImplProps) {
           />
         )}
       </Popover>
-    </ColorPickerContext.Provider>
+    </ColorPickerContext>
   )
 }
 

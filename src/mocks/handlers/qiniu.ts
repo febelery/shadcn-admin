@@ -29,7 +29,6 @@ export const qiniuHandlers = [
       return HttpResponse.json({
         uptoken: mockToken,
       })
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // 解析错误，返回 400
       return new HttpResponse(JSON.stringify({ error: 'invalid request' }), {
