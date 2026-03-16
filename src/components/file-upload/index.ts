@@ -1,18 +1,31 @@
 /**
- * 文件上传组件导出
+ * 文件上传组件
  */
 
+// 组件
 export { FileUpload } from './file-upload'
-export { FileUploadDropzone } from './file-upload-dropzone'
-export { FileUploadItem } from './file-upload-item'
-export { useFileUploadContext } from './file-upload-context'
+export { FileUploadDropzone } from './dropzone'
+export { FileUploadItem } from './item'
+export { FileThumbnail } from './thumbnail'
+export { FilePreviewDialog } from './preview'
+
+// Context
+export { useFileUploadContext } from './context'
+
+// Hook（供需要自定义渲染树的场景使用）
 export { useFileUpload } from './use-file-upload'
 
+// Qiniu
+export { useQiniuUpload } from './use-qiniu-upload'
+
+// Types
 export type {
+  FileItem,
+  FileStatus,
+  FileView,
+  CardSize,
+  FileValidation,
+  QiniuConfig,
+  UploadFn,
   FileUploadProps,
-  FileUploadView,
-  FileUploadStatus,
-  FileUploadItem as FileUploadItemType,
-  FileUploadValidationRule,
-  QiniuUploadConfig,
-} from '@/types/file-upload'
+} from './types'

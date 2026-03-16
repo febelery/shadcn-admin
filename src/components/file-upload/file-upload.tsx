@@ -1,14 +1,14 @@
 /**
- * 文件上传主组件
+ * 文件上传根组件
  */
 import * as React from 'react'
-import type { FileUploadProps, UploadFunction } from '@/types/file-upload'
 import { cn } from '@/lib/utils'
-import { useQiniuUpload } from '@/hooks/use-qiniu-upload'
-import { FilePreview } from '@/components/ui/file-preview'
-import { FileUploadProvider } from './file-upload-context'
-import { FileUploadDropzone } from './file-upload-dropzone'
+import { FileUploadProvider } from './context'
+import { FileUploadDropzone } from './dropzone'
+import { FilePreviewDialog } from './preview'
+import type { FileUploadProps, UploadFn } from './types'
 import { useFileUpload } from './use-file-upload'
+import { useQiniuUpload } from './use-qiniu-upload'
 
 export function FileUpload({
   value,
@@ -29,27 +29,23 @@ export function FileUpload({
   children,
   ...props
 }: FileUploadProps & Omit<React.ComponentProps<'div'>, 'onChange'>) {
-  // 根据配置创建上传函数（依赖注入）
-  const qiniuUpload = useQiniuUpload()
-  const uploadFn = React.useMemo<UploadFunction | undefined>(() => {
+  const qiniu = useQiniuUpload()
+
+  // 将 QiniuConfig 或 UploadFn 统一转换为 UploadFn
+  const uploadFn = React.useMemo<UploadFn | undefined>(() => {
     if (!uploadProp) return undefined
+    if (typeof uploadProp === 'function') return uploadProp
+    // QiniuConfig 分支
+    const config = uploadProp
+    return (file, options) => qiniu.uploadFile(file, config, options)
+  }, [uploadProp, qiniu])
 
-    // 如果是函数，直接使用
-    if (typeof uploadProp === 'function') {
-      return uploadProp
-    }
-
-    // 如果是七牛配置，转换为上传函数
-    return (file: File, options: { onProgress?: (progress: number) => void }) =>
-      qiniuUpload.uploadFile(file, uploadProp, options)
-  }, [uploadProp, qiniuUpload])
-
-  const upload = useFileUpload({
+  const state = useFileUpload({
     value,
     defaultValue,
     onChange,
     validation,
-    upload: uploadFn as UploadFunction | undefined,
+    upload: uploadFn,
     disabled,
     onFileAccept,
     onFileReject,
@@ -60,19 +56,21 @@ export function FileUpload({
   })
 
   return (
-    <FileUploadProvider value={{ ...upload, view, cardSize, validation }}>
+    <FileUploadProvider value={{ ...state, view, cardSize, validation }}>
       <div className={cn('w-full', className)} {...props}>
-        {children || <FileUploadDropzone />}
+        {children ?? <FileUploadDropzone />}
       </div>
-      <FilePreview
-        open={upload.isPreviewOpen}
-        onOpenChange={upload.closePreview}
-        file={upload.previewItem?.file}
-        url={upload.previewItem?.url}
-        onPrev={upload.prevPreview}
-        onNext={upload.nextPreview}
-        hasPrev={upload.hasPrev}
-        hasNext={upload.hasNext}
+
+      <FilePreviewDialog
+        open={state.isPreviewOpen}
+        onOpenChange={(open) => {
+          if (!open) state.closePreview()
+        }}
+        item={state.previewItem}
+        hasPrev={state.hasPrev}
+        hasNext={state.hasNext}
+        onPrev={state.goPrev}
+        onNext={state.goNext}
       />
     </FileUploadProvider>
   )

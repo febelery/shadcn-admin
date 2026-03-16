@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { useQiniuUpload } from '@/hooks/use-qiniu-upload'
+import { getQiniuUptoken } from '@/api/qiniu'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -25,22 +25,21 @@ import {
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { createDefaultQiniuConfig } from '@/components/file-upload/use-file-upload'
+import { useQiniuUpload } from '@/components/file-upload'
 
 // 表单 Schema
 const formSchema = z.object({
   content: z
     .string()
     .min(1, '内容不能为空')
-    .refine((val) => {
-      const text = val.replace(/<[^>]*>/g, '').trim()
-      return text.length >= 10
-    }, '内容至少需要 10 个字符（不包含 HTML 标签）'),
+    .refine(
+      (val) => val.replace(/<[^>]*>/g, '').trim().length >= 10,
+      '内容至少需要 10 个字符（不包含 HTML 标签）'
+    ),
 })
 
 type FormValues = z.infer<typeof formSchema>
 
-// 独立的表单示例组件
 function EditorFormExample({
   disabled,
   handleUpload,
@@ -52,9 +51,7 @@ function EditorFormExample({
 }) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      content: '',
-    },
+    defaultValues: { content: '' },
   })
 
   function onSubmit(data: FormValues) {
@@ -130,19 +127,16 @@ export default function EditorDemo() {
   const [disabled, setDisabled] = React.useState(false)
   const [variant, setVariant] = React.useState<EditorVariant>('standard')
 
-  // 集成七牛上传
   const { uploadFile } = useQiniuUpload()
 
   const handleUpload = React.useCallback(
     async (file: File) => {
-      const config = createDefaultQiniuConfig()
-      try {
-        const url = await uploadFile(file, config)
-        return { src: url }
-      } catch (error) {
-        console.error('Upload error:', error)
-        throw error
-      }
+      // QiniuConfig 直接内联构造，不再需要 createDefaultQiniuConfig
+      const url = await uploadFile(file, {
+        getToken: getQiniuUptoken,
+        region: 'z2',
+      })
+      return { src: url }
     },
     [uploadFile]
   )
