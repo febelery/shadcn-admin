@@ -23,6 +23,16 @@ export interface FileItem {
   isNewUpload?: boolean
 }
 
+/**
+ * 裁剪图像来源
+ *
+ * - `file`：来自用户本地选择 / 拖拽的新文件
+ * - `url`：来自服务端回显 / CDN 已有图片，需跨域裁剪
+ */
+export type CropSource =
+  | { type: 'file'; file: File }
+  | { type: 'url'; url: string; name: string; mimeType: string }
+
 export interface FileValidation {
   /** 允许的文件类型，支持 MIME type 或扩展名，如 'image/*' 或 ['.jpg','.png'] */
   accept?: string | string[]
@@ -59,6 +69,10 @@ export interface FileUploadProps {
   cardSize?: CardSize
   /** 上传函数或七牛云配置 */
   upload?: UploadFn | QiniuConfig
+  /** 是否开启图片裁剪（必须是 image/* 类型） */
+  crop?: boolean
+  /** 裁剪比例，不传则初始为自由比例 */
+  aspect?: number
   disabled?: boolean
   className?: string
   onFileAccept?: (file: File) => void

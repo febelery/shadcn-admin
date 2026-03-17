@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getQiniuUptoken } from '@/api/qiniu'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -76,6 +77,8 @@ export function FileUploadDemo() {
   const [maxFiles, setMaxFiles] = React.useState('3')
   const [enableCustomValidation, setEnableCustomValidation] =
     React.useState(false)
+  const [enableCrop, setEnableCrop] = React.useState(false)
+  const [aspect, setAspect] = React.useState<string>('free')
 
   const validation = React.useMemo<FileValidation>(() => {
     const rule: FileValidation = {}
@@ -214,6 +217,58 @@ export function FileUploadDemo() {
 
             <Separator />
 
+            <div className='pt-2'>
+              <div className='mb-2 flex items-center justify-between'>
+                <Label className='text-primary font-bold'>图片裁剪</Label>
+              </div>
+              <Select
+                value={enableCrop ? 'true' : 'false'}
+                onValueChange={(v) => {
+                  const isEnabled = v === 'true'
+                  setEnableCrop(isEnabled)
+                }}
+              >
+                <SelectTrigger
+                  className={cn(
+                    'h-10 transition-all',
+                    enableCrop && 'border-primary/50 ring-primary/10 ring-2'
+                  )}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='false'>关闭</SelectItem>
+                  <SelectItem value='true'>开启</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {enableCrop && (
+              <div className='animate-in slide-in-from-top-2 space-y-2 duration-300'>
+                <Label className='text-xs font-semibold'>裁剪比例预设</Label>
+                <Select value={aspect} onValueChange={setAspect}>
+                  <SelectTrigger className='h-9'>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='free'>自由裁剪 (Free)</SelectItem>
+                    <SelectItem value='1'>正方形 (1:1)</SelectItem>
+                    <SelectItem value='1.7777777777777777'>
+                      宽屏 (16:9)
+                    </SelectItem>
+                    <SelectItem value='1.3333333333333333'>
+                      标准 (4:3)
+                    </SelectItem>
+                    <SelectItem value='0.6666666666666666'>
+                      人像 (2:3)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <Separator />
+
             <div className='space-y-2'>
               <Label>自定义验证（检查文件名特殊字符）</Label>
               <Select
@@ -253,6 +308,12 @@ export function FileUploadDemo() {
                   {maxFiles === 'none' ? '无限制' : `最多 ${maxFiles} 个`}
                 </div>
                 <div>
+                  <span className='font-medium'>图片裁剪：</span>
+                  {enableCrop
+                    ? `开启 (${aspect === 'free' ? '自由' : aspect})`
+                    : '关闭'}
+                </div>
+                <div>
                   <span className='font-medium'>自定义验证：</span>
                   {enableCustomValidation ? '已启用' : '未启用'}
                 </div>
@@ -278,6 +339,8 @@ export function FileUploadDemo() {
               cardSize={cardSize}
               uploadConfig={uploadConfig}
               maxFiles={maxFiles !== 'none' ? Number(maxFiles) : undefined}
+              crop={enableCrop}
+              aspect={aspect === 'free' ? undefined : Number(aspect)}
             />
           </CardContent>
         </Card>
@@ -294,12 +357,16 @@ function FileUploadFormExample({
   cardSize = 'lg',
   uploadConfig,
   maxFiles = 1,
+  crop,
+  aspect,
 }: {
   validation?: FileValidation
   view?: FileView
   cardSize?: CardSize
   uploadConfig?: QiniuConfig
   maxFiles?: number
+  crop?: boolean
+  aspect?: number
 }) {
   const formSchema = React.useMemo(
     () =>
@@ -347,6 +414,8 @@ function FileUploadFormExample({
                     cardSize={cardSize}
                     validation={validation}
                     upload={uploadConfig}
+                    crop={crop}
+                    aspect={aspect}
                     onFileAccept={(f) => console.log('接受:', f.name)}
                     onFileReject={(f, r) => console.warn('拒绝:', f.name, r)}
                     onUploadSuccess={(f, url) =>

@@ -9,6 +9,7 @@ export type FileUploadContextValue = UseFileUploadReturn & {
   view: FileView
   cardSize: CardSize
   validation?: FileValidation
+  crop?: boolean
 }
 
 const FileUploadContext = React.createContext<FileUploadContextValue | undefined>(

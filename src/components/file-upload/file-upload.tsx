@@ -9,6 +9,7 @@ import { FilePreviewDialog } from './preview'
 import type { FileUploadProps, UploadFn } from './types'
 import { useFileUpload } from './use-file-upload'
 import { useQiniuUpload } from './use-qiniu-upload'
+import { ImageCropper } from '../image-cropper'
 
 export function FileUpload({
   value,
@@ -27,6 +28,8 @@ export function FileUpload({
   onUploadSuccess,
   onUploadError,
   children,
+  crop,
+  aspect,
   ...props
 }: FileUploadProps & Omit<React.ComponentProps<'div'>, 'onChange'>) {
   const qiniu = useQiniuUpload()
@@ -53,10 +56,12 @@ export function FileUpload({
     onUploadProgress,
     onUploadSuccess,
     onUploadError,
+    crop,
+    aspect,
   })
 
   return (
-    <FileUploadProvider value={{ ...state, view, cardSize, validation }}>
+    <FileUploadProvider value={{ ...state, view, cardSize, validation, crop }}>
       <div className={cn('w-full', className)} {...props}>
         {children ?? <FileUploadDropzone />}
       </div>
@@ -72,6 +77,18 @@ export function FileUpload({
         onPrev={state.goPrev}
         onNext={state.goNext}
       />
+
+      {state.cropSource && (
+        <ImageCropper
+          source={state.cropSource}
+          aspect={aspect}
+          open={!!state.cropSource}
+          onOpenChange={(open) => {
+            if (!open) state.cancelCrop()
+          }}
+          onCropComplete={state.completeCrop}
+        />
+      )}
     </FileUploadProvider>
   )
 }

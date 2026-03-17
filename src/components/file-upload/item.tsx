@@ -1,15 +1,14 @@
 /**
  * 文件列表项 / 卡片项
- *
- * 改进：
- * - Card 删除按钮：opacity + scale 过渡，替换 hidden/block 跳变
- * - Card 上传进度：底部进度条覆盖，比右上角转圈更优雅
- * - Card 状态 flash：isNewUpload 触发短暂颜色动画
- * - List 缩略图：固定宽高，不受文件名长度影响
- * - List 状态：badge 式标签，更醒目
  */
 import * as React from 'react'
-import { XIcon, EyeIcon, AlertCircleIcon, CheckCircle2Icon } from 'lucide-react'
+import {
+  XIcon,
+  EyeIcon,
+  AlertCircleIcon,
+  CheckCircle2Icon,
+  CropIcon,
+} from 'lucide-react'
 import { formatBytes } from '@/lib/file-utils'
 import { cn } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
@@ -28,11 +27,33 @@ export function FileUploadItem({
   className,
   ...props
 }: FileUploadItemProps) {
-  const { removeFile, openPreview, cardSize = 'lg' } = useFileUploadContext()
+  const {
+    removeFile,
+    openPreview,
+    cardSize = 'lg',
+    setCropSource,
+    crop,
+  } = useFileUploadContext()
 
   const handlePreview = (e: React.MouseEvent) => {
     e.stopPropagation()
     openPreview(item.id)
+  }
+
+  const handleCrop = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (item.file && item.file.type.startsWith('image/')) {
+      if (item.url) {
+        setCropSource({
+          type: 'url',
+          url: item.url,
+          name: item.file.name,
+          mimeType: item.file.type,
+        })
+      } else {
+        setCropSource({ type: 'file', file: item.file })
+      }
+    }
   }
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -44,10 +65,12 @@ export function FileUploadItem({
     return (
       <CardItem
         item={item}
+        crop={crop}
         cardSize={cardSize}
         className={className}
         onPreview={handlePreview}
         onDelete={handleDelete}
+        onCrop={handleCrop}
         {...props}
       />
     )
@@ -56,9 +79,11 @@ export function FileUploadItem({
   return (
     <ListItem
       item={item}
+      crop={crop}
       className={className}
       onPreview={handlePreview}
       onDelete={handleDelete}
+      onCrop={handleCrop}
       {...props}
     />
   )
@@ -66,17 +91,23 @@ export function FileUploadItem({
 
 function CardItem({
   item,
+  crop,
   cardSize,
   className,
   onPreview,
   onDelete,
+  onCrop,
   ...props
 }: {
   item: FileItem
+  crop?: boolean
   cardSize: 'sm' | 'lg' | 'full'
   onPreview: (e: React.MouseEvent) => void
   onDelete: (e: React.MouseEvent) => void
+  onCrop: (e: React.MouseEvent) => void
 } & React.ComponentProps<'div'>) {
+  const isImage = item.file.type.startsWith('image/')
+
   return (
     <div
       {...props}
@@ -88,85 +119,96 @@ function CardItem({
       }
       className={cn(
         'group relative aspect-square w-full cursor-pointer overflow-hidden rounded-xl',
-        'bg-muted/30 border shadow-sm transition-all duration-200',
-        'hover:border-primary/40 hover:shadow-md',
+        'bg-muted/20 border-border/50 border shadow-sm transition-all duration-300',
+        'hover:border-primary/30 hover:shadow-md',
         'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none',
         item.status === 'error' &&
-          'border-destructive ring-destructive/30 ring-1',
+          'border-destructive/50 ring-destructive/20 ring-2',
         className
       )}
     >
       {/* 缩略图 */}
-      <FileThumbnail
-        file={item.file}
-        url={item.url}
-        view='card'
-        className='size-full'
-      />
+      <div className='relative size-full overflow-hidden'>
+        <div className='size-full transition-transform duration-500 ease-out group-hover:scale-105'>
+          <FileThumbnail
+            file={item.file}
+            url={item.url}
+            view='card'
+            className='size-full object-cover'
+          />
+        </div>
+      </div>
 
-      {/* 新上传成功 flash */}
       {item.status === 'success' && item.isNewUpload && (
-        <div className='pointer-events-none absolute inset-0 animate-[flash-success_1.2s_ease-out_forwards] rounded-xl' />
+        <div className='pointer-events-none absolute inset-0 animate-[flash-success_1.2s_ease-out_forwards] rounded-xl ring-1 ring-emerald-500/20 ring-inset' />
       )}
 
-      {/* 新上传失败 flash */}
       {item.status === 'error' && item.isNewUpload && (
         <div className='pointer-events-none absolute inset-0 animate-[flash-error_1.2s_ease-out_forwards] rounded-xl' />
       )}
 
-      {/* 上传进度条（底部） */}
+      {/* 上传进度条 */}
       {item.status === 'uploading' && (
         <div className='absolute inset-x-0 bottom-0'>
-          <div className='relative h-1.5 bg-black/20'>
+          <div className='bg-background/80 flex items-center justify-center py-1.5 backdrop-blur-md'>
+            <span className='text-foreground font-mono text-[10px] font-bold'>
+              {item.progress}%
+            </span>
+          </div>
+          <div className='bg-muted relative h-1'>
             <div
               className='bg-primary absolute inset-y-0 left-0 transition-all duration-300 ease-out'
               style={{ width: `${item.progress}%` }}
             />
           </div>
-          {/* 进度百分比 */}
-          <div className='flex items-center justify-center bg-black/40 py-1 backdrop-blur-sm'>
-            <span className='font-mono text-[10px] font-medium text-white'>
-              {item.progress}%
-            </span>
-          </div>
         </div>
       )}
 
-      {/* 删除按钮 — opacity 过渡，不用 hidden/block */}
+      {/* 顶部悬浮操作栏 */}
       {item.status !== 'uploading' && (
-        <button
-          type='button'
-          onClick={onDelete}
-          className={cn(
-            'absolute top-2 right-2 z-10',
-            'flex size-6 items-center justify-center rounded-full',
-            'bg-background/80 text-foreground/70 shadow-sm backdrop-blur-sm',
-            'transition-all duration-150',
-            'scale-90 opacity-0',
-            'group-hover:scale-100 group-hover:opacity-100',
-            'hover:bg-destructive hover:text-destructive-foreground',
-            'focus-visible:ring-ring focus-visible:scale-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:outline-none'
+        <div className='absolute top-2 right-2 z-20 flex -translate-y-1 gap-1.5 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100'>
+          {crop && isImage && (
+            <button
+              type='button'
+              onClick={onCrop}
+              className={cn(
+                'flex size-7 items-center justify-center rounded-full',
+                'bg-background/80 text-foreground ring-border/50 shadow-sm ring-1 backdrop-blur-md',
+                'hover:bg-muted transition-all hover:scale-105 active:scale-95'
+              )}
+              aria-label='裁切图片'
+            >
+              <CropIcon className='size-3.5' />
+            </button>
           )}
-          aria-label='删除文件'
-        >
-          <XIcon className='size-3' />
-        </button>
+          <button
+            type='button'
+            onClick={onDelete}
+            className={cn(
+              'flex size-7 items-center justify-center rounded-full',
+              'bg-background/80 text-foreground ring-border/50 shadow-sm ring-1 backdrop-blur-md',
+              'hover:bg-destructive hover:text-destructive-foreground transition-all hover:scale-105 active:scale-95'
+            )}
+            aria-label='删除文件'
+          >
+            <XIcon className='size-3.5' />
+          </button>
+        </div>
       )}
 
-      {/* 文件名 overlay（hover 时从底部滑入） */}
+      {/* 底部信息层（使用更柔和的渐变底色） */}
       <div
         className={cn(
-          'pointer-events-none absolute inset-x-0 bottom-0 translate-y-full',
-          'bg-linear-to-t from-black/70 via-black/40 to-transparent',
-          'backdrop-blur-[2px] transition-transform duration-200',
-          'group-hover:translate-y-0',
-          item.status === 'uploading' && 'hidden', // 上传中由进度条占用底部
-          cardSize === 'sm' ? 'p-2' : 'p-3'
+          'pointer-events-none absolute inset-x-0 bottom-0 translate-y-2',
+          'bg-linear-to-t from-black/80 via-black/40 to-transparent',
+          'opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100',
+          item.status === 'uploading' && 'hidden',
+          cardSize === 'sm' ? 'p-2 pt-6' : 'p-3 pt-8'
         )}
       >
         <p
           className={cn(
-            'truncate leading-tight font-medium text-white drop-shadow',
+            'truncate leading-tight font-medium text-white drop-shadow-sm',
             cardSize === 'sm' ? 'text-[10px]' : 'text-xs'
           )}
         >
@@ -175,7 +217,7 @@ function CardItem({
         {item.file.size > 0 && (
           <p
             className={cn(
-              'text-white/70',
+              'mt-0.5 font-mono text-white/70',
               cardSize === 'sm' ? 'text-[9px]' : 'text-[10px]'
             )}
           >
@@ -184,15 +226,13 @@ function CardItem({
         )}
       </div>
 
-      {/* 错误状态：底部实色条 + 顶部半透明红色蒙版，无论图片什么颜色都清晰可读 */}
+      {/* 错误状态遮罩 */}
       {item.status === 'error' && (
         <>
-          {/* 轻微红色蒙版，让图片整体显示"出了问题" */}
-          <div className='bg-destructive/20 pointer-events-none absolute inset-0' />
-          {/* 底部实色错误条：深色背景保证白色文字可读 */}
-          <div className='bg-destructive/90 pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-1.5 px-2 py-1.5 backdrop-blur-sm'>
-            <AlertCircleIcon className='size-3 shrink-0 text-white' />
-            <p className='truncate text-[10px] leading-tight font-medium text-white'>
+          <div className='bg-destructive/10 pointer-events-none absolute inset-0 backdrop-blur-[1px]' />
+          <div className='bg-destructive/95 pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-1.5 px-2 py-2 shadow-inner'>
+            <AlertCircleIcon className='size-3.5 shrink-0 text-white' />
+            <p className='truncate text-[10px] leading-tight font-semibold tracking-wide text-white'>
               {item.error ?? '上传失败'}
             </p>
           </div>
@@ -204,92 +244,96 @@ function CardItem({
 
 function ListItem({
   item,
+  crop,
   className,
   onPreview,
   onDelete,
+  onCrop,
   ...props
 }: {
   item: FileItem
+  crop?: boolean
   onPreview: (e: React.MouseEvent) => void
   onDelete: (e: React.MouseEvent) => void
+  onCrop: (e: React.MouseEvent) => void
 } & React.ComponentProps<'div'>) {
   const [thumbError, setThumbError] = React.useState(false)
+  const isImage = item.file.type.startsWith('image/')
 
   return (
     <div
       {...props}
       className={cn(
-        'group bg-card flex items-center gap-3 rounded-lg border p-3',
-        'shadow-sm transition-all duration-150',
-        'hover:border-primary/30 hover:shadow-md',
-        item.status === 'error' && 'border-destructive/40 bg-destructive/5',
+        'group bg-card border-border/50 flex items-center gap-3.5 rounded-xl border p-2.5 pr-4',
+        'shadow-sm transition-all duration-200 ease-out',
+        'hover:border-primary/30 hover:bg-muted/30 hover:shadow-md',
+        item.status === 'error' &&
+          'border-destructive/40 bg-destructive/5 hover:bg-destructive/10',
         className
       )}
     >
-      {/* 缩略图容器 — 固定尺寸，不受文件名影响 */}
-      <div className='bg-muted/50 relative size-10 shrink-0 overflow-hidden rounded-md border'>
+      {/* 缩略图容器 */}
+      <div className='bg-muted/50 relative size-11 shrink-0 overflow-hidden rounded-lg border shadow-inner transition-transform group-hover:scale-105'>
         <FileThumbnail
           file={item.file}
           url={item.url}
           view='list'
-          className='size-full'
+          className='size-full object-cover'
           onLoadError={setThumbError}
         />
       </div>
 
-      {/* 文件信息 */}
-      <div className='min-w-0 flex-1'>
-        <div className='flex items-center gap-2'>
-          <p className='min-w-0 flex-1 truncate text-sm leading-tight font-medium'>
+      <div className='min-w-0 flex-1 py-0.5'>
+        <div className='flex items-center gap-2.5'>
+          <p className='text-foreground/90 min-w-0 truncate text-sm font-semibold'>
             {item.file.name}
           </p>
           <StatusBadge item={item} thumbError={thumbError} />
         </div>
 
-        {/* 文件大小 */}
-        {item.file.size > 0 && (
-          <p className='text-muted-foreground mt-0.5 text-xs'>
-            {formatBytes(item.file.size)}
-          </p>
-        )}
-
-        {/* 上传进度条 */}
-        {item.status === 'uploading' && (
-          <div className='mt-1.5'>
-            <Progress value={item.progress} className='h-1' />
+        {item.status === 'uploading' ? (
+          <div className='mt-2 flex items-center gap-2'>
+            <Progress value={item.progress} className='h-1.5 flex-1' />
+            <span className='text-muted-foreground font-mono text-[10px] font-medium'>
+              {item.progress}%
+            </span>
           </div>
+        ) : (
+          item.file.size > 0 && (
+            <p className='text-muted-foreground mt-1 font-mono text-[11px]'>
+              {formatBytes(item.file.size)}
+            </p>
+          )
         )}
       </div>
 
-      {/* 操作按钮 */}
-      <div className='flex shrink-0 items-center gap-0.5'>
+      {/* 操作按钮：使用位移动画让它们像抽屉一样滑出 */}
+      <div className='flex shrink-0 translate-x-2 items-center gap-1 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100'>
+        {crop && isImage && item.status !== 'uploading' && (
+          <button
+            type='button'
+            onClick={onCrop}
+            className='text-muted-foreground hover:bg-background hover:text-foreground hover:border-border flex size-8 items-center justify-center rounded-md border border-transparent shadow-none transition-all hover:shadow-sm'
+            aria-label='裁切图片'
+          >
+            <CropIcon className='size-4' />
+          </button>
+        )}
         <button
           type='button'
           onClick={onPreview}
-          onMouseDown={(e) => e.preventDefault()}
-          tabIndex={-1}
-          className={cn(
-            'flex size-7 items-center justify-center rounded-md',
-            'text-muted-foreground transition-colors',
-            'hover:bg-accent hover:text-accent-foreground',
-            'opacity-0 group-hover:opacity-100'
-          )}
+          className='text-muted-foreground hover:bg-background hover:text-foreground hover:border-border flex size-8 items-center justify-center rounded-md border border-transparent shadow-none transition-all hover:shadow-sm'
           aria-label='预览文件'
         >
-          <EyeIcon className='size-3.5' />
+          <EyeIcon className='size-4' />
         </button>
         <button
           type='button'
           onClick={onDelete}
-          className={cn(
-            'flex size-7 items-center justify-center rounded-md',
-            'text-muted-foreground transition-all',
-            'hover:bg-destructive/10 hover:text-destructive',
-            'opacity-0 group-hover:opacity-100'
-          )}
+          className='text-muted-foreground hover:bg-destructive hover:text-destructive-foreground hover:border-destructive/20 flex size-8 items-center justify-center rounded-md border border-transparent shadow-none transition-all hover:shadow-sm'
           aria-label='删除文件'
         >
-          <XIcon className='group/del size-3.5 transition-transform hover:rotate-90' />
+          <XIcon className='size-4 transition-transform hover:rotate-90' />
         </button>
       </div>
     </div>
@@ -305,15 +349,15 @@ function StatusBadge({
 }) {
   if (item.status === 'uploading') {
     return (
-      <span className='text-primary shrink-0 text-xs font-medium tabular-nums'>
-        {item.progress}%
+      <span className='bg-primary/10 text-primary flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase'>
+        Uploading
       </span>
     )
   }
 
   if (item.status === 'error' || thumbError) {
     return (
-      <span className='text-destructive flex shrink-0 items-center gap-1 text-xs'>
+      <span className='bg-destructive/10 text-destructive flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold'>
         <AlertCircleIcon className='size-3' />
         {thumbError ? '加载失败' : (item.error ?? '上传失败')}
       </span>
@@ -322,7 +366,7 @@ function StatusBadge({
 
   if (item.status === 'success' && item.isNewUpload) {
     return (
-      <span className='flex shrink-0 items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400'>
+      <span className='flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'>
         <CheckCircle2Icon className='size-3' />
         已上传
       </span>

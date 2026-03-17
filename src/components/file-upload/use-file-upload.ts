@@ -7,6 +7,7 @@ import type {
   FileValidation,
   FileUploadProps,
   UploadFn,
+  CropSource,
 } from './types'
 
 /** 将回显 URL 转换为 FileItem（file 为空壳，不触发上传） */
@@ -197,9 +198,7 @@ export function useFileUpload(
           // 单文件模式：允许替换，不检查 currentCount
         } else {
           // 计算除错误外的所有项目（上传中、已成功、待上传）
-          const currentCount = itemsRef.current.filter(
-            (i) => i.status !== 'error'
-          ).length
+          const currentCount = itemsRef.current.length
           const remaining = rule.maxFiles - currentCount
           if (remaining <= 0) {
             toast.error(`已达上限，最多可上传 ${rule.maxFiles} 个文件`)
@@ -228,9 +227,11 @@ export function useFileUpload(
 
   const [isPending, startTransition] = React.useTransition()
 
-  const addFiles = React.useCallback(
-    (files: File[]) => {
-      const accepted = validate(files)
+  const [cropSource, setCropSource] = React.useState<CropSource | null>(null)
+  const [cropQueue, setCropQueue] = React.useState<CropSource[]>([])
+
+  const addFilesInternal = React.useCallback(
+    (accepted: File[]) => {
       if (!accepted.length) return
 
       const isSingle = validation?.maxFiles === 1
@@ -257,7 +258,45 @@ export function useFileUpload(
         }
       }
     },
-    [validate, validation?.maxFiles, upload, uploadSingle]
+    [validation?.maxFiles, upload, uploadSingle]
+  )
+
+  const addFiles = React.useCallback(
+    (files: File[]) => {
+      const accepted = validate(files)
+      if (!accepted.length) return
+
+      // 图片裁剪拦截逻辑：解构 maxFiles 限制，只要开启了 crop 且是图片就进入队列
+      if (props.crop) {
+        const images = accepted.filter((f) => f.type.startsWith('image/'))
+        const rest = accepted.filter((f) => !f.type.startsWith('image/'))
+
+        // 非图片直接添加
+        if (rest.length > 0) {
+          addFilesInternal(rest)
+        }
+
+        // 图片进入裁剪队列
+        if (images.length > 0) {
+          // 新文件 → 构造 { type: 'file' } 来源
+          const tasks: CropSource[] = images.map((f) => ({
+            type: 'file',
+            file: f,
+          }))
+          if (cropSource) {
+            setCropQueue((prev) => [...prev, ...tasks])
+          } else {
+            const [first, ...remaining] = tasks
+            setCropQueue(remaining)
+            setCropSource(first)
+          }
+          return
+        }
+      }
+
+      addFilesInternal(accepted)
+    },
+    [validate, props.crop, addFilesInternal, cropSource]
   )
 
   const [previewId, setPreviewId] = React.useState<string | null>(null)
@@ -298,8 +337,7 @@ export function useFileUpload(
   const isAtMax = React.useMemo(() => {
     const max = validation?.maxFiles
     if (!max) return false
-    // 只要是非错误项（成功、上传中、等待中）都计数
-    const currentCount = items.filter((i) => i.status !== 'error').length
+    const currentCount = items.length
     return currentCount >= max
   }, [items, validation?.maxFiles])
 
@@ -321,6 +359,28 @@ export function useFileUpload(
     hasNext: previewIndex >= 0 && previewIndex < previewableItems.length - 1,
     goNext,
     goPrev,
+    // 裁剪相关
+    cropSource,
+    setCropSource,
+    completeCrop: (file: File) => {
+      addFilesInternal([file])
+      if (cropQueue.length > 0) {
+        const [next, ...remaining] = cropQueue
+        setCropQueue(remaining)
+        setCropSource(next)
+      } else {
+        setCropSource(null)
+      }
+    },
+    cancelCrop: () => {
+      if (cropQueue.length > 0) {
+        const [next, ...remaining] = cropQueue
+        setCropQueue(remaining)
+        setCropSource(next)
+      } else {
+        setCropSource(null)
+      }
+    },
   }
 }
 

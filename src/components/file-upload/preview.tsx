@@ -80,7 +80,9 @@ function useImageTransform(resetKey: unknown) {
   const dragStart = React.useRef({ mx: 0, my: 0, ox: 0, oy: 0 })
   const lastPinchDist = React.useRef<number | null>(null)
   const offsetRef = React.useRef(offset)
-  const containerRef = React.useRef<HTMLDivElement>(null)
+  const [containerEl, setContainerEl] = React.useState<HTMLDivElement | null>(
+    null
+  )
 
   React.useEffect(() => {
     offsetRef.current = offset
@@ -111,10 +113,9 @@ function useImageTransform(resetKey: unknown) {
     []
   )
 
-  // wheel + touchmove 必须用原生事件 + passive:false
+  // wheel + touchmove
   React.useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
+    if (!containerEl) return
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
@@ -152,17 +153,17 @@ function useImageTransform(resetKey: unknown) {
       lastPinchDist.current = null
     }
 
-    el.addEventListener('wheel', onWheel, { passive: false })
-    el.addEventListener('touchstart', onTouchStart, { passive: false })
-    el.addEventListener('touchmove', onTouchMove, { passive: false })
-    el.addEventListener('touchend', onTouchEnd)
+    containerEl.addEventListener('wheel', onWheel, { passive: false })
+    containerEl.addEventListener('touchstart', onTouchStart, { passive: false })
+    containerEl.addEventListener('touchmove', onTouchMove, { passive: false })
+    containerEl.addEventListener('touchend', onTouchEnd)
     return () => {
-      el.removeEventListener('wheel', onWheel)
-      el.removeEventListener('touchstart', onTouchStart)
-      el.removeEventListener('touchmove', onTouchMove)
-      el.removeEventListener('touchend', onTouchEnd)
+      containerEl.removeEventListener('wheel', onWheel)
+      containerEl.removeEventListener('touchstart', onTouchStart)
+      containerEl.removeEventListener('touchmove', onTouchMove)
+      containerEl.removeEventListener('touchend', onTouchEnd)
     }
-  }, [])
+  }, [containerEl])
 
   const onMouseDown = React.useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return
@@ -187,7 +188,7 @@ function useImageTransform(resetKey: unknown) {
   const onDoubleClick = React.useCallback(() => reset(), [reset])
 
   return {
-    containerRef,
+    containerRef: setContainerEl,
     isDragging,
     scale,
     offset,
