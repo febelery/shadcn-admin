@@ -75,7 +75,7 @@ export function Apps() {
 
   return (
     <PageLayout
-      mainFixed
+      variant='fixed'
       title='App Integrations'
       description="Here's a list of your apps for the integration!"
     >

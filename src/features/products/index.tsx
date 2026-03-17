@@ -1,33 +1,28 @@
 import * as React from 'react'
-import { Suspense, useOptimistic, useTransition } from 'react'
-import {
-  useSuspenseQuery,
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { useOptimistic, useTransition } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import { getFilterFn } from '@/lib/data-grid-filters'
 import { useDataGrid } from '@/hooks/use-data-grid'
 import { useWindowSize } from '@/hooks/use-window-size'
-import { Skeleton } from '@/components/ui/skeleton'
 import { ColumnVisibility } from '@/components/column-visibility'
 import { DataGrid } from '@/components/data-grid/data-grid'
 import { DataGridRowHeightMenu } from '@/components/data-grid/data-grid-row-height-menu'
 import { DataGridSortMenu } from '@/components/data-grid/data-grid-sort-menu'
-import { ErrorBoundary } from '@/components/error-boundary'
 import { FilterMenu } from '@/components/filter-menu'
 import { PageLayout } from '@/components/layout/page-layout'
 import { getProducts, createProduct, deleteProducts } from './api'
 import type { Product } from './data/schema'
 
-function ProductsInner() {
-  const { data } = useSuspenseQuery({
+export function Products() {
+  const queryClient = useQueryClient()
+  const { data: productsData } = useQuery({
     queryKey: ['products'],
     queryFn: getProducts,
   })
 
   const [optimisticProducts, removeOptimisticProducts] = useOptimistic(
-    data?.data || [],
+    productsData?.data || [],
     (state: Product[], deletedIds: string[]) =>
       state.filter((p) => !deletedIds.includes(p.id))
   )
@@ -210,8 +205,6 @@ function ProductsInner() {
     [filterFn]
   )
 
-  const queryClient = useQueryClient()
-
   useMutation({
     mutationFn: createProduct,
     onSuccess: () => {
@@ -258,8 +251,8 @@ function ProductsInner() {
     <PageLayout
       title='产品管理'
       description='管理和编辑产品信息'
-      mainFixed
-      mainClassName='flex flex-col gap-4 sm:gap-6'
+      variant='fixed'
+      className='flex flex-col gap-4 sm:gap-6'
     >
       <>
         <div
@@ -277,26 +270,5 @@ function ProductsInner() {
         </div>
       </>
     </PageLayout>
-  )
-}
-
-export function Products() {
-  return (
-    <ErrorBoundary >
-      <Suspense
-        fallback={
-          <div className='space-y-4 p-6 text-start'>
-            <Skeleton className='h-8 w-48' />
-            <div className='space-y-3 rounded-md border p-4'>
-              {Array.from({ length: 15 }).map((_, i) => (
-                <Skeleton key={i} className='h-10 w-full' />
-              ))}
-            </div>
-          </div>
-        }
-      >
-        <ProductsInner />
-      </Suspense>
-    </ErrorBoundary>
   )
 }

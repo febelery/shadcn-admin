@@ -35,7 +35,7 @@ const sidebarNavItems = [
 export function Settings() {
   return (
     <PageLayout
-      mainFixed
+      variant='fixed'
       title='Settings'
       description='Manage your account settings and set e-mail preferences.'
     >

@@ -59,7 +59,7 @@ export function Chats() {
   const users = conversations.map(({ messages, ...user }) => user)
 
   return (
-    <PageLayout mainFixed>
+    <PageLayout variant='fixed'>
       <section className='flex h-full gap-6'>
         {/* Left Side */}
         <div className='flex w-full flex-col gap-2 sm:w-56 lg:w-72 2xl:w-80'>
@@ -147,7 +147,7 @@ export function Chats() {
           <div
             className={cn(
               'bg-background absolute inset-0 start-full z-50 hidden w-full flex-1 flex-col border shadow-xs sm:static sm:z-auto sm:flex sm:rounded-md',
-              mobileSelectedUser && 'start-0 flex'
+              mobileSelectedUser && 'inset-s-0 flex'
             )}
           >
             {/* Top Part */}

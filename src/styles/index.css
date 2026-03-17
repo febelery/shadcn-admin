@@ -107,7 +107,6 @@
       background-position: 200%;
     }
   }
-  --animate-spin-around: spin-around 0.8s linear infinite;
   @keyframes spin-around {
     0% {
       transform: rotate(-90deg);
@@ -116,6 +115,12 @@
       transform: rotate(270deg);
     }
   }
+  @keyframes shimmer {
+    to {
+      transform: translateX(200%);
+    }
+  }
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
 }
 
 :root {

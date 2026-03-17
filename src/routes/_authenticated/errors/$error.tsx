@@ -23,7 +23,7 @@ function RouteComponent() {
   const ErrorComponent = errorMap[error] || NotFoundError
 
   return (
-    <PageLayout mainClassName='flex-1 [&>div]:h-full'>
+    <PageLayout className='flex-1 [&>div]:h-full'>
       <ErrorComponent />
     </PageLayout>
   )

@@ -1,8 +1,5 @@
-import { Suspense } from 'react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useTableState } from '@/hooks/use-table-state'
-import { Skeleton } from '@/components/ui/skeleton'
-import { ErrorBoundary } from '@/components/error-boundary'
 import { type FilterConfig } from '@/components/filter-menu'
 import { PageLayout } from '@/components/layout/page-layout'
 import { getUsers } from './api'
@@ -12,7 +9,7 @@ import { UsersProvider } from './components/users-provider'
 import { UsersTable } from './components/users-table'
 import { roles } from './data/data'
 
-function UsersInner() {
+export function Users() {
   // 定义筛选器配置
   const filterConfigs: FilterConfig[] = [
     {
@@ -44,7 +41,7 @@ function UsersInner() {
     filters: filterConfigs,
   })
 
-  const { data, isFetching } = useSuspenseQuery({
+  const { data, isFetching } = useQuery({
     queryKey: ['users', tableState.getQueryParams()],
     queryFn: () => getUsers(tableState.getQueryParams()),
   })
@@ -55,7 +52,7 @@ function UsersInner() {
         title='User List'
         description='Manage your users and their roles here.'
         actions={<UsersPrimaryButtons />}
-        mainClassName='flex flex-1 flex-col gap-4 sm:gap-6'
+        className='flex flex-1 flex-col gap-4 sm:gap-6'
       >
         <UsersTable
           data={data?.data || []}
@@ -67,26 +64,5 @@ function UsersInner() {
 
       <UsersDialogs />
     </UsersProvider>
-  )
-}
-
-export function Users() {
-  return (
-    <ErrorBoundary>
-      <Suspense
-        fallback={
-          <div className='space-y-4 p-6'>
-            <Skeleton className='h-8 w-48' />
-            <div className='space-y-3 rounded-md border p-4'>
-              {Array.from({ length: 10 }).map((_, i) => (
-                <Skeleton key={i} className='h-10 w-full' />
-              ))}
-            </div>
-          </div>
-        }
-      >
-        <UsersInner />
-      </Suspense>
-    </ErrorBoundary>
   )
 }
