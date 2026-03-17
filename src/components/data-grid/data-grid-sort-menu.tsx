@@ -1,13 +1,16 @@
 import * as React from 'react'
 import type { ColumnSort, SortDirection, Table } from '@tanstack/react-table'
 import {
+  ArrowDown,
   ArrowDownUp,
+  ArrowUp,
   Check,
   ChevronsUpDown,
   GripVertical,
   Plus,
   RotateCcw,
   Trash2,
+  X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -45,13 +48,75 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
+const TEXT = {
+  SORT_BUTTON: '排序',
+  SORT_TITLE_ACTIVE: '排序方式',
+  SORT_TITLE_EMPTY: '未应用排序',
+  SORT_DESCRIPTION_ACTIVE: '修改排序以组织您的行。',
+  SORT_DESCRIPTION_EMPTY: '添加排序以组织您的行。',
+  ADD_SORT: '添加',
+  RESET_SORT: '重置',
+  APPLY_SORT: '应用',
+  SEARCH_FIELD: '搜索字段…',
+  NO_FIELD_FOUND: '未找到字段',
+  ASC: '升序',
+  DESC: '降序',
+} as const
+
+const SORT_ORDERS: { label: string; value: SortDirection }[] = [
+  { label: TEXT.ASC, value: 'asc' },
+  { label: TEXT.DESC, value: 'desc' },
+]
+
 const SORT_SHORTCUT_KEY = 's'
 const REMOVE_SORT_SHORTCUTS = ['backspace', 'delete']
 
-const SORT_ORDERS = [
-  { label: 'Asc', value: 'asc' },
-  { label: 'Desc', value: 'desc' },
-]
+interface SortableColumn {
+  id: string
+  label: string
+}
+
+interface SortContextType<TData> {
+  table: Table<TData>
+  columnLabels: Map<string, string>
+  /** 当前编辑态中尚未被选用的列（供"添加"时使用） */
+  availableColumns: SortableColumn[]
+  /** 当前编辑态中已选用的列 id 集合（供行项内字段列表过滤使用） */
+  editingSortIds: Set<string>
+  /** 所有可排序列（含已选用） */
+  allSortableColumns: SortableColumn[]
+  updateSort: (sortId: string, updates: Partial<ColumnSort>) => void
+  removeSort: (sortId: string) => void
+}
+
+const SortContext = React.createContext<SortContextType<any> | null>(null)
+
+function useSortContext<TData>(): SortContextType<TData> {
+  const ctx = React.use(SortContext)
+  if (!ctx) throw new Error('useSortContext 必须在 DataGridSortMenu 内部使用')
+  return ctx as SortContextType<TData>
+}
+
+function buildColumnMeta<TData>(
+  table: Table<TData>,
+  editingSortIds: Set<string>
+) {
+  const columnLabels = new Map<string, string>()
+  const allSortableColumns: SortableColumn[] = []
+  const availableColumns: SortableColumn[] = []
+
+  for (const column of table.getAllColumns()) {
+    if (!column.getCanSort()) continue
+    const label = column.columnDef.meta?.label ?? column.id
+    columnLabels.set(column.id, label)
+    allSortableColumns.push({ id: column.id, label })
+    if (!editingSortIds.has(column.id)) {
+      availableColumns.push({ id: column.id, label })
+    }
+  }
+
+  return { columnLabels, allSortableColumns, availableColumns }
+}
 
 interface DataGridSortMenuProps<TData> extends React.ComponentProps<
   typeof PopoverContent
@@ -63,334 +128,467 @@ export function DataGridSortMenu<TData>({
   table,
   ...props
 }: DataGridSortMenuProps<TData>) {
-  const id = React.useId()
   const labelId = React.useId()
   const descriptionId = React.useId()
   const [open, setOpen] = React.useState(false)
-  const addButtonRef = React.useRef<HTMLButtonElement>(null)
 
-  // 当前已应用的排序
   const appliedSorting = table.getState().sorting
-
-  // 待应用的排序（在弹窗中编辑的临时状态）
-  const [pendingSorting, setPendingSorting] =
+  const [editingSorting, setEditingSorting] =
     React.useState<ColumnSort[]>(appliedSorting)
 
-  // 当弹窗打开时，同步已应用的排序到待应用状态
-  React.useEffect(() => {
-    if (open) {
-      setPendingSorting(appliedSorting)
-    }
-  }, [open, appliedSorting])
-
-  const editingSorting = pendingSorting
-
-  const { columnLabels, columns } = React.useMemo(() => {
-    const labels = new Map<string, string>()
-    const sortingIds = new Set(editingSorting.map((s) => s.id))
-    const availableColumns: { id: string; label: string }[] = []
-
-    for (const column of table.getAllColumns()) {
-      if (!column.getCanSort()) continue
-
-      const label = column.columnDef.meta?.label ?? column.id
-      labels.set(column.id, label)
-
-      if (!sortingIds.has(column.id)) {
-        availableColumns.push({ id: column.id, label })
+  // 打开弹窗时同步已应用的排序；若尚无排序则自动插入第一行
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen) {
+      if (appliedSorting.length === 0) {
+        const firstCol = table.getAllColumns().find((c) => c.getCanSort())
+        setEditingSorting(firstCol ? [{ id: firstCol.id, desc: false }] : [])
+      } else {
+        setEditingSorting(appliedSorting)
       }
     }
+    setOpen(newOpen)
+  }
 
-    return {
-      columnLabels: labels,
-      columns: availableColumns,
-    }
-  }, [editingSorting, table])
+  const editingSortIds = React.useMemo(
+    () => new Set(editingSorting.map((s) => s.id)),
+    [editingSorting]
+  )
 
-  const onSortAdd = React.useCallback(() => {
-    const firstColumn = columns[0]
-    if (!firstColumn) return
+  const columnMeta = React.useMemo(
+    () => buildColumnMeta(table, editingSortIds),
+    [table, editingSortIds]
+  )
 
-    setPendingSorting((prev) => [
-      ...prev,
-      { id: firstColumn.id, desc: false },
-    ])
-  }, [columns])
-
-  const onSortUpdate = React.useCallback(
-    (sortId: string, updates: Partial<ColumnSort>) => {
-      setPendingSorting((prev) =>
-        prev.map((sort) =>
-          sort.id === sortId ? { ...sort, ...updates } : sort
-        )
-      )
-    },
+  const updateSort = React.useCallback(
+    (sortId: string, updates: Partial<ColumnSort>) =>
+      setEditingSorting((prev) =>
+        prev.map((s) => (s.id === sortId ? { ...s, ...updates } : s))
+      ),
     []
   )
 
-  const onSortRemove = React.useCallback((sortId: string) => {
-    setPendingSorting((prev) => prev.filter((item) => item.id !== sortId))
-  }, [])
+  const removeSort = React.useCallback(
+    (sortId: string) =>
+      setEditingSorting((prev) => prev.filter((s) => s.id !== sortId)),
+    []
+  )
 
-  // 应用排序
-  const applySorting = React.useCallback(() => {
-    table.setSorting(pendingSorting)
+  const addSort = React.useCallback(() => {
+    const first = columnMeta.availableColumns[0]
+    if (!first) return
+    setEditingSorting((prev) => [...prev, { id: first.id, desc: false }])
+  }, [columnMeta.availableColumns])
+
+  const applySort = React.useCallback(() => {
+    table.setSorting(editingSorting)
     setOpen(false)
-  }, [table, pendingSorting])
+  }, [table, editingSorting])
 
-  // 重置（立即应用空排序）
-  const onSortingReset = React.useCallback(() => {
-    setPendingSorting([])
-    table.setSorting(table.initialState.sorting)
+  const resetSort = React.useCallback(() => {
+    setEditingSorting([])
+    table.setSorting(table.initialState.sorting ?? [])
   }, [table])
 
+  // 全局快捷键：Ctrl/Cmd + Shift + S 切换弹窗
   React.useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (
-        event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement ||
-        (event.target instanceof HTMLElement &&
-          event.target.contentEditable === 'true')
-      ) {
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target instanceof HTMLElement && e.target.contentEditable === 'true')
+      )
         return
-      }
-
       if (
-        event.key.toLowerCase() === SORT_SHORTCUT_KEY &&
-        (event.ctrlKey || event.metaKey) &&
-        event.shiftKey
+        e.key.toLowerCase() === SORT_SHORTCUT_KEY &&
+        (e.ctrlKey || e.metaKey) &&
+        e.shiftKey
       ) {
-        event.preventDefault()
+        e.preventDefault()
         setOpen((prev) => !prev)
       }
     }
-
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
+  // 触发按钮 Backspace/Delete 快速清空排序
   const onTriggerKeyDown = React.useCallback(
-    (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    (e: React.KeyboardEvent<HTMLButtonElement>) => {
       if (
-        REMOVE_SORT_SHORTCUTS.includes(event.key.toLowerCase()) &&
+        REMOVE_SORT_SHORTCUTS.includes(e.key.toLowerCase()) &&
         appliedSorting.length > 0
       ) {
-        event.preventDefault()
-        onSortingReset()
+        e.preventDefault()
+        resetSort()
       }
     },
-    [appliedSorting.length, onSortingReset]
+    [appliedSorting.length, resetSort]
+  )
+
+  const removeAppliedSort = React.useCallback(
+    (sortId: string) => {
+      const next = appliedSorting.filter((s) => s.id !== sortId)
+      table.setSorting(next)
+    },
+    [appliedSorting, table]
+  )
+
+  const hasApplied = appliedSorting.length > 0
+
+  const contextValue: SortContextType<TData> = React.useMemo(
+    () => ({
+      table,
+      columnLabels: columnMeta.columnLabels,
+      availableColumns: columnMeta.availableColumns,
+      allSortableColumns: columnMeta.allSortableColumns,
+      editingSortIds,
+      updateSort,
+      removeSort,
+    }),
+    [table, columnMeta, editingSortIds, updateSort, removeSort]
   )
 
   return (
-    <Sortable
-      value={editingSorting}
-      onValueChange={(newSorting) => setPendingSorting(newSorting)}
-      getItemValue={(item) => item.id}
-    >
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant='outline'
-            size='sm'
-            className='font-normal'
-            onKeyDown={onTriggerKeyDown}
-          >
-            <ArrowDownUp className='text-muted-foreground' />
-            排序
-            {appliedSorting.length > 0 && (
-              <Badge
-                variant='secondary'
-                className='h-[18.24px] rounded-[3.2px] px-[5.12px] font-mono text-[10.4px] font-normal'
-              >
-                {appliedSorting.length}
-              </Badge>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          aria-labelledby={labelId}
-          aria-describedby={descriptionId}
-          className='flex w-full max-w-(--radix-popover-content-available-width) flex-col gap-3.5 p-4 sm:min-w-[380px]'
-          side={props.side ?? 'bottom'}
-          align={props.align ?? 'end'}
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          {...props}
-        >
-          <div className='flex items-center justify-between gap-2'>
-            <div className='flex flex-col gap-1'>
-              <h4 id={labelId} className='leading-none font-medium'>
-                {editingSorting.length > 0 ? '排序方式' : '未应用排序'}
-              </h4>
-              <p
-                id={descriptionId}
+    <SortContext value={contextValue}>
+      <Sortable
+        value={editingSorting}
+        onValueChange={setEditingSorting}
+        getItemValue={(item) => item.id}
+      >
+        <div className='flex flex-wrap items-center gap-1.5'>
+          {/* 触发按钮 */}
+          <Popover open={open} onOpenChange={handleOpenChange}>
+            <PopoverTrigger asChild>
+              <Button
+                variant={hasApplied ? 'secondary' : 'outline'}
+                size='sm'
                 className={cn(
-                  'text-muted-foreground text-sm',
-                  editingSorting.length > 0 && 'sr-only'
+                  'h-8 gap-1.5 font-normal transition-all',
+                  hasApplied &&
+                    'border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 border border-dashed'
                 )}
+                onKeyDown={onTriggerKeyDown}
               >
-                {editingSorting.length > 0
-                  ? '修改排序以组织您的行。'
-                  : '添加排序以组织您的行。'}
-              </p>
-            </div>
-            <div className='flex items-center gap-1'>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size='sm'
-                    variant='ghost'
-                    className='h-8 w-8 p-0'
-                    ref={addButtonRef}
-                    onClick={onSortAdd}
-                    disabled={columns.length === 0}
+                <ArrowDownUp className='h-3.5 w-3.5' />
+                {TEXT.SORT_BUTTON}
+                {hasApplied && (
+                  <Badge
+                    variant='secondary'
+                    className='ml-0.5 h-[18px] min-w-[18px] rounded px-1 font-mono text-[10px] font-semibold tabular-nums'
                   >
-                    <Plus className='h-4 w-4' />
-                    <span className='sr-only'>添加</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side='top'>添加</TooltipContent>
-              </Tooltip>
-              {editingSorting.length > 0 && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size='sm'
-                      variant='ghost'
-                      className='h-8 w-8 p-0'
-                      onClick={onSortingReset}
-                    >
-                      <RotateCcw className='h-4 w-4' />
-                      <span className='sr-only'>重置</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side='top'>重置</TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-          </div>
-          {editingSorting.length > 0 && (
-            <SortableContent asChild>
-              <ul className='flex max-h-[300px] flex-col gap-2 overflow-y-auto p-1'>
-                {editingSorting.map((sort) => (
-                  <DataTableSortItem
-                    key={sort.id}
-                    sort={sort}
-                    sortItemId={`${id}-sort-${sort.id}`}
-                    columns={columns}
-                    columnLabels={columnLabels}
-                    onSortUpdate={onSortUpdate}
-                    onSortRemove={onSortRemove}
-                  />
-                ))}
-              </ul>
-            </SortableContent>
-          )}
-          {editingSorting.length > 0 && (
-            <div className='flex w-full items-center justify-end gap-2 border-t pt-3'>
-              <Button size='sm' onClick={applySorting} className='rounded'>
-                <Check className='mr-2 h-4 w-4' />
-                应用
+                    {appliedSorting.length}
+                  </Badge>
+                )}
               </Button>
-            </div>
-          )}
-        </PopoverContent>
-      </Popover>
-      <SortableOverlay>
-        <div className='flex items-center gap-2'>
-          <div className='bg-primary/10 h-8 w-[180px] rounded-sm' />
-          <div className='bg-primary/10 h-8 w-24 rounded-sm' />
-          <div className='bg-primary/10 size-8 shrink-0 rounded-sm' />
-          <div className='bg-primary/10 size-8 shrink-0 rounded-sm' />
+            </PopoverTrigger>
+
+            <PopoverContent
+              aria-labelledby={labelId}
+              aria-describedby={descriptionId}
+              align={props.align ?? 'end'}
+              side={props.side ?? 'bottom'}
+              className='flex w-full max-w-(--radix-popover-content-available-width) flex-col p-0 sm:min-w-[420px]'
+              onOpenAutoFocus={(e) => e.preventDefault()}
+              {...props}
+            >
+              <SortPopoverContent
+                labelId={labelId}
+                descriptionId={descriptionId}
+                editingSorting={editingSorting}
+                canAddMore={columnMeta.availableColumns.length > 0}
+                onAdd={addSort}
+                onReset={resetSort}
+                onApply={applySort}
+              />
+            </PopoverContent>
+          </Popover>
+
+          {/* 已应用排序的内联气泡标签 */}
+          {appliedSorting.map((sort) => (
+            <ActiveSortChip
+              key={sort.id}
+              label={columnMeta.columnLabels.get(sort.id) ?? sort.id}
+              desc={sort.desc}
+              onRemove={() => removeAppliedSort(sort.id)}
+              onClick={() => setOpen(true)}
+            />
+          ))}
         </div>
-      </SortableOverlay>
-    </Sortable>
+
+        <SortableOverlay>
+          <div className='bg-background flex h-9 items-center gap-2 rounded-md border px-3 opacity-80 shadow-sm'>
+            <div className='bg-muted h-2.5 w-36 rounded' />
+            <div className='bg-muted h-2.5 w-20 rounded' />
+            <div className='bg-muted size-5 rounded' />
+            <div className='bg-muted size-5 rounded' />
+          </div>
+        </SortableOverlay>
+      </Sortable>
+    </SortContext>
   )
 }
 
-interface DataTableSortItemProps {
-  sort: ColumnSort
-  sortItemId: string
-  columns: { id: string; label: string }[]
-  columnLabels: Map<string, string>
-  onSortUpdate: (sortId: string, updates: Partial<ColumnSort>) => void
-  onSortRemove: (sortId: string) => void
+function ActiveSortChip({
+  label,
+  desc,
+  onRemove,
+  onClick,
+}: {
+  label: string
+  desc: boolean
+  onRemove: () => void
+  onClick: () => void
+}) {
+  return (
+    <div
+      className={cn(
+        'group flex h-8 cursor-pointer items-center overflow-hidden rounded-md border',
+        'bg-background text-xs transition-colors',
+        'hover:border-primary/40 hover:bg-primary/5'
+      )}
+    >
+      <button
+        type='button'
+        onClick={onClick}
+        className='flex h-full items-center gap-1.5 px-2.5 text-left'
+      >
+        {desc ? (
+          <ArrowDown className='text-muted-foreground h-3 w-3 shrink-0' />
+        ) : (
+          <ArrowUp className='text-muted-foreground h-3 w-3 shrink-0' />
+        )}
+        <span className='text-foreground font-medium'>{label}</span>
+        <span className='text-muted-foreground/60'>·</span>
+        <span className='text-muted-foreground'>
+          {desc ? TEXT.DESC : TEXT.ASC}
+        </span>
+      </button>
+      <button
+        type='button'
+        onClick={(e) => {
+          e.stopPropagation()
+          onRemove()
+        }}
+        className={cn(
+          'flex h-full items-center border-l px-1.5',
+          'text-muted-foreground/50 transition-colors',
+          'hover:bg-destructive/10 hover:text-destructive'
+        )}
+        aria-label={`移除「${label}」排序`}
+      >
+        <X className='h-3 w-3' />
+      </button>
+    </div>
+  )
 }
 
-function DataTableSortItem({
+function SortPopoverContent({
+  labelId,
+  descriptionId,
+  editingSorting,
+  canAddMore,
+  onAdd,
+  onReset,
+  onApply,
+}: {
+  labelId: string
+  descriptionId: string
+  editingSorting: ColumnSort[]
+  canAddMore: boolean
+  onAdd: () => void
+  onReset: () => void
+  onApply: () => void
+}) {
+  const hasItems = editingSorting.length > 0
+
+  return (
+    <>
+      {/* 头部 */}
+      <div className='flex items-center justify-between border-b px-4 py-3'>
+        <div className='flex items-center gap-2'>
+          <ArrowDownUp className='text-muted-foreground h-3.5 w-3.5' />
+          <div className='flex flex-col'>
+            <h4 id={labelId} className='text-sm leading-none font-medium'>
+              {hasItems ? TEXT.SORT_TITLE_ACTIVE : TEXT.SORT_TITLE_EMPTY}
+            </h4>
+            <p
+              id={descriptionId}
+              className={cn(
+                'text-muted-foreground text-xs',
+                hasItems ? 'sr-only' : 'mt-0.5'
+              )}
+            >
+              {hasItems
+                ? TEXT.SORT_DESCRIPTION_ACTIVE
+                : TEXT.SORT_DESCRIPTION_EMPTY}
+            </p>
+          </div>
+          {hasItems && (
+            <Badge
+              variant='secondary'
+              className='h-[18px] rounded px-1.5 font-mono text-[10px] tabular-nums'
+            >
+              {editingSorting.length}
+            </Badge>
+          )}
+        </div>
+        {hasItems && (
+          <Button
+            size='sm'
+            variant='ghost'
+            className='text-muted-foreground hover:text-destructive h-7 gap-1 px-2 text-xs'
+            onClick={onReset}
+          >
+            <RotateCcw className='h-3 w-3' />
+            {TEXT.RESET_SORT}
+          </Button>
+        )}
+      </div>
+
+      {/* 排序行列表 */}
+      {hasItems && (
+        <SortableContent asChild>
+          <ul className='flex max-h-[360px] flex-col overflow-y-auto px-3 py-2'>
+            {editingSorting.map((sort, index) => (
+              <SortItem
+                key={sort.id}
+                sort={sort}
+                index={index}
+                totalCount={editingSorting.length}
+              />
+            ))}
+          </ul>
+        </SortableContent>
+      )}
+
+      {/* 底部操作栏 */}
+      <div className='bg-muted/30 flex items-center justify-between border-t px-3 py-2.5'>
+        <Button
+          size='sm'
+          variant='ghost'
+          className='text-muted-foreground h-7 gap-1.5 px-2 text-xs'
+          onClick={onAdd}
+          disabled={!canAddMore}
+        >
+          <Plus className='h-3.5 w-3.5' />
+          {TEXT.ADD_SORT}
+        </Button>
+        <Button
+          size='sm'
+          onClick={onApply}
+          className='h-7 gap-1.5 px-3 text-xs'
+        >
+          <Check className='h-3.5 w-3.5' />
+          {TEXT.APPLY_SORT}
+        </Button>
+      </div>
+    </>
+  )
+}
+
+function SortItem<TData>({
   sort,
-  sortItemId,
-  columns,
-  columnLabels,
-  onSortUpdate,
-  onSortRemove,
-}: DataTableSortItemProps) {
-  const fieldListboxId = `${sortItemId}-field-listbox`
-  const fieldTriggerId = `${sortItemId}-field-trigger`
-  const directionListboxId = `${sortItemId}-direction-listbox`
+  index,
+  totalCount,
+}: {
+  sort: ColumnSort
+  index: number
+  totalCount: number
+}) {
+  const {
+    columnLabels,
+    allSortableColumns,
+    editingSortIds,
+    updateSort,
+    removeSort,
+  } = useSortContext<TData>()
 
   const [showFieldSelector, setShowFieldSelector] = React.useState(false)
-  const [showDirectionSelector, setShowDirectionSelector] =
-    React.useState(false)
+
+  // 字段选择器的列表：当前列 + 尚未被其他行占用的列
+  const fieldSelectorColumns = React.useMemo(
+    () =>
+      allSortableColumns.filter(
+        (col) => col.id === sort.id || !editingSortIds.has(col.id)
+      ),
+    [allSortableColumns, editingSortIds, sort.id]
+  )
 
   const onItemKeyDown = React.useCallback(
-    (event: React.KeyboardEvent<HTMLLIElement>) => {
+    (e: React.KeyboardEvent<HTMLLIElement>) => {
       if (
-        event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement
-      ) {
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
         return
-      }
-
-      if (showFieldSelector || showDirectionSelector) {
-        return
-      }
-
-      if (REMOVE_SORT_SHORTCUTS.includes(event.key.toLowerCase())) {
-        event.preventDefault()
-        onSortRemove(sort.id)
+      if (showFieldSelector) return
+      if (REMOVE_SORT_SHORTCUTS.includes(e.key.toLowerCase())) {
+        e.preventDefault()
+        removeSort(sort.id)
       }
     },
-    [sort.id, showFieldSelector, showDirectionSelector, onSortRemove]
+    [sort.id, showFieldSelector, removeSort]
   )
 
   return (
     <SortableItem value={sort.id} asChild>
       <li
-        id={sortItemId}
         tabIndex={-1}
-        className='flex items-center gap-2'
+        className='group flex items-center gap-2 py-1'
         onKeyDown={onItemKeyDown}
       >
+        {/* 连接符（与 FilterItem 保持一致的视觉语言） */}
+        <div className='flex w-10 shrink-0 justify-center'>
+          {index === 0 ? (
+            <span className='text-muted-foreground text-[11px] font-medium'>
+              按
+            </span>
+          ) : (
+            <span className='bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase'>
+              再
+            </span>
+          )}
+        </div>
+
+        {/* 字段选择器 */}
         <Popover open={showFieldSelector} onOpenChange={setShowFieldSelector}>
           <PopoverTrigger asChild>
             <Button
-              id={fieldTriggerId}
-              aria-controls={fieldListboxId}
               variant='outline'
               size='sm'
-              className='w-44 justify-between rounded font-normal'
+              className='h-8 w-36 justify-between gap-1 rounded-md px-2.5 font-normal'
             >
-              <span className='truncate'>{columnLabels.get(sort.id)}</span>
-              <ChevronsUpDown className='opacity-50' />
+              <span className='truncate text-xs'>
+                {columnLabels.get(sort.id) ?? sort.id}
+              </span>
+              <ChevronsUpDown className='h-3 w-3 shrink-0 opacity-40' />
             </Button>
           </PopoverTrigger>
-          <PopoverContent
-            id={fieldListboxId}
-            className='w-(--radix-popover-trigger-width) p-0'
-          >
+          <PopoverContent align='start' className='w-44 p-0'>
             <Command>
-              <CommandInput placeholder='搜索字段...' />
+              <CommandInput
+                placeholder={TEXT.SEARCH_FIELD}
+                className='h-8 text-xs'
+              />
               <CommandList>
-                <CommandEmpty>未找到字段。</CommandEmpty>
+                <CommandEmpty className='text-muted-foreground py-4 text-center text-xs'>
+                  {TEXT.NO_FIELD_FOUND}
+                </CommandEmpty>
                 <CommandGroup>
-                  {columns.map((column) => (
+                  {fieldSelectorColumns.map((col) => (
                     <CommandItem
-                      key={column.id}
-                      value={column.id}
-                      onSelect={(value) => onSortUpdate(sort.id, { id: value })}
+                      key={col.id}
+                      value={col.id}
+                      className='text-xs'
+                      onSelect={(val) => {
+                        updateSort(sort.id, { id: val })
+                        setShowFieldSelector(false)
+                      }}
                     >
-                      <span className='truncate'>{column.label}</span>
+                      <span className='truncate'>{col.label}</span>
+                      {col.id === sort.id && (
+                        <Check className='ml-auto h-3.5 w-3.5' />
+                      )}
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -398,49 +596,63 @@ function DataTableSortItem({
             </Command>
           </PopoverContent>
         </Popover>
+
+        {/* 方向选择器 */}
         <Select
-          open={showDirectionSelector}
-          onOpenChange={setShowDirectionSelector}
           value={sort.desc ? 'desc' : 'asc'}
-          onValueChange={(value: SortDirection) =>
-            onSortUpdate(sort.id, { desc: value === 'desc' })
+          onValueChange={(val: SortDirection) =>
+            updateSort(sort.id, { desc: val === 'desc' })
           }
         >
           <SelectTrigger
-            aria-controls={directionListboxId}
-            className='h-8 w-24 rounded data-size:h-8'
+            size='sm'
+            className='h-8 w-20 rounded-md px-2.5 text-xs font-normal'
           >
             <SelectValue />
           </SelectTrigger>
-          <SelectContent
-            id={directionListboxId}
-            className='min-w-(--radix-select-trigger-width)'
-          >
+          <SelectContent>
             {SORT_ORDERS.map((order) => (
-              <SelectItem key={order.value} value={order.value}>
+              <SelectItem
+                key={order.value}
+                value={order.value}
+                className='text-xs'
+              >
                 {order.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Button
-          aria-controls={sortItemId}
-          variant='outline'
-          size='icon'
-          className='size-8 shrink-0 rounded'
-          onClick={() => onSortRemove(sort.id)}
-        >
-          <Trash2 />
-        </Button>
-        <SortableItemHandle asChild>
-          <Button
-            variant='outline'
-            size='icon'
-            className='size-8 shrink-0 rounded'
-          >
-            <GripVertical />
-          </Button>
-        </SortableItemHandle>
+
+        {/* 行操作（悬停渐显，与 FilterItem 一致） */}
+        <div className='flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100'>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='text-muted-foreground hover:text-destructive h-8 w-7'
+                onClick={() => removeSort(sort.id)}
+              >
+                <Trash2 className='h-3.5 w-3.5' />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side='top' className='text-xs'>
+              删除
+            </TooltipContent>
+          </Tooltip>
+
+          {totalCount > 1 && (
+            <SortableItemHandle asChild>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='text-muted-foreground h-8 w-7 cursor-grab active:cursor-grabbing'
+              >
+                <GripVertical className='h-3.5 w-3.5' />
+              </Button>
+            </SortableItemHandle>
+          )}
+        </div>
       </li>
     </SortableItem>
   )

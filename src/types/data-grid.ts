@@ -241,8 +241,8 @@ export type FilterOperator =
 
 export interface FilterValue {
   operator: FilterOperator
-  value?: string | number | string[]
-  value2?: string | number
+  value?: string | number | string[] | Date | null
+  value2?: string | number | Date | null
 }
 
 export interface Option {

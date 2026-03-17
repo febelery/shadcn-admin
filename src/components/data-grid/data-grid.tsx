@@ -36,6 +36,10 @@ export function DataGrid<TData>({
   const rowHeight = meta?.rowHeight ?? 'short'
   const focusedCell = meta?.focusedCell ?? null
 
+  React.useEffect(() => {
+    rowVirtualizer.measure()
+  }, [rows.length, rowVirtualizer])
+
   const onGridContextMenu = React.useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
       event.preventDefault()
