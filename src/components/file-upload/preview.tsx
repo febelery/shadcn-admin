@@ -13,13 +13,11 @@ import {
   FileAudioIcon,
   FileCodeIcon,
   FileArchiveIcon,
-  ZoomInIcon,
-  ZoomOutIcon,
-  RotateCcwIcon,
 } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { getFileIconType } from '@/lib/file-utils'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import type { FileItem } from './types'
 
 export interface FilePreviewDialogProps {
@@ -43,10 +41,6 @@ function getPreviewKind(file: File): PreviewKind {
   return 'other'
 }
 
-// ---------------------------------------------------------------------------
-// Blob URL
-// ---------------------------------------------------------------------------
-
 function useBlobUrl(file: File, enabled: boolean) {
   const [url, setUrl] = React.useState<string | null>(null)
   React.useEffect(() => {
@@ -60,10 +54,6 @@ function useBlobUrl(file: File, enabled: boolean) {
   }, [file, enabled])
   return url
 }
-
-// ---------------------------------------------------------------------------
-// Image transform hook
-// ---------------------------------------------------------------------------
 
 const ZOOM_MIN = 0.5
 const ZOOM_MAX = 8
@@ -205,10 +195,7 @@ function useImageTransform(resetKey: unknown) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Lightbox
-// ---------------------------------------------------------------------------
-
+/** 文件预览弹窗组件 */
 export function FilePreviewDialog({
   open,
   onOpenChange,
@@ -218,9 +205,13 @@ export function FilePreviewDialog({
   onPrev,
   onNext,
 }: FilePreviewDialogProps) {
+  const [currentScale, setCurrentScale] = React.useState(1)
   const close = React.useCallback(() => onOpenChange(false), [onOpenChange])
 
-  // lock body scroll
+  React.useEffect(() => {
+    setCurrentScale(1)
+  }, [item?.id])
+
   React.useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
@@ -269,18 +260,19 @@ export function FilePreviewDialog({
     >
       <div
         className={cn(
-          'absolute inset-0 transition-opacity duration-250',
+          'absolute inset-0 transition-opacity duration-300 ease-in-out',
           open ? 'opacity-100' : 'opacity-0'
         )}
         style={{
           background:
-            'radial-gradient(ellipse at center, rgba(28,28,38, 0.88) 0%, rgba(12,12,18,0.95) 100%)',
+            'radial-gradient(circle at center, rgba(31, 31, 46, 0.4) 0%, rgba(10, 10, 15, 0.75) 100%)',
+          backdropFilter: open ? 'blur(4px)' : 'blur(0px)',
         }}
+        aria-label='预览背景'
         onClick={close}
-        aria-label='点击关闭'
       />
 
-      {/* ── 内容层 ── */}
+      {/* 内容层 */}
       <div
         className={cn(
           'pointer-events-none absolute inset-0 flex flex-col transition-all duration-250',
@@ -288,73 +280,116 @@ export function FilePreviewDialog({
         )}
       >
         {/* Top bar */}
-        <div className='pointer-events-auto flex shrink-0 items-center gap-2 px-5 py-4'>
-          <p className='min-w-0 flex-1 truncate text-sm font-medium text-white/60'>
-            {item.file.name}
-          </p>
-          <div className='flex items-center gap-1'>
+        <div className='pointer-events-auto flex items-center justify-between border-b border-white/5 bg-black/40 px-6 py-3.5 backdrop-blur-xl'>
+          {/* 左侧：文件信息与缩放 */}
+          <div className='flex min-w-[200px] items-center gap-3'>
+            <div className='flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 ring-1 ring-white/10'>
+              {(() => {
+                const kind = getFileIconType(item.file)
+                const Icon =
+                  (
+                    {
+                      video: FileVideoIcon,
+                      audio: FileAudioIcon,
+                      pdf: FileTextIcon,
+                      code: FileCodeIcon,
+                      archive: FileArchiveIcon,
+                      text: FileTextIcon,
+                    } as any
+                  )[kind] ?? FileIcon
+                return <Icon className='size-5 text-white/80' />
+              })()}
+            </div>
+            <div className='min-w-0'>
+              <div className='flex items-center gap-2'>
+                <p className='max-w-[240px] truncate text-sm font-semibold text-white/90'>
+                  {item.file.name}
+                </p>
+                {getPreviewKind(item.file) === 'image' && (
+                  <span className='inline-flex items-center justify-center rounded-full bg-white/10 px-2 py-0.5 font-mono text-[10px] font-bold text-white/70 ring-1 ring-white/10'>
+                    {Math.round(currentScale * 100)}%
+                  </span>
+                )}
+              </div>
+              <p className='text-[10px] font-bold tracking-[0.05em] text-white/30 uppercase'>
+                {item.file.type.split('/')[1] || 'FILE'}
+              </p>
+            </div>
+          </div>
+          <div className='flex items-center gap-1 text-white/40'>
+            {/* 分页切换组 */}
+            <Button
+              variant='ghost'
+              size='icon'
+              onClick={onPrev}
+              disabled={!hasPrev}
+              className='h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-20'
+              aria-label='上一个'
+            >
+              <ChevronLeftIcon className='size-5' />
+            </Button>
+            <Button
+              variant='ghost'
+              size='icon'
+              onClick={onNext}
+              disabled={!hasNext}
+              className='h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-20'
+              aria-label='下一个'
+            >
+              <ChevronRightIcon className='size-5' />
+            </Button>
+
+            <div className='mx-2 h-4 w-px bg-white/10' />
+
             {item.url && (
-              <a
-                href={item.url}
-                download={item.file.name}
-                target='_blank'
-                rel='noreferrer'
-                className='inline-flex size-8 items-center justify-center rounded-lg text-white/50 transition-all hover:bg-white/10 hover:text-white'
-                aria-label='下载'
+              <Button
+                variant='ghost'
+                size='icon'
+                asChild
+                className='h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white'
               >
-                <DownloadIcon className='size-4' />
-              </a>
+                <a
+                  href={item.url}
+                  download={item.file.name}
+                  target='_blank'
+                  rel='noreferrer'
+                  aria-label='下载'
+                >
+                  <DownloadIcon className='size-4' />
+                </a>
+              </Button>
             )}
-            <button
-              type='button'
+            <div className='mx-2 h-4 w-px bg-white/10' />
+            <Button
+              variant='ghost'
+              size='icon'
               onClick={close}
-              className='inline-flex size-8 items-center justify-center rounded-lg text-white/50 transition-all hover:bg-white/10 hover:text-white'
+              className='h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white'
               aria-label='关闭'
             >
               <XIcon className='size-4' />
-            </button>
+            </Button>
           </div>
         </div>
 
-        <div className='flex min-h-0 flex-1 items-center justify-center p-6'>
-          <div
-            className='pointer-events-auto'
-            onClick={(e) => e.stopPropagation()}
-          >
-            <PreviewContent item={item} />
+        <div className='relative min-h-0 flex-1 overflow-hidden'>
+          <div className='flex h-full w-full items-center justify-center'>
+            <PreviewContent item={item} onScaleChange={setCurrentScale} />
           </div>
         </div>
-
-        {(hasPrev || hasNext) && (
-          <div className='pointer-events-auto flex shrink-0 items-center justify-center gap-2 px-4 py-4'>
-            <button
-              type='button'
-              onClick={onPrev}
-              disabled={!hasPrev}
-              className='inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-white/50 transition-all hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-20'
-            >
-              <ChevronLeftIcon className='size-3.5' />
-              上一个
-            </button>
-            <div className='h-3.5 w-px bg-white/15' />
-            <button
-              type='button'
-              onClick={onNext}
-              disabled={!hasNext}
-              className='inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-white/50 transition-all hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-20'
-            >
-              下一个
-              <ChevronRightIcon className='size-3.5' />
-            </button>
-          </div>
-        )}
       </div>
     </div>,
     document.body
   )
 }
 
-function PreviewContent({ item }: { item: FileItem }) {
+function PreviewContent({
+  item,
+  onScaleChange,
+}: {
+  item: FileItem
+  onScaleChange?: (scale: number) => void
+}) {
   const kind = getPreviewKind(item.file)
   const needBlob = !item.url && item.file.size > 0
   const blobUrl = useBlobUrl(item.file, needBlob)
@@ -362,7 +397,14 @@ function PreviewContent({ item }: { item: FileItem }) {
 
   switch (kind) {
     case 'image':
-      return <ImagePreview src={src} alt={item.file.name} resetKey={item.id} />
+      return (
+        <ImagePreview
+          src={src}
+          alt={item.file.name}
+          resetKey={item.id}
+          onScaleChange={onScaleChange}
+        />
+      )
     case 'video':
       return <VideoPreview src={src} />
     case 'audio':
@@ -374,104 +416,55 @@ function PreviewContent({ item }: { item: FileItem }) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Image — zoom + pan，无外框
-// ---------------------------------------------------------------------------
-
+/** 图片预览组件 */
 function ImagePreview({
   src,
   alt,
   resetKey,
+  onScaleChange,
 }: {
   src: string | null
   alt: string
   resetKey: unknown
+  onScaleChange?: (scale: number) => void
 }) {
-  const {
-    containerRef,
-    isDragging,
-    scale,
-    offset,
-    reset,
-    zoomIn,
-    zoomOut,
-    handlers,
-  } = useImageTransform(resetKey)
+  const { containerRef, isDragging, scale, offset, handlers } =
+    useImageTransform(resetKey)
+
+  React.useEffect(() => {
+    onScaleChange?.(scale)
+  }, [scale, onScaleChange])
 
   if (!src) return <NoPreview />
 
-  const isTransformed = scale !== 1 || offset.x !== 0 || offset.y !== 0
-
   return (
-    // 整体是 fit-content 宽度，不撑满，点击图片外侧的黑色区域能正常关闭
-    <div className='flex flex-col items-center gap-3'>
-      {/* 图片区域 — 无圆角无边框，直接裸浮在遮罩上 */}
+    <div className='relative flex h-full w-full items-center justify-center'>
+      {/* ── 图片容器：居中，仅在内容处拦截点击 ── */}
       <div
         ref={containerRef}
-        className={cn('cursor-grab overflow-hidden select-none')}
-        style={{
-          touchAction: 'none',
-          // 限制最大尺寸但不固定，让图片自然大小
-          maxWidth: '90vw',
-          maxHeight: 'calc(100dvh - 160px)',
-        }}
+        className={cn(
+          'pointer-events-auto relative cursor-grab overflow-hidden rounded-lg select-none'
+        )}
+        style={{ touchAction: 'none' }}
         {...handlers}
+        onClick={(e) => e.stopPropagation()}
       >
         <img
           src={src}
           alt={alt}
           draggable={false}
-          // 图片本身不加圆角——灯箱里的图片应该是无边界的
-          className='block max-h-[calc(100dvh-160px)] max-w-[90vw] object-contain'
+          className='max-h-[calc(100dvh-120px)] max-w-[90vw] object-contain shadow-2xl transition-shadow duration-300'
           style={{
             transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
             transition: isDragging.current ? 'none' : 'transform 0.15s ease',
           }}
         />
       </div>
-
-      {/* 缩放控制条 */}
-      <div className='flex items-center gap-1'>
-        <IconBtn onClick={zoomOut} disabled={scale <= ZOOM_MIN} label='缩小'>
-          <ZoomOutIcon className='size-3.5' />
-        </IconBtn>
-
-        <button
-          type='button'
-          onClick={reset}
-          className={cn(
-            'min-w-14 rounded px-2 py-1 font-mono text-xs tabular-nums transition-all',
-            isTransformed
-              ? 'text-white/90 hover:bg-white/10'
-              : 'text-white/30 hover:bg-white/10 hover:text-white/70'
-          )}
-          title='点击重置'
-        >
-          {Math.round(scale * 100)}%
-        </button>
-
-        <IconBtn onClick={zoomIn} disabled={scale >= ZOOM_MAX} label='放大'>
-          <ZoomInIcon className='size-3.5' />
-        </IconBtn>
-
-        {isTransformed && (
-          <IconBtn onClick={reset} label='重置' className='ml-1'>
-            <RotateCcwIcon className='size-3.5' />
-          </IconBtn>
-        )}
-
-        <span className='ml-3 hidden text-[10px] text-white/20 sm:inline'>
-          滚轮缩放 · 拖拽平移 · 双击重置
-        </span>
-      </div>
     </div>
   )
 }
 
-// ---------------------------------------------------------------------------
-// Video
-// ---------------------------------------------------------------------------
-
+/** 视频预览组件 */
 function VideoPreview({ src }: { src: string | null }) {
   if (!src) return <NoPreview />
   return (
@@ -479,31 +472,34 @@ function VideoPreview({ src }: { src: string | null }) {
       src={src}
       controls
       autoPlay={false}
-      className='max-h-[calc(100dvh-120px)] max-w-[90vw] rounded-xl shadow-2xl'
+      className='pointer-events-auto max-h-[calc(100dvh-120px)] max-w-[90vw] rounded-xl shadow-2xl'
+      onClick={(e) => e.stopPropagation()}
     />
   )
 }
 
-// ---------------------------------------------------------------------------
-// Audio
-// ---------------------------------------------------------------------------
+/** 音频预览组件 */
 
 function AudioPreview({ src, name }: { src: string | null; name: string }) {
   if (!src) return <NoPreview />
   return (
     <div
-      className='flex w-80 flex-col items-center gap-6 rounded-2xl px-8 py-10'
+      className='shadow-3xl pointer-events-auto flex w-96 flex-col items-center gap-8 rounded-3xl border border-white/10 px-10 py-12'
       style={{
-        background: 'rgba(255,255,255,0.06)',
-        backdropFilter: 'blur(12px)',
+        background:
+          'linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
+        backdropFilter: 'blur(24px)',
       }}
+      onClick={(e) => e.stopPropagation()}
     >
-      {/* 唱片封面占位 */}
-      <div
-        className='flex size-28 items-center justify-center rounded-full shadow-xl'
-        style={{ background: 'rgba(255,255,255,0.08)' }}
-      >
-        <FileAudioIcon className='size-12 text-white/40' />
+      <div className='relative'>
+        <div className='absolute inset-0 animate-ping rounded-full bg-white/5 opacity-20' />
+        <div
+          className='relative flex size-32 items-center justify-center rounded-full shadow-2xl ring-1 ring-white/15'
+          style={{ background: 'rgba(255,255,255,0.08)' }}
+        >
+          <FileAudioIcon className='size-14 text-white/60 drop-shadow-lg' />
+        </div>
       </div>
 
       {/* 文件名 */}
@@ -516,32 +512,27 @@ function AudioPreview({ src, name }: { src: string | null; name: string }) {
         src={src}
         controls
         className='w-full'
-        style={{ colorScheme: 'dark' }}
+        style={{ colorScheme: 'dark', filter: 'brightness(0.9) contrast(1.1)' }}
       />
     </div>
   )
 }
 
-// ---------------------------------------------------------------------------
-// PDF
-// ---------------------------------------------------------------------------
-
+/** PDF 预览组件 */
 function PdfPreview({ src, name }: { src: string | null; name: string }) {
   if (!src) return <NoPreview />
   return (
     <iframe
       src={src}
       title={name}
-      className='rounded-xl bg-white shadow-2xl'
+      className='pointer-events-auto rounded-xl bg-white shadow-2xl'
       style={{ width: 'min(860px, 92vw)', height: 'calc(100dvh - 120px)' }}
+      onClick={(e) => e.stopPropagation()}
     />
   )
 }
 
-// ---------------------------------------------------------------------------
-// Other
-// ---------------------------------------------------------------------------
-
+/** 通用文件预览组件 */
 function OtherPreview({ file, url }: { file: File; url?: string }) {
   const kind = getFileIconType(file)
   const Icon =
@@ -558,17 +549,19 @@ function OtherPreview({ file, url }: { file: File; url?: string }) {
 
   return (
     <div
-      className='flex flex-col items-center gap-5 rounded-2xl px-12 py-10'
+      className='shadow-3xl pointer-events-auto flex flex-col items-center gap-6 rounded-3xl border border-white/10 px-14 py-12'
       style={{
-        background: 'rgba(255,255,255,0.06)',
-        backdropFilter: 'blur(12px)',
+        background:
+          'linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
+        backdropFilter: 'blur(24px)',
       }}
+      onClick={(e) => e.stopPropagation()}
     >
       <div
-        className='flex size-20 items-center justify-center rounded-2xl'
+        className='flex size-24 items-center justify-center rounded-2xl ring-1 ring-white/15'
         style={{ background: 'rgba(255,255,255,0.08)' }}
       >
-        <Icon className='size-10 text-white/50' />
+        <Icon className='size-12 text-white/60 drop-shadow-md' />
       </div>
       <div className='text-center'>
         <p className='max-w-xs truncate text-sm font-medium text-white/75'>
@@ -589,37 +582,6 @@ function OtherPreview({ file, url }: { file: File; url?: string }) {
         </a>
       )}
     </div>
-  )
-}
-
-function IconBtn({
-  onClick,
-  disabled,
-  label,
-  className,
-  children,
-}: {
-  onClick: () => void
-  disabled?: boolean
-  label: string
-  className?: string
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type='button'
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        'inline-flex size-7 items-center justify-center rounded text-white/45 transition-all',
-        'hover:bg-white/10 hover:text-white',
-        'disabled:pointer-events-none disabled:opacity-20',
-        className
-      )}
-      aria-label={label}
-    >
-      {children}
-    </button>
   )
 }
 

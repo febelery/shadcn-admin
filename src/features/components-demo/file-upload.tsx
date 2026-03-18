@@ -460,7 +460,6 @@ function FileUploadFormExample({
               form.setValue('files', [
                 'https://fastly.picsum.photos/id/85/1200/600.jpg?hmac=W2QBqi3MH6WgJqDvRPJwDLhr_pin-ZEoiSQFez6egWE',
                 'https://wximg.chuanbaoguancha.cn/mkt/trim63426fb5c5cb49768048dd605a869da8-a165eec3-gs.MOV',
-                'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4',
                 'https://www.w3schools.com/html/horse.mp3',
               ])
             }}
