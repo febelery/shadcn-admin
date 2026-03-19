@@ -115,13 +115,13 @@ export function DataTable<TData extends object & { id: string }>({
           onReorder ? (
             <SortableContent withoutSlot>
               {table.getRowModel().rows.map((row) => (
-                <DraggableRow key={row.id} row={row} />
+                <DraggableRow key={row.original.id} row={row} />
               ))}
             </SortableContent>
           ) : (
             table.getRowModel().rows.map((row) => (
               <TableRow
-                key={row.id}
+                key={row.original.id}
                 data-state={row.getIsSelected() && 'selected'}
                 className='group/row'
               >
@@ -157,7 +157,6 @@ export function DataTable<TData extends object & { id: string }>({
   if (onReorder) {
     return (
       <div className='overflow-hidden rounded-md border'>
-        {/* @ts-expect-error - TypeScript 无法正确推断条件类型，但运行时类型是正确的 */}
         <Sortable<TData>
           value={data}
           onMove={onReorder}

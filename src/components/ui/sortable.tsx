@@ -88,27 +88,19 @@ function useSortableContext(consumerName: string) {
   return context
 }
 
-interface GetItemValue<T> {
-  /**
-   * Callback that returns a unique identifier for each sortable item. Required for array of objects.
-   * @example getItemValue={(item) => item.id}
-   */
-  getItemValue: (item: T) => UniqueIdentifier
+interface SortableProps<T> extends DndContextProps {
+  value: T[]
+  onValueChange?: (items: T[]) => void
+  onMove?: (
+    event: DragEndEvent & { activeIndex: number; overIndex: number }
+  ) => void
+  strategy?: SortableContextProps['strategy']
+  orientation?: 'vertical' | 'horizontal' | 'mixed'
+  getItemValue?: (item: T) => UniqueIdentifier
+  flatCursor?: boolean
 }
 
-type SortableRootProps<T> = DndContextProps &
-  (T extends object ? GetItemValue<T> : Partial<GetItemValue<T>>) & {
-    value: T[]
-    onValueChange?: (items: T[]) => void
-    onMove?: (
-      event: DragEndEvent & { activeIndex: number; overIndex: number }
-    ) => void
-    strategy?: SortableContextProps['strategy']
-    orientation?: 'vertical' | 'horizontal' | 'mixed'
-    flatCursor?: boolean
-  }
-
-function SortableRoot<T>(props: SortableRootProps<T>) {
+function SortableRoot<T>(props: SortableProps<T>) {
   const {
     value,
     onValueChange,
