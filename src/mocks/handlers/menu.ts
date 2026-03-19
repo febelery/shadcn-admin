@@ -1,5 +1,6 @@
-import { type MenuData } from '@/types/navigation'
+import { type MenuData, type NavItem } from '@/types/navigation'
 import { http, HttpResponse } from 'msw'
+import { getUserByToken } from './auth'
 
 const menuData: MenuData = {
   navGroups: [
@@ -10,32 +11,44 @@ const menuData: MenuData = {
           title: 'Dashboard',
           url: '/',
           icon: 'LayoutDashboard',
+          permission: 'dashboard:access',
         },
         {
           title: 'Tasks',
           url: '/tasks',
           icon: 'ListTodo',
+          permission: 'tasks:access',
         },
         {
           title: 'Apps',
           url: '/apps',
           icon: 'Package',
+          permission: 'apps:access',
         },
         {
           title: 'Chats',
           url: '/chats',
           badge: '3',
           icon: 'MessagesSquare',
+          permission: 'chats:access',
         },
         {
           title: 'Users',
           url: '/users',
           icon: 'Users',
+          permission: 'users:access',
+        },
+        {
+          title: 'Permissions',
+          url: '/permissions',
+          icon: 'Shield',
+          permission: 'permissions:access',
         },
         {
           title: 'Products',
           url: '/products',
           icon: 'shopping-cart',
+          permission: 'products:access',
         },
       ],
     },
@@ -103,6 +116,7 @@ const menuData: MenuData = {
         {
           title: 'Settings',
           icon: 'Settings',
+          permission: 'settings:access',
           items: [
             {
               title: 'Profile',
@@ -135,6 +149,7 @@ const menuData: MenuData = {
           title: 'Components Demo',
           url: '/components-demo/file-upload',
           icon: 'Package',
+          permission: 'components-demo:access',
           items: [
             {
               title: 'File Upload',
@@ -169,14 +184,59 @@ const menuData: MenuData = {
           title: 'Help Center',
           url: '/help-center',
           icon: 'HelpCircle',
+          permission: 'help-center:access',
         },
       ],
     },
   ],
 }
 
+function hasPermission(item: NavItem, userPermissions: readonly string[]): boolean {
+  if (userPermissions.includes('*')) return true
+  
+  if (item.permission) {
+    return userPermissions.includes(item.permission)
+  }
+  
+  return true 
+}
+
+function filterMenu(groups: MenuData['navGroups'], permissions: readonly string[]): MenuData['navGroups'] {
+  // Deep clone to avoid mutating the original
+  const clonedGroups = JSON.parse(JSON.stringify(groups)) as MenuData['navGroups']
+
+  return clonedGroups.map(group => {
+    const filterItems = (items: NavItem[]): NavItem[] => {
+      return items.filter(item => {
+        if (!hasPermission(item, permissions)) {
+          return false
+        }
+        if (item.items) {
+          item.items = filterItems(item.items)
+          if (item.items.length === 0 && !item.url) return false
+        }
+        return true
+      })
+    }
+    
+    return {
+      ...group,
+      items: filterItems(group.items)
+    }
+  }).filter(group => group.items.length > 0)
+}
+
 export const menuHandlers = [
-  http.get('/api/menu', () => {
-    return HttpResponse.json(menuData)
+  http.get('/api/menu', ({ request }) => {
+    const authHeader = request.headers.get('Authorization')
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : ''
+    const user = getUserByToken(token)
+
+    if (!user) {
+      return HttpResponse.json({ code: 401, msg: 'Unauthorized' }, { status: 401 })
+    }
+
+    const filteredMenu = filterMenu(menuData.navGroups, user.user.permissions)
+    return HttpResponse.json({ navGroups: filteredMenu })
   }),
 ]

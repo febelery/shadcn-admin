@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useLocation } from '@tanstack/react-router'
 import { ROUTES } from '@/constants'
 import { useAuthStore } from '@/stores/auth-store'
@@ -11,10 +12,12 @@ interface SignOutDialogProps {
 export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
   const { auth } = useAuthStore()
 
   const handleSignOut = () => {
     auth.reset()
+    queryClient.clear()
     const currentPath = location.href
     navigate({
       to: ROUTES.SIGN_IN,

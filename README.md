@@ -10,6 +10,7 @@
 - 📱 **响应式设计** - 完美适配各种设备
 - 🛣️ **类型安全路由** - TanStack Router
 - 📊 **数据管理** - TanStack Query + Table
+- 🔐 **权限控制** - 基于资源标识的细粒度 RBAC 权限系统
 - 🎨 **主题系统** - 支持亮色/暗色主题切换
 - 🧪 **API 模拟** - MSW 支持开发环境模拟
 
@@ -91,6 +92,7 @@ src/
 ├── features/       # 功能模块
 │   ├── dashboard/  # 仪表板
 │   ├── users/      # 用户管理
+│   ├── permissions/# 权限管理
 │   ├── tasks/      # 任务管理
 │   └── ...
 ├── hooks/          # 自定义 Hooks
@@ -104,12 +106,13 @@ src/
 
 - **仪表板** - 数据可视化
 - **用户管理** - 用户列表和信息管理
+- **权限管理** - 角色、权限分配与 RBAC 管理
 - **任务管理** - 任务创建和状态管理
 - **应用管理** - 应用列表和详情
 - **产品管理** - 产品信息管理
 - **聊天** - 实时聊天界面
 - **设置** - 个人资料、账户、外观等设置
-- **认证** - 登录、注册、忘记密码等
+- **认证** - 登录、注册、忘记密码等，支持 LocalStorage 持久化
 
 ## 🔧 开发指南
 
@@ -134,6 +137,34 @@ import { Button } from '@/components/ui/button'
 pnpm lint          # 代码检查
 pnpm format        # 代码格式化
 pnpm knip          # 未使用代码检测
+```
+
+## 🔒 权限系统
+
+项目实现了一套完整的声明式权限控制系统：
+
+### 权限声明
+在路由定义中使用 `staticData` 声明所需权限：
+```tsx
+export const Route = createFileRoute('/_authenticated/users/')({
+  staticData: {
+    permission: 'users:access',
+  },
+})
+```
+
+### 组件级控制
+使用 `<Can>` 组件进行细粒度的 UI 控制：
+```tsx
+<Can I="users:create">
+  <Button>新增用户</Button>
+</Can>
+```
+
+### 钩子函数
+使用 `useCan` 钩子在逻辑中检查权限：
+```typescript
+const canEdit = useCan('users:edit')
 ```
 
 ## 📚 相关资源

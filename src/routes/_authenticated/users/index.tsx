@@ -2,6 +2,7 @@ import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
 import { Users } from '@/features/users'
 import { roles } from '@/features/users/data/data'
+import { requirePermission } from '@/routes/_authenticated/route'
 
 const usersSearchSchema = z.object({
   page: z.number().optional().catch(1),
@@ -27,6 +28,7 @@ const usersSearchSchema = z.object({
 })
 
 export const Route = createFileRoute('/_authenticated/users/')({
+  beforeLoad: requirePermission('users:access'),
   validateSearch: usersSearchSchema,
   component: Users,
 })

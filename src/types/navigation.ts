@@ -8,6 +8,7 @@ export type NavItem = {
   url?: LinkProps['to'] | (string & {})
   badge?: string
   icon?: string
+  permission?: string
   items?: NavItem[]
 }
 

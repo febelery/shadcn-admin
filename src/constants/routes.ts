@@ -7,7 +7,7 @@ export const ROUTES = {
   SIGN_UP: '/sign-up',
   OTP: '/otp',
   DASHBOARD: '/dashboard',
-  FORBIDDEN: '/forbidden',
+  FORBIDDEN: '/403',
   SERVER_ERROR: '/500',
   SETTINGS: '/settings',
   ACCOUNT: '/settings/account',

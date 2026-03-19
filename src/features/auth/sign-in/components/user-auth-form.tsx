@@ -2,6 +2,7 @@ import { useTransition } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
@@ -34,6 +35,7 @@ export function UserAuthForm({
   ...props
 }: UserAuthFormProps) {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { auth } = useAuthStore()
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -50,6 +52,7 @@ export function UserAuthForm({
     startTransition(async () => {
       try {
         await auth.login(data)
+        queryClient.clear()
 
         toast.success(`欢迎回来, ${data.name}!`)
 

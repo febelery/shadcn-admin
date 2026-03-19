@@ -1,13 +1,14 @@
 import axios from 'axios'
-import { AUTH_COOKIE_KEY } from '@/constants'
 import { create } from 'zustand'
-import { getCookie, removeCookie, setCookie } from '@/lib/cookies'
+
+const AUTH_STORAGE_KEY = 'auth_token'
 
 export interface AuthUser {
   name: string
   email: string
   avatar: string
   role: string[]
+  permissions: string[]
 }
 
 interface AuthActions {
@@ -27,17 +28,26 @@ interface AuthState {
   auth: AuthActions
 }
 
-function getToken(): string | undefined {
-  return getCookie(AUTH_COOKIE_KEY) || undefined
+export function getToken(): string | undefined {
+  return localStorage.getItem(AUTH_STORAGE_KEY) || undefined
 }
 
 function saveToken(token: string) {
-  setCookie(AUTH_COOKIE_KEY, token)
+  localStorage.setItem(AUTH_STORAGE_KEY, token)
 }
 
 function clearToken() {
-  removeCookie(AUTH_COOKIE_KEY)
+  localStorage.removeItem(AUTH_STORAGE_KEY)
 }
+
+// Set up global axios interceptor for auth token
+axios.interceptors.request.use((config) => {
+  const token = getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
   auth: {
