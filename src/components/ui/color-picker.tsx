@@ -6,7 +6,7 @@ import { PipetteIcon } from 'lucide-react'
 import { Slider as SliderPrimitive, Slot as SlotPrimitive } from 'radix-ui'
 import { useComposedRefs } from '@/lib/compose-refs'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Popover,
@@ -774,9 +774,9 @@ function ColorPickerRootImpl(props: ColorPickerRootImplProps) {
   )
 }
 
-interface ColorPickerTriggerProps extends React.ComponentProps<
-  typeof PopoverTrigger
-> {}
+interface ColorPickerTriggerProps
+  extends React.ComponentProps<typeof PopoverTrigger>,
+    VariantProps<typeof buttonVariants> {}
 
 function ColorPickerTrigger(props: ColorPickerTriggerProps) {
   const { asChild, ...triggerProps } = props

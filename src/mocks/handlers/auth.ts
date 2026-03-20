@@ -29,6 +29,7 @@ export const MOCK_USERS = {
         'chats:access',
         'settings:access',
         'help-center:access',
+        'surveys:access',
       ],
     },
     accessToken: 'mock-access-token-user',

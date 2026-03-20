@@ -116,3 +116,36 @@
     }
   }
 }
+
+/* Hold-to-publish fill animation */
+@keyframes hold-fill {
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+/* Header shimmer */
+@keyframes hdr-sh {
+  0%,
+  100% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+}
+
+/* Scrollbar */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: hsl(0 0% 82%);
+  border-radius: 2px;
+}

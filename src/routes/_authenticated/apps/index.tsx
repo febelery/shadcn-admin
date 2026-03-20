@@ -1,7 +1,7 @@
 import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
 import { Apps } from '@/features/apps'
-import { requirePermission } from '@/routes/_authenticated/route'
+import { requirePermission } from '@/lib/auth-guard'
 
 const appsSearchSchema = z.object({
   type: z

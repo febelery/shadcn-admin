@@ -15,6 +15,7 @@
     "knip": "knip"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^2.0.4",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
@@ -28,6 +29,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.23",
     "@vitejs/plugin-react": "^6.0.1",
+    "@xyflow/react": "^12.10.1",
     "aieditor": "^1.4.2",
     "axios": "^1.13.6",
     "class-variance-authority": "^0.7.1",
@@ -38,6 +40,7 @@
     "lucide-react": "^0.577.0",
     "media-chrome": "^4.18.2",
     "motion": "^12.38.0",
+    "nanoid": "^5.1.7",
     "qrcode": "^1.5.4",
     "radix-ui": "^1.4.3",
     "react": "^19.2.4",
@@ -50,6 +53,7 @@
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.2",
     "tw-animate-css": "^1.4.0",
+    "vaul": "^1.1.2",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
   },

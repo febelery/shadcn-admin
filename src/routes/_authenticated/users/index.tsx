@@ -2,7 +2,7 @@ import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
 import { Users } from '@/features/users'
 import { roles } from '@/features/users/data/data'
-import { requirePermission } from '@/routes/_authenticated/route'
+import { requirePermission } from '@/lib/auth-guard'
 
 const usersSearchSchema = z.object({
   page: z.number().optional().catch(1),

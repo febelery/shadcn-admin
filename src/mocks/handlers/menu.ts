@@ -50,6 +50,12 @@ const menuData: MenuData = {
           icon: 'shopping-cart',
           permission: 'products:access',
         },
+        {
+          title: 'Surveys',
+          url: '/surveys',
+          icon: 'LayoutTemplate',
+          permission: 'surveys:access',
+        },
       ],
     },
     {

@@ -2,7 +2,7 @@ import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
 import { Tasks } from '@/features/tasks'
 import { priorities, statuses } from '@/features/tasks/data/data'
-import { requirePermission } from '@/routes/_authenticated/route'
+import { requirePermission } from '@/lib/auth-guard'
 
 const taskSearchSchema = z.object({
   page: z.number().optional().catch(1),

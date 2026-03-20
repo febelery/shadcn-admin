@@ -1,0 +1,332 @@
+import { useState } from 'react'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+} from '@/components/ui/drawer'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { useBuilderStore } from '@/features/survey-builder/store'
+import type {
+  LogicRule,
+  LogicAction,
+  ConditionRule,
+} from '@/features/survey-builder/types'
+
+const ACTION_TYPES = [
+  { value: 'jump_question', label: '跳转至问题' },
+  { value: 'show', label: '显示问题' },
+  { value: 'hide', label: '隐藏问题' },
+  { value: 'end', label: '提前结束' },
+  { value: 'set_required', label: '设为必填' },
+  { value: 'set_readonly', label: '设为只读' },
+  { value: 'set_value', label: '赋值' },
+  { value: 'clear_value', label: '清空答案' },
+  { value: 'show_option', label: '显示选项' },
+  { value: 'hide_option', label: '隐藏选项' },
+]
+
+const OPERATORS = [
+  { value: 'eq', label: '等于' },
+  { value: 'neq', label: '不等于' },
+  { value: 'contains', label: '包含' },
+  { value: 'not_contains', label: '不包含' },
+  { value: 'gt', label: '大于' },
+  { value: 'lt', label: '小于' },
+  { value: 'is_empty', label: '为空' },
+  { value: 'is_not_empty', label: '不为空' },
+  { value: 'regex', label: '正则匹配' },
+]
+
+interface Props {
+  rule: LogicRule | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export function RuleEditor({ rule, open, onOpenChange }: Props) {
+  const { schema, addRule, updateRule } = useBuilderStore()
+  const questionNodes = schema.filter(
+    (n) => !['block', 'divider', 'rich_text'].includes(n.type)
+  )
+
+  const [name, setName] = useState(rule?.name ?? '新逻辑规则')
+  const [enabled, setEnabled] = useState(rule?.enabled ?? true)
+  const [priority, setPriority] = useState(rule?.priority ?? 0)
+  const [conditions, setConditions] = useState<ConditionRule[]>(
+    (rule?.condition.rules as ConditionRule[]) ?? [
+      { field: questionNodes[0]?.id ?? '', operator: 'eq', value: '' },
+    ]
+  )
+  const [actions, setActions] = useState<LogicAction[]>(
+    rule?.actions ?? [
+      { type: 'jump_question', target: questionNodes[0]?.id ?? '' },
+    ]
+  )
+
+  const save = () => {
+    const payload = {
+      id: rule?.id ?? crypto.randomUUID(),
+      name,
+      enabled,
+      priority,
+      condition: { operator: 'and' as const, rules: conditions },
+      actions,
+    }
+    if (rule) updateRule(rule.id, payload)
+    else addRule(payload)
+    onOpenChange(false)
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[85vh]">
+        <DrawerHeader className="border-b border-border/40 pb-4 text-left">
+          <DrawerTitle>{rule ? '编辑逻辑规则' : '新增逻辑规则'}</DrawerTitle>
+          <DrawerDescription>
+            通过设置“当满足条件时执行动作”来控制问卷的跳转与显示逻辑。
+          </DrawerDescription>
+        </DrawerHeader>
+
+        <div className="flex gap-8 overflow-x-auto p-6">
+          {/* Condition column */}
+          <div className="flex min-w-60 flex-col gap-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 underline decoration-border decoration-2 underline-offset-4">
+              条件 (When)
+            </p>
+            {conditions.map((cond, i) => (
+              <div
+                key={i}
+                className="mb-1 space-y-1.5 rounded-lg border border-border/40 bg-muted/20 p-3 shadow-sm"
+              >
+                <Label className="text-[10px] text-muted-foreground/80">
+                  选择问题
+                </Label>
+                <Select
+                  value={cond.field}
+                  onValueChange={(v) =>
+                    setConditions((c) =>
+                      c.map((r, idx) => (idx === i ? { ...r, field: v } : r))
+                    )
+                  }
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="选择问题" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {questionNodes.map((n) => (
+                      <SelectItem key={n.id} value={n.id}>
+                        {n.title || n.type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex gap-1.5">
+                  <Select
+                    value={cond.operator}
+                    onValueChange={(v) =>
+                      setConditions((c) =>
+                        c.map((r, idx) =>
+                          idx === i ? { ...r, operator: v as any } : r
+                        )
+                      )
+                    }
+                  >
+                    <SelectTrigger className="h-8 w-24 shrink-0 text-[11px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {OPERATORS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {!['is_empty', 'is_not_empty'].includes(cond.operator) && (
+                    <Input
+                      className="h-8 flex-1 text-xs"
+                      placeholder="请输入值…"
+                      value={(cond.value as string) ?? ''}
+                      onChange={(e) =>
+                        setConditions((c) =>
+                          c.map((r, idx) =>
+                            idx === i ? { ...r, value: e.target.value } : r
+                          )
+                        )
+                      }
+                    />
+                  )}
+                </div>
+              </div>
+            ))}
+            <Button
+              variant='link'
+              size='sm'
+              className='mt-1 h-auto justify-start p-0 text-[11px] font-medium text-primary hover:opacity-70'
+              onClick={() =>
+                setConditions((c) => [
+                  ...c,
+                  {
+                    field: questionNodes[0]?.id ?? '',
+                    operator: 'eq',
+                    value: '',
+                  },
+                ])
+              }
+            >
+              + 添加额外条件 (AND)
+            </Button>
+          </div>
+
+          {/* Arrow */}
+          <div className="flex items-center pt-8 text-xl text-muted-foreground/20">
+            →
+          </div>
+
+          {/* Action column */}
+          <div className="flex min-w-60 flex-col gap-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 underline decoration-border decoration-2 underline-offset-4">
+              动作 (Then)
+            </p>
+            {actions.map((action, i) => (
+              <div
+                key={i}
+                className="mb-1 space-y-1.5 rounded-lg border border-border/40 bg-muted/20 p-3 shadow-sm"
+              >
+                <Label className="text-[10px] text-muted-foreground/80">
+                  执行动作
+                </Label>
+                <Select
+                  value={action.type}
+                  onValueChange={(v) =>
+                    setActions((a) =>
+                      a.map((r, idx) =>
+                        idx === i ? { ...r, type: v as any } : r
+                      )
+                    )
+                  }
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ACTION_TYPES.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={action.target}
+                  onValueChange={(v) =>
+                    setActions((a) =>
+                      a.map((r, idx) => (idx === i ? { ...r, target: v } : r))
+                    )
+                  }
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="选择目标问题" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {questionNodes.map((n) => (
+                      <SelectItem key={n.id} value={n.id}>
+                        {n.title || n.type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
+            <Button
+              variant='link'
+              size='sm'
+              className='mt-1 h-auto justify-start p-0 text-[11px] font-medium text-primary hover:opacity-70'
+              onClick={() =>
+                setActions((a) => [
+                  ...a,
+                  { type: 'jump_question', target: questionNodes[0]?.id ?? '' },
+                ])
+              }
+            >
+              + 添加并行动作
+            </Button>
+          </div>
+
+          <div className="mx-2 w-px bg-border/40" />
+
+          {/* Settings column */}
+          <div className="flex min-w-56 flex-col gap-4">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 underline decoration-border decoration-2 underline-offset-4">
+              规则配置
+            </p>
+            <div>
+              <Label className="mb-1.5 block text-[11px] text-muted-foreground">
+                规则名称
+              </Label>
+              <Input
+                className="h-9 text-xs"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="例如：特定省份跳转"
+              />
+            </div>
+            <div className="space-y-3 rounded-lg border border-border/40 p-3 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-foreground">
+                  启用该规则
+                </span>
+                <Switch
+                  checked={enabled}
+                  onCheckedChange={setEnabled}
+                  className="scale-[0.8]"
+                />
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <Label className="text-xs text-muted-foreground">优先级</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={0}
+                    className="h-8 w-16 font-mono text-xs"
+                    value={priority}
+                    onChange={(e) => setPriority(+e.target.value)}
+                  />
+                  <span className="text-[10px] text-muted-foreground/60">
+                    越小越优先
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <DrawerFooter className="flex-row items-center justify-end gap-3 border-t border-border/40 bg-muted/10 px-6 py-4">
+          <Button
+            variant="ghost"
+            className="h-9 px-6 text-xs"
+            onClick={() => onOpenChange(false)}
+          >
+            取消
+          </Button>
+          <Button className="h-9 px-8 text-xs font-semibold" onClick={save}>
+            保存当前规则
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
