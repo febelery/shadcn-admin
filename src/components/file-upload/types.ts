@@ -1,12 +1,14 @@
 /**
  * 文件上传组件 — 类型定义
  */
+import type { UploadStrategy } from './upload-strategy'
 
 export type FileStatus = 'idle' | 'uploading' | 'success' | 'error'
 
 export type FileView = 'list' | 'card'
 
 export type CardSize = 'sm' | 'lg' | 'full'
+export type FileVariant = 'default' | 'minimal' | 'button'
 
 export interface FileItem {
   id: string
@@ -67,8 +69,10 @@ export interface FileUploadProps {
   validation?: FileValidation
   view?: FileView
   cardSize?: CardSize
-  /** 上传函数或七牛云配置 */
-  upload?: UploadFn | QiniuConfig
+  /** 上传区域变体风格 */
+  variant?: FileVariant
+  /** 上传策略（默认七牛云） */
+  strategy?: UploadStrategy
   /** 是否开启图片裁剪（必须是 image/* 类型） */
   crop?: boolean
   /** 裁剪比例，不传则初始为自由比例 */

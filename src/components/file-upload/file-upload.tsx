@@ -2,14 +2,15 @@
  * 文件上传根组件
  */
 import * as React from 'react'
+import { getQiniuUptoken } from '@/api/qiniu'
 import { cn } from '@/lib/utils'
+import { ImageCropper } from '../image-cropper'
 import { FileUploadProvider } from './context'
 import { FileUploadDropzone } from './dropzone'
 import { FilePreviewDialog } from './preview'
-import type { FileUploadProps, UploadFn } from './types'
+import { createQiniuStrategy } from './upload-strategy'
+import type { FileUploadProps } from './types'
 import { useFileUpload } from './use-file-upload'
-import { useQiniuUpload } from './use-qiniu-upload'
-import { ImageCropper } from '../image-cropper'
 
 export function FileUpload({
   value,
@@ -18,7 +19,11 @@ export function FileUpload({
   validation,
   view = 'list',
   cardSize = 'lg',
-  upload: uploadProp,
+  variant = 'default',
+  strategy = createQiniuStrategy({
+    getToken: getQiniuUptoken,
+    region: 'z2',
+  }),
   disabled = false,
   className,
   onFileAccept,
@@ -32,16 +37,14 @@ export function FileUpload({
   aspect,
   ...props
 }: FileUploadProps & Omit<React.ComponentProps<'div'>, 'onChange'>) {
-  const qiniu = useQiniuUpload()
-
-  // 将 QiniuConfig 或 UploadFn 统一转换为 UploadFn
-  const uploadFn = React.useMemo<UploadFn | undefined>(() => {
-    if (!uploadProp) return undefined
-    if (typeof uploadProp === 'function') return uploadProp
-    // QiniuConfig 分支
-    const config = uploadProp
-    return (file, options) => qiniu.uploadFile(file, config, options)
-  }, [uploadProp, qiniu])
+  // 直接使用 strategy.upload 作为上传函数
+  const uploadFn = React.useCallback(
+    async (file: File, options?: any) => {
+      const res = await strategy.upload(file, options)
+      return res.url
+    },
+    [strategy]
+  )
 
   const state = useFileUpload({
     value,
@@ -61,7 +64,9 @@ export function FileUpload({
   })
 
   return (
-    <FileUploadProvider value={{ ...state, view, cardSize, validation, crop }}>
+    <FileUploadProvider
+      value={{ ...state, view, cardSize, variant, validation, crop }}
+    >
       <div className={cn('w-full', className)} {...props}>
         {children ?? <FileUploadDropzone />}
       </div>

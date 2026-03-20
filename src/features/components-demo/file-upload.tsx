@@ -5,7 +5,6 @@ import * as React from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { getQiniuUptoken } from '@/api/qiniu'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -38,7 +37,6 @@ import type {
   FileView,
   CardSize,
   FileValidation,
-  QiniuConfig,
 } from '@/components/file-upload'
 import { PageLayout } from '@/components/layout/page-layout'
 
@@ -98,11 +96,6 @@ export function FileUploadDemo() {
     return rule
   }, [fileType, maxSize, maxFiles, enableCustomValidation])
 
-  // 七牛上传配置
-  const uploadConfig = React.useMemo<QiniuConfig>(
-    () => ({ getToken: getQiniuUptoken, region: 'z2' }),
-    []
-  )
 
   const handleReset = () => {
     setView('card')
@@ -337,7 +330,6 @@ export function FileUploadDemo() {
               validation={validation}
               view={view}
               cardSize={cardSize}
-              uploadConfig={uploadConfig}
               maxFiles={maxFiles !== 'none' ? Number(maxFiles) : undefined}
               crop={enableCrop}
               aspect={aspect === 'free' ? undefined : Number(aspect)}
@@ -355,7 +347,6 @@ function FileUploadFormExample({
   validation,
   view = 'list',
   cardSize = 'lg',
-  uploadConfig,
   maxFiles = 1,
   crop,
   aspect,
@@ -363,7 +354,6 @@ function FileUploadFormExample({
   validation?: FileValidation
   view?: FileView
   cardSize?: CardSize
-  uploadConfig?: QiniuConfig
   maxFiles?: number
   crop?: boolean
   aspect?: number
@@ -413,7 +403,6 @@ function FileUploadFormExample({
                     view={view}
                     cardSize={cardSize}
                     validation={validation}
-                    upload={uploadConfig}
                     crop={crop}
                     aspect={aspect}
                     onFileAccept={(f) => console.log('接受:', f.name)}

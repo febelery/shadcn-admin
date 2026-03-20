@@ -26,6 +26,7 @@ export function FileUploadDropzone({
     isAtMax,
     view = 'list',
     cardSize = 'lg',
+    variant = 'default',
     validation,
   } = useFileUploadContext()
 
@@ -138,6 +139,8 @@ export function FileUploadDropzone({
             'scale-[1.005]',
           ],
         'focus-within:border-primary/50 focus-within:ring-ring/20 focus-within:ring-2',
+        variant === 'minimal' ? 'py-0' : '',
+        variant === 'button' ? 'border-none bg-transparent hover:bg-transparent p-0' : '',
         className
       )}
       onDragEnter={handleDragEnter}
@@ -161,74 +164,106 @@ export function FileUploadDropzone({
 
       {/* ── 空状态 ── */}
       {isEmpty ? (
-        <div className='flex flex-col items-center justify-center gap-4 px-6 py-12 text-center'>
-          {children || (
-            <>
-              {/* 图标区域 */}
-              <div
-                className={cn(
-                  'relative flex size-16 items-center justify-center rounded-2xl transition-all duration-300',
-                  isDragging
-                    ? 'bg-primary text-primary-foreground shadow-primary/25 scale-110 shadow-lg'
-                    : isDisabled
-                      ? 'bg-muted text-muted-foreground'
-                      : 'bg-muted/60 text-muted-foreground'
-                )}
-              >
-                {isDragging ? (
-                  <UploadCloudIcon className='size-8' />
-                ) : (
-                  <CloudUploadIcon className='size-8' />
-                )}
-              </div>
-
-              {/* 文案 */}
-              <div className='space-y-1.5'>
-                {isDragging ? (
-                  <p className='text-primary text-sm font-semibold'>
-                    松开即可上传
-                  </p>
-                ) : (
-                  <>
-                    <p className='text-foreground text-sm font-medium'>
-                      将文件拖到此处，或{' '}
-                      <Button
-                        type='button'
-                        variant='link'
-                        size='sm'
-                        className='h-auto p-0 text-sm font-medium'
-                        disabled={isDisabled}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openFilePicker()
-                        }}
-                      >
-                        点击选择
-                      </Button>
-                    </p>
-                    <p className='text-muted-foreground text-xs'>
-                      支持拖拽、点击、粘贴上传
-                    </p>
-                  </>
-                )}
-              </div>
-
-              {/* 配置提示 */}
-              {hints.length > 0 && (
-                <div className='flex flex-wrap items-center justify-center gap-1.5'>
-                  {hints.map((hint, i) => (
-                    <span
-                      key={i}
-                      className='border-border/60 bg-muted/50 text-muted-foreground rounded-full border px-2.5 py-0.5 text-[11px]'
-                    >
-                      {hint}
-                    </span>
-                  ))}
+        variant === 'button' ? (
+          <div className='flex items-center justify-center p-0'>
+            <Button
+              type='button'
+              variant='outline'
+              className='w-full gap-2 border-dashed'
+              disabled={isDisabled}
+              onClick={(e) => {
+                e.stopPropagation()
+                openFilePicker()
+              }}
+            >
+              <CloudUploadIcon className='size-4' />
+              <span>上传文件</span>
+            </Button>
+          </div>
+        ) : (
+          <div
+            className={cn(
+              'flex flex-col items-center justify-center text-center',
+              variant === 'minimal' ? 'gap-2 px-3 py-6' : 'gap-4 px-6 py-12'
+            )}
+          >
+            {children || (
+              <>
+                {/* 图标区域 */}
+                <div
+                  className={cn(
+                    'relative flex items-center justify-center rounded-2xl transition-all duration-300',
+                    variant === 'minimal' ? 'size-10 rounded-xl' : 'size-16',
+                    isDragging
+                      ? 'bg-primary text-primary-foreground shadow-primary/25 scale-110 shadow-lg'
+                      : isDisabled
+                        ? 'bg-muted text-muted-foreground'
+                        : 'bg-muted/60 text-muted-foreground'
+                  )}
+                >
+                  {isDragging ? (
+                    <UploadCloudIcon
+                      className={variant === 'minimal' ? 'size-5' : 'size-8'}
+                    />
+                  ) : (
+                    <CloudUploadIcon
+                      className={variant === 'minimal' ? 'size-5' : 'size-8'}
+                    />
+                  )}
                 </div>
-              )}
-            </>
-          )}
-        </div>
+
+                {/* 文案 */}
+                <div className='space-y-1.5'>
+                  {isDragging ? (
+                    <p className='text-primary text-sm font-semibold'>
+                      {variant === 'minimal' ? '松开上传' : '松开即可上传'}
+                    </p>
+                  ) : variant === 'minimal' ? (
+                    <p className='text-muted-foreground text-[10px] font-medium'>
+                      点击或拖拽上传
+                    </p>
+                  ) : (
+                    <>
+                      <p className='text-foreground text-sm font-medium'>
+                        将文件拖到此处，或{' '}
+                        <Button
+                          type='button'
+                          variant='link'
+                          size='sm'
+                          className='h-auto p-0 text-sm font-medium'
+                          disabled={isDisabled}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openFilePicker()
+                          }}
+                        >
+                          点击选择
+                        </Button>
+                      </p>
+                      <p className='text-muted-foreground text-xs'>
+                        支持拖拽、点击、粘贴上传
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {/* 配置提示 */}
+                {variant !== 'minimal' && hints.length > 0 && (
+                  <div className='flex flex-wrap items-center justify-center gap-1.5'>
+                    {hints.map((hint, i) => (
+                      <span
+                        key={i}
+                        className='border-border/60 bg-muted/50 text-muted-foreground rounded-full border px-2.5 py-0.5 text-[11px]'
+                      >
+                        {hint}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )
       ) : (
         /* ── 有文件时的列表 / 网格 ── */
         <div

@@ -33,6 +33,7 @@ export function FileUploadItem({
     cardSize = 'lg',
     setCropSource,
     crop,
+    aspect,
   } = useFileUploadContext()
 
   const handlePreview = (e: React.MouseEvent) => {
@@ -67,6 +68,7 @@ export function FileUploadItem({
         item={item}
         crop={crop}
         cardSize={cardSize}
+        aspect={aspect}
         className={className}
         onPreview={handlePreview}
         onDelete={handleDelete}
@@ -92,6 +94,7 @@ export function FileUploadItem({
 function CardItem({
   item,
   crop,
+  aspect,
   cardSize,
   className,
   onPreview,
@@ -101,6 +104,7 @@ function CardItem({
 }: {
   item: FileItem
   crop?: boolean
+  aspect?: number
   cardSize: 'sm' | 'lg' | 'full'
   onPreview: (e: React.MouseEvent) => void
   onDelete: (e: React.MouseEvent) => void
@@ -118,7 +122,7 @@ function CardItem({
         e.key === 'Enter' && onPreview(e as unknown as React.MouseEvent)
       }
       className={cn(
-        'group relative aspect-square w-full cursor-pointer overflow-hidden rounded-xl',
+        'group relative w-full cursor-pointer overflow-hidden rounded-xl',
         'bg-muted/20 border-border/50 border shadow-sm transition-all duration-300',
         'hover:border-primary/30 hover:shadow-md',
         'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none',
@@ -126,6 +130,9 @@ function CardItem({
           'border-destructive/50 ring-destructive/20 ring-2',
         className
       )}
+      style={{
+        aspectRatio: aspect ? aspect : '1/1',
+      }}
     >
       {/* 缩略图 */}
       <div className='relative size-full overflow-hidden'>
@@ -229,7 +236,7 @@ function CardItem({
       {/* 错误状态遮罩 */}
       {item.status === 'error' && (
         <>
-          <div className='bg-destructive/10 pointer-events-none absolute inset-0 backdrop-blur-[1px]' />
+          <div className='bg-destructive/10 pointer-events-none absolute inset-0' />
           <div className='bg-destructive/95 pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-1.5 px-2 py-2 shadow-inner'>
             <AlertCircleIcon className='size-3.5 shrink-0 text-white' />
             <p className='truncate text-[10px] leading-tight font-semibold tracking-wide text-white'>
