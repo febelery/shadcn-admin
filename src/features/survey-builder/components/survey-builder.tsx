@@ -13,6 +13,7 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { Loader2 } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 import { useSurveyDetail } from '../hooks'
 import { useBuilderStore } from '../store'
 import type { DragPayload } from '../types'
@@ -26,8 +27,18 @@ import { TypeSidebar } from './type-sidebar'
 
 export function SurveyBuilder() {
   const { surveyId } = useParams({ from: '/survey/builder/$surveyId' })
-  const { builderMode, initSurvey, isDirty, addNode, reorderNodes, nodes } =
-    useBuilderStore()
+
+  // 架构优化: 避免直接解构庞大的 Store，改用原子级 Selector 或 Shallow 控制渲染边界
+  const builderMode = useBuilderStore((s) => s.builderMode)
+  const nodes = useBuilderStore((s) => s.nodes)
+
+  const { initSurvey, addNode, reorderNodes } = useBuilderStore(
+    useShallow((s) => ({
+      initSurvey: s.initSurvey,
+      addNode: s.addNode,
+      reorderNodes: s.reorderNodes,
+    }))
+  )
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
   const [activeDragData, setActiveDragData] = useState<DragPayload | null>(null)
@@ -53,30 +64,43 @@ export function SurveyBuilder() {
     initSurvey(surveyData)
   }, [surveyData, surveyId, initSurvey])
 
-  // 自动保存草稿
+  // 架构优化: 自动保存草稿 - 采用 Subscribe 真正响应所有的状态变动，而不会陷入 isDirty useEffect 的死结
   useEffect(() => {
-    if (!isDirty) return
-    const t = setTimeout(() => {
-      const s = useBuilderStore.getState()
-      sessionStorage.setItem(
-        `survey-draft-${surveyId}`,
-        JSON.stringify({
-          id: surveyId,
-          version: s.version || '1',
-          meta: s.meta,
-          nodes: s.nodes,
-          logic: s.logic,
-          validations: s.validations,
-          extensions: s.extensions || {},
-        })
-      )
-    }, 1000)
-    return () => clearTimeout(t)
-  }, [isDirty, surveyId])
+    const unsub = useBuilderStore.subscribe((state, prevState) => {
+      // 检查只要是脏状态且状态发生了变化，就推入延迟保存
+      if (state.isDirty && state !== prevState) {
+        clearTimeout((window as any)._surveyAutoSaveTimer)
+        ;(window as any)._surveyAutoSaveTimer = setTimeout(() => {
+          sessionStorage.setItem(
+            `survey-draft-${surveyId}`,
+            JSON.stringify({
+              id: surveyId,
+              version: state.version || '1',
+              meta: state.meta,
+              nodes: state.nodes,
+              logic: state.logic,
+              validations: state.validations,
+              extensions: state.extensions || {},
+            })
+          )
+        }, 1000)
+      }
+    })
+    return () => unsub()
+  }, [surveyId])
 
   // 全局快捷键
   useEffect(() => {
     const handle = (e: KeyboardEvent) => {
+      // 架构防护: 如果焦点在输入框/文本域等原生编辑容器中，将键盘操作归还浏览器，禁止拦截
+      const target = e.target as HTMLElement
+      const isInput =
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+
+      if (isInput) return
+
       const store = useBuilderStore.getState()
       if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault()
@@ -123,14 +147,12 @@ export function SurveyBuilder() {
         addNode(data.questionType)
       }
     } else if (over && active.id !== over.id) {
-      // 重排现有节点 —— over 指向的是卡片 id（SortableContext item）
-      const rootNodes = nodes
-        .filter((n) => !n.parentId)
-        .sort((a, b) => a.order - b.order)
-      const oldIdx = rootNodes.findIndex((n) => n.id === active.id)
-      const newIdx = rootNodes.findIndex((n) => n.id === over.id)
+      // 重排现有节点
+      const sortedNodes = [...nodes].sort((a, b) => a.order - b.order)
+      const oldIdx = sortedNodes.findIndex((n) => n.id === active.id)
+      const newIdx = sortedNodes.findIndex((n) => n.id === over.id)
       if (oldIdx >= 0 && newIdx >= 0) {
-        reorderNodes(arrayMove(rootNodes, oldIdx, newIdx).map((n) => n.id))
+        reorderNodes(arrayMove(sortedNodes, oldIdx, newIdx).map((n) => n.id))
       }
     }
 

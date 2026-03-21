@@ -16,6 +16,7 @@ import {
 import { Image as ImageIcon, Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { useOptionsManager } from '@/features/survey-builder/hooks/use-options-manager'
@@ -92,7 +93,7 @@ function OptionRow({
 
 // 选项配置主组件
 export function ChoiceConfig({ node }: { node: QuestionNode }) {
-  const { updateNodeConfig } = useBuilderStore()
+  const updateNodeConfig = useBuilderStore((s) => s.updateNodeConfig)
   const [focusedId, setFocusedId] = useState<string | null>(null)
 
   const options: ChoiceOption[] = node.config.options ?? []
@@ -217,15 +218,15 @@ export function ChoiceConfig({ node }: { node: QuestionNode }) {
 
       {/* Min/Max selection for multiple choice */}
       {node.type === 'multiple_choice' && (
-        <div className='border-border/40 border-t px-3 py-2'>
+        <FieldGroup className='border-border/40 border-t px-3 py-2'>
           <span className='text-muted-foreground/60 mb-2 block text-[10px] font-semibold'>
             选择限制
           </span>
-          <div className='grid grid-cols-2 gap-2'>
-            <div className='space-y-1'>
-              <label className='text-muted-foreground text-[10px]'>
+          <div className='flex items-start gap-2'>
+            <Field className='flex-1'>
+              <FieldLabel className='text-muted-foreground text-[10px]'>
                 最少选
-              </label>
+              </FieldLabel>
               <Input
                 type='number'
                 min={0}
@@ -238,11 +239,11 @@ export function ChoiceConfig({ node }: { node: QuestionNode }) {
                   })
                 }
               />
-            </div>
-            <div className='space-y-1'>
-              <label className='text-muted-foreground text-[10px]'>
+            </Field>
+            <Field className='flex-1'>
+              <FieldLabel className='text-muted-foreground text-[10px]'>
                 最多选
-              </label>
+              </FieldLabel>
               <Input
                 type='number'
                 min={1}
@@ -255,9 +256,9 @@ export function ChoiceConfig({ node }: { node: QuestionNode }) {
                   })
                 }
               />
-            </div>
+            </Field>
           </div>
-        </div>
+        </FieldGroup>
       )}
     </div>
   )

@@ -1,4 +1,5 @@
 'use client'
+import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -12,7 +13,9 @@ import type { QuestionNode } from '@/features/survey-builder/types'
 
 // ── Text / Textarea / Number / Fill-in config ─────────────
 export function TextConfig({ node }: { node: QuestionNode }) {
-  const { updateNodeConfig } = useBuilderStore()
+  // 架构修正：提取原子的动作分配器，不要订阅整个 store 导致每次 store 更新都让 Panel 重绘
+  const updateNodeConfig = useBuilderStore((s) => s.updateNodeConfig)
+
   const config = node.config as {
     placeholder?: string
     maxLength?: number
@@ -30,12 +33,12 @@ export function TextConfig({ node }: { node: QuestionNode }) {
   const isTextArea = node.type === 'textarea'
 
   return (
-    <div className='space-y-3 px-3 pb-2'>
+    <FieldGroup className='px-3 pb-2'>
       {/* Placeholder */}
-      <div className='space-y-1'>
-        <label className='text-muted-foreground text-[11px] font-medium'>
+      <Field>
+        <FieldLabel className='text-muted-foreground text-[11px] font-medium'>
           占位提示文字
-        </label>
+        </FieldLabel>
         <Input
           className='h-7 text-xs'
           value={config.placeholder ?? ''}
@@ -44,15 +47,15 @@ export function TextConfig({ node }: { node: QuestionNode }) {
             updateNodeConfig(node.id, { placeholder: e.target.value })
           }
         />
-      </div>
+      </Field>
 
       {/* Text length limits */}
       {!isNumber && (
-        <div className='grid grid-cols-2 gap-2'>
-          <div className='space-y-1'>
-            <label className='text-muted-foreground text-[10px]'>
+        <div className='flex items-start gap-2'>
+          <Field className='flex-1'>
+            <FieldLabel className='text-muted-foreground text-[10px]'>
               最少字符
-            </label>
+            </FieldLabel>
             <Input
               type='number'
               min={0}
@@ -65,11 +68,11 @@ export function TextConfig({ node }: { node: QuestionNode }) {
                 })
               }
             />
-          </div>
-          <div className='space-y-1'>
-            <label className='text-muted-foreground text-[10px]'>
+          </Field>
+          <Field className='flex-1'>
+            <FieldLabel className='text-muted-foreground text-[10px]'>
               最多字符
-            </label>
+            </FieldLabel>
             <Input
               type='number'
               min={1}
@@ -82,18 +85,18 @@ export function TextConfig({ node }: { node: QuestionNode }) {
                 })
               }
             />
-          </div>
+          </Field>
         </div>
       )}
 
       {/* Number range */}
       {isNumber && (
         <>
-          <div className='grid grid-cols-2 gap-2'>
-            <div className='space-y-1'>
-              <label className='text-muted-foreground text-[10px]'>
+          <div className='flex items-start gap-2'>
+            <Field className='flex-1'>
+              <FieldLabel className='text-muted-foreground text-[10px]'>
                 最小值
-              </label>
+              </FieldLabel>
               <Input
                 type='number'
                 className='h-7 text-xs'
@@ -105,11 +108,11 @@ export function TextConfig({ node }: { node: QuestionNode }) {
                   })
                 }
               />
-            </div>
-            <div className='space-y-1'>
-              <label className='text-muted-foreground text-[10px]'>
+            </Field>
+            <Field className='flex-1'>
+              <FieldLabel className='text-muted-foreground text-[10px]'>
                 最大值
-              </label>
+              </FieldLabel>
               <Input
                 type='number'
                 className='h-7 text-xs'
@@ -121,13 +124,13 @@ export function TextConfig({ node }: { node: QuestionNode }) {
                   })
                 }
               />
-            </div>
+            </Field>
           </div>
 
-          <div className='space-y-1'>
-            <label className='text-muted-foreground text-[11px] font-medium'>
+          <Field>
+            <FieldLabel className='text-muted-foreground text-[11px] font-medium'>
               步进值
-            </label>
+            </FieldLabel>
             <Input
               type='number'
               min={0.01}
@@ -141,12 +144,14 @@ export function TextConfig({ node }: { node: QuestionNode }) {
                 })
               }
             />
-          </div>
+          </Field>
 
           {/* Prefix / Suffix */}
-          <div className='grid grid-cols-2 gap-2'>
-            <div className='space-y-1'>
-              <label className='text-muted-foreground text-[10px]'>前缀</label>
+          <div className='flex items-start gap-2'>
+            <Field className='flex-1'>
+              <FieldLabel className='text-muted-foreground text-[10px]'>
+                前缀
+              </FieldLabel>
               <Input
                 className='h-7 text-xs'
                 value={config.prefix ?? ''}
@@ -155,9 +160,11 @@ export function TextConfig({ node }: { node: QuestionNode }) {
                   updateNodeConfig(node.id, { prefix: e.target.value })
                 }
               />
-            </div>
-            <div className='space-y-1'>
-              <label className='text-muted-foreground text-[10px]'>后缀</label>
+            </Field>
+            <Field className='flex-1'>
+              <FieldLabel className='text-muted-foreground text-[10px]'>
+                后缀
+              </FieldLabel>
               <Input
                 className='h-7 text-xs'
                 value={config.suffix ?? ''}
@@ -166,17 +173,17 @@ export function TextConfig({ node }: { node: QuestionNode }) {
                   updateNodeConfig(node.id, { suffix: e.target.value })
                 }
               />
-            </div>
+            </Field>
           </div>
         </>
       )}
 
       {/* Textarea rows */}
       {isTextArea && (
-        <div className='space-y-1'>
-          <label className='text-muted-foreground text-[11px] font-medium'>
+        <Field>
+          <FieldLabel className='text-muted-foreground text-[11px] font-medium'>
             默认行数
-          </label>
+          </FieldLabel>
           <Input
             type='number'
             min={2}
@@ -187,15 +194,15 @@ export function TextConfig({ node }: { node: QuestionNode }) {
               updateNodeConfig(node.id, { textAreaRows: +e.target.value })
             }
           />
-        </div>
+        </Field>
       )}
 
       {/* Format for text (email, phone, url, etc.) */}
       {node.type === 'text' && (
-        <div className='space-y-1.5 pt-1'>
-          <label className='text-muted-foreground text-[11px] font-medium'>
+        <Field className='pt-1'>
+          <FieldLabel className='text-muted-foreground text-[11px] font-medium'>
             输入格式校验
-          </label>
+          </FieldLabel>
           <Select
             value={config.format ?? 'none'}
             onValueChange={(v) =>
@@ -217,8 +224,8 @@ export function TextConfig({ node }: { node: QuestionNode }) {
               <SelectItem value='letter_only'>纯字母</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </Field>
       )}
-    </div>
+    </FieldGroup>
   )
 }

@@ -1,20 +1,7 @@
 import { useEffect, useRef } from 'react'
-import {
-  DndContext,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core'
-import {
-  useSortable,
-  SortableContext,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable'
+import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Copy, GripVertical, Plus, Trash2 } from 'lucide-react'
+import { Copy, GripVertical, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -24,15 +11,26 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { QUESTION_TYPE_MAP } from '@/features/survey-builder/constants'
-import { useOptionsManager } from '@/features/survey-builder/hooks/use-options-manager'
+import {
+  QUESTION_TYPE_MAP,
+  isLayoutNode,
+} from '@/features/survey-builder/constants'
 import {
   useBuilderStore,
   useVisibleNodeNumber,
 } from '@/features/survey-builder/store'
 import type { QuestionNode } from '@/features/survey-builder/types'
-import { SortableInputRow } from '../panel/configs/sortable-input-row'
 import { QuestionPreview } from './question-preview'
+
+// Editors
+import { InlineOptionEditor } from '../editors/choice-editor'
+import { VisualMatrixEditor } from '../editors/matrix-editor'
+import { InlineImageChoiceEditor } from '../editors/image-choice-editor'
+import { InlineRankingEditor } from '../editors/ranking-editor'
+import { InlineRatingEditor } from '../editors/rating-editor'
+import { InlineNpsEditor } from '../editors/nps-editor'
+import { InlineRichTextEditor } from '../editors/rich-text-editor'
+
 
 interface Props {
   node: QuestionNode
@@ -59,20 +57,19 @@ export function QuestionCard({ node }: Props) {
   } = useSortable({ id: node.id })
 
   const typeConfig = QUESTION_TYPE_MAP[node.type]
-  const hasOptions = [
-    'single_choice',
-    'multiple_choice',
-    'dropdown',
-    'ranking',
-    'image_choice',
-  ].includes(node.type)
+  const hasOptions = ['single_choice', 'multiple_choice', 'dropdown'].includes(
+    node.type
+  )
+  const isMatrix = ['matrix_single', 'matrix_multiple'].includes(node.type)
+  const isImageChoice = node.type === 'image_choice'
+  const isRanking = node.type === 'ranking'
+  const isFillIn = node.type === 'fill_in'
+  const isRating = node.type === 'rating'
+  const isNPS = node.type === 'nps'
+  const isLayout = isLayoutNode(node.type)
 
-  useEffect(() => {
-    if (isSelected) {
-      // Autosize is now handled by the component itself,
-      // but we might still need to trigger initial focus or something.
-    }
-  }, [isSelected])
+  // 解析填空内容的正则：支持 (), （）, 连续下划线 ___, 连续全角下划线 ＿＿＿
+  const FILL_IN_REGEX = /(\(\)|（）|__+|＿＿+)/g
 
   useEffect(() => {
     if (isSelected && !prevSelected.current) {
@@ -87,16 +84,23 @@ export function QuestionCard({ node }: Props) {
         ref={setNodeRef}
         style={{ transform: CSS.Transform.toString(transform), transition }}
         className={cn(
-          'group border-border/25 bg-background relative border-b transition-all duration-100',
-          // ✅ 选中态：用 primary token，不再硬编码蓝色
+          'group relative border-b border-border/40 transition-all duration-200',
           isSelected
-            ? 'bg-primary/3 shadow-[inset_2.5px_0_0_var(--color-primary)]'
-            : 'hover:bg-muted/50 hover:border-border/60 hover:shadow-sm',
-          isDragging && 'z-50 rotate-[0.3deg] opacity-50 shadow-lg'
+            ? 'z-10 border-l-4 border-l-primary bg-background shadow-md'
+            : 'border-l-4 border-l-transparent bg-background/50 hover:bg-muted/30',
+          isDragging &&
+            'z-50 rotate-1 opacity-90 shadow-xl shadow-black/5 ring-1 ring-border'
         )}
         onClick={(e) => {
           e.stopPropagation()
-          selectNode(node.id)
+          if (!isSelected) {
+            selectNode(node.id)
+          }
+        }}
+        onFocusCapture={() => {
+          if (!isSelected) {
+            selectNode(node.id)
+          }
         }}
       >
         {/* 拖拽手柄 */}
@@ -104,9 +108,9 @@ export function QuestionCard({ node }: Props) {
           {...attributes}
           {...listeners}
           className={cn(
-            'text-border/40 absolute top-3.5 left-1.5 cursor-grab transition-all',
-            'hover:text-muted-foreground opacity-0 group-hover:opacity-100',
-            isSelected && 'opacity-50'
+            'absolute left-2 top-1/2 -translate-y-1/2 cursor-grab rounded p-1 transition-all',
+            'text-transparent hover:bg-muted hover:text-foreground group-hover:text-muted-foreground/30',
+            isSelected && 'text-muted-foreground/50'
           )}
         >
           <GripVertical className='h-4 w-4' />
@@ -115,39 +119,39 @@ export function QuestionCard({ node }: Props) {
         {/* 右上角操作栏 */}
         <div
           className={cn(
-            'absolute top-0 right-0 z-10 flex overflow-hidden rounded-bl-lg',
-            'border-border/30 bg-background/95 border-b border-l shadow-sm backdrop-blur-sm',
-            'translate-y-0 opacity-0 transition-all duration-150',
-            'group-hover:opacity-100',
-            isSelected && 'opacity-100'
+            'absolute right-4 top-4 z-10 flex items-center gap-0.5 rounded-md border bg-background/95 p-0.5 shadow-sm backdrop-blur-sm transition-all duration-200',
+            'translate-y-1 opacity-0 group-hover:translate-y-0 group-hover:opacity-100',
+            isSelected && 'translate-y-0 opacity-100'
           )}
         >
-          <Tooltip delayDuration={400}>
+          <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
               <Button
                 variant='ghost'
-                className='border-border/25 text-muted-foreground/60 hover:bg-muted hover:text-foreground h-7 w-8 items-center justify-center rounded-none border-r transition'
+                size='icon'
+                className='h-7 w-7 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
                 onClick={(e) => {
                   e.stopPropagation()
                   duplicateNode(node.id)
                 }}
               >
-                <Copy className='h-3 w-3' />
+                <Copy className='h-3.5 w-3.5' />
               </Button>
             </TooltipTrigger>
             <TooltipContent>复制题目</TooltipContent>
           </Tooltip>
-          <Tooltip delayDuration={400}>
+          <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
               <Button
                 variant='ghost'
-                className='text-muted-foreground/60 h-7 w-8 items-center justify-center rounded-none transition hover:bg-red-50 hover:text-red-500'
+                size='icon'
+                className='text-muted-foreground hover:bg-destructive/10 hover:text-destructive h-7 w-7 rounded-sm transition-colors'
                 onClick={(e) => {
                   e.stopPropagation()
                   removeNode(node.id)
                 }}
               >
-                <Trash2 className='h-3 w-3' />
+                <Trash2 className='h-4 w-4' />
               </Button>
             </TooltipTrigger>
             <TooltipContent>删除题目</TooltipContent>
@@ -155,91 +159,119 @@ export function QuestionCard({ node }: Props) {
         </div>
 
         {/* 内容区域 */}
-        <div className='px-3 py-3 pr-20 pl-7'>
+        <div className={cn('px-8 py-8 lg:pr-24 transition-all', isSelected ? 'pl-8' : 'pl-8')}>
           {/* Meta row */}
-          <div className='mb-2 flex items-center gap-1.5'>
-            {num !== undefined && (
-              <Badge
-                variant={isSelected ? 'default' : 'secondary'}
+          <div className='mb-3 flex items-center gap-2'>
+            {!isLayout && num !== undefined && (
+              <span
                 className={cn(
-                  'h-4 w-4 shrink-0 rounded-sm p-0 font-mono text-[9px] font-bold shadow-none',
+                  'flex h-5 min-w-[20px] items-center justify-center rounded px-1.5 font-mono text-[11px] font-bold select-none transition-colors',
                   isSelected
-                    ? 'bg-primary'
-                    : 'bg-secondary text-muted-foreground'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'bg-muted text-muted-foreground/70'
                 )}
               >
                 {String(num).padStart(2, '0')}
-              </Badge>
+              </span>
             )}
             <span
               className={cn(
-                'text-[10px] font-medium transition-colors',
-                // ✅ 类型标签用 primary token
-                isSelected ? 'text-primary/70' : 'text-muted-foreground/50'
+                'text-[10px] font-bold tracking-widest uppercase transition-colors',
+                isLayout 
+                  ? 'bg-muted/50 text-muted-foreground/40 rounded px-1.5 py-0.5' 
+                  : isSelected ? 'text-primary' : 'text-muted-foreground/60'
               )}
             >
               {typeConfig?.label}
             </span>
-            {node.required && (
+            {!isLayout && node.required && (
               <Badge
                 variant='destructive'
-                className='ml-auto border-none bg-red-50 px-1.5 py-0.5 text-[9px] font-bold text-red-500 shadow-none hover:bg-red-50'
+                className='ml-auto bg-destructive/10 px-1.5 text-[9px] font-bold tracking-wider text-destructive hover:bg-destructive/20 uppercase shadow-none'
               >
                 必填
               </Badge>
             )}
           </div>
 
-          {/* Title */}
-          {isSelected ? (
-            <textarea
-              ref={titleRef}
-              className={cn(
-                'placeholder:text-muted-foreground/30 w-full resize-none border-none bg-transparent ring-0 outline-none',
-                'mb-1.5 field-sizing-content min-h-[1.5em] p-0 leading-relaxed',
-                'text-foreground text-sm font-medium'
+          {/* Title Area */}
+          {!isLayout && (
+            <div className='relative mb-2 min-h-[1.5em] w-full cursor-text leading-snug'>
+              {isFillIn && !isSelected ? (
+                <div
+                  className={cn(
+                    'text-foreground text-lg font-medium',
+                    !node.title && 'text-muted-foreground/40 italic font-normal'
+                  )}
+                >
+                  {node.title
+                    ?.split(FILL_IN_REGEX)
+                    .map((part, i) =>
+                      FILL_IN_REGEX.test(part) ? (
+                        <span
+                          key={i}
+                          className='mx-1 inline-block min-w-[60px] border-b-2 border-primary/30 bg-primary/5 align-baseline transition-all'
+                        />
+                      ) : (
+                        <span key={i}>{part}</span>
+                      )
+                    ) || '输入问题标题...'}
+                </div>
+              ) : (
+                <textarea
+                  ref={titleRef}
+                  className={cn(
+                    'w-full resize-none border-none bg-transparent p-0 outline-none ring-0 placeholder:text-muted-foreground/30',
+                    'field-sizing-content min-h-[1.5em] leading-relaxed',
+                    'text-foreground text-lg font-medium'
+                  )}
+                  value={node.title}
+                  placeholder='输入问题标题，支持 ()、___ 等占位符...'
+                  rows={1}
+                  onChange={(e) => updateNode(node.id, { title: e.target.value })}
+                  autoFocus={isFillIn && isSelected}
+                />
               )}
-              value={node.title}
-              placeholder='输入问题标题...'
-              rows={1}
-              onChange={(e) => updateNode(node.id, { title: e.target.value })}
-              onClick={(e) => e.stopPropagation()}
-              onFocus={(e) => e.stopPropagation()}
-            />
-          ) : (
-            <div className='mb-2'>
-              {node.required && (
-                <span className='mr-1.5 inline-block h-1.5 w-1.5 -translate-y-0.5 rounded-full bg-red-500' />
-              )}
-              <span
-                className={cn(
-                  'text-sm leading-snug font-medium',
-                  !node.title && 'text-muted-foreground/40 italic'
-                )}
-              >
-                {node.title || '（未填写问题标题）'}
-              </span>
             </div>
           )}
 
-          {/* Description input */}
-          {isSelected && (
-            <input
-              className='text-muted-foreground/70 placeholder:text-muted-foreground/30 mb-2.5 w-full rounded bg-transparent text-xs ring-0 outline-none focus:outline-none'
-              value={node.description ?? ''}
-              placeholder='添加描述说明（可选）...'
-              onChange={(e) =>
-                updateNode(node.id, { description: e.target.value })
-              }
-              onClick={(e) => e.stopPropagation()}
-            />
+          {/* Description */}
+          {!isLayout && (
+            isSelected ? (
+              <textarea
+                className='mb-5 w-full resize-none border-none bg-transparent p-0 text-sm leading-relaxed text-muted-foreground/80 outline-none ring-0 placeholder:text-muted-foreground/40 focus:outline-none field-sizing-content min-h-[1.5em]'
+                value={node.description ?? ''}
+                rows={1}
+                placeholder='添加描述说明（可选）...'
+                onChange={(e) =>
+                  updateNode(node.id, { description: e.target.value })
+                }
+              />
+            ) : node.description ? (
+              <div className='mb-5 w-full whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground/70'>
+                {node.description}
+              </div>
+            ) : null
           )}
 
-          {/* Question body */}
-          {isSelected && hasOptions ? (
-            <InlineOptionEditor node={node} />
+          {node.type === 'rich_text' && isSelected ? (
+            <InlineRichTextEditor node={node} />
           ) : (
-            <QuestionPreview node={node} />
+            isFillIn ? null : isSelected && hasOptions ? (
+              <InlineOptionEditor node={node} />
+            ) : isSelected && isMatrix ? (
+              <VisualMatrixEditor node={node} />
+            ) : isSelected && isImageChoice ? (
+              <InlineImageChoiceEditor node={node} />
+            ) : isSelected && isRanking ? (
+              <InlineRankingEditor node={node} />
+            ) : isSelected && isRating ? (
+              <InlineRatingEditor node={node} />
+            ) : isSelected && isNPS ? (
+              <InlineNpsEditor node={node} />
+            ) : (
+              <QuestionPreview node={node} />
+            )
           )}
         </div>
       </div>
@@ -247,86 +279,4 @@ export function QuestionCard({ node }: Props) {
   )
 }
 
-// 行内选项编辑器
-function InlineOptionEditor({ node }: { node: QuestionNode }) {
-  const options = node.config.options ?? []
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
-  )
-
-  const { save, addOption, removeOption, updateLabel } = useOptionsManager(
-    node.id,
-    options
-  )
-
-  const handleDragEnd = ({ active, over }: DragEndEvent) => {
-    if (!over || active.id === over.id) return
-    const oldIdx = options.findIndex((o) => o.id === active.id)
-    const newIdx = options.findIndex((o) => o.id === over.id)
-    save(arrayMove(options, oldIdx, newIdx))
-  }
-
-  return (
-    <div className='flex flex-col' onClick={(e) => e.stopPropagation()}>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={options.map((o) => o.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          {options.map((opt, i) => (
-            <SortableInputRow
-              key={opt.id}
-              id={opt.id}
-              value={opt.label}
-              placeholder={`选项 ${i + 1}`}
-              onChange={(label) => updateLabel(opt.id, label)}
-              onDelete={() => removeOption(opt.id)}
-              onEnter={() => addOption(i)}
-              onBackspaceEmpty={() => {
-                if (options.length > 1) {
-                  const prevId = i > 0 ? options[i - 1].id : options[1]?.id
-                  removeOption(opt.id)
-                  if (prevId) {
-                    setTimeout(() => {
-                      const el = document.querySelector<HTMLInputElement>(
-                        `[data-opt-id="${prevId}"]`
-                      )
-                      el?.focus()
-                    }, 30)
-                  }
-                }
-              }}
-              className='border-none px-0 py-0.5'
-              showGrip={false}
-              prefix={
-                <span
-                  className={cn(
-                    'border-muted-foreground/25 bg-background mt-1.5 h-3.5 w-3.5 shrink-0 border-2 transition-colors',
-                    node.type === 'single_choice'
-                      ? 'rounded-full'
-                      : 'rounded-[3px]'
-                  )}
-                />
-              }
-            />
-          ))}
-        </SortableContext>
-      </DndContext>
-
-      <Button
-        variant='ghost'
-        size='sm'
-        onClick={() => addOption(options.length - 1)}
-        className='text-muted-foreground/40 hover:bg-muted/40 hover:text-primary mt-1 h-7 gap-1.5 rounded px-1.5 text-[11px] font-medium transition'
-      >
-        <Plus className='h-3 w-3' />
-        添加选项
-      </Button>
-    </div>
-  )
-}

@@ -39,13 +39,12 @@ function DraggableTypeItem({
       {...attributes}
       {...listeners}
       className={cn(
-        'group flex w-full cursor-grab items-center gap-2 rounded-md px-2 py-1.5',
-        'text-foreground/65 border border-transparent text-xs font-medium select-none',
-        'transition-all duration-100',
-        'hover:border-border/50 hover:bg-background hover:text-foreground hover:shadow-sm',
-        'active:scale-[0.97] active:cursor-grabbing',
+        'group flex w-full cursor-pointer items-center gap-2.5 rounded-sm px-2 py-1.5',
+        'text-muted-foreground text-xs font-medium transition-all select-none',
+        'hover:bg-muted/50 hover:text-foreground',
+        'active:bg-muted/80 active:scale-[0.98]',
         isDragging && 'opacity-30',
-        collapsed && 'justify-center'
+        collapsed && 'justify-center px-0'
       )}
       onClick={() =>
         addNode(item.type as NodeType, { afterId: selectedNodeId })
@@ -54,14 +53,11 @@ function DraggableTypeItem({
     >
       <Icon
         className={cn(
-          'group-hover:text-primary shrink-0 transition-colors',
-          collapsed ? 'h-4 w-4' : 'h-3.5 w-3.5',
-          'text-primary/50'
+          'text-muted-foreground/50 group-hover:text-foreground shrink-0 transition-colors',
+          collapsed ? 'h-4 w-4' : 'h-4 w-4'
         )}
       />
-      {!collapsed && (
-        <span className='truncate leading-none'>{item.label}</span>
-      )}
+      {!collapsed && <span className='truncate'>{item.label}</span>}
     </button>
   )
 
@@ -97,22 +93,22 @@ export function TypeSidebar() {
     <TooltipProvider>
       <aside
         className={cn(
-          'border-border/50 bg-muted/20 relative flex shrink-0 flex-col border-r transition-all duration-200',
-          collapsed ? 'w-11' : 'w-52'
+          'bg-background relative hidden shrink-0 flex-col border-r transition-all duration-300 md:flex',
+          collapsed ? 'w-12' : 'w-56'
         )}
       >
         {/* 顶部搜索与折叠控制 */}
         <div
           className={cn(
-            'border-border/40 bg-background/60 flex h-10 shrink-0 items-center border-b',
-            collapsed ? 'justify-center px-0' : 'gap-2 px-2'
+            'flex h-14 shrink-0 items-center border-b',
+            collapsed ? 'justify-center px-0' : 'gap-2 px-3'
           )}
         >
           {!collapsed && (
             <div className='relative flex-1'>
-              <Search className='text-muted-foreground/40 absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2' />
+              <Search className='text-muted-foreground/50 absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2' />
               <Input
-                className='bg-background h-8 w-full pl-8 text-xs'
+                className='bg-muted/40 hover:bg-muted/60 focus-visible:bg-background focus-visible:border-border h-7 w-full rounded-md border-transparent pl-8 text-xs shadow-none transition-colors'
                 placeholder='搜索题型…'
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -121,11 +117,11 @@ export function TypeSidebar() {
           )}
           <button
             onClick={() => setCollapsed((v) => !v)}
-            className='text-muted-foreground/50 hover:bg-accent hover:text-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded transition'
+            className='text-muted-foreground/50 hover:bg-muted hover:text-foreground flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors'
           >
             <ChevronLeft
               className={cn(
-                'h-3.5 w-3.5 transition-transform duration-200',
+                'h-4 w-4 transition-transform duration-300',
                 collapsed && 'rotate-180'
               )}
             />
@@ -133,29 +129,30 @@ export function TypeSidebar() {
         </div>
 
         {/* 题型列表分类展示 */}
-        <div className='scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border/30 flex-1 overflow-y-auto py-2'>
+        <div className='scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border/30 flex-1 overflow-y-auto p-2'>
           {QUESTION_TYPE_CATEGORIES.map((cat, catIdx) => {
             const items = filtered.filter((t) => t.category === cat)
             if (!items.length) return null
 
             return (
-              <div key={cat} className={cn('px-1.5', catIdx > 0 && 'mt-1')}>
+              <div key={cat} className={cn(catIdx > 0 && 'mt-4')}>
                 {!collapsed && (
-                  <div className='mb-1 flex items-center gap-2 px-1 pt-2.5'>
-                    <span className='text-muted-foreground/40 text-[9px] font-bold tracking-widest whitespace-nowrap uppercase'>
+                  <div className='mt-2 mb-1.5 flex items-center px-2'>
+                    <span className='text-muted-foreground/50 text-[10px] font-semibold tracking-wider uppercase'>
                       {cat}
                     </span>
-                    <div className='bg-border/25 h-px flex-1' />
                   </div>
                 )}
                 {collapsed && catIdx > 0 && (
-                  <div className='bg-border/25 mx-auto mt-2 mb-1.5 h-px w-5' />
+                  <div className='bg-border/40 mx-auto mt-2 mb-1 h-px w-6' />
                 )}
 
                 <div
                   className={cn(
-                    'grid gap-0.5',
-                    collapsed ? 'grid-cols-1' : 'grid-cols-2'
+                    'grid',
+                    collapsed
+                      ? 'grid-cols-1 gap-1'
+                      : 'grid-cols-2 gap-x-1 gap-y-0.5'
                   )}
                 >
                   {items.map((item) => (
@@ -169,15 +166,6 @@ export function TypeSidebar() {
               </div>
             )
           })}
-
-          {/* 操作提示 */}
-          {!collapsed && (
-            <div className='mt-4 px-3 pb-2'>
-              <p className='text-muted-foreground/35 text-center text-[10px]'>
-                点击添加 · 拖拽到画布指定位置
-              </p>
-            </div>
-          )}
         </div>
       </aside>
     </TooltipProvider>

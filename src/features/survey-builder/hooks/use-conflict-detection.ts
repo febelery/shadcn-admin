@@ -8,7 +8,8 @@ import { detectConflicts } from '../utils'
  * 封装了冲突检测逻辑，避免在多个组件中重复计算
  */
 export function useConflictDetection() {
-  const { nodes, logic } = useBuilderStore()
+  const nodes = useBuilderStore((s) => s.nodes)
+  const logic = useBuilderStore((s) => s.logic)
 
   // 计算所有冲突的目标
   const conflicts = useMemo(() => detectConflicts(nodes, logic), [nodes, logic])

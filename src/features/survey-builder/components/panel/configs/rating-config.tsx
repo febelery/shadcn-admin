@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
@@ -7,7 +8,7 @@ import type { QuestionNode } from '@/features/survey-builder/types'
 
 // 评分配置组件
 export function RatingConfig({ node }: { node: QuestionNode }) {
-  const { updateNodeConfig } = useBuilderStore()
+  const updateNodeConfig = useBuilderStore((s) => s.updateNodeConfig)
   const config = node.config as {
     starCount?: number
     starShape?: 'star' | 'heart' | 'thumb' | 'circle'
@@ -28,13 +29,13 @@ export function RatingConfig({ node }: { node: QuestionNode }) {
   }
 
   return (
-    <div className='space-y-4 px-3 pb-2'>
+    <FieldGroup className='px-3 pb-2'>
       {/* 评分级数滑动条 */}
-      <div className='space-y-3'>
+      <Field>
         <div className='flex items-center justify-between'>
-          <label className='text-muted-foreground text-[11px] font-medium'>
+          <FieldLabel className='text-muted-foreground text-[11px] font-medium'>
             评分级数
-          </label>
+          </FieldLabel>
           <span className='bg-secondary text-foreground rounded px-1.5 py-0.5 font-mono text-xs font-bold'>
             {starCount}
           </span>
@@ -54,13 +55,13 @@ export function RatingConfig({ node }: { node: QuestionNode }) {
           <span>5</span>
           <span>10</span>
         </div>
-      </div>
+      </Field>
 
       {/* Shape */}
-      <div className='space-y-1.5'>
-        <label className='text-muted-foreground text-[11px] font-medium'>
+      <Field>
+        <FieldLabel className='text-muted-foreground text-[11px] font-medium'>
           形状
-        </label>
+        </FieldLabel>
         <div className='grid grid-cols-4 gap-1'>
           {Object.entries(shapeMap).map(([shape, icon]) => (
             <button
@@ -89,12 +90,14 @@ export function RatingConfig({ node }: { node: QuestionNode }) {
             </button>
           ))}
         </div>
-      </div>
+      </Field>
 
       {/* Labels */}
-      <div className='grid grid-cols-2 gap-2'>
-        <div className='space-y-1'>
-          <label className='text-muted-foreground text-[10px]'>低分标签</label>
+      <div className='flex items-start gap-2'>
+        <Field className='flex-1'>
+          <FieldLabel className='text-muted-foreground text-[10px]'>
+            低分标签
+          </FieldLabel>
           <Input
             className='h-7 text-xs'
             value={config.lowLabel ?? ''}
@@ -103,9 +106,11 @@ export function RatingConfig({ node }: { node: QuestionNode }) {
               updateNodeConfig(node.id, { lowLabel: e.target.value })
             }
           />
-        </div>
-        <div className='space-y-1'>
-          <label className='text-muted-foreground text-[10px]'>高分标签</label>
+        </Field>
+        <Field className='flex-1'>
+          <FieldLabel className='text-muted-foreground text-[10px]'>
+            高分标签
+          </FieldLabel>
           <Input
             className='h-7 text-xs'
             value={config.highLabel ?? ''}
@@ -114,7 +119,7 @@ export function RatingConfig({ node }: { node: QuestionNode }) {
               updateNodeConfig(node.id, { highLabel: e.target.value })
             }
           />
-        </div>
+        </Field>
       </div>
 
       {/* Options */}
@@ -144,13 +149,13 @@ export function RatingConfig({ node }: { node: QuestionNode }) {
           />
         </div>
       </div>
-    </div>
+    </FieldGroup>
   )
 }
 
 // ── NPS Config ────────────────────────────────────────────
 export function NpsConfig({ node }: { node: QuestionNode }) {
-  const { updateNodeConfig } = useBuilderStore()
+  const updateNodeConfig = useBuilderStore((s) => s.updateNodeConfig)
   const config = node.config as {
     lowLabel?: string
     highLabel?: string
@@ -169,9 +174,9 @@ export function NpsConfig({ node }: { node: QuestionNode }) {
   )
 
   return (
-    <div className='space-y-4 px-3 pb-2'>
+    <FieldGroup className='px-3 pb-2'>
       {/* Preview */}
-      <div className='space-y-1'>
+      <Field>
         <div className='flex gap-0.5'>
           {range.map((v) => (
             <div
@@ -195,13 +200,13 @@ export function NpsConfig({ node }: { node: QuestionNode }) {
             <span>{highLabel}</span>
           </div>
         )}
-      </div>
+      </Field>
 
       {/* Scale start */}
-      <div className='space-y-1.5'>
-        <label className='text-muted-foreground text-[11px] font-medium'>
+      <Field>
+        <FieldLabel className='text-muted-foreground text-[11px] font-medium'>
           起始刻度
-        </label>
+        </FieldLabel>
         <div className='flex gap-2'>
           {([0, 1] as const).map((v) => (
             <button
@@ -218,14 +223,14 @@ export function NpsConfig({ node }: { node: QuestionNode }) {
             </button>
           ))}
         </div>
-      </div>
+      </Field>
 
       {/* Labels */}
-      <div className='grid grid-cols-2 gap-2'>
-        <div className='space-y-1'>
-          <label className='text-muted-foreground text-[10px]'>
+      <div className='flex items-start gap-2'>
+        <Field className='flex-1'>
+          <FieldLabel className='text-muted-foreground text-[10px]'>
             低分端标签
-          </label>
+          </FieldLabel>
           <Input
             className='h-7 text-xs'
             value={lowLabel}
@@ -234,11 +239,11 @@ export function NpsConfig({ node }: { node: QuestionNode }) {
               updateNodeConfig(node.id, { lowLabel: e.target.value })
             }
           />
-        </div>
-        <div className='space-y-1'>
-          <label className='text-muted-foreground text-[10px]'>
+        </Field>
+        <Field className='flex-1'>
+          <FieldLabel className='text-muted-foreground text-[10px]'>
             高分端标签
-          </label>
+          </FieldLabel>
           <Input
             className='h-7 text-xs'
             value={highLabel}
@@ -247,7 +252,7 @@ export function NpsConfig({ node }: { node: QuestionNode }) {
               updateNodeConfig(node.id, { highLabel: e.target.value })
             }
           />
-        </div>
+        </Field>
       </div>
 
       {/* Show labels toggle */}
@@ -299,6 +304,6 @@ export function NpsConfig({ node }: { node: QuestionNode }) {
           ))}
         </div>
       </div>
-    </div>
+    </FieldGroup>
   )
 }

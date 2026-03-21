@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils'
 import { useBuilderStore } from '@/features/survey-builder/store'
 
 export function SurveyHeader() {
-  const { meta, updateMeta, setContextMode } = useBuilderStore()
+  const { meta, updateMeta, selectNode } = useBuilderStore()
   const fontStyle = meta.fontColor ? { color: meta.fontColor } : {}
   const subFontStyle = meta.fontColor
     ? { color: meta.fontColor, opacity: 0.5 }
@@ -14,56 +14,49 @@ export function SurveyHeader() {
   return (
     <div
       className={cn(
-        'group relative w-full max-w-3xl cursor-pointer overflow-hidden rounded-sm transition-all duration-300 xl:max-w-4xl 2xl:max-w-5xl'
+        'group relative w-full cursor-pointer overflow-hidden rounded-t-lg border-b border-border/10 bg-background transition-all',
+        'hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
       )}
       style={{
         background:
-          meta.coverType === 'color' ? meta.coverColor : 'hsl(0 0% 9%)',
+          meta.coverType === 'color' ? meta.coverColor : 'var(--background)',
       }}
-      onClick={() => setContextMode('survey')}
+      onClick={() => selectNode(null)}
     >
       {/* Cover image */}
       {meta.coverType === 'image' && meta.cover && (
         <>
           <div
-            className='absolute inset-0 bg-cover bg-center'
+            className='absolute inset-0 bg-cover bg-center transition-transform duration-500'
             style={{ backgroundImage: `url(${meta.cover})` }}
           />
-          <div className='absolute inset-0 bg-black/50' />
+          <div className='absolute inset-0 bg-black/40 transition-colors group-hover:bg-black/50' />
         </>
       )}
 
-      {/* Subtle shimmer effect */}
-      <div
-        className='pointer-events-none absolute inset-0'
-        style={{
-          background:
-            'linear-gradient(135deg,transparent 40%,rgba(255,255,255,.04) 50%,transparent 60%)',
-          backgroundSize: '200% 200%',
-        }}
-      />
-
-      <div className='relative z-2 px-6 py-5'>
+      <div className='relative z-10 px-8 py-10 sm:px-12'>
         <input
-          className='mb-1 w-full bg-transparent text-[20px] font-bold tracking-tight transition-colors outline-none placeholder:text-white'
+          className='mb-2 w-full bg-transparent text-2xl font-bold outline-none transition-colors placeholder:text-foreground/40 sm:text-3xl'
           style={fontStyle}
           value={meta.title}
-          placeholder='问卷标题'
+          placeholder='未命名问卷'
           onChange={(e) => updateMeta({ title: e.target.value })}
           onClick={(e) => e.stopPropagation()}
         />
         <textarea
           rows={2}
-          className='w-full resize-none bg-transparent text-xs leading-relaxed transition-colors outline-none placeholder:text-white'
+          className='w-full resize-none bg-transparent text-sm leading-relaxed outline-none transition-colors placeholder:text-foreground/30 sm:text-base field-sizing-content'
           style={subFontStyle}
           value={meta.description}
-          placeholder='添加问卷描述…'
+          placeholder='添加问卷描述说明...'
           onChange={(e) => updateMeta({ description: e.target.value })}
           onClick={(e) => e.stopPropagation()}
         />
-        <div className='mt-3 flex items-center justify-end'>
+        
+        {/* Hover Edit Hint */}
+        <div className='absolute right-6 top-6 opacity-0 transition-opacity group-hover:opacity-100'>
           <span
-            className='text-[10px] opacity-0 transition-opacity group-hover:opacity-100'
+            className='rounded-md bg-muted/60 px-2 py-1 text-[10px] font-medium tracking-wide text-foreground/70 backdrop-blur-sm'
             style={badgeFontStyle}
           >
             编辑设置

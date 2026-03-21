@@ -1,6 +1,14 @@
 'use client'
 import React from 'react'
-import { Plus } from 'lucide-react'
+import {
+  Calendar,
+  Clock,
+  Paperclip,
+  MapPin,
+  Star,
+  Heart,
+  ThumbsUp,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { QuestionNode, NodeType } from '@/features/survey-builder/types'
 
@@ -13,14 +21,14 @@ const ChoicePreview: React.FC<PreviewProps> = ({ node }) => {
   const isMulti = node.type === 'multiple_choice'
   return (
     <div className='flex flex-col gap-1'>
-      {opts.slice(0, 5).map((opt) => (
+      {opts.slice(0, 5).map((opt: any) => (
         <div
           key={opt.id}
-          className='text-muted-foreground/70 flex items-center gap-2 text-xs'
+          className='text-muted-foreground/70 flex h-7 items-center gap-2 text-xs'
         >
           <span
             className={cn(
-              'border-border/50 h-3.5 w-3.5 shrink-0 border',
+              'border-muted-foreground/25 bg-background h-3.5 w-3.5 shrink-0 border-2',
               isMulti ? 'rounded-[3px]' : 'rounded-full'
             )}
           />
@@ -113,20 +121,48 @@ const InputPreview: React.FC<PreviewProps> = ({ node }) => (
   </div>
 )
 
-const FillInPreview: React.FC<PreviewProps> = () => (
-  <p className='text-muted-foreground/60 text-xs leading-relaxed'>
-    请在以下括号内填写答案：（
-    <span className='border-muted-foreground/30 inline-block min-w-20 border-b align-bottom' />
-    ）
-  </p>
-)
+const FillInPreview: React.FC<PreviewProps> = ({ node }) => {
+  const content = node.title || ''
+  const parts = content.split(/(\(\))/)
+
+  if (!content.includes('()')) {
+    return (
+      <p className='text-muted-foreground/40 text-[11px] leading-relaxed italic'>
+        在题目标题中输入 () 即可创建填空位...
+      </p>
+    )
+  }
+
+  return (
+    <div className='flex flex-wrap items-center gap-x-1.5 gap-y-2.5 leading-relaxed'>
+      {parts.map((part, i) =>
+        part === '()' ? (
+          <div
+            key={i}
+            className='border-primary/20 bg-primary/5 h-6 min-w-[60px] rounded border-b-2 transition-all'
+          >
+            <div className='invisible h-full px-2 text-xs'>placeholder</div>
+          </div>
+        ) : (
+          <span key={i} className='text-foreground/70 text-sm'>
+            {part}
+          </span>
+        )
+      )}
+    </div>
+  )
+}
 
 const DateTimePreview: React.FC<PreviewProps> = ({ node }) => {
   const isDate = node.type.startsWith('date')
   const isRange = node.type.endsWith('range')
   return (
     <div className='border-border/35 bg-muted/25 text-muted-foreground/40 flex h-7 items-center gap-2 rounded-md border px-2.5 text-xs'>
-      <span>{isDate ? '📅' : '🕐'}</span>
+      {isDate ? (
+        <Calendar className='h-3.5 w-3.5' />
+      ) : (
+        <Clock className='h-3.5 w-3.5' />
+      )}
       {isDate
         ? isRange
           ? '开始日期 — 结束日期'
@@ -140,25 +176,30 @@ const DateTimePreview: React.FC<PreviewProps> = ({ node }) => {
 
 const RatingPreview: React.FC<PreviewProps> = ({ node }) => {
   const count = node.config.starCount ?? 5
-  const shape = (node.config as any).starShape ?? 'star'
-  const filled = Math.ceil(count / 2)
-  const icons: Record<string, string> = {
-    star: '★',
-    heart: '♥',
-    thumb: '👍',
-    circle: '●',
+  const shape = node.config.starShape ?? 'star'
+  const IconProps = { className: 'h-4 w-4' }
+
+  const renderIcon = (shape: string) => {
+    switch (shape) {
+      case 'heart':
+        return <Heart {...IconProps} />
+      case 'thumb':
+        return <ThumbsUp {...IconProps} />
+      case 'circle':
+        return (
+          <div className='h-3.5 w-3.5 rounded-full border-2 border-current' />
+        )
+      case 'star':
+      default:
+        return <Star {...IconProps} />
+    }
   }
+
   return (
-    <div className='flex items-center gap-1'>
+    <div className='flex items-center gap-1.5'>
       {Array.from({ length: count }, (_, i) => (
-        <span
-          key={i}
-          className={cn(
-            'text-lg leading-none transition-colors',
-            i < filled ? 'text-amber-400/70' : 'text-muted-foreground/15'
-          )}
-        >
-          {icons[shape] || '★'}
+        <span key={i} className='text-muted-foreground/20 transition-colors'>
+          {renderIcon(shape)}
         </span>
       ))}
     </div>
@@ -194,98 +235,123 @@ const NpsPreview: React.FC<PreviewProps> = () => (
 const MatrixPreview: React.FC<PreviewProps> = ({ node }) => {
   const rows = node.config.rows ?? []
   const cols = node.config.columns ?? []
-  const showRows = rows.slice(0, 3)
-  const showCols = cols.slice(0, 4)
+  const showRows = rows.slice(0, 5) // Show up to 5 rows in preview
+  const showCols = cols.slice(0, 6) // Show up to 6 columns in preview
   const isMulti = node.type === 'matrix_multiple'
 
-  if (!showRows.length || !showCols.length) {
+  if (!rows.length || !cols.length) {
     return (
-      <div className='border-border/30 text-muted-foreground/40 rounded-md border p-3 text-center text-xs'>
-        {rows.length} 行 × {cols.length} 列（点击卡片编辑）
+      <div className='border-border/60 text-muted-foreground/60 bg-muted/20 rounded-xl border p-6 text-center text-sm font-medium'>
+        矩阵题（点击卡片配置行与列）
       </div>
     )
   }
 
   return (
-    <div className='border-border/30 overflow-hidden rounded-md border text-[10px]'>
-      <div className='bg-muted/50 flex'>
-        <div className='border-border/25 w-20 shrink-0 border-r p-1.5' />
-        {showCols.map((c) => (
-          <div
-            key={c.id}
-            className='border-border/25 text-muted-foreground/60 flex-1 truncate border-r p-1.5 text-center'
-          >
-            {c.label}
-          </div>
-        ))}
-      </div>
-      {showRows.map((r) => (
-        <div key={r.id} className='border-border/25 flex border-t'>
-          <div className='border-border/25 text-muted-foreground/60 w-20 shrink-0 truncate border-r p-1.5'>
-            {r.label}
-          </div>
-          {showCols.map((c) => (
-            <div
-              key={c.id}
-              className='border-border/25 flex flex-1 items-center justify-center border-r py-1.5'
-            >
-              <span
-                className={cn(
-                  'border-border/40 h-3 w-3 border',
-                  isMulti ? 'rounded-sm' : 'rounded-full'
-                )}
-              />
-            </div>
+    <div className='border-border/80 bg-background overflow-hidden rounded-xl border text-[11px] shadow-sm'>
+      <table className='w-full border-collapse table-fixed'>
+        <colgroup>
+          <col className='w-[100px]' />
+          {showCols.map((c: any) => (
+            <col key={c.id} className='min-w-[80px]' />
           ))}
-        </div>
-      ))}
+        </colgroup>
+        <thead>
+          <tr className='bg-muted/30 border-b border-border/40'>
+            <th className='border-r border-border/40 h-10' />
+            {showCols.map((c: any) => (
+              <th
+                key={c.id}
+                className='border-r border-border/40 last:border-r-0 px-2 py-2 text-center font-semibold text-muted-foreground truncate'
+              >
+                {c.label || '...'}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {showRows.map((r: any) => (
+            <tr key={r.id} className='border-b border-border/40 last:border-b-0'>
+              <td className='bg-muted/5 border-r border-border/40 px-3 py-2.5 font-medium text-foreground truncate'>
+                {r.label || '...'}
+              </td>
+              {showCols.map((c: any) => (
+                <td
+                  key={c.id}
+                  className='border-r border-border/40 last:border-r-0 p-0'
+                >
+                  <div className='flex items-center justify-center py-2.5 opacity-20'>
+                    <span
+                      className={cn(
+                        'size-3.5 border-2 transition-all',
+                        isMulti
+                          ? 'rounded-[3px] border-border/60 shadow-sm'
+                          : 'rounded-full border-border/60'
+                      )}
+                    />
+                  </div>
+                </td>
+              ))}
+            </tr>
+          ))}
+          {/* If there are more items, show a subtle indicator */}
+          {(rows.length > 5 || cols.length > 6) && (
+            <tr className='bg-muted/5'>
+              <td
+                colSpan={showCols.length + 1}
+                className='py-1.5 text-center text-[10px] text-muted-foreground/40 italic'
+              >
+                ... 更多行列已省略 ...
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   )
 }
 
 const FileUploadPreview: React.FC<PreviewProps> = () => (
   <div className='border-border/35 text-muted-foreground/40 flex h-14 flex-col items-center justify-center gap-1.5 rounded-md border-2 border-dashed text-xs'>
-    <span className='text-base'>📎</span>
+    <Paperclip className='h-4 w-4' />
     <span>点击或拖拽文件至此</span>
   </div>
 )
 
 const SignaturePreview: React.FC<PreviewProps> = () => (
   <div className='border-border/35 bg-muted/15 flex h-16 items-center justify-center rounded-md border'>
-    <span className='text-muted-foreground/30 text-sm'>✍️ 电子签名区域</span>
+    <div className='text-muted-foreground/30 flex items-center gap-1.5 text-sm'>
+      电子签名区域
+    </div>
   </div>
 )
 
 const GeoPreview: React.FC<PreviewProps> = () => (
   <div className='bg-muted/25 text-muted-foreground/40 flex h-14 items-center justify-center gap-2 rounded-md text-xs'>
-    <span>📍</span>
+    <MapPin className='h-4 w-4' />
     <span>点击获取当前位置</span>
   </div>
 )
 
-const RepeaterPreview: React.FC<PreviewProps> = ({ node }) => (
-  <div className='space-y-1.5'>
-    <div className='border-border/30 bg-muted/20 text-muted-foreground/60 rounded border p-2 text-xs'>
-      第 1 条记录（示例行）
-    </div>
-    <div className='text-primary/70 flex items-center gap-1 text-[11px] font-medium'>
-      <Plus className='h-3 w-3' />
-      {node.config.addLabel ?? '添加一条'}
+const DividerPreview: React.FC<PreviewProps> = () => (
+  <div className='py-6' aria-hidden>
+    <div className='flex items-center gap-6'>
+      <div className='bg-border h-px flex-1' />
+      <div className='bg-border/60 size-1 rounded-full' />
+      <div className='bg-border h-px flex-1' />
     </div>
   </div>
 )
 
-const ContainerPreview: React.FC<PreviewProps> = ({ node }) => (
-  <div className='border-border/30 bg-muted/20 text-muted-foreground/50 rounded-md border p-2 text-xs'>
-    {node.type === 'group' && '题组容器 — 可包含多道子题'}
-    {node.type === 'sub_question' && '父题答案触发现开'}
-    {node.type === 'linked_choice' && '选项来源于另一道题的答案'}
-  </div>
-)
-
-const RichTextPreview: React.FC<PreviewProps> = () => (
-  <div className='border-border/25 bg-muted/15 text-muted-foreground/50 rounded-md border px-3 py-2 text-xs leading-relaxed'>
-    富文本说明区域 — 支持加粗、链接等格式
+const RichTextPreview: React.FC<PreviewProps> = ({ node }) => (
+  <div className='bg-secondary/30 relative overflow-hidden rounded-md px-4 py-3 text-sm transition-colors min-h-[4em]'>
+    <div className='flex items-start gap-3'>
+      <div className='flex-1 space-y-1.5'>
+        <p className='leading-relaxed whitespace-pre-wrap text-foreground'>
+          {node.title || <span className="text-muted-foreground/40 italic">点此在此处添加文字说明...</span>}
+        </p>
+      </div>
+    </div>
   </div>
 )
 
@@ -314,10 +380,7 @@ const PREVIEW_REGISTRY: Partial<
   file_upload: FileUploadPreview,
   signature: SignaturePreview,
   geo_location: GeoPreview,
-  repeater: RepeaterPreview,
-  group: ContainerPreview,
-  sub_question: ContainerPreview,
-  linked_choice: ContainerPreview,
+  divider: DividerPreview,
   rich_text: RichTextPreview,
 }
 

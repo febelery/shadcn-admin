@@ -21,15 +21,11 @@ export type QuestionType =
   | 'time_range'
   | 'rating'
   | 'nps'
-  | 'group'
-  | 'sub_question'
-  | 'repeater'
-  | 'linked_choice'
   | 'file_upload'
   | 'geo_location'
   | 'signature'
 
-export type LayoutType = 'block' | 'divider' | 'rich_text'
+export type LayoutType = 'divider' | 'rich_text'
 
 export type NodeType = QuestionType | LayoutType
 
@@ -66,14 +62,10 @@ export interface NodeConfig {
   allowOther?: boolean
   rows?: Array<{ id: string; label: string }>
   columns?: Array<{ id: string; label: string }>
-  minRows?: number
-  maxRows?: number
-  addLabel?: string
   minValue?: number
   maxValue?: number
   step?: number
   starCount?: number
-  sourceNodeId?: string
   minSelect?: number
   maxSelect?: number
   starShape?: string
@@ -95,7 +87,6 @@ export interface NodeConfig {
 export interface QuestionNode {
   id: string
   type: NodeType
-  parentId: string | null
   order: number
   title: string
   description?: string

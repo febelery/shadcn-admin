@@ -9,25 +9,25 @@ export function PropsPanel() {
   const { inspectorTarget, setInspectorTarget } = useBuilderStore()
 
   return (
-    <aside className='border-border bg-background flex h-full w-72 shrink-0 flex-col border-l'>
+    <aside className='bg-background hidden h-full w-72 shrink-0 flex-col border-l lg:flex'>
       <Tabs
         value={inspectorTarget}
         onValueChange={(v) => setInspectorTarget(v as any)}
         className='flex flex-1 flex-col overflow-hidden'
       >
-        <TabsList className='bg-background dark:bg-background h-10 w-full shrink-0 justify-start gap-1 rounded-none border-b p-1'>
+        <TabsList className='bg-background flex h-14 w-full shrink-0 items-center justify-start gap-1.5 rounded-none border-b px-3 py-0'>
           <TabsTrigger
             value='node'
-            className='data-[state=active]:bg-secondary flex-1 gap-1.5 text-[11px] font-medium transition-all data-[state=active]:shadow-none'
+            className='data-[state=active]:bg-muted data-[state=active]:text-foreground flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-all data-[state=active]:shadow-none'
           >
-            <LayoutTemplate className='h-3 w-3' />
+            <LayoutTemplate className='h-3.5 w-3.5 opacity-70' />
             题目属性
           </TabsTrigger>
           <TabsTrigger
             value='survey'
-            className='data-[state=active]:bg-secondary flex-1 gap-1.5 text-[11px] font-medium transition-all data-[state=active]:shadow-none'
+            className='data-[state=active]:bg-muted data-[state=active]:text-foreground flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-all data-[state=active]:shadow-none'
           >
-            <Settings2 className='h-3 w-3' />
+            <Settings2 className='h-3.5 w-3.5 opacity-70' />
             问卷设置
           </TabsTrigger>
         </TabsList>

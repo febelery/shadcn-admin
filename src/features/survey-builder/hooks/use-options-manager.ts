@@ -4,7 +4,7 @@ import { useBuilderStore } from '../store'
 import type { ChoiceOption } from '../types'
 
 export function useOptionsManager(nodeId: string, options: ChoiceOption[]) {
-  const { updateNodeConfig } = useBuilderStore()
+  const updateNodeConfig = useBuilderStore((s) => s.updateNodeConfig)
 
   const save = useCallback(
     (newOpts: ChoiceOption[]) => {

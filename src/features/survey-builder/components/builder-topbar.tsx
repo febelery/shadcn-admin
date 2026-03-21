@@ -28,10 +28,6 @@ export function BuilderTopbar() {
   const { surveyId } = useParams({ from: '/survey/builder/$surveyId' })
   const {
     meta,
-    nodes,
-    logic,
-    version,
-    extensions,
     builderMode,
     isDirty,
     setBuilderMode,
@@ -48,17 +44,20 @@ export function BuilderTopbar() {
 
   const handleSave = () => {
     if (!isDirty || isSaving) return
+
+    // 延迟读取庞大的节点树，防止由顶层导致的全局重绘
+    const state = useBuilderStore.getState()
     updateSurvey(
       {
         id: surveyId,
         data: {
           id: surveyId,
-          version: version || '1',
-          meta,
-          nodes,
-          logic,
+          version: state.version || '1',
+          meta: state.meta,
+          nodes: state.nodes,
+          logic: state.logic,
           validations: [],
-          extensions: extensions || {},
+          extensions: state.extensions || {},
         },
       },
       {
@@ -75,42 +74,38 @@ export function BuilderTopbar() {
 
   return (
     <TooltipProvider>
-      <header className='border-border/50 bg-background/95 relative z-50 flex h-11 shrink-0 items-center gap-1 border-b px-3 backdrop-blur-sm'>
+      <header className='bg-background relative z-50 flex h-14 shrink-0 items-center gap-2 border-b px-4'>
         {/* Logo */}
-        <div className='mr-1 flex items-center gap-2'>
-          <div className='bg-foreground flex h-6 w-6 items-center justify-center rounded-md'>
-            <LayoutTemplate className='text-background h-3.5 w-3.5' />
+        <div className='mr-2 flex items-center gap-2'>
+          <div className='bg-primary text-primary-foreground flex h-7 w-7 items-center justify-center rounded-md'>
+            <LayoutTemplate className='h-4 w-4' />
           </div>
-          <span className='hidden text-sm font-semibold tracking-tight sm:block'>
+          <span className='hidden text-sm font-semibold sm:block'>
             SurveyBuilder
           </span>
         </div>
 
-        <Separator orientation='vertical' className='mx-2 h-4' />
+        <Separator orientation='vertical' className='mx-2 h-5' />
 
         {/* Breadcrumb */}
-        <nav className='hidden items-center gap-1 text-xs sm:flex'>
-          <span className='text-muted-foreground/60 hover:text-muted-foreground cursor-pointer transition'>
-            问卷库
-          </span>
-          <span className='text-border'>/</span>
-          <span className='text-foreground/80 max-w-40 truncate font-medium md:max-w-[16rem]'>
+        <nav className='hidden items-center gap-2 text-sm sm:flex'>
+          <span className='text-foreground max-w-40 truncate font-medium md:max-w-[18rem]'>
             {meta.title || '未命名问卷'}
           </span>
         </nav>
 
         {/* Undo / Redo */}
-        <div className='ml-1 flex items-center'>
+        <div className='ml-2 flex items-center'>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant='ghost'
                 size='icon'
-                className='text-muted-foreground h-7 w-7 disabled:opacity-30'
+                className='text-muted-foreground hover:bg-muted h-8 w-8 disabled:opacity-30'
                 onClick={undo}
                 disabled={!canUndo}
               >
-                <Undo2 className='h-3.5 w-3.5' />
+                <Undo2 className='h-4 w-4' />
               </Button>
             </TooltipTrigger>
             <TooltipContent>撤销 ⌘Z</TooltipContent>
@@ -120,11 +115,11 @@ export function BuilderTopbar() {
               <Button
                 variant='ghost'
                 size='icon'
-                className='text-muted-foreground h-7 w-7 disabled:opacity-30'
+                className='text-muted-foreground hover:bg-muted h-8 w-8 disabled:opacity-30'
                 onClick={redo}
                 disabled={!canRedo}
               >
-                <Redo2 className='h-3.5 w-3.5' />
+                <Redo2 className='h-4 w-4' />
               </Button>
             </TooltipTrigger>
             <TooltipContent>重做 ⌘⇧Z</TooltipContent>
@@ -138,36 +133,36 @@ export function BuilderTopbar() {
           onValueChange={(v) => {
             if (v) setBuilderMode(v as typeof builderMode)
           }}
-          className='bg-muted/60 border-border/40 absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-0 space-x-0 rounded-lg border p-0.5'
+          className='bg-muted absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center space-x-0 rounded-md p-1 shadow-sm'
         >
           <ToggleGroupItem
             value='build'
-            className='data-[state=on]:bg-background h-7 gap-1.5 px-2.5 text-xs font-medium data-[state=on]:shadow-xs'
+            className='data-[state=on]:bg-background data-[state=on]:text-foreground h-7 rounded-sm px-4 text-xs font-medium transition-all data-[state=on]:shadow-sm'
           >
-            <LayoutTemplate className='h-3.5 w-3.5' />
+            <LayoutTemplate className='mr-1.5 h-3.5 w-3.5' />
             构建
           </ToggleGroupItem>
           <ToggleGroupItem
             value='logic'
-            className='data-[state=on]:bg-background h-7 gap-1.5 px-2.5 text-xs font-medium data-[state=on]:shadow-xs'
+            className='data-[state=on]:bg-background data-[state=on]:text-foreground h-7 rounded-sm px-4 text-xs font-medium transition-all data-[state=on]:shadow-sm'
           >
             {conflictRules.length > 0 ? (
-              <AlertTriangle className='text-destructive h-3.5 w-3.5 animate-pulse' />
+              <AlertTriangle className='text-destructive mr-1.5 h-3.5 w-3.5 animate-pulse' />
             ) : (
-              <GitBranch className='h-3.5 w-3.5' />
+              <GitBranch className='mr-1.5 h-3.5 w-3.5' />
             )}
             逻辑
-            {logic.length > 0 && (
+            {useBuilderStore.getState().logic.length > 0 && (
               <Badge
                 variant='secondary'
                 className={cn(
-                  'h-4 min-w-4 px-1 text-[9px] font-bold transition-colors',
+                  'ml-1.5 h-4 min-w-[16px] px-1 text-[9px] transition-colors',
                   conflictRules.length > 0
                     ? 'bg-destructive/10 text-destructive'
-                    : 'bg-primary/10 text-primary'
+                    : 'bg-primary/20 text-primary'
                 )}
               >
-                {logic.length}
+                {useBuilderStore.getState().logic.length}
               </Badge>
             )}
           </ToggleGroupItem>
@@ -184,12 +179,8 @@ export function BuilderTopbar() {
 
           <Separator orientation='vertical' className='h-4' />
 
-          <Button
-            variant='outline'
-            size='sm'
-            className='border-border/50 h-7 gap-1.5 px-2.5 text-xs'
-          >
-            <Eye className='h-3.5 w-3.5' />
+          <Button variant='outline' size='sm' className='h-8 px-3 font-medium'>
+            <Eye className='mr-1.5 h-3.5 w-3.5' />
             <span className='hidden sm:block'>预览</span>
           </Button>
         </div>
@@ -197,10 +188,6 @@ export function BuilderTopbar() {
     </TooltipProvider>
   )
 }
-
-// 子组件
-
-// 子组件
 
 function SaveButton({
   isDirty,
@@ -216,10 +203,10 @@ function SaveButton({
       <Button
         size='sm'
         variant='ghost'
-        className='h-7 gap-1.5 rounded-full px-3 text-[11px]'
+        className='h-8 px-3 text-xs font-medium'
         disabled
       >
-        <Loader2 className='h-3 w-3 animate-spin' />
+        <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />
         保存中…
       </Button>
     )
@@ -227,23 +214,16 @@ function SaveButton({
 
   if (!isDirty) {
     return (
-      <Badge
-        variant='secondary'
-        className='h-7 items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 text-[11px] font-medium text-emerald-600 hover:bg-emerald-500/10'
-      >
-        <Check className='h-3 w-3' />
+      <div className='text-muted-foreground flex items-center gap-1.5 px-2 text-xs'>
+        <Check className='h-3.5 w-3.5' />
         已保存
-      </Badge>
+      </div>
     )
   }
 
   return (
-    <Button
-      size='sm'
-      className='h-7 rounded-full px-4 text-[11px] font-semibold'
-      onClick={onClick}
-    >
-      保存
+    <Button size='sm' className='h-8 px-4 text-xs shadow-sm' onClick={onClick}>
+      保存修改
     </Button>
   )
 }

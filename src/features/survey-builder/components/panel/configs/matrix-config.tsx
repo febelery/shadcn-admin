@@ -109,7 +109,7 @@ function ItemList({
 
 // ── Matrix Config
 export function MatrixConfig({ node }: { node: QuestionNode }) {
-  const { updateNodeConfig } = useBuilderStore()
+  const updateNodeConfig = useBuilderStore((s) => s.updateNodeConfig)
 
   const rows = useMemo<MatrixItem[]>(() => {
     if (node.config.rows && node.config.rows.length > 0) return node.config.rows

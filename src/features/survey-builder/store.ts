@@ -1,3 +1,4 @@
+import { current } from 'immer'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { useShallow } from 'zustand/react/shallow'
@@ -60,7 +61,6 @@ interface SurveySlice {
   addNode: (
     type: NodeType,
     options?: {
-      parentId?: string | null
       afterId?: string | null
       atTop?: boolean
     }
@@ -101,6 +101,22 @@ type BuilderState = SurveySlice & UISlice
 
 const MAX_HISTORY = 50
 
+// 统一历史堆栈拦截记录器 (仅获取不可变的 current 快照副本避免幽灵修改)
+const recordHistory = (state: BuilderState | SurveySlice) => {
+  const h = state.history.slice(0, state.historyIndex + 1)
+  let snapshot
+  try {
+    snapshot = current(state.nodes)
+  } catch {
+    // If it's not a draft, it's already a plain object
+    snapshot = [...state.nodes].map((n) => ({ ...n }))
+  }
+  h.push(snapshot)
+  if (h.length > MAX_HISTORY) h.shift()
+  state.history = h
+  state.historyIndex = h.length - 1
+}
+
 const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
   surveyId: null,
   meta: DEFAULT_META,
@@ -137,12 +153,10 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
   addNode: (type, options) =>
     set((state: BuilderState) => {
       const typeConfig = QUESTION_TYPE_MAP[type]
-      const parentId = options?.parentId ?? null
       const sorted = [...state.nodes].sort((a, b) => a.order - b.order)
       const newNode: QuestionNode = {
         id: crypto.randomUUID(),
         type,
-        parentId,
         order: 0,
         title: typeConfig?.label ?? type,
         description: '',
@@ -157,29 +171,9 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
       }
 
       if (options?.atTop) {
-        if (parentId) {
-          // 插入为父节点的第一个子节点
-          const firstChild = sorted.find((n) => n.parentId === parentId)
-          if (firstChild) {
-            newNode.order = firstChild.order / 2
-          } else {
-            // 无子节点，紧贴父节点后插入
-            const pIdx = sorted.findIndex((n) => n.id === parentId)
-            if (pIdx !== -1) {
-              const parent = sorted[pIdx]
-              const next = sorted[pIdx + 1]
-              newNode.order = next
-                ? (parent.order + next.order) / 2
-                : parent.order + 1000
-            } else {
-              newNode.order = 1000
-            }
-          }
-        } else {
-          // 插入到问卷最顶部
-          const first = sorted[0]
-          newNode.order = first ? first.order / 2 : 1000
-        }
+        // 插入到问卷最顶部
+        const first = sorted[0]
+        newNode.order = first ? first.order / 2 : 1000
       } else if (options?.afterId) {
         // 插入到指定节点之后
         const idx = sorted.findIndex((n) => n.id === options.afterId)
@@ -189,36 +183,9 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
           newNode.order = next
             ? (current.order + next.order) / 2
             : current.order + 1000
-          // 默认继承目标节点的父级 ID，确保同级插入
-          if (!parentId) {
-            newNode.parentId = current.parentId
-          }
         } else {
           newNode.order =
             state.nodes.reduce((m, n) => Math.max(m, n.order), 0) + 1000
-        }
-      } else if (parentId) {
-        // 插入为父节点的最后一个子节点
-        const children = sorted.filter((n) => n.parentId === parentId)
-        if (children.length > 0) {
-          const lastChild = children[children.length - 1]
-          const lastIdx = sorted.findIndex((n) => n.id === lastChild.id)
-          const next = sorted[lastIdx + 1]
-          newNode.order = next
-            ? (lastChild.order + next.order) / 2
-            : lastChild.order + 1000
-        } else {
-          // 无子节点，紧贴父节点后插入
-          const pIdx = sorted.findIndex((n) => n.id === parentId)
-          if (pIdx !== -1) {
-            const parent = sorted[pIdx]
-            const next = sorted[pIdx + 1]
-            newNode.order = next
-              ? (parent.order + next.order) / 2
-              : parent.order + 1000
-          } else {
-            newNode.order = 1000
-          }
         }
       } else {
         // 默认：追加到末尾
@@ -232,47 +199,47 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
       state.inspectorTarget = 'node'
       state.isDirty = true
 
-      // Push history
-      const h = state.history.slice(0, state.historyIndex + 1)
-      h.push([...state.nodes])
-      if (h.length > MAX_HISTORY) h.shift()
-      state.history = h
-      state.historyIndex = h.length - 1
+      recordHistory(state)
     }),
 
   removeNode: (id) =>
     set((state: BuilderState) => {
-      state.nodes = state.nodes.filter((n) => n.id !== id && n.parentId !== id)
+      const idx = state.nodes.findIndex((n) => n.id === id)
+      if (idx !== -1) state.nodes.splice(idx, 1)
+
       if (state.selectedNodeId === id) {
         state.selectedNodeId = null
         state.inspectorTarget = 'survey'
       }
       state.isDirty = true
+      recordHistory(state)
     }),
 
   duplicateNode: (id) =>
     set((state: BuilderState) => {
-      const node = state.nodes.find((n) => n.id === id)
-      if (!node) return
-      const children = state.nodes.filter((n) => n.parentId === id)
-      const maxOrder = state.nodes.reduce((m, n) => Math.max(m, n.order), 0)
+      const idx = state.nodes.findIndex((n) => n.id === id)
+      if (idx === -1) return
+
+      const node = state.nodes[idx]
+      const nextNode = state.nodes[idx + 1]
+
+      // 插值计算 order，确保在当前节点和下一个节点之间
+      const newOrder = nextNode
+        ? (node.order + nextNode.order) / 2
+        : node.order + 1000
+
       const newNode: QuestionNode = {
         ...node,
         id: crypto.randomUUID(),
-        order: maxOrder + 1000,
+        order: newOrder,
+        title: `${node.title} (副本)`,
       }
+
       state.nodes.push(newNode)
-      children.forEach((c) =>
-        state.nodes.push({
-          ...c,
-          id: crypto.randomUUID(),
-          parentId: newNode.id,
-          order: c.order,
-        })
-      )
       state.nodes.sort((a, b) => a.order - b.order)
       state.selectedNodeId = newNode.id
       state.isDirty = true
+      recordHistory(state)
     }),
 
   updateNode: (id, patch) =>
@@ -301,6 +268,7 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
       })
       state.nodes.sort((a, b) => a.order - b.order)
       state.isDirty = true
+      recordHistory(state)
     }),
 
   moveNodeAfter: (nodeId, targetId) =>
@@ -316,6 +284,7 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
         : target.order + 1000
       state.nodes.sort((a, b) => a.order - b.order)
       state.isDirty = true
+      recordHistory(state)
     }),
 
   addRule: (rule) =>
@@ -415,20 +384,7 @@ export const useSelectedNode = () => {
 
 export const useRootNodes = () =>
   useBuilderStore(
-    useShallow((s) =>
-      (s.nodes || [])
-        .filter((n: QuestionNode) => !n.parentId)
-        .sort((a, b) => a.order - b.order)
-    )
-  )
-
-export const useNodeChildren = (parentId: string) =>
-  useBuilderStore(
-    useShallow((s) =>
-      (s.nodes || [])
-        .filter((n: QuestionNode) => n.parentId === parentId)
-        .sort((a, b) => a.order - b.order)
-    )
+    useShallow((s) => [...(s.nodes || [])].sort((a, b) => a.order - b.order))
   )
 
 export const useVisibleNodeNumber = () =>
@@ -436,7 +392,7 @@ export const useVisibleNodeNumber = () =>
     useShallow((s) => {
       const numMap: Record<string, number> = {}
       let i = 0
-      ;(s.nodes || [])
+      ;[...(s.nodes || [])]
         .filter((n: QuestionNode) => isQuestionNode(n.type))
         .sort((a, b) => a.order - b.order)
         .forEach((n: QuestionNode) => {

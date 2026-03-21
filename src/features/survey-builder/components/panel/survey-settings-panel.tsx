@@ -17,21 +17,16 @@ import { useBuilderStore } from '@/features/survey-builder/store'
 import { SubmissionRules } from './submission-rules'
 
 export function SurveySettingsPanel() {
-  const { meta, updateMeta } = useBuilderStore()
+  const meta = useBuilderStore((s) => s.meta)
+  const updateMeta = useBuilderStore((s) => s.updateMeta)
 
   return (
     <div className='flex h-full flex-col overflow-hidden'>
-      <div className='border-border/50 flex h-9 shrink-0 items-center gap-2 border-b px-3'>
-        <span className='shrink-0 text-xs font-semibold'>问卷设置</span>
-        <span className='text-muted-foreground flex-1 truncate text-[11px]'>
-          {meta.title}
-        </span>
-      </div>
-      <div className='scrollbar-thin flex-1 overflow-y-auto'>
-        <div className='divide-border/50 divide-y'>
+      <div className='scrollbar-thin flex-1 overflow-y-auto pb-6'>
+        <div className='divide-border/40 divide-y'>
           {/* Render mode */}
           <div className='p-3'>
-            <p className='text-muted-foreground mb-2 font-sans text-[10px] font-semibold tracking-wide uppercase'>
+            <p className='text-muted-foreground/80 mb-2 text-[10px] font-semibold tracking-wider uppercase'>
               展示模式
             </p>
             <ToggleGroup
@@ -161,8 +156,8 @@ export function SurveySettingsPanel() {
           </div>
 
           {/* Basic info */}
-          <div className='space-y-3 p-3'>
-            <p className='text-muted-foreground mb-2 text-[10px] font-semibold tracking-wide uppercase'>
+          <div className='space-y-4 p-3'>
+            <p className='text-muted-foreground/80 mb-2 text-[10px] font-semibold tracking-wider uppercase'>
               基本信息
             </p>
             <div>
@@ -276,7 +271,7 @@ export function SurveySettingsPanel() {
                 问卷标题
               </Label>
               <Input
-                className='h-7 text-xs'
+                className='bg-muted/40 hover:bg-muted/60 focus-visible:border-border focus-visible:bg-background h-7 border-transparent px-2 text-xs shadow-none transition-colors'
                 value={meta.title}
                 onChange={(e) => updateMeta({ title: e.target.value })}
               />
@@ -287,7 +282,7 @@ export function SurveySettingsPanel() {
               </Label>
               <Textarea
                 rows={2}
-                className='min-h-11 resize-none text-xs'
+                className='bg-muted/40 hover:bg-muted/60 focus-visible:border-border focus-visible:bg-background min-h-[60px] resize-none border-transparent px-2 py-1.5 text-xs shadow-none transition-colors'
                 value={meta.description}
                 onChange={(e) => updateMeta({ description: e.target.value })}
               />
@@ -297,7 +292,7 @@ export function SurveySettingsPanel() {
                 结束页标题
               </Label>
               <Input
-                className='h-7 text-xs'
+                className='bg-muted/40 hover:bg-muted/60 focus-visible:border-border focus-visible:bg-background h-7 border-transparent px-2 text-xs shadow-none transition-colors'
                 value={meta.endTitle}
                 onChange={(e) => updateMeta({ endTitle: e.target.value })}
               />
@@ -307,7 +302,7 @@ export function SurveySettingsPanel() {
                 结束页描述
               </Label>
               <Input
-                className='h-7 text-xs'
+                className='bg-muted/40 hover:bg-muted/60 focus-visible:border-border focus-visible:bg-background h-7 border-transparent px-2 text-xs shadow-none transition-colors'
                 value={meta.endDescription}
                 onChange={(e) => updateMeta({ endDescription: e.target.value })}
               />
@@ -317,7 +312,7 @@ export function SurveySettingsPanel() {
                 提交按钮文字
               </Label>
               <Input
-                className='h-7 text-xs'
+                className='bg-muted/40 hover:bg-muted/60 focus-visible:border-border focus-visible:bg-background h-7 border-transparent px-2 text-xs shadow-none transition-colors'
                 value={meta.submitLabel}
                 onChange={(e) => updateMeta({ submitLabel: e.target.value })}
               />
@@ -327,11 +322,11 @@ export function SurveySettingsPanel() {
           {/* Submission rules */}
           <div className='p-3'>
             <div className='mb-2 flex items-center justify-between'>
-              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+              <p className='text-muted-foreground/80 text-[10px] font-semibold tracking-wider uppercase'>
                 提交规则
               </p>
-              <span className='text-muted-foreground font-mono text-[10px]'>
-                AND 逻辑
+              <span className='text-muted-foreground/60 font-mono text-[9px]'>
+                AND
               </span>
             </div>
             <SubmissionRules />

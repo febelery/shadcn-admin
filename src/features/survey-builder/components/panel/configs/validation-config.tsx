@@ -27,7 +27,7 @@ const VALIDATION_OPTIONS = [
 ]
 
 export function ValidationConfig({ node }: { node: QuestionNode }) {
-  const { updateNode } = useBuilderStore()
+  const updateNode = useBuilderStore((s) => s.updateNode)
   const validations = node.validations ?? []
 
   const add = () => {
