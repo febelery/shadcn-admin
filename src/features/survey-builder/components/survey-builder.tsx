@@ -8,7 +8,6 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-  type DragOverEvent,
   type DragStartEvent,
   type UniqueIdentifier,
 } from '@dnd-kit/core'
@@ -16,7 +15,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { Loader2 } from 'lucide-react'
 import { useSurveyDetail } from '../hooks'
 import { useBuilderStore } from '../store'
-import type { NodeType } from '../types'
+import type { DragPayload } from '../types'
 import { BuilderTopbar } from './builder-topbar'
 import { CardDragPreview } from './canvas/drag-overlay'
 import { SlashCommand } from './canvas/slash-command'
@@ -27,23 +26,11 @@ import { TypeSidebar } from './type-sidebar'
 
 export function SurveyBuilder() {
   const { surveyId } = useParams({ from: '/survey/builder/$surveyId' })
-  const { builderMode, initSurvey, isDirty, addNode, reorderNodes, schema } =
+  const { builderMode, initSurvey, isDirty, addNode, reorderNodes, nodes } =
     useBuilderStore()
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
-  const [activeDragData, setActiveDragData] = useState<Record<
-    string,
-    unknown
-  > | null>(null)
-
-  /**
-   * dropGapId 是当前悬停的 Gap Droppable 的 id，格式为：
-   *   "gap-top"          → 插入到最前面
-   *   "gap-after-{uuid}" → 插入到该节点之后
-   *
-   * 不再需要 overNodeId + dropPosition 二元组，Gap 本身就代表了精确位置。
-   */
-  const [dropGapId, setDropGapId] = useState<string | null>(null)
+  const [activeDragData, setActiveDragData] = useState<DragPayload | null>(null)
 
   const { data: surveyData, isLoading } = useSurveyDetail(surveyId)
 
@@ -77,7 +64,7 @@ export function SurveyBuilder() {
           id: surveyId,
           version: s.version || '1',
           meta: s.meta,
-          schema: s.schema,
+          nodes: s.nodes,
           logic: s.logic,
           validations: s.validations,
           extensions: s.extensions || {},
@@ -114,21 +101,7 @@ export function SurveyBuilder() {
   // 拖拽手势处理
   const handleDragStart = ({ active }: DragStartEvent) => {
     setActiveId(active.id)
-    setActiveDragData((active.data.current as Record<string, unknown>) ?? null)
-  }
-
-  const handleDragOver = ({ over }: DragOverEvent) => {
-    if (!over) {
-      setDropGapId(null)
-      return
-    }
-    const id = String(over.id)
-    // 只响应 gap droppable，忽略卡片本身和画布背景
-    if (id === 'gap-top' || id.startsWith('gap-after-')) {
-      setDropGapId(id)
-    } else {
-      setDropGapId(null)
-    }
+    setActiveDragData((active.data.current as DragPayload) ?? null)
   }
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
@@ -139,19 +112,19 @@ export function SurveyBuilder() {
 
       if (!gapId || (!gapId.startsWith('gap-') && gapId !== 'canvas-drop')) {
         // 落到画布空白区域 → 追加到末尾
-        addNode(data.questionType as NodeType)
+        addNode(data.questionType)
       } else if (gapId === 'gap-top') {
-        addNode(data.questionType as NodeType, { atTop: true })
+        addNode(data.questionType, { atTop: true })
       } else if (gapId.startsWith('gap-after-')) {
         const afterId = gapId.slice('gap-after-'.length)
-        addNode(data.questionType as NodeType, { afterId })
+        addNode(data.questionType, { afterId })
       } else {
         // canvas-drop fallback
-        addNode(data.questionType as NodeType)
+        addNode(data.questionType)
       }
     } else if (over && active.id !== over.id) {
       // 重排现有节点 —— over 指向的是卡片 id（SortableContext item）
-      const rootNodes = schema
+      const rootNodes = nodes
         .filter((n) => !n.parentId)
         .sort((a, b) => a.order - b.order)
       const oldIdx = rootNodes.findIndex((n) => n.id === active.id)
@@ -163,13 +136,11 @@ export function SurveyBuilder() {
 
     setActiveId(null)
     setActiveDragData(null)
-    setDropGapId(null)
   }
 
   const handleDragCancel = () => {
     setActiveId(null)
     setActiveDragData(null)
-    setDropGapId(null)
   }
 
   // 加载状态
@@ -191,14 +162,8 @@ export function SurveyBuilder() {
   return (
     <DndContext
       sensors={sensors}
-      /**
-       * pointerWithin 比 closestCenter 更适合"插入"场景：
-       * 只有指针真正在某个 droppable 区域内才触发 over，
-       * 不会因为距离最近就误命中。
-       */
       collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
@@ -209,10 +174,7 @@ export function SurveyBuilder() {
           {builderMode === 'build' ? (
             <>
               <TypeSidebar />
-              <SurveyCanvas
-                isDraggingNew={isDraggingNew}
-                dropGapId={dropGapId}
-              />
+              <SurveyCanvas isDraggingNew={isDraggingNew} />
               <PropsPanel />
             </>
           ) : (

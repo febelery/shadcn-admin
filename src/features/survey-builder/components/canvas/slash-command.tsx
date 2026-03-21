@@ -19,7 +19,7 @@ export function SlashCommand() {
     useBuilderStore()
 
   const handleSelect = (type: NodeType) => {
-    addNode(type, selectedNodeId ?? undefined)
+    addNode(type, { afterId: selectedNodeId })
     closeSlash()
   }
 

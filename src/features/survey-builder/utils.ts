@@ -14,7 +14,11 @@ export function createEmptySurvey(title = '未命名问卷'): SurveySchema {
       fontColor: '#ffffff',
       mode: 'scroll',
       status: 'draft',
-      cardConfig: { transition: 'slide', progressType: 'dots', allowBack: true },
+      cardConfig: {
+        transition: 'slide',
+        progressType: 'dots',
+        allowBack: true,
+      },
       submitLabel: '提交',
       endTitle: '感谢您的参与！',
       endDescription: '您的回答已成功提交。',
@@ -29,7 +33,7 @@ export function createEmptySurvey(title = '未命名问卷'): SurveySchema {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
-    schema: [],
+    nodes: [],
     logic: [],
     validations: [],
     extensions: {},
@@ -38,7 +42,7 @@ export function createEmptySurvey(title = '未命名问卷'): SurveySchema {
 
 // Detect logic conflicts
 export function detectConflicts(
-  schema: QuestionNode[],
+  nodes: QuestionNode[],
   logic: any[]
 ): Set<string> {
   const conflictIds = new Set<string>()
@@ -46,7 +50,7 @@ export function detectConflicts(
     if (!rule.enabled) return
     rule.actions.forEach((action: any) => {
       if (action.type === 'hide') {
-        const target = schema.find((n) => n.id === action.target)
+        const target = nodes.find((n) => n.id === action.target)
         if (target?.required) conflictIds.add(target.id)
       }
     })
@@ -56,7 +60,7 @@ export function detectConflicts(
 
 // Detect unreachable nodes (simple heuristic)
 export function detectUnreachable(
-  _schema: QuestionNode[],
+  _nodes: QuestionNode[],
   _logic: any[]
 ): Set<string> {
   // Simplified: nodes that are hidden by default and only revealed by logic

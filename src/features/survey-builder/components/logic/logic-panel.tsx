@@ -2,50 +2,28 @@
 import { useState } from 'react'
 import { AlertTriangle, Plus, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
+import {
+  LOGIC_ACTION_CONFIG,
+  FALLBACK_ACTION_CONFIG,
+} from '@/features/survey-builder/constants'
+import { useConflictDetection } from '@/features/survey-builder/hooks/use-conflict-detection'
 import { useBuilderStore } from '@/features/survey-builder/store'
 import type { LogicRule } from '@/features/survey-builder/types'
-import { detectConflicts } from '@/features/survey-builder/utils'
 import { LogicCanvas } from './logic-canvas'
 import { RuleEditor } from './rule-editor'
 
-const ACTION_COLORS: Record<string, string> = {
-  jump_question:
-    'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  show: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  hide: 'bg-secondary text-muted-foreground',
-  end: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  set_required:
-    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-}
-
-const ACTION_LABELS: Record<string, string> = {
-  jump_question: '跳转',
-  show: '显示',
-  hide: '隐藏',
-  end: '结束',
-  set_required: '必填',
-  set_readonly: '只读',
-  set_value: '赋值',
-  clear_value: '清空',
-  show_option: '显示选项',
-  hide_option: '隐藏选项',
-}
-
 export function LogicPanel() {
-  const { logic, schema, removeRule, updateRule, setActiveRule, activeRuleId } =
+  const { logic, removeRule, updateRule, setActiveRule, activeRuleId } =
     useBuilderStore()
 
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<LogicRule | null>(null)
 
-  const conflicts = detectConflicts(schema, logic)
-  const conflictRules = logic.filter(
-    (r) => r.enabled && r.actions.some((a) => conflicts.has(a.target))
-  )
+  const { conflicts, conflictRules } = useConflictDetection()
 
   const openEditor = (rule?: LogicRule) => {
     setEditingRule(rule ?? null)
@@ -92,7 +70,9 @@ export function LogicPanel() {
             {/* Rule items */}
             {logic.map((rule) => {
               const mainType = rule.actions[0]?.type ?? 'default'
-              const tagClass = ACTION_COLORS[mainType] ?? ACTION_COLORS.hide
+              const config =
+                LOGIC_ACTION_CONFIG[mainType] ?? FALLBACK_ACTION_CONFIG
+              const tagClass = config.color
               const isActive = activeRuleId === rule.id
               const hasConflict =
                 rule.enabled &&
@@ -132,7 +112,7 @@ export function LogicPanel() {
                         tagClass
                       )}
                     >
-                      {ACTION_LABELS[mainType] ?? mainType}
+                      {config.label}
                     </Badge>
                     <Button
                       variant='ghost'

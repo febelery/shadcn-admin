@@ -25,7 +25,97 @@ import {
   FileText,
   type LucideIcon,
 } from 'lucide-react'
-import type { NodeType } from './types'
+import type { NodeType, QuestionType, LayoutType } from './types'
+
+// 节点工具函数
+export const isQuestionNode = (type: NodeType): type is QuestionType =>
+  !['block', 'divider', 'rich_text'].includes(type)
+
+export const isLayoutNode = (type: NodeType): type is LayoutType =>
+  ['block', 'divider', 'rich_text'].includes(type)
+
+// 逻辑动作配置
+export interface LogicActionConfig {
+  type: string
+  label: string
+  color: string // Tailwind color class
+  cssVar: string // CSS variable for canvas
+}
+
+export const LOGIC_ACTION_CONFIG: Record<string, LogicActionConfig> = {
+  jump_question: {
+    type: 'jump_question',
+    label: '跳转',
+    color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    cssVar: 'var(--color-primary)',
+  },
+  show: {
+    type: 'show',
+    label: '显示',
+    color:
+      'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    cssVar: 'var(--color-chart-2)',
+  },
+  hide: {
+    type: 'hide',
+    label: '隐藏',
+    color: 'bg-secondary text-muted-foreground',
+    cssVar: 'var(--color-muted-foreground)',
+  },
+  end: {
+    type: 'end',
+    label: '结束',
+    color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    cssVar: 'var(--color-destructive)',
+  },
+  set_required: {
+    type: 'set_required',
+    label: '必填',
+    color:
+      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    cssVar: 'var(--color-chart-4)',
+  },
+  set_readonly: {
+    type: 'set_readonly',
+    label: '只读',
+    color:
+      'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
+    cssVar: 'var(--color-chart-3)',
+  },
+  set_value: {
+    type: 'set_value',
+    label: '赋值',
+    color:
+      'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+    cssVar: 'var(--color-chart-1)',
+  },
+  clear_value: {
+    type: 'clear_value',
+    label: '清空',
+    color: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900/30 dark:text-zinc-400',
+    cssVar: 'var(--color-muted-foreground)',
+  },
+  show_option: {
+    type: 'show_option',
+    label: '显示选项',
+    color:
+      'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    cssVar: 'var(--color-chart-2)',
+  },
+  hide_option: {
+    type: 'hide_option',
+    label: '隐藏选项',
+    color: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900/30 dark:text-zinc-400',
+    cssVar: 'var(--color-muted-foreground)',
+  },
+}
+
+export const FALLBACK_ACTION_CONFIG: LogicActionConfig = {
+  type: 'default',
+  label: '规则',
+  color: 'bg-secondary text-muted-foreground',
+  cssVar: 'var(--color-muted-foreground)',
+}
 
 export interface QuestionTypeConfig {
   type: NodeType

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { ChevronDown, Copy, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -15,8 +15,7 @@ import {
 import type { QuestionNode } from '@/features/survey-builder/types'
 import { ChoiceConfig } from './configs/choice-config'
 import { MatrixConfig } from './configs/matrix-config'
-import { NpsConfig } from './configs/nps-config'
-import { RatingConfig } from './configs/rating-config'
+import { RatingConfig, NpsConfig } from './configs/rating-config'
 import { TextConfig } from './configs/text-config'
 import { ValidationConfig } from './configs/validation-config'
 
@@ -185,13 +184,6 @@ function TitleSection({ node }: { node: QuestionNode }) {
   const { updateNode } = useBuilderStore()
   const titleRef = useRef<HTMLTextAreaElement>(null)
 
-  useEffect(() => {
-    if (titleRef.current) {
-      titleRef.current.style.height = 'auto'
-      titleRef.current.style.height = `${titleRef.current.scrollHeight}px`
-    }
-  }, [node.title])
-
   return (
     <div className='bg-background space-y-3 px-3 py-3'>
       {/* 题目标题 + 必填 toggle 同行 */}
@@ -222,12 +214,7 @@ function TitleSection({ node }: { node: QuestionNode }) {
           value={node.title}
           placeholder='请输入题目标题...'
           rows={2}
-          className='bg-muted/40 focus-visible:bg-background min-h-[56px] resize-none text-xs leading-relaxed transition-colors focus-visible:ring-1'
-          onChange={(e) => {
-            updateNode(node.id, { title: e.target.value })
-            e.target.style.height = 'auto'
-            e.target.style.height = `${e.target.scrollHeight}px`
-          }}
+          onChange={(e) => updateNode(node.id, { title: e.target.value })}
         />
       </div>
 

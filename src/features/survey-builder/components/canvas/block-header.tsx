@@ -3,12 +3,12 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { ChevronDown, GripVertical, MoreHorizontal, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   useBuilderStore,
   useNodeChildren,
 } from '@/features/survey-builder/store'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import type { QuestionNode } from '@/features/survey-builder/types'
 import { QuestionCard } from './question-card'
 
@@ -29,7 +29,7 @@ export function BlockHeader({ node }: Props) {
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
     >
-      {/* Block title bar */}
+      {/* 区块标题栏 */}
       <div
         className={cn(
           'group relative flex cursor-pointer items-center gap-2 select-none',
@@ -38,7 +38,7 @@ export function BlockHeader({ node }: Props) {
         )}
         onClick={() => setCollapsed((v) => !v)}
       >
-        {/* Drag handle */}
+        {/* 拖拽手柄 */}
         <div
           {...attributes}
           {...listeners}
@@ -69,7 +69,7 @@ export function BlockHeader({ node }: Props) {
             className='text-muted-foreground/40 hover:bg-background hover:text-foreground h-6 w-6 rounded p-0 opacity-0 transition group-hover:opacity-100'
             onClick={(e) => {
               e.stopPropagation()
-              addNode('text', node.id)
+              addNode('text', { parentId: node.id })
             }}
             title='在此区块末尾添加题目'
           >
@@ -92,7 +92,7 @@ export function BlockHeader({ node }: Props) {
         </div>
       </div>
 
-      {/* Children */}
+      {/* 子节点列表 */}
       <div
         className={cn(
           'border-border/30 overflow-hidden border border-t-0 transition-all duration-200',
@@ -104,7 +104,7 @@ export function BlockHeader({ node }: Props) {
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                addNode('text', node.id)
+                addNode('text', { parentId: node.id })
               }}
               className='border-border/40 hover:border-border hover:text-foreground flex items-center gap-1.5 rounded-lg border border-dashed px-4 py-2 transition'
             >

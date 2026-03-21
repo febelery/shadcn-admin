@@ -48,7 +48,7 @@ function DraggableTypeItem({
         collapsed && 'justify-center'
       )}
       onClick={() =>
-        addNode(item.type as NodeType, selectedNodeId ?? undefined)
+        addNode(item.type as NodeType, { afterId: selectedNodeId })
       }
       title={item.label}
     >

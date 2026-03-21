@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import * as ColorPicker from '@/components/ui/color-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -10,8 +11,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import * as ColorPicker from '@/components/ui/color-picker'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { FileUpload } from '@/components/file-upload'
 import { useBuilderStore } from '@/features/survey-builder/store'
 import { SubmissionRules } from './submission-rules'
@@ -31,49 +31,50 @@ export function SurveySettingsPanel() {
         <div className='divide-border/50 divide-y'>
           {/* Render mode */}
           <div className='p-3'>
-            <p className='text-muted-foreground mb-2 text-[10px] font-semibold tracking-wide uppercase font-sans'>
+            <p className='text-muted-foreground mb-2 font-sans text-[10px] font-semibold tracking-wide uppercase'>
               展示模式
             </p>
-            <Tabs
+            <ToggleGroup
+              type='single'
               value={meta.mode}
-              onValueChange={(v) => updateMeta({ mode: v as 'scroll' | 'card' })}
-              className='w-full'
+              onValueChange={(v) => {
+                if (v) updateMeta({ mode: v as 'scroll' | 'card' })
+              }}
+              className='bg-muted/50 grid h-auto grid-cols-2 gap-1 rounded-md p-1'
             >
-              <TabsList className='grid grid-cols-2 h-auto p-1 bg-muted/50'>
-                {(['scroll', 'card'] as const).map((m) => (
-                  <TabsTrigger
-                    key={m}
-                    value={m}
-                    className='flex flex-col gap-2 p-3 data-[state=active]:bg-background data-[state=active]:shadow-sm'
+              {(['scroll', 'card'] as const).map((m) => (
+                <ToggleGroupItem
+                  key={m}
+                  value={m}
+                  className='data-[state=on]:bg-background flex h-auto flex-col gap-2 p-3 data-[state=on]:shadow-sm'
+                >
+                  <div
+                    className={cn(
+                      'bg-background flex h-6 w-9 flex-col items-stretch justify-center gap-0.5 rounded border p-1',
+                      meta.mode === m ? 'border-primary/20' : 'border-border/50'
+                    )}
                   >
-                    <div
-                      className={cn(
-                        'flex h-6 w-9 flex-col items-stretch justify-center gap-0.5 rounded border bg-background p-1',
-                        meta.mode === m ? 'border-primary/20' : 'border-border/50'
-                      )}
-                    >
-                      {m === 'scroll' ? (
-                        <>
-                          <div className='bg-foreground/60 h-0.5 rounded-full' />
-                          <div className='bg-foreground/60 h-0.5 rounded-full' />
-                          <div className='bg-primary/30 h-0.5 w-3/5 rounded-full' />
-                        </>
-                      ) : (
-                        <div className='border-primary/20 bg-primary/5 m-auto h-3 w-6 rounded-sm border border-dashed' />
-                      )}
-                    </div>
-                    <div className='flex flex-col items-center gap-0.5'>
-                      <span className='text-[11px] font-bold'>
-                        {m === 'scroll' ? '滚动' : '卡片'}
-                      </span>
-                      <span className='text-muted-foreground/60 text-[9px] leading-tight font-normal'>
-                        {m === 'scroll' ? '纵向连贯展示' : '逐题分页切屏'}
-                      </span>
-                    </div>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+                    {m === 'scroll' ? (
+                      <>
+                        <div className='bg-foreground/60 h-0.5 rounded-full' />
+                        <div className='bg-foreground/60 h-0.5 rounded-full' />
+                        <div className='bg-primary/30 h-0.5 w-3/5 rounded-full' />
+                      </>
+                    ) : (
+                      <div className='border-primary/20 bg-primary/5 m-auto h-3 w-6 rounded-sm border border-dashed' />
+                    )}
+                  </div>
+                  <div className='flex flex-col items-center gap-0.5'>
+                    <span className='text-[11px] font-bold'>
+                      {m === 'scroll' ? '滚动' : '卡片'}
+                    </span>
+                    <span className='text-muted-foreground/60 text-[9px] leading-tight font-normal'>
+                      {m === 'scroll' ? '纵向连贯展示' : '逐题分页切屏'}
+                    </span>
+                  </div>
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
 
             {meta.mode === 'card' && (
               <div className='mt-3 space-y-2'>
@@ -107,19 +108,27 @@ export function SurveySettingsPanel() {
                   <Label className='text-muted-foreground mb-1.5 block text-[10px] font-semibold tracking-wide uppercase'>
                     进度指示器
                   </Label>
-                  <div className='grid grid-cols-3 gap-1.5'>
+                  <ToggleGroup
+                    type='single'
+                    value={meta.cardConfig.progressType}
+                    onValueChange={(v) => {
+                      if (v) {
+                        updateMeta({
+                          cardConfig: {
+                            ...meta.cardConfig,
+                            progressType: v as any,
+                          },
+                        })
+                      }
+                    }}
+                    className='grid grid-cols-3 gap-1.5'
+                  >
                     {(['dots', 'bar', 'fraction'] as const).map((pt) => (
-                      <button
+                      <ToggleGroupItem
                         key={pt}
-                        onClick={() =>
-                          updateMeta({
-                            cardConfig: {
-                              ...meta.cardConfig,
-                              progressType: pt,
-                            },
-                          })
-                        }
-                        className={`flex flex-col items-center gap-1 rounded border p-1.5 text-[10px] transition-all ${meta.cardConfig.progressType === pt ? 'border-foreground bg-muted font-semibold' : 'border-border/50 text-muted-foreground hover:border-border'}`}
+                        value={pt}
+                        variant='outline'
+                        className='flex h-auto flex-col items-center gap-1 p-1.5 text-[10px] data-[state=on]:font-semibold'
                       >
                         <span>
                           {pt === 'dots' ? '●●○' : pt === 'bar' ? '▬▬' : '2/4'}
@@ -131,9 +140,9 @@ export function SurveySettingsPanel() {
                               ? '进度条'
                               : '分数'}
                         </span>
-                      </button>
+                      </ToggleGroupItem>
                     ))}
-                  </div>
+                  </ToggleGroup>
                 </div>
                 <div className='flex items-center justify-between'>
                   <span className='text-xs'>允许返回上一题</span>
@@ -160,22 +169,27 @@ export function SurveySettingsPanel() {
               <Label className='text-muted-foreground mb-1.5 block text-[11px] font-medium'>
                 封面显示
               </Label>
-              <Tabs
+              <ToggleGroup
+                type='single'
                 value={meta.coverType}
-                onValueChange={(v: string) =>
-                  updateMeta({ coverType: v as 'color' | 'image' })
-                }
-                className='w-full'
+                onValueChange={(v) => {
+                  if (v) updateMeta({ coverType: v as 'color' | 'image' })
+                }}
+                className='bg-muted/50 grid h-7 w-full grid-cols-2 rounded-md p-0.5'
               >
-                <TabsList className='grid h-7 w-full grid-cols-2 p-0.5'>
-                  <TabsTrigger value='color' className='h-6 text-[10px]'>
-                    颜色
-                  </TabsTrigger>
-                  <TabsTrigger value='image' className='h-6 text-[10px]'>
-                    图片
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+                <ToggleGroupItem
+                  value='color'
+                  className='data-[state=on]:bg-background h-6 text-[10px] data-[state=on]:shadow-sm'
+                >
+                  颜色
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value='image'
+                  className='data-[state=on]:bg-background h-6 text-[10px] data-[state=on]:shadow-sm'
+                >
+                  图片
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
 
             {meta.coverType === 'color' ? (
@@ -189,7 +203,7 @@ export function SurveySettingsPanel() {
                 >
                   <ColorPicker.Trigger
                     variant='outline'
-                    className='h-7 w-full justify-start border-input bg-transparent px-2 font-normal'
+                    className='border-input h-7 w-full justify-start bg-transparent px-2 font-normal'
                   >
                     <ColorPicker.Swatch className='mr-2 h-4 w-4 rounded-sm border' />
                     <span className='font-mono text-[10px] opacity-70'>
@@ -240,7 +254,7 @@ export function SurveySettingsPanel() {
               >
                 <ColorPicker.Trigger
                   variant='outline'
-                  className='h-7 w-full justify-start border-input bg-transparent px-2 font-normal'
+                  className='border-input h-7 w-full justify-start bg-transparent px-2 font-normal'
                 >
                   <ColorPicker.Swatch className='mr-2 h-4 w-4 rounded-sm border' />
                   <span className='font-mono text-[10px] opacity-70'>

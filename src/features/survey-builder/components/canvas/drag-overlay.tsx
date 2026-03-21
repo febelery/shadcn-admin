@@ -1,18 +1,18 @@
 import { QUESTION_TYPE_MAP } from '@/features/survey-builder/constants'
 import { useBuilderStore } from '@/features/survey-builder/store'
-import type { NodeType } from '@/features/survey-builder/types'
+import type { DragPayload } from '@/features/survey-builder/types'
 
 interface Props {
-  data: Record<string, unknown> | null
+  data: DragPayload | null
   nodeId?: string
 }
 
 export function CardDragPreview({ data, nodeId }: Props) {
-  const { schema } = useBuilderStore()
+  const { nodes } = useBuilderStore()
 
   // 侧边栏新题型拖拽预览
   if (data?.type === 'NEW_QUESTION') {
-    const config = QUESTION_TYPE_MAP[data.questionType as NodeType]
+    const config = QUESTION_TYPE_MAP[data.questionType]
     const Icon = config?.icon
 
     return (
@@ -32,17 +32,13 @@ export function CardDragPreview({ data, nodeId }: Props) {
             </p>
           </div>
         </div>
-        {/* Insert indicator bar */}
-        <div className='bg-primary/10 mt-2.5 h-1 w-full rounded-full'>
-          <div className='bg-primary h-1 w-2/3 rounded-full' />
-        </div>
       </div>
     )
   }
 
   // 现有题目重排拖拽预览
   if (nodeId) {
-    const node = schema.find((n) => n.id === nodeId)
+    const node = nodes.find((n) => n.id === nodeId)
     if (!node) return null
 
     const config = QUESTION_TYPE_MAP[node.type]

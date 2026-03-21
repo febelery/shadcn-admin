@@ -1,6 +1,7 @@
 import { create } from 'zustand'
-import { useShallow } from 'zustand/react/shallow'
 import { immer } from 'zustand/middleware/immer'
+import { useShallow } from 'zustand/react/shallow'
+import { QUESTION_TYPE_MAP, isQuestionNode } from './constants'
 import type {
   SurveySchema,
   QuestionNode,
@@ -9,10 +10,9 @@ import type {
   CrossValidation,
   NodeType,
   BuilderMode,
-  ContextMode,
+  InspectorTarget,
   NodeConfig,
 } from './types'
-import { QUESTION_TYPE_MAP } from './constants'
 
 const DEFAULT_META: SurveyMeta = {
   title: '未命名问卷',
@@ -39,38 +39,31 @@ const DEFAULT_META: SurveyMeta = {
   updatedAt: new Date().toISOString(),
 }
 
-interface BuilderState {
-  // Data
+interface SurveySlice {
+  // Domain Data
   surveyId: string | null
   meta: SurveyMeta
-  schema: QuestionNode[]
+  nodes: QuestionNode[]
   logic: LogicRule[]
   validations: CrossValidation[]
   version: string
   extensions: Record<string, unknown>
-  // UI state
-  builderMode: BuilderMode
-  contextMode: ContextMode
-  selectedNodeId: string | null
-  activeRuleId: string | null
-  slashOpen: boolean
-  slashAnchor: { x: number; y: number } | null
   isDirty: boolean
-  isSaving: boolean
+
   // History
   history: QuestionNode[][]
   historyIndex: number
-}
 
-interface BuilderActions {
-  // Init
-  initSurvey: (schema: SurveySchema) => void
-  // Meta
+  // Actions
+  initSurvey: (data: SurveySchema) => void
   updateMeta: (patch: Partial<SurveyMeta>) => void
-  // Nodes
   addNode: (
     type: NodeType,
-    options?: string | { afterId?: string; beforeId?: string; atTop?: boolean }
+    options?: {
+      parentId?: string | null
+      afterId?: string | null
+      atTop?: boolean
+    }
   ) => void
   removeNode: (id: string) => void
   duplicateNode: (id: string) => void
@@ -78,323 +71,362 @@ interface BuilderActions {
   updateNodeConfig: (id: string, config: Partial<NodeConfig>) => void
   reorderNodes: (ids: string[]) => void
   moveNodeAfter: (nodeId: string, targetId: string) => void
-  // Selection
-  selectNode: (id: string | null) => void
-  // Context
-  setBuilderMode: (mode: BuilderMode) => void
-  setContextMode: (mode: ContextMode) => void
-  // Logic
   addRule: (rule: Omit<LogicRule, 'id'>) => void
   updateRule: (id: string, patch: Partial<LogicRule>) => void
   removeRule: (id: string) => void
-  setActiveRule: (id: string | null) => void
-  // Slash command
-  openSlash: (anchor: { x: number; y: number }) => void
-  closeSlash: () => void
-  // Save
-  markSaved: () => void
-  setIsSaving: (isSaving: boolean) => void
-  // History
   undo: () => void
   redo: () => void
+  markSaved: () => void
 }
+
+interface UISlice {
+  // UI State
+  builderMode: BuilderMode
+  inspectorTarget: InspectorTarget
+  selectedNodeId: string | null
+  activeRuleId: string | null
+  slashOpen: boolean
+  slashAnchor: { x: number; y: number } | null
+
+  // Actions
+  setBuilderMode: (mode: BuilderMode) => void
+  setInspectorTarget: (target: InspectorTarget) => void
+  selectNode: (id: string | null) => void
+  setActiveRule: (id: string | null) => void
+  openSlash: (anchor: { x: number; y: number }) => void
+  closeSlash: () => void
+}
+
+type BuilderState = SurveySlice & UISlice
 
 const MAX_HISTORY = 50
 
-// 为了支持 immer 的写法但又不依赖外部 immer (如果该版本 zustand 没带)，可以用 standard zustand 写法。
-// 这里的 immer 是 zustand 的 middleware。如果 lint 报找不到 module，可能是没安装。
-// 但由于 state 结构较深，我们暂时保留 immer 语法并假设已安装或将要安装。
-export const useBuilderStore = create<BuilderState & BuilderActions>()(
-  immer((set) => ({
-    // 初始状态
-    surveyId: null,
-    meta: DEFAULT_META,
-    schema: [],
-    logic: [],
-    validations: [],
-    version: '1',
-    extensions: {},
-    builderMode: 'build',
-    contextMode: 'survey',
-    selectedNodeId: null,
-    activeRuleId: null,
-    slashOpen: false,
-    slashAnchor: null,
-    isDirty: false,
-    isSaving: false,
-    history: [[]],
-    historyIndex: 0,
+const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
+  surveyId: null,
+  meta: DEFAULT_META,
+  nodes: [],
+  logic: [],
+  validations: [],
+  version: '1',
+  extensions: {},
+  isDirty: false,
+  history: [[]],
+  historyIndex: 0,
 
-    // 初始化操作
-    initSurvey: (surveySchema) =>
-      set((state) => {
-        state.surveyId = surveySchema.id
-        state.meta = surveySchema.meta
-        state.schema = surveySchema.schema
-        state.logic = surveySchema.logic
-        state.validations = surveySchema.validations
-        state.version = surveySchema.version || '1'
-        state.extensions = surveySchema.extensions || {}
-        state.history = [surveySchema.schema]
-        state.historyIndex = 0
-        state.isDirty = false
-      }),
+  initSurvey: (surveyData) =>
+    set((state: SurveySlice) => {
+      const nodes = surveyData.nodes || (surveyData as any).schema || []
+      state.surveyId = surveyData.id
+      state.meta = surveyData.meta
+      state.nodes = nodes
+      state.logic = surveyData.logic || []
+      state.validations = surveyData.validations || []
+      state.version = surveyData.version || '1'
+      state.extensions = surveyData.extensions || {}
+      state.history = [nodes]
+      state.historyIndex = 0
+      state.isDirty = false
+    }),
 
-    // 元数据操作
-    updateMeta: (patch) =>
-      set((state) => {
-        Object.assign(state.meta, patch)
-        state.isDirty = true
-      }),
+  updateMeta: (patch) =>
+    set((state: SurveySlice) => {
+      Object.assign(state.meta, patch)
+      state.isDirty = true
+    }),
 
-    // 节点（题目）操作
-    addNode: (type, options) =>
-      set((state) => {
-        const typeConfig = QUESTION_TYPE_MAP[type]
-        const maxOrder = state.schema.reduce((m, n) => Math.max(m, n.order), 0)
-        const newNode: QuestionNode = {
-          id: crypto.randomUUID(),
-          type,
-          parentId: null,
-          order: maxOrder + 1000,
-          title: typeConfig?.label ?? type,
-          description: '',
-          required: false,
-          hidden: false,
-          readonly: false,
-          defaultValue: undefined,
-          role: null,
-          config: (typeConfig?.defaultConfig ?? {}) as NodeConfig,
-          validations: [],
-          extensions: {},
-        }
+  addNode: (type, options) =>
+    set((state: BuilderState) => {
+      const typeConfig = QUESTION_TYPE_MAP[type]
+      const parentId = options?.parentId ?? null
+      const sorted = [...state.nodes].sort((a, b) => a.order - b.order)
+      const newNode: QuestionNode = {
+        id: crypto.randomUUID(),
+        type,
+        parentId,
+        order: 0,
+        title: typeConfig?.label ?? type,
+        description: '',
+        required: false,
+        hidden: false,
+        readonly: false,
+        defaultValue: undefined,
+        role: null,
+        config: (typeConfig?.defaultConfig ?? {}) as NodeConfig,
+        validations: [],
+        extensions: {},
+      }
 
-        const opts = typeof options === 'string' ? { afterId: options } : options
-        const atTop = opts?.atTop
-        const afterId = opts?.afterId
-        const beforeId = opts?.beforeId
-
-        if (atTop) {
-          const first = state.schema[0]
+      if (options?.atTop) {
+        if (parentId) {
+          // 插入为父节点的第一个子节点
+          const firstChild = sorted.find((n) => n.parentId === parentId)
+          if (firstChild) {
+            newNode.order = firstChild.order / 2
+          } else {
+            // 无子节点，紧贴父节点后插入
+            const pIdx = sorted.findIndex((n) => n.id === parentId)
+            if (pIdx !== -1) {
+              const parent = sorted[pIdx]
+              const next = sorted[pIdx + 1]
+              newNode.order = next
+                ? (parent.order + next.order) / 2
+                : parent.order + 1000
+            } else {
+              newNode.order = 1000
+            }
+          }
+        } else {
+          // 插入到问卷最顶部
+          const first = sorted[0]
           newNode.order = first ? first.order / 2 : 1000
-        } else if (beforeId) {
-          const idx = state.schema.findIndex((n) => n.id === beforeId)
-          if (idx !== -1) {
-            const current = state.schema[idx]
-            const prev = state.schema[idx - 1]
-            newNode.order = prev
-              ? (prev.order + current.order) / 2
-              : current.order / 2
+        }
+      } else if (options?.afterId) {
+        // 插入到指定节点之后
+        const idx = sorted.findIndex((n) => n.id === options.afterId)
+        if (idx !== -1) {
+          const current = sorted[idx]
+          const next = sorted[idx + 1]
+          newNode.order = next
+            ? (current.order + next.order) / 2
+            : current.order + 1000
+          // 默认继承目标节点的父级 ID，确保同级插入
+          if (!parentId) {
+            newNode.parentId = current.parentId
           }
-        } else if (afterId) {
-          const idx = state.schema.findIndex((n) => n.id === afterId)
-          if (idx !== -1) {
-            const current = state.schema[idx]
-            const next = state.schema[idx + 1]
+        } else {
+          newNode.order =
+            state.nodes.reduce((m, n) => Math.max(m, n.order), 0) + 1000
+        }
+      } else if (parentId) {
+        // 插入为父节点的最后一个子节点
+        const children = sorted.filter((n) => n.parentId === parentId)
+        if (children.length > 0) {
+          const lastChild = children[children.length - 1]
+          const lastIdx = sorted.findIndex((n) => n.id === lastChild.id)
+          const next = sorted[lastIdx + 1]
+          newNode.order = next
+            ? (lastChild.order + next.order) / 2
+            : lastChild.order + 1000
+        } else {
+          // 无子节点，紧贴父节点后插入
+          const pIdx = sorted.findIndex((n) => n.id === parentId)
+          if (pIdx !== -1) {
+            const parent = sorted[pIdx]
+            const next = sorted[pIdx + 1]
             newNode.order = next
-              ? (current.order + next.order) / 2
-              : current.order + 1000
+              ? (parent.order + next.order) / 2
+              : parent.order + 1000
+          } else {
+            newNode.order = 1000
           }
         }
-        state.schema.push(newNode)
-        state.schema.sort((a, b) => a.order - b.order)
-        state.selectedNodeId = newNode.id
-        state.contextMode = 'question'
-        state.isDirty = true
+      } else {
+        // 默认：追加到末尾
+        newNode.order =
+          state.nodes.reduce((m, n) => Math.max(m, n.order), 0) + 1000
+      }
 
-        // Push history
-        const h = state.history.slice(0, state.historyIndex + 1)
-        h.push([...state.schema])
-        if (h.length > MAX_HISTORY) h.shift()
-        state.history = h
-        state.historyIndex = h.length - 1
-      }),
+      state.nodes.push(newNode)
+      state.nodes.sort((a, b) => a.order - b.order)
+      state.selectedNodeId = newNode.id
+      state.inspectorTarget = 'node'
+      state.isDirty = true
 
-    removeNode: (id) =>
-      set((state) => {
-        state.schema = state.schema.filter((n) => n.id !== id && n.parentId !== id)
-        if (state.selectedNodeId === id) {
-          state.selectedNodeId = null
-          state.contextMode = 'survey'
-        }
-        state.isDirty = true
-      }),
+      // Push history
+      const h = state.history.slice(0, state.historyIndex + 1)
+      h.push([...state.nodes])
+      if (h.length > MAX_HISTORY) h.shift()
+      state.history = h
+      state.historyIndex = h.length - 1
+    }),
 
-    duplicateNode: (id) =>
-      set((state) => {
-        const node = state.schema.find((n) => n.id === id)
-        if (!node) return
-        const children = state.schema.filter((n) => n.parentId === id)
-        const maxOrder = state.schema.reduce((m, n) => Math.max(m, n.order), 0)
-        const newNode: QuestionNode = {
-          ...node,
+  removeNode: (id) =>
+    set((state: BuilderState) => {
+      state.nodes = state.nodes.filter((n) => n.id !== id && n.parentId !== id)
+      if (state.selectedNodeId === id) {
+        state.selectedNodeId = null
+        state.inspectorTarget = 'survey'
+      }
+      state.isDirty = true
+    }),
+
+  duplicateNode: (id) =>
+    set((state: BuilderState) => {
+      const node = state.nodes.find((n) => n.id === id)
+      if (!node) return
+      const children = state.nodes.filter((n) => n.parentId === id)
+      const maxOrder = state.nodes.reduce((m, n) => Math.max(m, n.order), 0)
+      const newNode: QuestionNode = {
+        ...node,
+        id: crypto.randomUUID(),
+        order: maxOrder + 1000,
+      }
+      state.nodes.push(newNode)
+      children.forEach((c) =>
+        state.nodes.push({
+          ...c,
           id: crypto.randomUUID(),
-          order: maxOrder + 1000,
-        }
-        state.schema.push(newNode)
-        children.forEach((c) =>
-          state.schema.push({
-            ...c,
-            id: crypto.randomUUID(),
-            parentId: newNode.id,
-            order: c.order,
-          })
-        )
-        state.schema.sort((a, b) => a.order - b.order)
-        state.selectedNodeId = newNode.id
-        state.isDirty = true
-      }),
-
-    updateNode: (id, patch) =>
-      set((state) => {
-        const node = state.schema.find((n) => n.id === id)
-        if (node) {
-          Object.assign(node, patch)
-          state.isDirty = true
-        }
-      }),
-
-    updateNodeConfig: (id, config) =>
-      set((state) => {
-        const node = state.schema.find((n) => n.id === id)
-        if (node) {
-          Object.assign(node.config, config)
-          state.isDirty = true
-        }
-      }),
-
-    reorderNodes: (ids) =>
-      set((state) => {
-        ids.forEach((id, i) => {
-          const node = state.schema.find((n) => n.id === id)
-          if (node) node.order = (i + 1) * 1000
+          parentId: newNode.id,
+          order: c.order,
         })
-        state.schema.sort((a, b) => a.order - b.order)
+      )
+      state.nodes.sort((a, b) => a.order - b.order)
+      state.selectedNodeId = newNode.id
+      state.isDirty = true
+    }),
+
+  updateNode: (id, patch) =>
+    set((state: SurveySlice) => {
+      const node = state.nodes.find((n) => n.id === id)
+      if (node) {
+        Object.assign(node, patch)
         state.isDirty = true
-      }),
+      }
+    }),
 
-    moveNodeAfter: (nodeId, targetId) =>
-      set((state) => {
-        const node = state.schema.find((n) => n.id === nodeId)
-        const target = state.schema.find((n) => n.id === targetId)
-        if (!node || !target) return
-        const sorted = [...state.schema].sort((a, b) => a.order - b.order)
-        const targetIdx = sorted.findIndex((n) => n.id === targetId)
-        const nextNode = sorted[targetIdx + 1]
-        node.order = nextNode
-          ? (target.order + nextNode.order) / 2
-          : target.order + 1000
-        state.schema.sort((a, b) => a.order - b.order)
+  updateNodeConfig: (id, config) =>
+    set((state: SurveySlice) => {
+      const node = state.nodes.find((n) => n.id === id)
+      if (node) {
+        Object.assign(node.config, config)
         state.isDirty = true
-      }),
+      }
+    }),
 
-    // 选中态操作
-    selectNode: (id) =>
-      set((state) => {
-        state.selectedNodeId = id
-        if (id) {
-          state.contextMode = 'question'
-        }
-      }),
+  reorderNodes: (ids) =>
+    set((state: SurveySlice) => {
+      ids.forEach((id, i) => {
+        const node = state.nodes.find((n) => n.id === id)
+        if (node) node.order = (i + 1) * 1000
+      })
+      state.nodes.sort((a, b) => a.order - b.order)
+      state.isDirty = true
+    }),
 
-    // 模式切换
-    setBuilderMode: (mode) =>
-      set((state) => {
-        state.builderMode = mode
-      }),
-    setContextMode: (mode) =>
-      set((state) => {
-        state.contextMode = mode
-      }),
+  moveNodeAfter: (nodeId, targetId) =>
+    set((state: SurveySlice) => {
+      const node = state.nodes.find((n) => n.id === nodeId)
+      const target = state.nodes.find((n) => n.id === targetId)
+      if (!node || !target) return
+      const sorted = [...state.nodes].sort((a, b) => a.order - b.order)
+      const targetIdx = sorted.findIndex((n) => n.id === targetId)
+      const nextNode = sorted[targetIdx + 1]
+      node.order = nextNode
+        ? (target.order + nextNode.order) / 2
+        : target.order + 1000
+      state.nodes.sort((a, b) => a.order - b.order)
+      state.isDirty = true
+    }),
 
-    // 逻辑规则操作
-    addRule: (rule) =>
-      set((state) => {
-        state.logic.push({ ...rule, id: crypto.randomUUID() })
+  addRule: (rule) =>
+    set((state: SurveySlice) => {
+      state.logic.push({ ...rule, id: crypto.randomUUID() })
+      state.isDirty = true
+    }),
+
+  updateRule: (id, patch) =>
+    set((state: SurveySlice) => {
+      const rule = state.logic.find((r) => r.id === id)
+      if (rule) {
+        Object.assign(rule, patch)
         state.isDirty = true
-      }),
+      }
+    }),
 
-    updateRule: (id, patch) =>
-      set((state) => {
-        const rule = state.logic.find((r) => r.id === id)
-        if (rule) {
-          Object.assign(rule, patch)
-          state.isDirty = true
-        }
-      }),
+  removeRule: (id) =>
+    set((state: BuilderState) => {
+      state.logic = state.logic.filter((r) => r.id !== id)
+      if (state.activeRuleId === id) state.activeRuleId = null
+      state.isDirty = true
+    }),
 
-    removeRule: (id) =>
-      set((state) => {
-        state.logic = state.logic.filter((r) => r.id !== id)
-        if (state.activeRuleId === id) state.activeRuleId = null
-        state.isDirty = true
-      }),
+  markSaved: () =>
+    set((state: SurveySlice) => {
+      state.isDirty = false
+    }),
 
-    setActiveRule: (id) =>
-      set((state) => {
-        state.activeRuleId = id
-      }),
+  undo: () =>
+    set((state: SurveySlice) => {
+      if (state.historyIndex <= 0) return
+      state.historyIndex--
+      state.nodes = [...state.history[state.historyIndex]]
+      state.isDirty = true
+    }),
 
-    // 斜杠命令操作
-    openSlash: (anchor) =>
-      set((state) => {
-        state.slashOpen = true
-        state.slashAnchor = anchor
-      }),
-    closeSlash: () =>
-      set((state) => {
-        state.slashOpen = false
-        state.slashAnchor = null
-      }),
+  redo: () =>
+    set((state: SurveySlice) => {
+      if (state.historyIndex >= state.history.length - 1) return
+      state.historyIndex++
+      state.nodes = [...state.history[state.historyIndex]]
+      state.isDirty = true
+    }),
+})
 
-    // 保存状态操作
-    markSaved: () =>
-      set((state) => {
-        state.isDirty = false
-        state.isSaving = false
-      }),
-    setIsSaving: (isSaving) =>
-      set((state) => {
-        state.isSaving = isSaving
-      }),
+const createUISlice = (set: any, _get: any, _api: any): UISlice => ({
+  builderMode: 'build',
+  inspectorTarget: 'survey',
+  selectedNodeId: null,
+  activeRuleId: null,
+  slashOpen: false,
+  slashAnchor: null,
 
-    // 历史记录（撤销/重做）
-    undo: () =>
-      set((state) => {
-        if (state.historyIndex <= 0) return
-        state.historyIndex--
-        state.schema = [...state.history[state.historyIndex]]
-        state.isDirty = true
-      }),
-    redo: () =>
-      set((state) => {
-        if (state.historyIndex >= state.history.length - 1) return
-        state.historyIndex++
-        state.schema = [...state.history[state.historyIndex]]
-        state.isDirty = true
-      }),
+  setBuilderMode: (mode) =>
+    set((state: UISlice) => {
+      state.builderMode = mode
+    }),
+  setInspectorTarget: (target) =>
+    set((state: UISlice) => {
+      state.inspectorTarget = target
+    }),
+  selectNode: (id) =>
+    set((state: UISlice) => {
+      state.selectedNodeId = id
+      if (id) state.inspectorTarget = 'node'
+    }),
+  setActiveRule: (id) =>
+    set((state: UISlice) => {
+      state.activeRuleId = id
+    }),
+  openSlash: (anchor) =>
+    set((state: UISlice) => {
+      state.slashOpen = true
+      state.slashAnchor = anchor
+    }),
+  closeSlash: () =>
+    set((state: UISlice) => {
+      state.slashOpen = false
+      state.slashAnchor = null
+    }),
+})
+
+export const useBuilderStore = create<BuilderState>()(
+  immer((...a) => ({
+    ...createSurveySlice(...a),
+    ...createUISlice(...a),
   }))
 )
 
 // 选择器（HOOKS）
 export const useSelectedNode = () => {
-  const schema = useBuilderStore((s) => s.schema)
+  const nodes = useBuilderStore((s) => s.nodes || [])
   const id = useBuilderStore((s) => s.selectedNodeId)
-  return schema.find((n) => n.id === id) ?? null
+  return nodes.find((n) => n.id === id) ?? null
 }
 
 export const useRootNodes = () =>
   useBuilderStore(
     useShallow((s) =>
-      s.schema.filter((n) => !n.parentId).sort((a, b) => a.order - b.order)
+      (s.nodes || [])
+        .filter((n: QuestionNode) => !n.parentId)
+        .sort((a, b) => a.order - b.order)
     )
   )
 
 export const useNodeChildren = (parentId: string) =>
   useBuilderStore(
     useShallow((s) =>
-      s.schema
-        .filter((n) => n.parentId === parentId)
+      (s.nodes || [])
+        .filter((n: QuestionNode) => n.parentId === parentId)
         .sort((a, b) => a.order - b.order)
     )
   )
@@ -404,10 +436,10 @@ export const useVisibleNodeNumber = () =>
     useShallow((s) => {
       const numMap: Record<string, number> = {}
       let i = 0
-      s.schema
-        .filter((n) => !['block', 'divider', 'rich_text'].includes(n.type))
+      ;(s.nodes || [])
+        .filter((n: QuestionNode) => isQuestionNode(n.type))
         .sort((a, b) => a.order - b.order)
-        .forEach((n) => {
+        .forEach((n: QuestionNode) => {
           i++
           numMap[n.id] = i
         })

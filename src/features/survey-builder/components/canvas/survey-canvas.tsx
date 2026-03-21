@@ -9,21 +9,19 @@ import { SurveyHeader } from './survey-header'
 
 interface Props {
   isDraggingNew: boolean
-  /** 当前悬停的 gap droppable id，由父级传入 */
-  dropGapId: string | null
 }
 
 /**
  * GapDropzone —— 卡片之间的插入热区
  *
  * 核心思路：每个 gap 是一个真实的 droppable，高度平时很小（用户感知不到），
- * 悬停时展示蓝色指示线。因为是真实 droppable，dnd-kit 直接告诉我们
+ * 悬停时展示指示线。因为是真实 droppable，dnd-kit 直接告诉我们
  * "放在哪个 gap"，不需要自己根据鼠标 Y 坐标推算 before/after。
  *
  * padding 技巧：把可点击区域（paddingY）做大，但把可视线条做薄，
  * 这样用户不需要精确瞄准，但视觉上干净。
  */
-function GapDropzone({ id }: { id: string; isActive: boolean }) {
+function GapDropzone({ id }: { id: string }) {
   const { setNodeRef, isOver } = useDroppable({ id })
 
   return (
@@ -65,7 +63,7 @@ function EmptyCanvasDropzone() {
   )
 }
 
-export function SurveyCanvas({ isDraggingNew, dropGapId }: Props) {
+export function SurveyCanvas({ isDraggingNew }: Props) {
   const rootNodes = useRootNodes()
   const { openSlash, selectNode } = useBuilderStore()
 
@@ -107,12 +105,7 @@ export function SurveyCanvas({ isDraggingNew, dropGapId }: Props) {
               return (
                 <div key={node.id}>
                   {/* ── 卡片上方的 Gap（仅拖拽新题时渲染） ── */}
-                  {isDraggingNew && (
-                    <GapDropzone
-                      id={topGapId}
-                      isActive={dropGapId === topGapId}
-                    />
-                  )}
+                  {isDraggingNew && <GapDropzone id={topGapId} />}
 
                   {node.type === 'block' ? (
                     <BlockHeader node={node} />
@@ -122,10 +115,7 @@ export function SurveyCanvas({ isDraggingNew, dropGapId }: Props) {
 
                   {/* ── 最后一个卡片额外渲染下方 Gap ── */}
                   {isDraggingNew && index === rootNodes.length - 1 && (
-                    <GapDropzone
-                      id={bottomGapId}
-                      isActive={dropGapId === bottomGapId}
-                    />
+                    <GapDropzone id={bottomGapId} />
                   )}
                 </div>
               )

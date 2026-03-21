@@ -7,33 +7,34 @@ import {
   Redo2,
   Undo2,
   Check,
+  AlertTriangle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { useBuilderStore } from '../store'
 import { useUpdateSurvey } from '../hooks'
+import { useConflictDetection } from '../hooks/use-conflict-detection'
+import { useBuilderStore } from '../store'
 
 export function BuilderTopbar() {
   const { surveyId } = useParams({ from: '/survey/builder/$surveyId' })
   const {
     meta,
-    schema,
+    nodes,
     logic,
     version,
     extensions,
     builderMode,
     isDirty,
-    isSaving,
     setBuilderMode,
-    setIsSaving,
     markSaved,
     undo,
     redo,
@@ -41,11 +42,12 @@ export function BuilderTopbar() {
     historyIndex,
   } = useBuilderStore()
 
-  const { mutate: updateSurvey } = useUpdateSurvey()
+  const { conflictRules } = useConflictDetection()
+
+  const { mutate: updateSurvey, isPending: isSaving } = useUpdateSurvey()
 
   const handleSave = () => {
     if (!isDirty || isSaving) return
-    setIsSaving(true)
     updateSurvey(
       {
         id: surveyId,
@@ -53,7 +55,7 @@ export function BuilderTopbar() {
           id: surveyId,
           version: version || '1',
           meta,
-          schema,
+          nodes,
           logic,
           validations: [],
           extensions: extensions || {},
@@ -64,7 +66,6 @@ export function BuilderTopbar() {
           markSaved()
           sessionStorage.removeItem(`survey-draft-${surveyId}`)
         },
-        onError: () => setIsSaving(false),
       }
     )
   }
@@ -74,7 +75,7 @@ export function BuilderTopbar() {
 
   return (
     <TooltipProvider>
-      <header className='relative z-50 flex h-11 shrink-0 items-center gap-1 border-b border-border/50 bg-background/95 px-3 backdrop-blur-sm'>
+      <header className='border-border/50 bg-background/95 relative z-50 flex h-11 shrink-0 items-center gap-1 border-b px-3 backdrop-blur-sm'>
         {/* Logo */}
         <div className='mr-1 flex items-center gap-2'>
           <div className='bg-foreground flex h-6 w-6 items-center justify-center rounded-md'>
@@ -89,7 +90,7 @@ export function BuilderTopbar() {
 
         {/* Breadcrumb */}
         <nav className='hidden items-center gap-1 text-xs sm:flex'>
-          <span className='text-muted-foreground/60 cursor-pointer transition hover:text-muted-foreground'>
+          <span className='text-muted-foreground/60 hover:text-muted-foreground cursor-pointer transition'>
             问卷库
           </span>
           <span className='text-border'>/</span>
@@ -105,7 +106,7 @@ export function BuilderTopbar() {
               <Button
                 variant='ghost'
                 size='icon'
-                className='h-7 w-7 text-muted-foreground disabled:opacity-30'
+                className='text-muted-foreground h-7 w-7 disabled:opacity-30'
                 onClick={undo}
                 disabled={!canUndo}
               >
@@ -119,7 +120,7 @@ export function BuilderTopbar() {
               <Button
                 variant='ghost'
                 size='icon'
-                className='h-7 w-7 text-muted-foreground disabled:opacity-30'
+                className='text-muted-foreground h-7 w-7 disabled:opacity-30'
                 onClick={redo}
                 disabled={!canRedo}
               >
@@ -131,21 +132,46 @@ export function BuilderTopbar() {
         </div>
 
         {/* 中间模式切换 */}
-        <div className='bg-muted/60 border-border/40 absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 rounded-lg border p-0.5'>
-          <ModeTab
-            active={builderMode === 'build'}
-            onClick={() => setBuilderMode('build')}
-            icon={<LayoutTemplate className='h-3.5 w-3.5' />}
-            label='构建'
-          />
-          <ModeTab
-            active={builderMode === 'logic'}
-            onClick={() => setBuilderMode('logic')}
-            icon={<GitBranch className='h-3.5 w-3.5' />}
-            label='逻辑'
-            badge={logic.length > 0 ? logic.length : undefined}
-          />
-        </div>
+        <ToggleGroup
+          type='single'
+          value={builderMode}
+          onValueChange={(v) => {
+            if (v) setBuilderMode(v as typeof builderMode)
+          }}
+          className='bg-muted/60 border-border/40 absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-0 space-x-0 rounded-lg border p-0.5'
+        >
+          <ToggleGroupItem
+            value='build'
+            className='data-[state=on]:bg-background h-7 gap-1.5 px-2.5 text-xs font-medium data-[state=on]:shadow-xs'
+          >
+            <LayoutTemplate className='h-3.5 w-3.5' />
+            构建
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value='logic'
+            className='data-[state=on]:bg-background h-7 gap-1.5 px-2.5 text-xs font-medium data-[state=on]:shadow-xs'
+          >
+            {conflictRules.length > 0 ? (
+              <AlertTriangle className='text-destructive h-3.5 w-3.5 animate-pulse' />
+            ) : (
+              <GitBranch className='h-3.5 w-3.5' />
+            )}
+            逻辑
+            {logic.length > 0 && (
+              <Badge
+                variant='secondary'
+                className={cn(
+                  'h-4 min-w-4 px-1 text-[9px] font-bold transition-colors',
+                  conflictRules.length > 0
+                    ? 'bg-destructive/10 text-destructive'
+                    : 'bg-primary/10 text-primary'
+                )}
+              >
+                {logic.length}
+              </Badge>
+            )}
+          </ToggleGroupItem>
+        </ToggleGroup>
 
         {/* Right actions */}
         <div className='ml-auto flex items-center gap-2'>
@@ -161,7 +187,7 @@ export function BuilderTopbar() {
           <Button
             variant='outline'
             size='sm'
-            className='h-7 gap-1.5 border-border/50 px-2.5 text-xs'
+            className='border-border/50 h-7 gap-1.5 px-2.5 text-xs'
           >
             <Eye className='h-3.5 w-3.5' />
             <span className='hidden sm:block'>预览</span>
@@ -174,42 +200,7 @@ export function BuilderTopbar() {
 
 // 子组件
 
-function ModeTab({
-  active,
-  onClick,
-  icon,
-  label,
-  badge,
-}: {
-  active: boolean
-  onClick: () => void
-  icon: React.ReactNode
-  label: string
-  badge?: number
-}) {
-  return (
-    <Button
-      variant={active ? 'secondary' : 'ghost'}
-      size='sm'
-      onClick={onClick}
-      className={cn(
-        'h-7 gap-1.5 px-2.5 text-xs font-medium transition-all duration-150',
-        active ? 'bg-background shadow-xs' : 'text-muted-foreground'
-      )}
-    >
-      {icon}
-      {label}
-      {badge !== undefined && (
-        <Badge
-          variant='secondary'
-          className='bg-primary/10 text-primary hover:bg-primary/10 h-4 min-w-4 px-1 text-[9px] font-bold'
-        >
-          {badge}
-        </Badge>
-      )}
-    </Button>
-  )
-}
+// 子组件
 
 function SaveButton({
   isDirty,
@@ -238,7 +229,7 @@ function SaveButton({
     return (
       <Badge
         variant='secondary'
-        className='bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10 h-7 items-center gap-1.5 rounded-full px-3 text-[11px] font-medium'
+        className='h-7 items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 text-[11px] font-medium text-emerald-600 hover:bg-emerald-500/10'
       >
         <Check className='h-3 w-3' />
         已保存

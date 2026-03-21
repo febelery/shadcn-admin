@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from 'react'
 import {
   DndContext,
   PointerSensor,
@@ -9,85 +10,17 @@ import {
 import {
   SortableContext,
   arrayMove,
-  useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Plus, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
+import { Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useBuilderStore } from '@/features/survey-builder/store'
 import type { QuestionNode } from '@/features/survey-builder/types'
+import { SortableInputRow } from './sortable-input-row'
 
 type MatrixItem = { id: string; label: string }
 
-// ── Sortable item ─────────────────────────────────────────
-function SortableItem({
-  item,
-  onLabelChange,
-  onDelete,
-  onEnter,
-  placeholder,
-}: {
-  item: MatrixItem
-  onLabelChange: (label: string) => void
-  onDelete: () => void
-  onEnter: () => void
-  placeholder: string
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: item.id })
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn(
-        'group border-border/30 flex items-center gap-1.5 border-b px-2 py-1.5 last:border-0',
-        isDragging && 'bg-muted/60 rounded shadow-sm'
-      )}
-    >
-      <button
-        {...attributes}
-        {...listeners}
-        tabIndex={-1}
-        className='text-border/40 hover:text-muted-foreground shrink-0 cursor-grab transition-colors active:cursor-grabbing'
-      >
-        <GripVertical className='h-3 w-3' />
-      </button>
-
-      <Input
-        className='placeholder:text-muted-foreground/30 h-7 flex-1 border-0 bg-transparent px-0 text-xs shadow-none ring-0 focus-visible:ring-0'
-        value={item.label}
-        placeholder={placeholder}
-        onChange={(e) => onLabelChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault()
-            onEnter()
-          }
-        }}
-      />
-
-      <button
-        tabIndex={-1}
-        className='text-border/30 hover:text-destructive shrink-0 opacity-0 transition-all group-hover:opacity-100'
-        onClick={onDelete}
-      >
-        <X className='h-3 w-3' />
-      </button>
-    </div>
-  )
-}
-
-// ── Manage list component ─────────────────────────────────
+// ── Manage list component
 function ItemList({
   title,
   items,
@@ -149,11 +82,12 @@ function ItemList({
           strategy={verticalListSortingStrategy}
         >
           {items.map((item) => (
-            <SortableItem
+            <SortableInputRow
               key={item.id}
-              item={item}
+              id={item.id}
+              value={item.label}
               placeholder={placeholder}
-              onLabelChange={(label) => updateLabel(item.id, label)}
+              onChange={(label) => updateLabel(item.id, label)}
               onDelete={() => removeItem(item.id)}
               onEnter={addItem}
             />
@@ -173,24 +107,34 @@ function ItemList({
   )
 }
 
-// ── Matrix Config ─────────────────────────────────────────
+// ── Matrix Config
 export function MatrixConfig({ node }: { node: QuestionNode }) {
   const { updateNodeConfig } = useBuilderStore()
 
-  const rows: MatrixItem[] =
-    (node.config.rows ?? []).length > 0
-      ? node.config.rows!
-      : [{ id: crypto.randomUUID(), label: '行 1' }]
+  const rows = useMemo<MatrixItem[]>(() => {
+    if (node.config.rows && node.config.rows.length > 0) return node.config.rows
+    return [{ id: crypto.randomUUID(), label: '行 1' }]
+  }, [node.config.rows])
 
-  const columns: MatrixItem[] =
-    (node.config.columns ?? []).length > 0
-      ? node.config.columns!
-      : [{ id: crypto.randomUUID(), label: '列 1' }]
+  const columns = useMemo<MatrixItem[]>(() => {
+    if (node.config.columns && node.config.columns.length > 0)
+      return node.config.columns
+    return [{ id: crypto.randomUUID(), label: '列 1' }]
+  }, [node.config.columns])
 
-  // Initialize if empty
-  if (!node.config.rows?.length || !node.config.columns?.length) {
-    updateNodeConfig(node.id, { rows, columns })
-  }
+  // Initialize if empty (in useEffect to avoid render-time side effects)
+  useEffect(() => {
+    if (!node.config.rows?.length || !node.config.columns?.length) {
+      updateNodeConfig(node.id, { rows, columns })
+    }
+  }, [
+    node.id,
+    node.config.rows?.length,
+    node.config.columns?.length,
+    updateNodeConfig,
+    rows,
+    columns,
+  ])
 
   return (
     <div>

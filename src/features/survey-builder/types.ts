@@ -1,9 +1,9 @@
 export type SurveyMode = 'scroll' | 'card'
 export type SurveyStatus = 'draft' | 'published' | 'archived'
 export type BuilderMode = 'build' | 'logic'
-export type ContextMode = 'question' | 'survey'
+export type InspectorTarget = 'node' | 'survey'
 
-export type NodeType =
+export type QuestionType =
   | 'single_choice'
   | 'multiple_choice'
   | 'dropdown'
@@ -28,9 +28,10 @@ export type NodeType =
   | 'file_upload'
   | 'geo_location'
   | 'signature'
-  | 'block'
-  | 'divider'
-  | 'rich_text'
+
+export type LayoutType = 'block' | 'divider' | 'rich_text'
+
+export type NodeType = QuestionType | LayoutType
 
 export interface ChoiceOption {
   id: string
@@ -242,11 +243,16 @@ export interface SurveySchema {
   id: string
   version: string
   meta: SurveyMeta
-  schema: QuestionNode[]
+  nodes: QuestionNode[]
   validations: CrossValidation[]
   logic: LogicRule[]
   extensions: Record<string, unknown>
 }
+
+// 拖拽数据载荷模型
+export type DragPayload =
+  | { type: 'NEW_QUESTION'; questionType: NodeType }
+  | { type: 'MOVE_NODE'; nodeId: string }
 
 // 问卷列表项类型
 export interface SurveyListItem {

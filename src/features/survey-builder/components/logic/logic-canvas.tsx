@@ -28,36 +28,22 @@ import { Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { QUESTION_TYPE_MAP } from '@/features/survey-builder/constants'
+import {
+  QUESTION_TYPE_MAP,
+  LOGIC_ACTION_CONFIG,
+  FALLBACK_ACTION_CONFIG,
+  isQuestionNode,
+} from '@/features/survey-builder/constants'
 import {
   useBuilderStore,
   useVisibleNodeNumber,
 } from '@/features/survey-builder/store'
-import type {
-  QuestionNode,
-  NodeType,
-  LogicRule,
-} from '@/features/survey-builder/types'
+import type { QuestionNode, LogicRule } from '@/features/survey-builder/types'
 
 // ─── Constants ────────────────────────────────────────────
 const NODE_W = 220
 const NODE_H = 84
 const POS_KEY = 'survey-builder:logic-positions'
-
-// ─── Action metadata (CSS vars, no hardcoded colors) ─────
-const ACTION_META: Record<string, { label: string; color: string }> = {
-  jump_question: { label: '跳转', color: 'var(--color-primary)' },
-  show: { label: '显示', color: 'var(--color-chart-2)' },
-  hide: { label: '隐藏', color: 'var(--color-muted-foreground)' },
-  end: { label: '结束', color: 'var(--color-destructive)' },
-  set_required: { label: '必填', color: 'var(--color-chart-4)' },
-  set_readonly: { label: '只读', color: 'var(--color-chart-3)' },
-  set_value: { label: '赋值', color: 'var(--color-chart-1)' },
-  clear_value: { label: '清空', color: 'var(--color-muted-foreground)' },
-  show_option: { label: '显示选项', color: 'var(--color-chart-2)' },
-  hide_option: { label: '隐藏选项', color: 'var(--color-muted-foreground)' },
-}
-const FALLBACK_META = { label: '规则', color: 'var(--color-muted-foreground)' }
 
 // ─── Types ────────────────────────────────────────────────
 type QuestionNodeData = { node: QuestionNode; num: number }
@@ -147,7 +133,6 @@ function buildGraph(
           type: MarkerType.ArrowClosed,
           width: 14,
           height: 14,
-          // color は edge の stroke と同期（EdgeComponent 側で上書き）
         },
       })
     })
@@ -157,13 +142,12 @@ function buildGraph(
 }
 
 // ─── Custom Node ──────────────────────────────────────────
-// memo で不要な再描画を防ぐ
 const QuestionNodeComponent = memo(function QuestionNode({
   data,
   selected,
 }: NodeProps) {
   const { node, num } = data as QuestionNodeData
-  const config = QUESTION_TYPE_MAP[node.type as NodeType]
+  const config = QUESTION_TYPE_MAP[node.type]
   const Icon = config?.icon
   const { selectNode } = useBuilderStore()
 
@@ -243,7 +227,7 @@ function LogicEdgeComponent({
 }: EdgeProps) {
   const { removeRule, setActiveRule } = useBuilderStore()
   const { ruleId, actionType, ruleName } = (data ?? {}) as LogicEdgeData
-  const meta = ACTION_META[actionType] ?? FALLBACK_META
+  const meta = LOGIC_ACTION_CONFIG[actionType] ?? FALLBACK_ACTION_CONFIG
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -261,7 +245,7 @@ function LogicEdgeComponent({
         path={edgePath}
         markerEnd={markerEnd}
         style={{
-          stroke: meta.color,
+          stroke: meta.cssVar,
           strokeWidth: selected ? 2.5 : 1.5,
           strokeDasharray: selected ? undefined : '5 3',
           opacity: selected ? 1 : 0.65,
@@ -281,7 +265,7 @@ function LogicEdgeComponent({
               'text-[9px] font-semibold shadow-sm transition-shadow',
               selected ? 'shadow-md' : 'hover:shadow-md'
             )}
-            style={{ borderColor: meta.color, color: meta.color }}
+            style={{ borderColor: meta.cssVar, color: meta.cssVar }}
             onClick={(e) => {
               e.stopPropagation()
               setActiveRule(selected ? null : ruleId)
@@ -314,19 +298,16 @@ const edgeTypes = { logicEdge: LogicEdgeComponent }
 
 // ─── Inner flow (inside ReactFlowProvider) ────────────────
 function LogicFlow() {
-  const { schema, logic, addRule } = useBuilderStore()
+  const { nodes: storeNodes, logic, addRule } = useBuilderStore()
   const numMap = useVisibleNodeNumber()
   const { fitView } = useReactFlow()
 
   const visibleNodes = useMemo(
     () =>
-      schema
-        .filter(
-          (n: QuestionNode) =>
-            !['block', 'divider', 'rich_text'].includes(n.type)
-        )
+      storeNodes
+        .filter((n: QuestionNode) => isQuestionNode(n.type))
         .sort((a: QuestionNode, b: QuestionNode) => a.order - b.order),
-    [schema]
+    [storeNodes]
   )
 
   // 用 ref 持久化节点位置，避免 useEffect 闭包陈旧
@@ -343,7 +324,7 @@ function LogicFlow() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initEdges)
 
-  // ── 同步 store → RF（schema 或 logic 变化后更新） ─────
+  // ── 同步 store → RF（nodes 或 logic 变化后更新） ─────
   useEffect(() => {
     const { nodes: next, edges: nextEdges } = buildGraph(
       visibleNodes,
