@@ -64,7 +64,7 @@ export function SurveyBuilder() {
     initSurvey(surveyData)
   }, [surveyData, surveyId, initSurvey])
 
-  // 架构优化: 自动保存草稿 - 采用 Subscribe 真正响应所有的状态变动，而不会陷入 isDirty useEffect 的死结
+  // 自动保存草稿 - 采用 Subscribe 真正响应所有的状态变动，而不会陷入 isDirty useEffect 的死结
   useEffect(() => {
     const unsub = useBuilderStore.subscribe((state, prevState) => {
       // 检查只要是脏状态且状态发生了变化，就推入延迟保存
@@ -102,17 +102,6 @@ export function SurveyBuilder() {
       if (isInput) return
 
       const store = useBuilderStore.getState()
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault()
-        store.undo()
-      }
-      if (
-        (e.metaKey || e.ctrlKey) &&
-        (e.key === 'y' || (e.shiftKey && e.key === 'z'))
-      ) {
-        e.preventDefault()
-        store.redo()
-      }
       if (e.key === 'Escape') {
         store.selectNode(null)
         store.closeSlash()

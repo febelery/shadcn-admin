@@ -2,10 +2,7 @@
  * 文件处理工具函数
  * 包含文件类型识别、验证、格式化等功能
  */
-import type {
-  FileUploadValidationRule,
-  FileUploadItem,
-} from '@/types/file-upload'
+import type { FileItem, FileValidation } from '@/components/file-upload/types'
 
 /**
  * 验证文件类型
@@ -67,7 +64,7 @@ export function validateFileSize(
  */
 export function validateFile(
   file: File,
-  rule: FileUploadValidationRule
+  rule: FileValidation
 ): string | null {
   // 自定义验证
   if (rule.validate) {
@@ -259,7 +256,7 @@ export function generateId(): string {
 /**
  * 创建文件项
  */
-export function createFileItem(file: File): FileUploadItem {
+export function createFileItem(file: File): FileItem {
   return {
     id: generateId(),
     file,

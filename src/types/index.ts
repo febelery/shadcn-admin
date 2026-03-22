@@ -6,6 +6,3 @@ export type { TableState, TableStateOptions } from './table'
 
 // Navigation types
 export * from './navigation'
-
-// File upload types
-export * from './file-upload'

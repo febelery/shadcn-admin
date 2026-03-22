@@ -4,8 +4,6 @@ import {
   GitBranch,
   LayoutTemplate,
   Loader2,
-  Redo2,
-  Undo2,
   Check,
   AlertTriangle,
 } from 'lucide-react'
@@ -14,29 +12,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { useUpdateSurvey } from '../hooks'
 import { useConflictDetection } from '../hooks/use-conflict-detection'
 import { useBuilderStore } from '../store'
 
 export function BuilderTopbar() {
   const { surveyId } = useParams({ from: '/survey/builder/$surveyId' })
-  const {
-    meta,
-    builderMode,
-    isDirty,
-    setBuilderMode,
-    markSaved,
-    undo,
-    redo,
-    history,
-    historyIndex,
-  } = useBuilderStore()
+  const { meta, builderMode, isDirty, setBuilderMode, markSaved } =
+    useBuilderStore()
 
   const { conflictRules } = useConflictDetection()
 
@@ -69,9 +53,6 @@ export function BuilderTopbar() {
     )
   }
 
-  const canUndo = historyIndex > 0
-  const canRedo = historyIndex < history.length - 1
-
   return (
     <TooltipProvider>
       <header className='bg-background relative z-50 flex h-14 shrink-0 items-center gap-2 border-b px-4'>
@@ -93,38 +74,6 @@ export function BuilderTopbar() {
             {meta.title || '未命名问卷'}
           </span>
         </nav>
-
-        {/* Undo / Redo */}
-        <div className='ml-2 flex items-center'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant='ghost'
-                size='icon'
-                className='text-muted-foreground hover:bg-muted h-8 w-8 disabled:opacity-30'
-                onClick={undo}
-                disabled={!canUndo}
-              >
-                <Undo2 className='h-4 w-4' />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>撤销 ⌘Z</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant='ghost'
-                size='icon'
-                className='text-muted-foreground hover:bg-muted h-8 w-8 disabled:opacity-30'
-                onClick={redo}
-                disabled={!canRedo}
-              >
-                <Redo2 className='h-4 w-4' />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>重做 ⌘⇧Z</TooltipContent>
-          </Tooltip>
-        </div>
 
         {/* 中间模式切换 */}
         <ToggleGroup

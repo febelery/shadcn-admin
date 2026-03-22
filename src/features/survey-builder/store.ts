@@ -1,4 +1,3 @@
-import { current } from 'immer'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { useShallow } from 'zustand/react/shallow'
@@ -51,10 +50,6 @@ interface SurveySlice {
   extensions: Record<string, unknown>
   isDirty: boolean
 
-  // History
-  history: QuestionNode[][]
-  historyIndex: number
-
   // Actions
   initSurvey: (data: SurveySchema) => void
   updateMeta: (patch: Partial<SurveyMeta>) => void
@@ -74,8 +69,6 @@ interface SurveySlice {
   addRule: (rule: Omit<LogicRule, 'id'>) => void
   updateRule: (id: string, patch: Partial<LogicRule>) => void
   removeRule: (id: string) => void
-  undo: () => void
-  redo: () => void
   markSaved: () => void
 }
 
@@ -99,24 +92,6 @@ interface UISlice {
 
 type BuilderState = SurveySlice & UISlice
 
-const MAX_HISTORY = 50
-
-// 统一历史堆栈拦截记录器 (仅获取不可变的 current 快照副本避免幽灵修改)
-const recordHistory = (state: BuilderState | SurveySlice) => {
-  const h = state.history.slice(0, state.historyIndex + 1)
-  let snapshot
-  try {
-    snapshot = current(state.nodes)
-  } catch {
-    // If it's not a draft, it's already a plain object
-    snapshot = [...state.nodes].map((n) => ({ ...n }))
-  }
-  h.push(snapshot)
-  if (h.length > MAX_HISTORY) h.shift()
-  state.history = h
-  state.historyIndex = h.length - 1
-}
-
 const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
   surveyId: null,
   meta: DEFAULT_META,
@@ -126,8 +101,6 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
   version: '1',
   extensions: {},
   isDirty: false,
-  history: [[]],
-  historyIndex: 0,
 
   initSurvey: (surveyData) =>
     set((state: SurveySlice) => {
@@ -139,8 +112,6 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
       state.validations = surveyData.validations || []
       state.version = surveyData.version || '1'
       state.extensions = surveyData.extensions || {}
-      state.history = [nodes]
-      state.historyIndex = 0
       state.isDirty = false
     }),
 
@@ -198,8 +169,6 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
       state.selectedNodeId = newNode.id
       state.inspectorTarget = 'node'
       state.isDirty = true
-
-      recordHistory(state)
     }),
 
   removeNode: (id) =>
@@ -212,7 +181,6 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
         state.inspectorTarget = 'survey'
       }
       state.isDirty = true
-      recordHistory(state)
     }),
 
   duplicateNode: (id) =>
@@ -239,7 +207,6 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
       state.nodes.sort((a, b) => a.order - b.order)
       state.selectedNodeId = newNode.id
       state.isDirty = true
-      recordHistory(state)
     }),
 
   updateNode: (id, patch) =>
@@ -268,7 +235,6 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
       })
       state.nodes.sort((a, b) => a.order - b.order)
       state.isDirty = true
-      recordHistory(state)
     }),
 
   moveNodeAfter: (nodeId, targetId) =>
@@ -284,7 +250,6 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
         : target.order + 1000
       state.nodes.sort((a, b) => a.order - b.order)
       state.isDirty = true
-      recordHistory(state)
     }),
 
   addRule: (rule) =>
@@ -312,22 +277,6 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
   markSaved: () =>
     set((state: SurveySlice) => {
       state.isDirty = false
-    }),
-
-  undo: () =>
-    set((state: SurveySlice) => {
-      if (state.historyIndex <= 0) return
-      state.historyIndex--
-      state.nodes = [...state.history[state.historyIndex]]
-      state.isDirty = true
-    }),
-
-  redo: () =>
-    set((state: SurveySlice) => {
-      if (state.historyIndex >= state.history.length - 1) return
-      state.historyIndex++
-      state.nodes = [...state.history[state.historyIndex]]
-      state.isDirty = true
     }),
 })
 
