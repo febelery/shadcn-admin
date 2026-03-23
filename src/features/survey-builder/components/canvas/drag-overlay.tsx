@@ -1,4 +1,4 @@
-import { QUESTION_TYPE_MAP } from '@/features/survey-builder/constants'
+import { getQuestion } from '@/features/survey-builder/question-types'
 import { useBuilderStore } from '@/features/survey-builder/store'
 import type { DragPayload } from '@/features/survey-builder/types'
 
@@ -12,8 +12,8 @@ export function CardDragPreview({ data, nodeId }: Props) {
 
   // 侧边栏新题型拖拽预览
   if (data?.type === 'NEW_QUESTION') {
-    const config = QUESTION_TYPE_MAP[data.questionType]
-    const Icon = config?.icon
+    const meta = getQuestion(data.questionType)?.meta
+    const Icon = meta?.icon
 
     return (
       <div className='bg-background border-border ring-primary/15 w-56 rotate-1 overflow-hidden rounded-lg border p-3 shadow-2xl ring-1'>
@@ -25,10 +25,10 @@ export function CardDragPreview({ data, nodeId }: Props) {
           )}
           <div>
             <p className='text-foreground text-xs font-semibold'>
-              {config?.label}
+              {meta?.label}
             </p>
             <p className='text-muted-foreground text-[10px]'>
-              {config?.description}
+              {meta?.description}
             </p>
           </div>
         </div>
@@ -41,13 +41,13 @@ export function CardDragPreview({ data, nodeId }: Props) {
     const node = nodes.find((n) => n.id === nodeId)
     if (!node) return null
 
-    const config = QUESTION_TYPE_MAP[node.type]
+    const meta = getQuestion(node.type)?.meta
 
     return (
       <div className='border-border bg-background w-72 rotate-[0.5deg] rounded-lg border p-3 opacity-95 shadow-2xl'>
         <div className='mb-1 flex items-center gap-1.5'>
           <span className='bg-muted text-muted-foreground rounded px-1.5 py-0.5 font-mono text-[9px] font-bold'>
-            {config?.label}
+            {meta?.label}
           </span>
         </div>
         <p className='text-foreground line-clamp-2 text-sm font-medium'>

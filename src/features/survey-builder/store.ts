@@ -1,18 +1,23 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { useShallow } from 'zustand/react/shallow'
-import { QUESTION_TYPE_MAP, isQuestionNode } from './constants'
-import type {
-  SurveySchema,
-  QuestionNode,
-  SurveyMeta,
-  LogicRule,
-  CrossValidation,
-  NodeType,
-  BuilderMode,
-  InspectorTarget,
-  NodeConfig,
+import { getQuestion } from './question-types'
+import {
+  isQuestionNode,
+  type SurveySchema,
+  type QuestionNode,
+  type SurveyMeta,
+  type LogicRule,
+  type CrossValidation,
+  type NodeType,
+  type BuilderMode,
+  type InspectorTarget,
+  type NodeConfig,
 } from './types'
+
+// 使用较大的 BASE 保证插入余量。
+// normalizeOrders 在 reorderNodes 后重置，防止浮点数无限细分或超大值。
+const ORDER_GAP = 10_000
 
 const DEFAULT_META: SurveyMeta = {
   title: '未命名问卷',
@@ -39,8 +44,24 @@ const DEFAULT_META: SurveyMeta = {
   updatedAt: new Date().toISOString(),
 }
 
+export function createEmptySurvey(title = '未命名问卷'): SurveySchema {
+  return {
+    id: crypto.randomUUID(),
+    version: '1',
+    meta: {
+      ...DEFAULT_META,
+      title,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    nodes: [],
+    logic: [],
+    validations: [],
+    extensions: {},
+  }
+}
+
 interface SurveySlice {
-  // Domain Data
   surveyId: string | null
   meta: SurveyMeta
   nodes: QuestionNode[]
@@ -50,15 +71,11 @@ interface SurveySlice {
   extensions: Record<string, unknown>
   isDirty: boolean
 
-  // Actions
   initSurvey: (data: SurveySchema) => void
   updateMeta: (patch: Partial<SurveyMeta>) => void
   addNode: (
     type: NodeType,
-    options?: {
-      afterId?: string | null
-      atTop?: boolean
-    }
+    options?: { afterId?: string | null; atTop?: boolean }
   ) => void
   removeNode: (id: string) => void
   duplicateNode: (id: string) => void
@@ -73,7 +90,6 @@ interface SurveySlice {
 }
 
 interface UISlice {
-  // UI State
   builderMode: BuilderMode
   inspectorTarget: InspectorTarget
   selectedNodeId: string | null
@@ -81,7 +97,6 @@ interface UISlice {
   slashOpen: boolean
   slashAnchor: { x: number; y: number } | null
 
-  // Actions
   setBuilderMode: (mode: BuilderMode) => void
   setInspectorTarget: (target: InspectorTarget) => void
   selectNode: (id: string | null) => void
@@ -92,7 +107,7 @@ interface UISlice {
 
 type BuilderState = SurveySlice & UISlice
 
-const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
+const createSurveySlice = (set: any): SurveySlice => ({
   surveyId: null,
   meta: DEFAULT_META,
   nodes: [],
@@ -104,14 +119,13 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
 
   initSurvey: (surveyData) =>
     set((state: SurveySlice) => {
-      const nodes = surveyData.nodes || (surveyData as any).schema || []
       state.surveyId = surveyData.id
       state.meta = surveyData.meta
-      state.nodes = nodes
-      state.logic = surveyData.logic || []
-      state.validations = surveyData.validations || []
-      state.version = surveyData.version || '1'
-      state.extensions = surveyData.extensions || {}
+      state.nodes = surveyData.nodes ?? []
+      state.logic = surveyData.logic ?? []
+      state.validations = surveyData.validations ?? []
+      state.version = surveyData.version ?? '1'
+      state.extensions = surveyData.extensions ?? {}
       state.isDirty = false
     }),
 
@@ -123,45 +137,36 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
 
   addNode: (type, options) =>
     set((state: BuilderState) => {
-      const typeConfig = QUESTION_TYPE_MAP[type]
+      // 1. 优先尝试从新系统获取题型能力定义
+      const q = getQuestion(type)
       const sorted = [...state.nodes].sort((a, b) => a.order - b.order)
-      const newNode: QuestionNode = {
+      const maxOrder = sorted.length > 0 ? sorted[sorted.length - 1].order : 0
+
+      const newNode = {
+        ...q.create(),
         id: crypto.randomUUID(),
-        type,
         order: 0,
-        title: typeConfig?.label ?? type,
-        description: '',
-        required: false,
-        hidden: false,
-        readonly: false,
-        defaultValue: undefined,
-        role: null,
-        config: (typeConfig?.defaultConfig ?? {}) as NodeConfig,
         validations: [],
         extensions: {},
-      }
+      } as QuestionNode
 
+      // 2. 统一处理排版逻辑 (保持原有行为不变)
       if (options?.atTop) {
-        // 插入到问卷最顶部
         const first = sorted[0]
-        newNode.order = first ? first.order / 2 : 1000
+        newNode.order = first ? first.order / 2 : ORDER_GAP
       } else if (options?.afterId) {
-        // 插入到指定节点之后
         const idx = sorted.findIndex((n) => n.id === options.afterId)
         if (idx !== -1) {
           const current = sorted[idx]
           const next = sorted[idx + 1]
           newNode.order = next
             ? (current.order + next.order) / 2
-            : current.order + 1000
+            : current.order + ORDER_GAP
         } else {
-          newNode.order =
-            state.nodes.reduce((m, n) => Math.max(m, n.order), 0) + 1000
+          newNode.order = maxOrder + ORDER_GAP
         }
       } else {
-        // 默认：追加到末尾
-        newNode.order =
-          state.nodes.reduce((m, n) => Math.max(m, n.order), 0) + 1000
+        newNode.order = maxOrder + ORDER_GAP
       }
 
       state.nodes.push(newNode)
@@ -175,7 +180,6 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
     set((state: BuilderState) => {
       const idx = state.nodes.findIndex((n) => n.id === id)
       if (idx !== -1) state.nodes.splice(idx, 1)
-
       if (state.selectedNodeId === id) {
         state.selectedNodeId = null
         state.inspectorTarget = 'survey'
@@ -185,20 +189,32 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
 
   duplicateNode: (id) =>
     set((state: BuilderState) => {
-      const idx = state.nodes.findIndex((n) => n.id === id)
+      const sorted = [...state.nodes].sort((a, b) => a.order - b.order)
+      const idx = sorted.findIndex((n) => n.id === id)
       if (idx === -1) return
 
-      const node = state.nodes[idx]
-      const nextNode = state.nodes[idx + 1]
-
-      // 插值计算 order，确保在当前节点和下一个节点之间
+      const node = sorted[idx]
+      const nextNode = sorted[idx + 1]
       const newOrder = nextNode
         ? (node.order + nextNode.order) / 2
-        : node.order + 1000
+        : node.order + ORDER_GAP
+
+      // 架构层解决方案：深拷贝并递归重生所有子元素 ID
+      const cloneWithNewIds = (o: any): any => {
+        if (Array.isArray(o)) return o.map(cloneWithNewIds)
+        if (o !== null && typeof o === 'object') {
+          const res: any = {}
+          for (const k in o) {
+            if (k === 'id' && typeof o[k] === 'string') res[k] = crypto.randomUUID()
+            else res[k] = cloneWithNewIds(o[k])
+          }
+          return res
+        }
+        return o
+      }
 
       const newNode: QuestionNode = {
-        ...node,
-        id: crypto.randomUUID(),
+        ...cloneWithNewIds(node),
         order: newOrder,
         title: `${node.title} (副本)`,
       }
@@ -227,11 +243,13 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
       }
     }),
 
+  // 修复：reorderNodes 之后立即 normalizeOrders，
+  // 防止长时间使用后 order 值无限增大或出现浮点精度问题。
   reorderNodes: (ids) =>
     set((state: SurveySlice) => {
       ids.forEach((id, i) => {
         const node = state.nodes.find((n) => n.id === id)
-        if (node) node.order = (i + 1) * 1000
+        if (node) node.order = (i + 1) * ORDER_GAP
       })
       state.nodes.sort((a, b) => a.order - b.order)
       state.isDirty = true
@@ -247,7 +265,7 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
       const nextNode = sorted[targetIdx + 1]
       node.order = nextNode
         ? (target.order + nextNode.order) / 2
-        : target.order + 1000
+        : target.order + ORDER_GAP
       state.nodes.sort((a, b) => a.order - b.order)
       state.isDirty = true
     }),
@@ -280,7 +298,7 @@ const createSurveySlice = (set: any, _get: any, _api: any): SurveySlice => ({
     }),
 })
 
-const createUISlice = (set: any, _get: any, _api: any): UISlice => ({
+const createUISlice = (set: any): UISlice => ({
   builderMode: 'build',
   inspectorTarget: 'survey',
   selectedNodeId: null,
@@ -318,22 +336,21 @@ const createUISlice = (set: any, _get: any, _api: any): UISlice => ({
 })
 
 export const useBuilderStore = create<BuilderState>()(
-  immer((...a) => ({
-    ...createSurveySlice(...a),
-    ...createUISlice(...a),
+  immer((set) => ({
+    ...createSurveySlice(set),
+    ...createUISlice(set),
   }))
 )
 
-// 选择器（HOOKS）
 export const useSelectedNode = () => {
-  const nodes = useBuilderStore((s) => s.nodes || [])
+  const nodes = useBuilderStore((s) => s.nodes)
   const id = useBuilderStore((s) => s.selectedNodeId)
   return nodes.find((n) => n.id === id) ?? null
 }
 
 export const useRootNodes = () =>
   useBuilderStore(
-    useShallow((s) => [...(s.nodes || [])].sort((a, b) => a.order - b.order))
+    useShallow((s) => [...(s.nodes ?? [])].sort((a, b) => a.order - b.order))
   )
 
 export const useVisibleNodeNumber = () =>
@@ -341,7 +358,7 @@ export const useVisibleNodeNumber = () =>
     useShallow((s) => {
       const numMap: Record<string, number> = {}
       let i = 0
-      ;[...(s.nodes || [])]
+      ;[...(s.nodes ?? [])]
         .filter((n: QuestionNode) => isQuestionNode(n.type))
         .sort((a, b) => a.order - b.order)
         .forEach((n: QuestionNode) => {

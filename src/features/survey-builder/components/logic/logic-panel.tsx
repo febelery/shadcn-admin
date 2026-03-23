@@ -6,13 +6,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
-import {
-  LOGIC_ACTION_CONFIG,
-  FALLBACK_ACTION_CONFIG,
-} from '@/features/survey-builder/constants'
 import { useConflictDetection } from '@/features/survey-builder/hooks/use-conflict-detection'
 import { useBuilderStore } from '@/features/survey-builder/store'
-import type { LogicRule } from '@/features/survey-builder/types'
+import {
+  type LogicRule,
+  LOGIC_ACTION_CONFIG,
+  FALLBACK_ACTION_CONFIG,
+} from '@/features/survey-builder/types'
 import { LogicCanvas } from './logic-canvas'
 import { RuleEditor } from './rule-editor'
 
@@ -22,19 +22,26 @@ export function LogicPanel() {
 
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<LogicRule | null>(null)
+  // 规则编辑器分发：通过 key 驱动组件重挂载，确保状态同步
+  const [editCount, setEditCount] = useState(0)
 
   const { conflicts, conflictRules } = useConflictDetection()
 
   const openEditor = (rule?: LogicRule) => {
+    if (!rule) setEditCount((c) => c + 1)
     setEditingRule(rule ?? null)
     setEditorOpen(true)
   }
 
+  const handleClose = (open: boolean) => {
+    setEditorOpen(open)
+    if (!open) setEditingRule(null)
+  }
+
   return (
     <div className='flex flex-1 overflow-hidden'>
-      {/* ── Left: Rule list ────────────────────────── */}
+      {/* 左侧：规则列表 */}
       <aside className='border-border bg-background flex w-64 shrink-0 flex-col border-r'>
-        {/* Header */}
         <div className='border-border flex h-10 shrink-0 items-center justify-between border-b px-3'>
           <span className='text-foreground flex items-center gap-1.5 text-xs font-semibold'>
             逻辑规则
@@ -57,7 +64,6 @@ export function LogicPanel() {
 
         <ScrollArea className='flex-1'>
           <div className='space-y-1.5 p-2'>
-            {/* Conflict warning */}
             {conflictRules.length > 0 && (
               <div className='border-destructive/20 bg-destructive/5 flex gap-2 rounded-md border p-2'>
                 <AlertTriangle className='text-destructive mt-0.5 h-3.5 w-3.5 shrink-0' />
@@ -67,12 +73,10 @@ export function LogicPanel() {
               </div>
             )}
 
-            {/* Rule items */}
             {logic.map((rule) => {
               const mainType = rule.actions[0]?.type ?? 'default'
               const config =
                 LOGIC_ACTION_CONFIG[mainType] ?? FALLBACK_ACTION_CONFIG
-              const tagClass = config.color
               const isActive = activeRuleId === rule.id
               const hasConflict =
                 rule.enabled &&
@@ -109,7 +113,7 @@ export function LogicPanel() {
                       variant='secondary'
                       className={cn(
                         'h-4 shrink-0 rounded px-1.5 font-mono text-[9px] font-bold uppercase',
-                        tagClass
+                        config.color
                       )}
                     >
                       {config.label}
@@ -127,7 +131,6 @@ export function LogicPanel() {
                     </Button>
                   </div>
 
-                  {/* Conflict indicator */}
                   {hasConflict && (
                     <div className='border-destructive/20 bg-destructive/5 border-t px-2.5 py-1.5'>
                       <p className='text-destructive flex items-center gap-1 text-[10px]'>
@@ -140,7 +143,6 @@ export function LogicPanel() {
               )
             })}
 
-            {/* Empty + add */}
             {logic.length === 0 && (
               <div className='py-6 text-center'>
                 <p className='text-muted-foreground/60 text-xs'>暂无逻辑规则</p>
@@ -162,17 +164,15 @@ export function LogicPanel() {
         </ScrollArea>
       </aside>
 
-      {/* ── Right: Interactive canvas ──────────────── */}
+      {/* 右侧：可视化画布 */}
       <LogicCanvas />
 
-      {/* ── Rule editor drawer ─────────────────────── */}
+      {/* 规则编辑器抽屉 */}
       <RuleEditor
+        key={editingRule?.id ?? `new-${editCount}`}
         rule={editingRule}
         open={editorOpen}
-        onOpenChange={(open) => {
-          setEditorOpen(open)
-          if (!open) setEditingRule(null)
-        }}
+        onOpenChange={handleClose}
       />
     </div>
   )

@@ -30,4 +30,3 @@ src/routeTree.gen.ts
 
 .agent/
 .agents/
-skills-lock.json

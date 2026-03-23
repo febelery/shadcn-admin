@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { http, HttpResponse } from 'msw'
 import { sleep } from '@/lib/utils'
-import { createEmptySurvey } from '@/features/survey-builder/utils'
+import { createEmptySurvey } from '@/features/survey-builder/store'
 
 // 保存问卷详情的内存缓存
 const surveyDetailsTable = new Map<string, any>()
@@ -22,8 +22,12 @@ export const surveys = Array.from({ length: 45 }, () => {
     responseCount: faker.number.int({ min: 0, max: 500 }),
     createdAt: faker.date.past().toISOString(),
     updatedAt: faker.date.recent().toISOString(),
-    startTime: faker.helpers.maybe(() => faker.date.recent().toISOString(), { probability: 0.8 }),
-    endTime: faker.helpers.maybe(() => faker.date.future().toISOString(), { probability: 0.6 }),
+    startTime: faker.helpers.maybe(() => faker.date.recent().toISOString(), {
+      probability: 0.8,
+    }),
+    endTime: faker.helpers.maybe(() => faker.date.future().toISOString(), {
+      probability: 0.6,
+    }),
   }
 })
 
@@ -53,7 +57,9 @@ export const surveysHandlers = [
 
     if (status) {
       const statusList = status.split(',')
-      filteredSurveys = filteredSurveys.filter((s) => statusList.includes(s.status))
+      filteredSurveys = filteredSurveys.filter((s) =>
+        statusList.includes(s.status)
+      )
     }
 
     if (mode) {
@@ -90,7 +96,7 @@ export const surveysHandlers = [
   }),
 
   http.post('/api/surveys', async ({ request }) => {
-    const data = await request.json() as { title: string }
+    const data = (await request.json()) as { title: string }
     const id = `SURVEY-${faker.string.alphanumeric(8).toUpperCase()}`
     const newSurvey = {
       id,
@@ -120,12 +126,12 @@ export const surveysHandlers = [
 
   http.patch('/api/surveys/:id/status', async ({ params, request }) => {
     const { id } = params
-    const { status } = await request.json() as { status: string }
+    const { status } = (await request.json()) as { status: string }
     const survey = surveys.find((s) => s.id === id)
     if (survey) {
-      (survey as any).status = status
+      ;(survey as any).status = status
       survey.updatedAt = new Date().toISOString()
-      
+
       // 同步更新详情缓存
       const detail = surveyDetailsTable.get(id as string)
       if (detail) {
@@ -142,14 +148,14 @@ export const surveysHandlers = [
   http.get('/api/surveys/:id', async ({ params }) => {
     await sleep(200)
     const { id } = params as { id: string }
-    
+
     // 优先从详情缓存取
     if (surveyDetailsTable.has(id)) {
       return HttpResponse.json(surveyDetailsTable.get(id))
     }
 
     // 找不到则从列表找基础信息，并生成一个空 Schema
-    const base = surveys.find(s => s.id === id)
+    const base = surveys.find((s) => s.id === id)
     const newDetail = createEmptySurvey(base?.title || '未命名问卷')
     newDetail.id = id
     if (base) {
@@ -167,12 +173,12 @@ export const surveysHandlers = [
   http.put('/api/surveys/:id', async ({ params, request }) => {
     await sleep(300)
     const { id } = params as { id: string }
-    const data = await request.json() as any
-    
+    const data = (await request.json()) as any
+
     surveyDetailsTable.set(id, data)
 
     // 同步更新列表中的基础信息
-    const index = surveys.findIndex(s => s.id === id)
+    const index = surveys.findIndex((s) => s.id === id)
     if (index !== -1) {
       surveys[index].title = data.meta.title
       surveys[index].description = data.meta.description

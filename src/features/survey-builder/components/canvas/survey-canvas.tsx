@@ -10,19 +10,9 @@ interface Props {
   isDraggingNew: boolean
 }
 
-/**
- * GapDropzone —— 卡片之间的插入热区
- *
- * 核心思路：每个 gap 是一个真实的 droppable，高度平时很小（用户感知不到），
- * 悬停时展示指示线。因为是真实 droppable，dnd-kit 直接告诉我们
- * "放在哪个 gap"，不需要自己根据鼠标 Y 坐标推算 before/after。
- *
- * padding 技巧：把可点击区域（paddingY）做大，但把可视线条做薄，
- * 这样用户不需要精确瞄准，但视觉上干净。
- */
+// 每个节点前渲染一个 gap，列表末尾额外渲染最后一个 gap，所有 gap ID 均唯一且覆盖全部插入位置。
 function GapDropzone({ id }: { id: string }) {
   const { setNodeRef, isOver } = useDroppable({ id })
-
   return (
     <div ref={setNodeRef} className='relative z-20 -my-1 py-1' aria-hidden>
       <div
@@ -38,7 +28,6 @@ function GapDropzone({ id }: { id: string }) {
   )
 }
 
-/** 列表为空时的整块投放区 */
 function EmptyCanvasDropzone() {
   const { setNodeRef, isOver } = useDroppable({ id: 'gap-top' })
   return (
@@ -59,7 +48,6 @@ function EmptyCanvasDropzone() {
 export function SurveyCanvas({ isDraggingNew }: Props) {
   const rootNodes = useRootNodes()
   const { openSlash, selectNode } = useBuilderStore()
-
   const { setNodeRef: setCanvasRef } = useDroppable({ id: 'canvas-drop' })
 
   const handleAddClick = (e: React.MouseEvent) => {
@@ -85,22 +73,24 @@ export function SurveyCanvas({ isDraggingNew }: Props) {
         >
           <div onClick={(e) => e.stopPropagation()}>
             {rootNodes.map((node, index) => {
-              const topGapId =
+              // gap-top 在最顶部，其余 gap 命名为 gap-after-{prevNodeId}
+              const gapBeforeId =
                 index === 0 ? 'gap-top' : `gap-after-${rootNodes[index - 1].id}`
-              const bottomGapId = `gap-after-${node.id}`
 
               return (
                 <div key={node.id}>
-                  {isDraggingNew && <GapDropzone id={topGapId} />}
-
+                  {isDraggingNew && <GapDropzone id={gapBeforeId} />}
                   <QuestionCard node={node} />
-
-                  {isDraggingNew && index === rootNodes.length - 1 && (
-                    <GapDropzone id={bottomGapId} />
-                  )}
                 </div>
               )
             })}
+
+            {/* 最后一个节点之后的插入区 */}
+            {isDraggingNew && rootNodes.length > 0 && (
+              <GapDropzone
+                id={`gap-after-${rootNodes[rootNodes.length - 1].id}`}
+              />
+            )}
           </div>
         </SortableContext>
 
@@ -116,7 +106,7 @@ export function SurveyCanvas({ isDraggingNew }: Props) {
                 'focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:outline-none'
               )}
             >
-              <div className='flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted shadow-sm transition-colors group-hover:bg-primary/10 group-hover:text-primary'>
+              <div className='bg-muted group-hover:bg-primary/10 group-hover:text-primary flex h-6 w-6 shrink-0 items-center justify-center rounded-full shadow-sm transition-colors'>
                 <Badge
                   variant='outline'
                   className='border-transparent p-0 shadow-none'
@@ -125,7 +115,7 @@ export function SurveyCanvas({ isDraggingNew }: Props) {
                 </Badge>
               </div>
               <span className='flex-1 text-sm font-medium'>添加问题</span>
-              <span className='text-xs text-muted-foreground/50 font-mono'>
+              <span className='text-muted-foreground/50 font-mono text-xs'>
                 +/Drag
               </span>
             </button>

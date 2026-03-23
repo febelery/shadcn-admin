@@ -9,20 +9,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import {
-  QUESTION_TYPES,
-  QUESTION_TYPE_CATEGORIES,
-  type QuestionTypeConfig,
-} from '../constants'
+import { getAllQuestions } from '../question-types'
 import { useBuilderStore } from '../store'
-import type { NodeType } from '../types'
+import { type NodeType, QUESTION_TYPE_CATEGORIES } from '../types'
 
 // 单个可拖拽题型项
 function DraggableTypeItem({
   item,
   collapsed,
 }: {
-  item: QuestionTypeConfig
+  item: any
   collapsed: boolean
 }) {
   const { addNode, selectedNodeId } = useBuilderStore()
@@ -83,11 +79,20 @@ export function TypeSidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [query, setQuery] = useState('')
 
+  // 核心重构：将静态常量替换为从 Registry 获取的动态数据
+  const allQuestions = getAllQuestions().map((q) => ({
+    type: q.type,
+    label: q.meta.label,
+    description: q.meta.description || '',
+    icon: q.meta.icon as any,
+    category: q.meta.category,
+  }))
+
   const filtered = query
-    ? QUESTION_TYPES.filter(
+    ? allQuestions.filter(
         (t) => t.label.includes(query) || t.description?.includes(query)
       )
-    : QUESTION_TYPES
+    : allQuestions
 
   return (
     <TooltipProvider>

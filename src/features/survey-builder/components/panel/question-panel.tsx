@@ -1,32 +1,19 @@
 'use client'
 import { useState, useRef } from 'react'
-import {
-  ChevronDown,
-  Copy,
-  Check,
-  Trash2,
-  Copy as CopyIcon,
-} from 'lucide-react'
+import { ChevronDown, Trash2, Copy as CopyIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  QUESTION_TYPE_MAP,
-  isLayoutNode,
-} from '@/features/survey-builder/constants'
+import { getQuestion } from '@/features/survey-builder/question-types/index'
 import {
   useBuilderStore,
   useSelectedNode,
 } from '@/features/survey-builder/store'
-import type { QuestionNode, LogicRule } from '@/features/survey-builder/types'
-import { ChoiceConfig } from './configs/choice-config'
-import { MatrixConfig } from './configs/matrix-config'
-import { RatingConfig, NpsConfig } from './configs/rating-config'
-import { TextConfig } from './configs/text-config'
-import { ValidationConfig } from './configs/validation-config'
+import type { QuestionNode } from '@/features/survey-builder/types'
+import { ValidationConfig } from './validation-config'
 
 // 空状态展示
 function EmptyPanel() {
@@ -45,7 +32,6 @@ function EmptyPanel() {
 }
 
 // 分组标题栏组件
-// bg-muted 实色条，左侧 2px primary 线作为视觉锚点
 function SectionHeader({
   title,
   badge,
@@ -120,9 +106,15 @@ export function QuestionPanel() {
   const node = useSelectedNode()
   if (!node) return <EmptyPanel />
 
-  const hasTypeConfig = getConfigComponent(node) !== null
+  const q = getQuestion(node.type)
+  const features = q?.features ?? {
+    hasTitle: true,
+    hasRequired: true,
+    hasValidation: true,
+  }
+  const ConfigPanel = q?.configPanel
+
   const validationCount = node.validations?.length ?? 0
-  const isLayout = isLayoutNode(node.type)
 
   return (
     <div className='flex h-full flex-col overflow-hidden'>
@@ -131,46 +123,32 @@ export function QuestionPanel() {
 
       <ScrollArea className='min-h-0 flex-1'>
         <div className='pb-12'>
-          {!isLayout && (
-            <>
-              {/* ① 最高频：标题 + 必填（合并，因为每题必改） */}
-              <TitleSection node={node} />
-
-              {/* ② 高频（有选项类型时）：选项配置 */}
-              {hasTypeConfig && (
-                <Section title='选项配置'>
-                  <div className='py-1'>{getConfigComponent(node)}</div>
-                </Section>
-              )}
-
-              {/* ③ 中频：行为控制（逻辑隐藏 + 只读） */}
-              <Section title='行为设置' defaultOpen>
-                <BehaviorRows node={node} />
-              </Section>
-
-              {/* ④ 低频：校验规则（有规则时默认展开） */}
-              <Section
-                title='校验规则'
-                defaultOpen={validationCount > 0}
-                badge={validationCount}
-              >
-                <div className='py-1'>
-                  <ValidationConfig node={node} />
-                </div>
-              </Section>
-            </>
+          {/* ① 语义展示区域：由题型元数据控制是否拥有标题/描述 */}
+          {features.hasTitle && (
+            <TitleSection node={node} showRequired={features.hasRequired} />
           )}
 
-          {isLayout && node.type === 'divider' && (
-            <div className='p-6 text-center'>
-              <p className='text-muted-foreground text-xs'>分割线无额外配置</p>
-            </div>
+          {/* ② 题型专属配置：全量基于配置面板注册 */}
+          {ConfigPanel && (
+            <Section title='题型配置'>
+              <div className='py-1'>
+                <ConfigPanel node={node} />
+              </div>
+            </Section>
           )}
 
-          {/* ⑤ 极低频：标识符（默认收起） */}
-          <Section title='标识符' defaultOpen={false}>
-            <UidRow node={node} />
-          </Section>
+          {/* ③ 校验规则：由题型元数据控制是否开放独立校验项 */}
+          {features.hasValidation && (
+            <Section
+              title='校验规则'
+              defaultOpen={validationCount > 0}
+              badge={validationCount}
+            >
+              <div className='py-1'>
+                <ValidationConfig node={node} />
+              </div>
+            </Section>
+          )}
         </div>
       </ScrollArea>
     </div>
@@ -179,8 +157,9 @@ export function QuestionPanel() {
 
 function TypeHeader({ node }: { node: QuestionNode }) {
   const { duplicateNode, removeNode } = useBuilderStore()
-  const config = QUESTION_TYPE_MAP[node.type]
-  const Icon = config?.icon
+  const q = getQuestion(node.type)
+  const Icon = q?.meta.icon
+
   return (
     <div className='border-border/40 bg-background flex shrink-0 items-center justify-between border-b px-3 py-2.5 shadow-none'>
       <div className='flex items-center gap-2.5'>
@@ -191,7 +170,7 @@ function TypeHeader({ node }: { node: QuestionNode }) {
         )}
         <div className='flex flex-col gap-0.5'>
           <span className='text-foreground text-[11px] font-bold tracking-wide'>
-            {config?.label ?? node.type}
+            {q?.meta.label ?? node.type}
           </span>
           <code
             className='text-muted-foreground/50 font-mono text-[9px]'
@@ -228,7 +207,13 @@ function TypeHeader({ node }: { node: QuestionNode }) {
 
 // 标题配置区域（标题、必填、描述）
 // 必填 toggle 和标题标签放同一行，用户改标题时顺手就能切必填
-function TitleSection({ node }: { node: QuestionNode }) {
+function TitleSection({
+  node,
+  showRequired = true,
+}: {
+  node: QuestionNode
+  showRequired?: boolean
+}) {
   const updateNode = useBuilderStore((s) => s.updateNode)
   const titleRef = useRef<HTMLTextAreaElement>(null)
 
@@ -240,21 +225,23 @@ function TitleSection({ node }: { node: QuestionNode }) {
           <label className='text-foreground text-xs font-semibold tracking-wide'>
             题目标题
           </label>
-          <div className='flex items-center gap-2'>
-            <span
-              className={cn(
-                'text-[10px] font-medium transition-colors',
-                node.required ? 'text-destructive' : 'text-muted-foreground'
-              )}
-            >
-              必填项
-            </span>
-            <Switch
-              checked={!!node.required}
-              onCheckedChange={(v) => updateNode(node.id, { required: v })}
-              className='data-[state=checked]:bg-destructive scale-[0.8]'
-            />
-          </div>
+          {showRequired && (
+            <div className='flex items-center gap-2'>
+              <span
+                className={cn(
+                  'text-[10px] font-medium transition-colors',
+                  node.required ? 'text-destructive' : 'text-muted-foreground'
+                )}
+              >
+                必填项
+              </span>
+              <Switch
+                checked={!!node.required}
+                onCheckedChange={(v) => updateNode(node.id, { required: v })}
+                className='data-[state=checked]:bg-destructive scale-[0.8]'
+              />
+            </div>
+          )}
         </div>
         <Textarea
           ref={titleRef}
@@ -284,131 +271,4 @@ function TitleSection({ node }: { node: QuestionNode }) {
       </div>
     </div>
   )
-}
-
-// 行为设置区域（显示隐藏、只读）
-// 这两个相对低频，放在独立 section，不干扰高频操作
-function BehaviorRows({ node }: { node: QuestionNode }) {
-  const updateNode = useBuilderStore((s) => s.updateNode)
-  const logic = useBuilderStore((s) => s.logic)
-  const setBuilderMode = useBuilderStore((s) => s.setBuilderMode)
-
-  const relatedRules = logic.filter(
-    (r: LogicRule) =>
-      r.condition.rules.some((rr: any) => rr.field === node.id) ||
-      r.actions.some((a: any) => a.target === node.id)
-  )
-
-  return (
-    <div className='px-3 pt-1 pb-2'>
-      {(
-        [
-          {
-            key: 'hidden',
-            label: '逻辑隐藏',
-            desc: '由跳题逻辑控制可见性',
-          },
-          {
-            key: 'readonly',
-            label: '只读模式',
-            desc: '展示但不可编辑',
-          },
-        ] as const
-      ).map(({ key, label, desc }) => (
-        <div
-          key={key}
-          className='flex items-center justify-between gap-4 py-2.5 last:pb-1'
-        >
-          <div className='space-y-0.5'>
-            <p className='text-foreground text-xs font-medium tracking-wide'>
-              {label}
-            </p>
-            <p className='text-muted-foreground text-[10px]'>{desc}</p>
-          </div>
-          <Switch
-            checked={!!node[key as keyof QuestionNode]}
-            onCheckedChange={(v) => updateNode(node.id, { [key]: v })}
-            className='scale-[0.8]'
-          />
-        </div>
-      ))}
-
-      {relatedRules.length > 0 && (
-        <div className='border-border/40 mt-2 flex flex-wrap items-center gap-2 border-t pt-3 pb-1'>
-          <span className='text-muted-foreground mr-1 text-[10px] font-semibold uppercase'>
-            关联规则
-          </span>
-          {relatedRules.map((r: LogicRule) => (
-            <button
-              key={r.id}
-              onClick={() => setBuilderMode('logic')}
-              className='border-border bg-secondary text-foreground hover:border-primary/50 hover:text-primary rounded border px-2 py-0.5 text-[10px] font-medium shadow-sm transition-colors'
-            >
-              {r.name}
-            </button>
-          ))}
-          <button
-            onClick={() => setBuilderMode('logic')}
-            className='text-muted-foreground hover:text-primary ml-auto text-[10px] font-medium transition-colors'
-          >
-            去配置 →
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// 唯一标识符展示与复制
-function UidRow({ node }: { node: QuestionNode }) {
-  const [copied, setCopied] = useState(false)
-  const copy = () => {
-    navigator.clipboard.writeText(node.id)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
-  }
-  return (
-    <div className='px-3 py-3'>
-      <button
-        onClick={copy}
-        title='点击复制完整 ID'
-        className='border-border/50 bg-muted/30 hover:bg-muted flex w-full items-center gap-2 rounded border px-2 py-1.5 text-left transition-colors'
-      >
-        <code className='text-muted-foreground min-w-0 flex-1 truncate font-mono text-[10px]'>
-          {node.id}
-        </code>
-        {copied ? (
-          <Check className='h-3.5 w-3.5 shrink-0 text-emerald-500' />
-        ) : (
-          <Copy className='text-muted-foreground/60 h-3.5 w-3.5 shrink-0' />
-        )}
-      </button>
-    </div>
-  )
-}
-
-// 根据题型获取对应的配置子组件
-function getConfigComponent(node: QuestionNode): React.ReactNode {
-  switch (node.type) {
-    case 'single_choice':
-    case 'multiple_choice':
-    case 'dropdown':
-    case 'ranking':
-    case 'image_choice':
-      return <ChoiceConfig node={node} />
-    case 'matrix_single':
-    case 'matrix_multiple':
-      return <MatrixConfig node={node} />
-    case 'rating':
-      return <RatingConfig node={node} />
-    case 'nps':
-      return <NpsConfig node={node} />
-    case 'text':
-    case 'textarea':
-    case 'number':
-    case 'fill_in':
-      return <TextConfig node={node} />
-    default:
-      return null
-  }
 }

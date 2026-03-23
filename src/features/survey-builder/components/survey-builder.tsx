@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from '@tanstack/react-router'
 import {
   DndContext,
@@ -14,7 +14,7 @@ import {
 import { arrayMove } from '@dnd-kit/sortable'
 import { Loader2 } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
-import { useSurveyDetail } from '../hooks'
+import { useSurveyDetail } from '../hooks/use-survey-detail'
 import { useBuilderStore } from '../store'
 import type { DragPayload } from '../types'
 import { BuilderTopbar } from './builder-topbar'
@@ -28,7 +28,6 @@ import { TypeSidebar } from './type-sidebar'
 export function SurveyBuilder() {
   const { surveyId } = useParams({ from: '/survey/builder/$surveyId' })
 
-  // 架构优化: 避免直接解构庞大的 Store，改用原子级 Selector 或 Shallow 控制渲染边界
   const builderMode = useBuilderStore((s) => s.builderMode)
   const nodes = useBuilderStore((s) => s.nodes)
 
@@ -57,49 +56,53 @@ export function SurveyBuilder() {
       try {
         initSurvey(JSON.parse(draft))
         return
-      } catch (e) {
-        console.error('Failed to parse survey draft:', e)
+      } catch {
+        sessionStorage.removeItem(`survey-draft-${surveyId}`)
       }
     }
     initSurvey(surveyData)
   }, [surveyData, surveyId, initSurvey])
 
-  // 自动保存草稿 - 采用 Subscribe 真正响应所有的状态变动，而不会陷入 isDirty useEffect 的死结
+  // 自动保存草稿：防抖存储至 sessionStorage
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   useEffect(() => {
     const unsub = useBuilderStore.subscribe((state, prevState) => {
-      // 检查只要是脏状态且状态发生了变化，就推入延迟保存
-      if (state.isDirty && state !== prevState) {
-        clearTimeout((window as any)._surveyAutoSaveTimer)
-        ;(window as any)._surveyAutoSaveTimer = setTimeout(() => {
-          sessionStorage.setItem(
-            `survey-draft-${surveyId}`,
-            JSON.stringify({
-              id: surveyId,
-              version: state.version || '1',
-              meta: state.meta,
-              nodes: state.nodes,
-              logic: state.logic,
-              validations: state.validations,
-              extensions: state.extensions || {},
-            })
-          )
-        }, 1000)
-      }
+      if (!state.isDirty || state === prevState) return
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+      autoSaveTimerRef.current = setTimeout(() => {
+        // 读取最新 state，不依赖闭包中的旧值
+        const s = useBuilderStore.getState()
+        sessionStorage.setItem(
+          `survey-draft-${surveyId}`,
+          JSON.stringify({
+            id: surveyId,
+            version: s.version ?? '1',
+            meta: s.meta,
+            nodes: s.nodes,
+            logic: s.logic,
+            validations: s.validations,
+            extensions: s.extensions ?? {},
+          })
+        )
+      }, 1000)
     })
-    return () => unsub()
+
+    return () => {
+      unsub()
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+    }
   }, [surveyId])
 
-  // 全局快捷键
+  // 全局快捷键：Esc 取消选中/关闭菜单
   useEffect(() => {
     const handle = (e: KeyboardEvent) => {
-      // 架构防护: 如果焦点在输入框/文本域等原生编辑容器中，将键盘操作归还浏览器，禁止拦截
       const target = e.target as HTMLElement
-      const isInput =
+      const isEditing =
         target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable
-
-      if (isInput) return
+      if (isEditing) return
 
       const store = useBuilderStore.getState()
       if (e.key === 'Escape') {
@@ -111,32 +114,29 @@ export function SurveyBuilder() {
     return () => window.removeEventListener('keydown', handle)
   }, [])
 
-  // 拖拽手势处理
+  // 拖拽处理：排序与新增题目
   const handleDragStart = ({ active }: DragStartEvent) => {
     setActiveId(active.id)
     setActiveDragData((active.data.current as DragPayload) ?? null)
   }
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
-    const data = active.data.current
+    const data = active.data.current as DragPayload | undefined
 
     if (data?.type === 'NEW_QUESTION') {
       const gapId = over ? String(over.id) : null
-
       if (!gapId || (!gapId.startsWith('gap-') && gapId !== 'canvas-drop')) {
-        // 落到画布空白区域 → 追加到末尾
         addNode(data.questionType)
       } else if (gapId === 'gap-top') {
         addNode(data.questionType, { atTop: true })
       } else if (gapId.startsWith('gap-after-')) {
-        const afterId = gapId.slice('gap-after-'.length)
-        addNode(data.questionType, { afterId })
+        addNode(data.questionType, {
+          afterId: gapId.slice('gap-after-'.length),
+        })
       } else {
-        // canvas-drop fallback
         addNode(data.questionType)
       }
     } else if (over && active.id !== over.id) {
-      // 重排现有节点
       const sortedNodes = [...nodes].sort((a, b) => a.order - b.order)
       const oldIdx = sortedNodes.findIndex((n) => n.id === active.id)
       const newIdx = sortedNodes.findIndex((n) => n.id === over.id)
@@ -154,7 +154,6 @@ export function SurveyBuilder() {
     setActiveDragData(null)
   }
 
-  // 加载状态
   if (isLoading) {
     return (
       <div className='bg-background flex h-screen w-full items-center justify-center'>
@@ -196,7 +195,6 @@ export function SurveyBuilder() {
         <SlashCommand />
       </div>
 
-      {/* Drag overlay – visual preview under cursor */}
       <DragOverlay
         dropAnimation={{
           duration: 150,

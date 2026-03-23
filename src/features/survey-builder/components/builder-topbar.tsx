@@ -1,4 +1,5 @@
-import { useParams } from '@tanstack/react-router'
+'use client'
+import { useParams, useNavigate } from '@tanstack/react-router'
 import {
   Eye,
   GitBranch,
@@ -13,35 +14,40 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { useUpdateSurvey } from '../hooks'
+import { useUpdateSurvey } from '../hooks/use-update-survey'
 import { useConflictDetection } from '../hooks/use-conflict-detection'
 import { useBuilderStore } from '../store'
 
 export function BuilderTopbar() {
   const { surveyId } = useParams({ from: '/survey/builder/$surveyId' })
-  const { meta, builderMode, isDirty, setBuilderMode, markSaved } =
-    useBuilderStore()
+  const navigate = useNavigate()
+
+  // 修复 #18：用响应式 selector 替代 render 阶段的 getState() 调用。
+  // getState() 是非响应式读取，结果不会随 store 变化而触发重渲染。
+  const title = useBuilderStore((s) => s.meta.title)
+  const builderMode = useBuilderStore((s) => s.builderMode)
+  const isDirty = useBuilderStore((s) => s.isDirty)
+  const logicCount = useBuilderStore((s) => s.logic.length)
+  const setBuilderMode = useBuilderStore((s) => s.setBuilderMode)
+  const markSaved = useBuilderStore((s) => s.markSaved)
 
   const { conflictRules } = useConflictDetection()
-
   const { mutate: updateSurvey, isPending: isSaving } = useUpdateSurvey()
 
   const handleSave = () => {
     if (!isDirty || isSaving) return
-
-    // 延迟读取庞大的节点树，防止由顶层导致的全局重绘
     const state = useBuilderStore.getState()
     updateSurvey(
       {
         id: surveyId,
         data: {
           id: surveyId,
-          version: state.version || '1',
+          version: state.version ?? '1',
           meta: state.meta,
           nodes: state.nodes,
           logic: state.logic,
           validations: [],
-          extensions: state.extensions || {},
+          extensions: state.extensions ?? {},
         },
       },
       {
@@ -53,10 +59,14 @@ export function BuilderTopbar() {
     )
   }
 
+  // 修复 #32：预览按钮跳转到预览页，而非静态占位。
+  const handlePreview = () => {
+    navigate({ to: '/survey/preview/$surveyId', params: { surveyId } })
+  }
+
   return (
     <TooltipProvider>
       <header className='bg-background relative z-50 flex h-14 shrink-0 items-center gap-2 border-b px-4'>
-        {/* Logo */}
         <div className='mr-2 flex items-center gap-2'>
           <div className='bg-primary text-primary-foreground flex h-7 w-7 items-center justify-center rounded-md'>
             <LayoutTemplate className='h-4 w-4' />
@@ -68,20 +78,16 @@ export function BuilderTopbar() {
 
         <Separator orientation='vertical' className='mx-2 h-5' />
 
-        {/* Breadcrumb */}
         <nav className='hidden items-center gap-2 text-sm sm:flex'>
           <span className='text-foreground max-w-40 truncate font-medium md:max-w-[18rem]'>
-            {meta.title || '未命名问卷'}
+            {title || '未命名问卷'}
           </span>
         </nav>
 
-        {/* 中间模式切换 */}
         <ToggleGroup
           type='single'
           value={builderMode}
-          onValueChange={(v) => {
-            if (v) setBuilderMode(v as typeof builderMode)
-          }}
+          onValueChange={(v) => { if (v) setBuilderMode(v as typeof builderMode) }}
           className='bg-muted absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center space-x-0 rounded-md p-1 shadow-sm'
         >
           <ToggleGroupItem
@@ -101,7 +107,7 @@ export function BuilderTopbar() {
               <GitBranch className='mr-1.5 h-3.5 w-3.5' />
             )}
             逻辑
-            {useBuilderStore.getState().logic.length > 0 && (
+            {logicCount > 0 && (
               <Badge
                 variant='secondary'
                 className={cn(
@@ -111,24 +117,21 @@ export function BuilderTopbar() {
                     : 'bg-primary/20 text-primary'
                 )}
               >
-                {useBuilderStore.getState().logic.length}
+                {logicCount}
               </Badge>
             )}
           </ToggleGroupItem>
         </ToggleGroup>
 
-        {/* Right actions */}
         <div className='ml-auto flex items-center gap-2'>
-          {/* Save status */}
-          <SaveButton
-            isDirty={isDirty}
-            isSaving={isSaving}
-            onClick={handleSave}
-          />
-
+          <SaveButton isDirty={isDirty} isSaving={isSaving} onClick={handleSave} />
           <Separator orientation='vertical' className='h-4' />
-
-          <Button variant='outline' size='sm' className='h-8 px-3 font-medium'>
+          <Button
+            variant='outline'
+            size='sm'
+            className='h-8 px-3 font-medium'
+            onClick={handlePreview}
+          >
             <Eye className='mr-1.5 h-3.5 w-3.5' />
             <span className='hidden sm:block'>预览</span>
           </Button>
@@ -149,18 +152,12 @@ function SaveButton({
 }) {
   if (isSaving) {
     return (
-      <Button
-        size='sm'
-        variant='ghost'
-        className='h-8 px-3 text-xs font-medium'
-        disabled
-      >
+      <Button size='sm' variant='ghost' className='h-8 px-3 text-xs font-medium' disabled>
         <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />
         保存中…
       </Button>
     )
   }
-
   if (!isDirty) {
     return (
       <div className='text-muted-foreground flex items-center gap-1.5 px-2 text-xs'>
@@ -169,7 +166,6 @@ function SaveButton({
       </div>
     )
   }
-
   return (
     <Button size='sm' className='h-8 px-4 text-xs shadow-sm' onClick={onClick}>
       保存修改

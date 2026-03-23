@@ -7,12 +7,12 @@ import {
   CommandEmpty,
 } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverAnchor } from '@/components/ui/popover'
-import {
-  QUESTION_TYPES,
-  QUESTION_TYPE_CATEGORIES,
-} from '@/features/survey-builder/constants'
+import { getAllQuestions } from '@/features/survey-builder/question-types'
 import { useBuilderStore } from '@/features/survey-builder/store'
-import type { NodeType } from '@/features/survey-builder/types'
+import {
+  QUESTION_TYPE_CATEGORIES,
+  type NodeType,
+} from '@/features/survey-builder/types'
 
 export function SlashCommand() {
   const { slashOpen, slashAnchor, closeSlash, addNode, selectedNodeId } =
@@ -49,14 +49,15 @@ export function SlashCommand() {
             <CommandEmpty>未找到匹配题型</CommandEmpty>
             {QUESTION_TYPE_CATEGORIES.map((cat) => (
               <CommandGroup key={cat} heading={cat}>
-                {QUESTION_TYPES.filter((t) => t.category === cat).map(
-                  (item) => {
-                    const Icon = item.icon
+                {getAllQuestions()
+                  .filter((q) => q.meta.category === cat)
+                  .map((item) => {
+                    const Icon = item.meta.icon
                     return (
                       <CommandItem
                         key={item.type}
-                        value={`${item.label} ${item.description}`}
-                        onSelect={() => handleSelect(item.type)}
+                        value={`${item.meta.label} ${item.meta.description}`}
+                        onSelect={() => handleSelect(item.type as NodeType)}
                         className='cursor-pointer gap-2.5 px-3 py-2'
                       >
                         <div className='border-border bg-muted text-muted-foreground group-hover:bg-background flex h-6 w-6 items-center justify-center rounded border transition-colors'>
@@ -64,16 +65,15 @@ export function SlashCommand() {
                         </div>
                         <div>
                           <div className='text-xs font-medium'>
-                            {item.label}
+                            {item.meta.label}
                           </div>
                           <div className='text-muted-foreground text-[10px]'>
-                            {item.description}
+                            {item.meta.description}
                           </div>
                         </div>
                       </CommandItem>
                     )
-                  }
-                )}
+                  })}
               </CommandGroup>
             ))}
           </CommandList>

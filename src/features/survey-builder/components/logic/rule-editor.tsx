@@ -18,12 +18,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { isQuestionNode } from '@/features/survey-builder/constants'
+import { getQuestion } from '@/features/survey-builder/question-types'
 import { useBuilderStore } from '@/features/survey-builder/store'
-import type {
-  LogicRule,
-  LogicAction,
-  ConditionRule,
+import {
+  type LogicRule,
+  type LogicAction,
+  type ConditionRule,
+  isQuestionNode,
 } from '@/features/survey-builder/types'
 
 const ACTION_TYPES = [
@@ -133,27 +134,43 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
                   </SelectContent>
                 </Select>
                 <div className='flex gap-1.5'>
-                  <Select
-                    value={cond.operator}
-                    onValueChange={(v) =>
-                      setConditions((c) =>
-                        c.map((r, idx) =>
-                          idx === i ? { ...r, operator: v as any } : r
+                  {(() => {
+                    const sourceNode = questionNodes.find(
+                      (n) => n.id === cond.field
+                    )
+                    const caps = sourceNode
+                      ? getQuestion(sourceNode.type)?.capabilities
+                      : undefined
+                    const availableOperators = caps
+                      ? OPERATORS.filter((o) =>
+                          caps.operators.includes(o.value as any)
                         )
-                      )
-                    }
-                  >
-                    <SelectTrigger className='h-8 w-24 shrink-0 text-[11px]'>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {OPERATORS.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>
-                          {o.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      : OPERATORS
+
+                    return (
+                      <Select
+                        value={cond.operator}
+                        onValueChange={(v) =>
+                          setConditions((c) =>
+                            c.map((r, idx) =>
+                              idx === i ? { ...r, operator: v as any } : r
+                            )
+                          )
+                        }
+                      >
+                        <SelectTrigger className='h-8 w-32 shrink-0 text-[11px]'>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableOperators.map((o) => (
+                            <SelectItem key={o.value} value={o.value}>
+                              {o.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )
+                  })()}
                   {!['is_empty', 'is_not_empty'].includes(cond.operator) && (
                     <Input
                       className='h-8 flex-1 text-xs'

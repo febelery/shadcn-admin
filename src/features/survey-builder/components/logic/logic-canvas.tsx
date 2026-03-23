@@ -28,43 +28,38 @@ import { Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  QUESTION_TYPE_MAP,
-  LOGIC_ACTION_CONFIG,
-  FALLBACK_ACTION_CONFIG,
-  isQuestionNode,
-} from '@/features/survey-builder/constants'
+import { getQuestion } from '@/features/survey-builder/question-types'
 import {
   useBuilderStore,
   useVisibleNodeNumber,
 } from '@/features/survey-builder/store'
-import type { QuestionNode, LogicRule } from '@/features/survey-builder/types'
+import {
+  type QuestionNode,
+  type LogicRule,
+  LOGIC_ACTION_CONFIG,
+  FALLBACK_ACTION_CONFIG,
+  isQuestionNode,
+} from '@/features/survey-builder/types'
 
-// ─── Constants ────────────────────────────────────────────
 const NODE_W = 220
 const NODE_H = 84
 const POS_KEY = 'survey-builder:logic-positions'
 
-// ─── Types ────────────────────────────────────────────────
 type QuestionNodeData = { node: QuestionNode; num: number }
 type LogicEdgeData = { ruleId: string; actionType: string; ruleName: string }
 
-// ─── Dagre auto-layout ────────────────────────────────────
 function getLayoutedElements(nodes: Node[], edges: Edge[]) {
   const g = new dagre.graphlib.Graph()
   g.setGraph({ rankdir: 'TB', nodesep: 60, ranksep: 80 })
   g.setDefaultEdgeLabel(() => ({}))
-
   nodes.forEach((n) =>
     g.setNode(n.id, {
-      // v12: measured 存储实际尺寸，fallback 到静态常量
       width: n.measured?.width ?? NODE_W,
       height: n.measured?.height ?? NODE_H,
     })
   )
   edges.forEach((e) => g.setEdge(e.source, e.target))
   dagre.layout(g)
-
   return {
     nodes: nodes.map((n) => {
       const { x, y } = g.node(n.id)
@@ -80,7 +75,6 @@ function getLayoutedElements(nodes: Node[], edges: Edge[]) {
   }
 }
 
-// ─── Position persistence ─────────────────────────────────
 function loadPositions(): Record<string, { x: number; y: number }> {
   try {
     return JSON.parse(sessionStorage.getItem(POS_KEY) ?? '{}')
@@ -96,17 +90,17 @@ function savePositions(nodes: Node[]) {
   sessionStorage.setItem(POS_KEY, JSON.stringify(map))
 }
 
-// ─── Schema + logic → RF nodes & edges ───────────────────
+// 构建逻辑图：nodes 和 edges
 function buildGraph(
   visibleNodes: QuestionNode[],
   logic: LogicRule[],
-  numMap: Record<string, number>,
-  positions: Record<string, { x: number; y: number }>
+  numMap: Record<string, number>
 ): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = visibleNodes.map((node, i) => ({
     id: node.id,
     type: 'questionNode',
-    position: positions[node.id] ?? { x: 120, y: i * (NODE_H + 56) },
+    // 不在此处设置 position，由调用方合并
+    position: { x: 120, y: i * (NODE_H + 56) },
     data: { node, num: numMap[node.id] } satisfies QuestionNodeData,
     width: NODE_W,
     height: NODE_H,
@@ -129,11 +123,7 @@ function buildGraph(
           actionType: action.type,
           ruleName: rule.name,
         } satisfies LogicEdgeData,
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          width: 14,
-          height: 14,
-        },
+        markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
       })
     })
   })
@@ -141,14 +131,14 @@ function buildGraph(
   return { nodes, edges }
 }
 
-// ─── Custom Node ──────────────────────────────────────────
+// 自定义题目节点
 const QuestionNodeComponent = memo(function QuestionNode({
   data,
   selected,
 }: NodeProps) {
   const { node, num } = data as QuestionNodeData
-  const config = QUESTION_TYPE_MAP[node.type]
-  const Icon = config?.icon
+  const meta = getQuestion(node.type)?.meta
+  const Icon = meta?.icon
   const { selectNode } = useBuilderStore()
 
   return (
@@ -163,7 +153,6 @@ const QuestionNodeComponent = memo(function QuestionNode({
       style={{ width: NODE_W, height: NODE_H }}
       onClick={() => selectNode(node.id)}
     >
-      {/* Target handle — left */}
       <Handle
         type='target'
         position={Position.Left}
@@ -172,9 +161,7 @@ const QuestionNodeComponent = memo(function QuestionNode({
           'border-border! hover:border-primary! hover:bg-primary/10!'
         )}
       />
-
       <div className='px-3 py-2.5'>
-        {/* Meta row */}
         <div className='mb-1.5 flex items-center gap-1.5'>
           {num !== undefined && (
             <Badge
@@ -186,20 +173,16 @@ const QuestionNodeComponent = memo(function QuestionNode({
           )}
           {Icon && <Icon className='text-muted-foreground h-3 w-3 shrink-0' />}
           <span className='text-muted-foreground min-w-0 flex-1 truncate text-[10px]'>
-            {config?.label}
+            {meta?.label}
           </span>
           {node.required && (
             <span className='text-destructive text-[9px] font-bold'>必填</span>
           )}
         </div>
-
-        {/* Title */}
         <p className='text-foreground line-clamp-2 text-xs leading-snug font-medium'>
           {node.title || '（未命名）'}
         </p>
       </div>
-
-      {/* Source handle — right */}
       <Handle
         type='source'
         position={Position.Right}
@@ -212,7 +195,7 @@ const QuestionNodeComponent = memo(function QuestionNode({
   )
 })
 
-// ─── Custom Edge ──────────────────────────────────────────
+// 自定义逻辑连线
 function LogicEdgeComponent({
   id,
   sourceX,
@@ -251,7 +234,6 @@ function LogicEdgeComponent({
           opacity: selected ? 1 : 0.65,
         }}
       />
-
       <EdgeLabelRenderer>
         <div
           className='nodrag nopan pointer-events-auto absolute'
@@ -292,11 +274,10 @@ function LogicEdgeComponent({
   )
 }
 
-// ─── Node / edge type maps (定义在组件外，引用稳定) ────────
 const nodeTypes = { questionNode: QuestionNodeComponent }
 const edgeTypes = { logicEdge: LogicEdgeComponent }
 
-// ─── Inner flow (inside ReactFlowProvider) ────────────────
+// 逻辑图核心功能
 function LogicFlow() {
   const { nodes: storeNodes, logic, addRule } = useBuilderStore()
   const numMap = useVisibleNodeNumber()
@@ -310,33 +291,45 @@ function LogicFlow() {
     [storeNodes]
   )
 
-  // 用 ref 持久化节点位置，避免 useEffect 闭包陈旧
   const positionsRef =
     useRef<Record<string, { x: number; y: number }>>(loadPositions())
 
-  // 初始图形
-  const { nodes: initNodes, edges: initEdges } = useMemo(
-    () => buildGraph(visibleNodes, logic, numMap, positionsRef.current),
+  const { nodes: initNodes, edges: initEdges } = useMemo(() => {
+    const { nodes, edges } = buildGraph(visibleNodes, logic, numMap)
+    return {
+      nodes: nodes.map((n) => ({
+        ...n,
+        position: positionsRef.current[n.id] ?? n.position,
+      })),
+      edges,
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [] // 仅 mount 时执行一次
-  )
+  }, [])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initEdges)
 
-  // ── 同步 store → RF（nodes 或 logic 变化后更新） ─────
+  // 当 store 变化时同步 ReactFlow 状态
   useEffect(() => {
     const { nodes: next, edges: nextEdges } = buildGraph(
       visibleNodes,
       logic,
-      numMap,
-      positionsRef.current
+      numMap
     )
-    setNodes(next)
+    setNodes((prev) => {
+      const currentPos: Record<string, { x: number; y: number }> = {}
+      prev.forEach((n) => {
+        currentPos[n.id] = n.position
+      })
+      return next.map((n) => ({
+        ...n,
+        // 优先级：用户拖拽位置（positionsRef）> 当前 RF 位置 > 默认布局位置
+        position: positionsRef.current[n.id] ?? currentPos[n.id] ?? n.position,
+      }))
+    })
     setEdges(nextEdges)
   }, [visibleNodes, logic, numMap, setNodes, setEdges])
 
-  // ── 节点拖拽结束：持久化位置 ───────────────────────────
   const onNodeDragStop: OnNodeDrag = useCallback((_evt, _node, allNodes) => {
     allNodes.forEach((n) => {
       positionsRef.current[n.id] = n.position
@@ -344,7 +337,6 @@ function LogicFlow() {
     savePositions(allNodes)
   }, [])
 
-  // ── 连线：创建跳转规则 ─────────────────────────────────
   const onConnect = useCallback(
     (connection: Connection) => {
       const from = visibleNodes.find(
@@ -354,7 +346,6 @@ function LogicFlow() {
         (n: QuestionNode) => n.id === connection.target
       )
       if (!from || !to) return
-
       addRule({
         name: `${from.title.slice(0, 10) || '题目'} → ${to.title.slice(0, 10) || '题目'}`,
         enabled: true,
@@ -367,12 +358,10 @@ function LogicFlow() {
         },
         actions: [{ type: 'jump_question', target: connection.target! }],
       })
-      // RF 的 edge 会通过 store→useEffect 同步，无需手动 addEdge
     },
     [visibleNodes, addRule]
   )
 
-  // ── Dagre 自动排列 ─────────────────────────────────────
   const onAutoLayout = useCallback(() => {
     const { nodes: ln } = getLayoutedElements(nodes, edges)
     ln.forEach((n) => {
@@ -380,11 +369,9 @@ function LogicFlow() {
     })
     savePositions(ln)
     setNodes(ln)
-    // fitView 等节点位置更新完成后执行
     setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 50)
   }, [nodes, edges, setNodes, fitView])
 
-  // ── Empty state ────────────────────────────────────────
   if (visibleNodes.length === 0) {
     return (
       <div className='flex h-full items-center justify-center'>
@@ -414,18 +401,14 @@ function LogicFlow() {
       fitViewOptions={{ padding: 0.15 }}
       minZoom={0.2}
       maxZoom={2}
-      // 禁用 Delete 键删除（通过 UI 的删除按钮处理）
       deleteKeyCode={null}
-      // 隐藏 React Flow 水印（商业项目需购买 Pro 或保留）
       proOptions={{ hideAttribution: true }}
-      // 用 CSS 变量覆盖 React Flow 的默认样式，匹配设计系统
       style={
         {
           '--xy-background-color-default': 'transparent',
           '--xy-controls-button-background-color-default': 'var(--background)',
           '--xy-controls-button-background-color-hover-default': 'var(--muted)',
           '--xy-controls-button-border-color-default': 'var(--border)',
-          '--xy-controls-box-shadow-default': 'var(--shadow-sm)',
           '--xy-handle-background-color-default': 'var(--background)',
           '--xy-handle-border-color-default': 'var(--border)',
           '--xy-selection-background-color-default':
@@ -434,18 +417,13 @@ function LogicFlow() {
         } as React.CSSProperties
       }
     >
-      {/* 点阵背景 */}
       <Background
         variant={BackgroundVariant.Dots}
         gap={20}
         size={1}
         className='text-border!'
       />
-
-      {/* 缩放 / 适应视图控件（React Flow 内置，无需自己写） */}
       <Controls showInteractive={false} />
-
-      {/* 自动排列按钮 */}
       <Panel position='top-right'>
         <div className='border-border bg-background flex items-center gap-1 rounded-lg border p-1 shadow-sm'>
           <Button
@@ -458,8 +436,6 @@ function LogicFlow() {
           </Button>
         </div>
       </Panel>
-
-      {/* 操作提示 */}
       <Panel position='bottom-center'>
         <p className='text-muted-foreground/50 rounded-full px-3 py-1 text-[10px]'>
           拖拽右侧端口连线 &middot; 点击标签选中 &middot; 选中后点 🗑 删除规则
@@ -469,7 +445,6 @@ function LogicFlow() {
   )
 }
 
-// ─── Export ───────────────────────────────────────────────
 export function LogicCanvas() {
   return (
     <ReactFlowProvider>

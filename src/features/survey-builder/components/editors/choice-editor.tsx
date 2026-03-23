@@ -17,10 +17,12 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useOptionsManager } from '@/features/survey-builder/hooks/use-options-manager'
 import type { QuestionNode } from '@/features/survey-builder/types'
-import { SortableInputRow } from '../panel/configs/sortable-input-row'
+import { SortableInputRow } from '../panel/sortable-input-row'
 
 export function InlineOptionEditor({ node }: { node: QuestionNode }) {
   const options = node.config.options ?? []
+  // 展示"其他"占位行
+  const allowOther = !!(node.config as any).allowOther
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -88,6 +90,22 @@ export function InlineOptionEditor({ node }: { node: QuestionNode }) {
           ))}
         </SortableContext>
       </DndContext>
+
+      {/* allowOther 为 true 时渲染"其他"占位行 */}
+      {allowOther && (
+        <div className='flex items-center gap-2 px-0 py-1 opacity-60'>
+          <span
+            className={cn(
+              'border-muted-foreground/25 bg-background h-3.5 w-3.5 shrink-0 border-2',
+              node.type === 'single_choice' ? 'rounded-full' : 'rounded-[3px]'
+            )}
+          />
+          <span className='text-muted-foreground text-xs italic'>
+            其他（请填写）
+          </span>
+          <span className='text-muted-foreground/40 border-muted-foreground/20 ml-auto min-w-[48px] border-b text-[10px]' />
+        </div>
+      )}
 
       <Button
         variant='ghost'
