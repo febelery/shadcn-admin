@@ -1,39 +1,25 @@
+import {
+  type QuestionType,
+  type LayoutType,
+  type NodeType,
+  LAYOUT_TYPES,
+} from './questions/registry-keys'
+
 export type SurveyMode = 'scroll' | 'card'
 export type SurveyStatus = 'draft' | 'published' | 'archived'
-export type BuilderMode = 'build' | 'logic'
+export type BuilderMode = 'build' | 'flow'
 export type InspectorTarget = 'node' | 'survey'
 
-export type QuestionType =
-  | 'single_choice'
-  | 'multiple_choice'
-  | 'dropdown'
-  | 'matrix_single'
-  | 'matrix_multiple'
-  | 'image_choice'
-  | 'ranking'
-  | 'text'
-  | 'textarea'
-  | 'number'
-  | 'fill_in'
-  | 'date'
-  | 'date_range'
-  | 'rating'
-  | 'nps'
-  | 'file_upload'
-  | 'signature'
-
-export type LayoutType = 'divider' | 'rich_text'
-
-export type NodeType = QuestionType | LayoutType
+export type { QuestionType, LayoutType, NodeType }
 
 /**
  * 类型守卫
  */
 export const isQuestionNode = (type: NodeType): type is QuestionType =>
-  !['divider', 'rich_text'].includes(type)
+  !(LAYOUT_TYPES as readonly string[]).includes(type)
 
 export const isLayoutNode = (type: NodeType): type is LayoutType =>
-  ['divider', 'rich_text'].includes(type)
+  (LAYOUT_TYPES as readonly string[]).includes(type)
 
 /**
  * 题型分类 (用于侧边栏和斜杠命令)
@@ -77,24 +63,6 @@ export interface NodeValidation {
     | 'regex'
   params?: Record<string, unknown>
   message: string
-}
-
-/**
- * 题型与可用校验类型的映射
- */
-const VALIDATION_MAP: Partial<Record<NodeType, NodeValidation['type'][]>> = {
-  text: ['min_length', 'max_length', 'email', 'phone', 'url', 'regex'],
-  textarea: ['min_length', 'max_length', 'regex'],
-  number: ['min_value', 'max_value'],
-  date: ['date_range'],
-  date_range: ['date_range'],
-  file_upload: ['file_type', 'file_size'],
-}
-
-export function getValidationsForType(
-  type: NodeType
-): NodeValidation['type'][] {
-  return VALIDATION_MAP[type] ?? []
 }
 
 export interface NodeConfig {
@@ -156,7 +124,7 @@ export interface QuestionNode {
 }
 
 // 逻辑配置相关类型
-type LogicOperator = 'and' | 'or'
+type FlowOperator = 'and' | 'or'
 export type ConditionOperator =
   | 'eq'
   | 'neq'
@@ -182,15 +150,15 @@ export type ActionType =
   | 'show_option'
   | 'hide_option'
 
-// 逻辑动作 UI 配置
-export interface LogicActionConfig {
+// 动作 UI 配置
+export interface FlowActionConfig {
   type: ActionType
   label: string
   color: string
   cssVar: string
 }
 
-export const LOGIC_ACTION_CONFIG: Record<string, LogicActionConfig> = {
+export const FLOW_ACTION_CONFIG: Record<string, FlowActionConfig> = {
   jump_question: {
     type: 'jump_question',
     label: '跳题',
@@ -253,8 +221,8 @@ export const LOGIC_ACTION_CONFIG: Record<string, LogicActionConfig> = {
   },
 }
 
-export const FALLBACK_ACTION_CONFIG: LogicActionConfig = {
-  type: 'jump_question', // 虽然业务上不对，但类型要求是 ActionType
+export const FALLBACK_ACTION_CONFIG: FlowActionConfig = {
+  type: 'jump_question',
   label: '未知',
   color: 'bg-muted text-muted-foreground',
   cssVar: 'hsl(215 14% 55%)',
@@ -267,23 +235,23 @@ export interface ConditionRule {
 }
 
 export interface ConditionGroup {
-  operator: LogicOperator
+  operator: FlowOperator
   rules: Array<ConditionRule | ConditionGroup>
 }
 
-export interface LogicAction {
+export interface FlowAction {
   type: ActionType
   target: string
   value?: unknown
 }
 
-export interface LogicRule {
+export interface FlowRule {
   id: string
   name: string
   enabled: boolean
   priority: number
   condition: ConditionGroup
-  actions: LogicAction[]
+  actions: FlowAction[]
 }
 
 // 交叉校验相关类型
@@ -368,7 +336,7 @@ export interface SurveySchema {
   meta: SurveyMeta
   nodes: QuestionNode[]
   validations: CrossValidation[]
-  logic: LogicRule[]
+  flow: FlowRule[]
   extensions: Record<string, unknown>
 }
 

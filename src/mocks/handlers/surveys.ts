@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { http, HttpResponse } from 'msw'
 import { sleep } from '@/lib/utils'
-import { createEmptySurvey } from '@/features/survey-builder/store'
+import { createEmptySurvey } from '@/features/survey-builder/state/operations'
 
 // 保存问卷详情的内存缓存
 const surveyDetailsTable = new Map<string, any>()

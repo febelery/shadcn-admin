@@ -1,84 +1,96 @@
 'use client'
 import { useCallback } from 'react'
-import { useBuilderStore } from '../store'
-import type { ChoiceOption } from '../types'
+import { arrayMove } from '@dnd-kit/sortable'
+import { useFocus } from '@/hooks/use-focus'
+import type { ChoiceOption, QuestionNode } from '../types'
 
-export function useOptionsManager(nodeId: string, options: ChoiceOption[]) {
-  const updateNodeConfig = useBuilderStore((s) => s.updateNodeConfig)
+export function useOptionsManager(
+  node: QuestionNode,
+  onConfigChange: (patch: Partial<QuestionNode['config']>) => void,
+  options: { autoValue?: boolean } = { autoValue: true }
+) {
+  const rawOptions = (node.config.options as ChoiceOption[]) ?? []
+  const [focusId, requestFocus] = useFocus()
 
   const save = useCallback(
     (newOpts: ChoiceOption[]) => {
-      updateNodeConfig(nodeId, {
+      onConfigChange({
         options: newOpts.map((o, i) => ({ ...o, order: i })),
       })
     },
-    [nodeId, updateNodeConfig]
+    [onConfigChange]
   )
 
   const addOption = useCallback(
-    (index: number) => {
+    (index?: number) => {
       const newId = crypto.randomUUID()
+      const insertionIndex =
+        typeof index === 'number' ? index + 1 : rawOptions.length
+
+      const newItem: ChoiceOption = {
+        id: newId,
+        label: '',
+        value: `opt_${newId.slice(0, 8)}`,
+        order: insertionIndex,
+      }
+
       const newOpts = [
-        ...options.slice(0, index + 1),
-        {
-          id: newId,
-          label: '',
-          value: `opt_${newId.slice(0, 8)}`,
-          order: index + 1,
-        },
-        ...options.slice(index + 1),
+        ...rawOptions.slice(0, insertionIndex),
+        newItem,
+        ...rawOptions.slice(insertionIndex),
       ]
       save(newOpts)
-
-      // Auto-focus new option
-      setTimeout(() => {
-        const el = document.querySelector<HTMLInputElement>(
-          `[data-opt-id="${newId}"]`
-        )
-        el?.focus()
-      }, 30)
+      requestFocus(newId)
     },
-    [options, save]
+    [rawOptions, save, requestFocus]
   )
 
   const removeOption = useCallback(
     (id: string) => {
-      if (options.length > 1) {
-        save(options.filter((o) => o.id !== id))
+      if (rawOptions.length > 1) {
+        save(rawOptions.filter((o) => o.id !== id))
       }
     },
-    [options, save]
+    [rawOptions, save]
+  )
+
+  const updateItem = useCallback(
+    (id: string, patch: Partial<ChoiceOption>) => {
+      save(rawOptions.map((o) => (o.id === id ? { ...o, ...patch } : o)))
+    },
+    [rawOptions, save]
   )
 
   const updateLabel = useCallback(
     (id: string, label: string) => {
-      save(
-        options.map((o) =>
-          o.id === id
-            ? {
-                ...o,
-                label,
-                value: label.toLowerCase().replace(/\s+/g, '_') || o.value,
-              }
-            : o
-        )
-      )
+      const patch: Partial<ChoiceOption> = { label }
+      if (options.autoValue) {
+        patch.value =
+          label.toLowerCase().replace(/\s+/g, '_') || `opt_${id.slice(0, 8)}`
+      }
+      updateItem(id, patch)
     },
-    [options, save]
+    [updateItem, options.autoValue]
   )
 
-  const updateImage = useCallback(
-    (id: string, image: string) => {
-      save(options.map((o) => (o.id === id ? { ...o, image } : o)))
+  const handleDragEnd = useCallback(
+    ({ active, over }: { active: any; over: any }) => {
+      if (!over || active.id === over.id) return
+      const oldIdx = rawOptions.findIndex((o) => o.id === active.id)
+      const newIdx = rawOptions.findIndex((o) => o.id === over.id)
+      save(arrayMove(rawOptions, oldIdx, newIdx))
     },
-    [options, save]
+    [rawOptions, save]
   )
 
   return {
-    save,
+    options: rawOptions,
+    focusId,
     addOption,
     removeOption,
+    updateItem,
     updateLabel,
-    updateImage,
+    handleDragEnd,
+    requestFocus,
   }
 }
