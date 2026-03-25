@@ -287,7 +287,7 @@ function FlowView() {
     })
     updateExtensions({ flowPositions: posMap })
     setNodes(() => ln)
-    setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 50)
+    requestAnimationFrame(() => fitView({ padding: 0.15, duration: 400 }))
   }, [nodes, edges, setNodes, fitView, updateExtensions])
 
   if (visibleNodes.length === 0) {

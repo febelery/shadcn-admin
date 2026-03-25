@@ -13,6 +13,7 @@ import {
 } from '@dnd-kit/core'
 import { Loader2 } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { CardDragPreview } from './components/drag-preview'
 import { SlashCommand } from './components/slash-command'
 import { useAutoSave } from './hooks/use-auto-save'
@@ -86,7 +87,7 @@ export function SurveyBuilder() {
     }
     window.addEventListener('keydown', handle)
     return () => window.removeEventListener('keydown', handle)
-  }, [])
+  }, [closeSlash, selectNode])
 
   // 拖拽处理：排序与新增题目
   const handleDragStart = ({ active }: DragStartEvent) => {
@@ -96,19 +97,24 @@ export function SurveyBuilder() {
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     const data = active.data.current as DragPayload | undefined
+    const nodes = useSchemaStore.getState().nodes
 
     if (data?.type === 'NEW_QUESTION') {
-      const gapId = over ? String(over.id) : null
-      if (!gapId || (!gapId.startsWith('gap-') && gapId !== 'canvas-drop')) {
+      const overId = over?.id ? String(over.id) : null
+
+      if (!overId || overId === 'canvas-core') {
+        // 拖到空白处，默认加到最后
         addNode(data.questionType)
-      } else if (gapId === 'gap-top') {
-        addNode(data.questionType, { atTop: true })
-      } else if (gapId.startsWith('gap-after-')) {
-        addNode(data.questionType, {
-          afterId: gapId.slice('gap-after-'.length),
-        })
       } else {
-        addNode(data.questionType)
+        // 拖到某个节点上
+        const overIndex = nodes.findIndex((n) => n.id === overId)
+        if (overIndex === 0) {
+          addNode(data.questionType, { atTop: true })
+        } else if (overIndex > 0) {
+          addNode(data.questionType, { afterId: nodes[overIndex - 1].id })
+        } else {
+          addNode(data.questionType)
+        }
       }
     } else if (over && active.id !== over.id) {
       moveNode(active.id as string, over.id as string)
@@ -139,48 +145,50 @@ export function SurveyBuilder() {
   const isDraggingNew = activeDragData?.type === 'NEW_QUESTION'
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={pointerWithin}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-    >
-      <div className='bg-background flex h-screen flex-col overflow-hidden'>
-        <BuilderTopbar />
+    <TooltipProvider>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={pointerWithin}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
+        <div className='bg-background flex h-screen flex-col overflow-hidden'>
+          <BuilderTopbar />
 
-        <div className='flex flex-1 overflow-hidden'>
-          {builderMode === 'build' ? (
-            <>
-              <TypeSidebar />
-              <SurveyCanvas isDraggingNew={isDraggingNew} />
-              <PropsPanel />
-            </>
-          ) : (
-            <FlowPanel />
-          )}
+          <div className='flex flex-1 overflow-hidden'>
+            {builderMode === 'build' ? (
+              <>
+                <TypeSidebar />
+                <SurveyCanvas isDraggingNew={isDraggingNew} />
+                <PropsPanel />
+              </>
+            ) : (
+              <FlowPanel />
+            )}
+          </div>
+
+          <SlashCommand />
         </div>
 
-        <SlashCommand />
-      </div>
-
-      <DragOverlay
-        dropAnimation={{
-          duration: 150,
-          easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-        }}
-      >
-        {activeId ? (
-          <CardDragPreview
-            data={activeDragData}
-            nodeId={
-              activeDragData?.type !== 'NEW_QUESTION'
-                ? String(activeId)
-                : undefined
-            }
-          />
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+        <DragOverlay
+          dropAnimation={{
+            duration: 150,
+            easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+          }}
+        >
+          {activeId ? (
+            <CardDragPreview
+              data={activeDragData}
+              nodeId={
+                activeDragData?.type !== 'NEW_QUESTION'
+                  ? String(activeId)
+                  : undefined
+              }
+            />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </TooltipProvider>
   )
 }

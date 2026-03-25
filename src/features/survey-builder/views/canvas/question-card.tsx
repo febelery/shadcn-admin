@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Copy, GripVertical, Trash2 } from 'lucide-react'
@@ -98,6 +98,20 @@ const QuestionCardContent = React.memo(
     const updateNodeConfig = useSchemaStore((s) => s.updateNodeConfig)
 
     const titleRef = useRef<HTMLTextAreaElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    // 自动滚动到选中项
+    useEffect(() => {
+      if (isSelected && containerRef.current) {
+        const handle = requestAnimationFrame(() => {
+          containerRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          })
+        })
+        return () => cancelAnimationFrame(handle)
+      }
+    }, [isSelected])
 
     if (!node) return null
 
@@ -114,6 +128,7 @@ const QuestionCardContent = React.memo(
     return (
       <TooltipProvider>
         <div
+          ref={containerRef}
           className={cn(
             'group border-border/40 relative border-b transition-colors duration-200',
             isSelected
