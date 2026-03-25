@@ -8,6 +8,7 @@ import {
   FLOW_ACTION_CONFIG,
   FALLBACK_ACTION_CONFIG,
   type QuestionNode,
+  type FlowRule,
 } from '../types'
 
 /**
@@ -97,15 +98,17 @@ export const RuleService = {
     )
   },
 
-  // 计算所有逻辑冲突题目的 ID (规则：必填题被隐藏)
-  calculateConflicts: (nodes: QuestionNode[], flow: any[]): Set<string> => {
+  // 计算所有逻辑冲突题目的 ID
+  calculateConflicts: (
+    requiredNodeMap: Record<string, boolean>,
+    flow: FlowRule[]
+  ): Set<string> => {
     const conflictIds = new Set<string>()
     flow.forEach((rule) => {
       if (!rule.enabled) return
-      rule.actions.forEach((action: any) => {
+      rule.actions.forEach((action: FlowRule['actions'][0]) => {
         if (action.type === 'hide' && action.target) {
-          const target = nodes.find((n) => n.id === action.target)
-          if (target?.required) conflictIds.add(action.target)
+          if (requiredNodeMap[action.target]) conflictIds.add(action.target)
         }
       })
     })

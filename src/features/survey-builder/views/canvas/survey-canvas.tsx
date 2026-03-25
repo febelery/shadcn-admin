@@ -3,7 +3,10 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { useUIStore } from '@/features/survey-builder/state'
-import { useRootNodes } from '@/features/survey-builder/state/selectors'
+import {
+  useRootNodes,
+  useQuestionIndexMap,
+} from '@/features/survey-builder/state/selectors'
 import { QuestionCard } from './question-card'
 import { SurveyHeader } from './survey-header'
 
@@ -48,6 +51,7 @@ function EmptyCanvasDropzone() {
 
 export function SurveyCanvas({ isDraggingNew }: Props) {
   const rootNodes = useRootNodes()
+  const numMap = useQuestionIndexMap()
   const { openSlash, selectNode } = useUIStore()
   const { setNodeRef: setCanvasRef } = useDroppable({ id: 'canvas-drop' })
 
@@ -92,7 +96,7 @@ export function SurveyCanvas({ isDraggingNew }: Props) {
               return (
                 <div key={node.id}>
                   {isDraggingNew && <GapDropzone id={gapBeforeId} />}
-                  <QuestionCard node={node} />
+                  <QuestionCard id={node.id} num={numMap[node.id]} />
                 </div>
               )
             })}
