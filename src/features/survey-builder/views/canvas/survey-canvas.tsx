@@ -55,32 +55,6 @@ function SmoothPlaceholder({ show, type }: { show: boolean; type?: string }) {
   )
 }
 
-function EmptyCanvas() {
-  return (
-    <div className='border-border/10 bg-muted/5 relative flex h-72 flex-col items-center justify-center space-y-6 overflow-hidden rounded-xl border'>
-      {/* 背景装饰：模拟卡片堆叠的幽灵感 (极简艺术) */}
-      <div className='pointer-events-none absolute inset-0 flex flex-col items-center justify-center opacity-[0.03] grayscale select-none'>
-        <div className='bg-foreground h-32 w-2/3 -translate-y-8 rounded-xl shadow-2xl' />
-        <div className='bg-foreground h-32 w-3/4 -translate-y-16 rounded-xl shadow-2xl' />
-      </div>
-
-      <div className='relative z-10 flex flex-col items-center text-center'>
-        <div className='border-border/60 bg-background mb-4 flex h-16 w-16 items-center justify-center rounded-full border shadow-xl transition-transform hover:scale-110'>
-          <div className='bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full'>
-            <span className='text-primary text-2xl font-light'>+</span>
-          </div>
-        </div>
-        <h3 className='text-foreground text-sm font-bold tracking-tight'>
-          空空如也的问卷
-        </h3>
-        <p className='text-muted-foreground/60 mt-1 max-w-[200px] text-[11px] leading-relaxed'>
-          现在是发挥创造力的时候了。从左侧題庫拖拽一个组件开始吧。
-        </p>
-      </div>
-    </div>
-  )
-}
-
 export function SurveyCanvas({ isDraggingNew }: { isDraggingNew: boolean }) {
   const rootNodes = useRootNodes()
   const numMap = useQuestionIndexMap()
@@ -127,8 +101,6 @@ export function SurveyCanvas({ isDraggingNew }: { isDraggingNew: boolean }) {
         className='flex w-full max-w-2xl flex-col gap-px transition-all xl:max-w-3xl'
       >
         <SurveyHeader />
-
-        {rootNodes.length === 0 && !isDraggingNew && <EmptyCanvas />}
 
         <SortableContext
           items={rootNodes.map((n) => n.id)}

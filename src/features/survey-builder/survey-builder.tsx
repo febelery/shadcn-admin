@@ -101,20 +101,15 @@ export function SurveyBuilder() {
 
     if (data?.type === 'NEW_QUESTION') {
       const overId = over?.id ? String(over.id) : null
+      const overIndex = nodes.findIndex((n) => n.id === overId)
 
-      if (!overId || overId === 'canvas-core') {
-        // 拖到空白处，默认加到最后
-        addNode(data.questionType)
+      if (overIndex === 0) {
+        addNode(data.questionType, { atTop: true })
+      } else if (overIndex > 0) {
+        addNode(data.questionType, { afterId: nodes[overIndex - 1].id })
       } else {
-        // 拖到某个节点上
-        const overIndex = nodes.findIndex((n) => n.id === overId)
-        if (overIndex === 0) {
-          addNode(data.questionType, { atTop: true })
-        } else if (overIndex > 0) {
-          addNode(data.questionType, { afterId: nodes[overIndex - 1].id })
-        } else {
-          addNode(data.questionType)
-        }
+        // 拖到空白处，默认加到最后
+        // addNode(data.questionType)
       }
     } else if (over && active.id !== over.id) {
       moveNode(active.id as string, over.id as string)

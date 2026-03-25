@@ -14,6 +14,7 @@ import {
   isQuestionNode,
 } from '../types'
 import { useSchemaStore } from './schema'
+import { selectSortedNodes, selectQuestionIndexMap } from './selectors'
 import { useUIStore } from './ui'
 
 /**
@@ -143,15 +144,8 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
    */
   syncElements: (visibleNodes, flow, flowPositions, allNodes) => {
     // 1. 建立业务索引字典
-    const indexMap: Record<string, number> = {}
-    let count = 0
-    const sorted = [...(allNodes || [])].sort((a, b) => a.order - b.order)
-    for (const node of sorted) {
-      if (isQuestionNode(node.type)) {
-        count++
-        indexMap[node.id] = count
-      }
-    }
+    const sorted = selectSortedNodes(allNodes || [])
+    const indexMap = selectQuestionIndexMap(sorted)
 
     // 2. 将 QuestionNode 转化为画布节点 (Node[])
     const newNodes: Node[] = visibleNodes.map((node, i) => ({

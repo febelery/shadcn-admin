@@ -5,12 +5,16 @@ import {
   LAYOUT_TYPES,
 } from './questions/registry-keys'
 
+export type {
+  QuestionType,
+  LayoutType,
+  NodeType,
+} from './questions/registry-keys'
+
 export type SurveyMode = 'scroll' | 'card'
 export type SurveyStatus = 'draft' | 'published' | 'archived'
 export type BuilderMode = 'build' | 'flow'
 export type InspectorTarget = 'node' | 'survey'
-
-export type { QuestionType, LayoutType, NodeType }
 
 /**
  * 类型守卫
