@@ -13,27 +13,34 @@ import {
   type QuestionNode,
   isQuestionNode,
 } from '../types'
-import { useDraftStore } from './draft'
 import { useSchemaStore } from './schema'
 import { useUIStore } from './ui'
 
+/**
+ * 逻辑连线域状态维护 (Flow Domain)
+ * 职责：管理 React Flow 画布状态（Nodes/Edges）与逻辑规则 (Flow Rules) 的映射同步。
+ * 遵循原则：单向同步 (AST -> Elements)、响应式画布操作。
+ */
+
 interface FlowState {
+  // --- 原始数据 (Domain Data) ---
   flow: FlowRule[]
   validations: CrossValidation[]
+
+  // --- 画布状态 (React Flow State) ---
   nodes: Node[]
   edges: Edge[]
 
+  // --- 规则管理 (Rule Actions) ---
   addRule: (rule: Omit<FlowRule, 'id'>) => void
   updateRule: (id: string, patch: Partial<FlowRule>) => void
   removeRule: (id: string) => void
 
-  // 核心同步与状态管理 (Controlled Mode)
+  // --- 视图与同步逻辑 (View & Sync) ---
   setNodes: (updater: (prev: Node[]) => Node[]) => void
   setEdges: (updater: (prev: Edge[]) => Edge[]) => void
   onNodesChange: OnNodesChange
   onEdgesChange: OnEdgesChange
-
-  // 业务层同步：将 Schema 数据转化为 React Flow 元素
   syncElements: (
     visibleNodes: QuestionNode[],
     flow: FlowRule[],
@@ -43,20 +50,21 @@ interface FlowState {
 }
 
 export const useFlowStore = create<FlowState>()((set, get) => ({
+  // --- 初始化状态 ---
   flow: [],
   validations: [],
   nodes: [],
   edges: [],
 
+  // --- 规则管理 (Rule Actions) ---
   addRule: (rule) => {
     const newRule = { ...rule, id: crypto.randomUUID() }
     set((state) => ({
       ...state,
       flow: [...state.flow, newRule],
     }))
-    useDraftStore.getState().setDirty(true)
 
-    // 同步刷新连线
+    // 联动刷新画布元素
     const schema = useSchemaStore.getState()
     get().syncElements(
       schema.nodes.filter((n) => isQuestionNode(n.type)),
@@ -71,7 +79,6 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
       ...state,
       flow: state.flow.map((r) => (r.id === id ? { ...r, ...patch } : r)),
     }))
-    useDraftStore.getState().setDirty(true)
 
     const schema = useSchemaStore.getState()
     get().syncElements(
@@ -87,10 +94,11 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
       ...state,
       flow: state.flow.filter((r) => r.id !== id),
     }))
+
+    // 状态清理：若当前规则正处于编辑状态，则取消激活
     if (useUIStore.getState().activeRuleId === id) {
       useUIStore.getState().setActiveRule(null)
     }
-    useDraftStore.getState().setDirty(true)
 
     const schema = useSchemaStore.getState()
     get().syncElements(
@@ -101,6 +109,7 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
     )
   },
 
+  // --- 画布基础操作 (Canvas Primatives) ---
   setNodes: (updater) =>
     set((state) => ({
       ...state,
@@ -127,8 +136,13 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
     }))
   },
 
+  // --- 核心同步引擎 (Sync Engine) ---
+  /**
+   * 将业务层 Schema 节点与规则同步至 React Flow 画布元素。
+   * 此函数通常作为副作用手动触发，以保证视图与 AST 的强一致性。
+   */
   syncElements: (visibleNodes, flow, flowPositions, allNodes) => {
-    // 1. 构建节点
+    // 1. 建立业务索引字典
     const indexMap: Record<string, number> = {}
     let count = 0
     const sorted = [...(allNodes || [])].sort((a, b) => a.order - b.order)
@@ -139,6 +153,7 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
       }
     }
 
+    // 2. 将 QuestionNode 转化为画布节点 (Node[])
     const newNodes: Node[] = visibleNodes.map((node, i) => ({
       id: node.id,
       type: 'questionNode',
@@ -148,7 +163,7 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
       height: 84,
     }))
 
-    // 2. 构建连线
+    // 3. 将 FlowRule 转化为画布连线 (Edge[])
     const newEdges: Edge[] = []
     flow.forEach((rule: any) => {
       if (!rule.enabled) return

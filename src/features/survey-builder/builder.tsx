@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from '@tanstack/react-router'
 import {
   DndContext,
@@ -11,21 +11,16 @@ import {
   type DragStartEvent,
   type UniqueIdentifier,
 } from '@dnd-kit/core'
-import { arrayMove } from '@dnd-kit/sortable'
 import { Loader2 } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 import { CardDragPreview } from './components/drag-preview'
 import { SlashCommand } from './components/slash-command'
+import { useAutoSave } from './hooks/use-auto-save'
 import { useSurveyDetail } from './hooks/use-survey-detail'
 import { PropsPanel } from './layout/panel'
 import { TypeSidebar } from './layout/sidebar'
 import { BuilderTopbar } from './layout/topbar'
-import {
-  useSchemaStore,
-  useUIStore,
-  useFlowStore,
-  useDraftStore,
-  initBuilderStore,
-} from './state'
+import { useSchemaStore, useUIStore, initializeSurveyBuilder } from './state'
 import type { DragPayload } from './types'
 import { SurveyCanvas } from './views/canvas/survey-canvas'
 import { FlowPanel } from './views/flow'
@@ -34,10 +29,18 @@ export function SurveyBuilder() {
   const { surveyId } = useParams({ from: '/survey/builder/$surveyId' })
 
   const builderMode = useUIStore((s) => s.builderMode)
-  const nodes = useSchemaStore((s) => s.nodes)
-
-  const { addNode, reorderNodes } = useSchemaStore()
-  const { selectNode, closeSlash } = useUIStore()
+  const { addNode, moveNode } = useSchemaStore(
+    useShallow((s) => ({
+      addNode: s.addNode,
+      moveNode: s.moveNode,
+    }))
+  )
+  const { selectNode, closeSlash } = useUIStore(
+    useShallow((s) => ({
+      selectNode: s.selectNode,
+      closeSlash: s.closeSlash,
+    }))
+  )
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
   const [activeDragData, setActiveDragData] = useState<DragPayload | null>(null)
@@ -54,52 +57,17 @@ export function SurveyBuilder() {
     const draft = sessionStorage.getItem(`survey-draft-${surveyId}`)
     if (draft) {
       try {
-        initBuilderStore(JSON.parse(draft))
+        initializeSurveyBuilder(JSON.parse(draft))
         return
       } catch {
         sessionStorage.removeItem(`survey-draft-${surveyId}`)
       }
     }
-    initBuilderStore(surveyData)
+    initializeSurveyBuilder(surveyData)
   }, [surveyData, surveyId])
 
-  // 自动保存草稿：防抖存储至 sessionStorage
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    // 监听 Schema 或 Flow 的变更来触发自动保存
-    const save = () => {
-      const isDirty = useDraftStore.getState().isDirty
-      if (!isDirty) return
-
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
-      autoSaveTimerRef.current = setTimeout(() => {
-        const schema = useSchemaStore.getState()
-        const flow = useFlowStore.getState()
-        sessionStorage.setItem(
-          `survey-draft-${surveyId}`,
-          JSON.stringify({
-            id: surveyId,
-            version: schema.version ?? '1',
-            meta: schema.meta,
-            nodes: schema.nodes,
-            flow: flow.flow,
-            validations: flow.validations,
-            extensions: schema.extensions ?? {},
-          })
-        )
-      }, 1000)
-    }
-
-    const unsubSchema = useSchemaStore.subscribe(save)
-    const unsubFlow = useFlowStore.subscribe(save)
-
-    return () => {
-      unsubSchema()
-      unsubFlow()
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
-    }
-  }, [surveyId])
+  // 自动保存草稿
+  useAutoSave(surveyId)
 
   // 全局快捷键：Esc 取消选中/关闭菜单
   useEffect(() => {
@@ -143,12 +111,7 @@ export function SurveyBuilder() {
         addNode(data.questionType)
       }
     } else if (over && active.id !== over.id) {
-      const sortedNodes = [...nodes].sort((a, b) => a.order - b.order)
-      const oldIdx = sortedNodes.findIndex((n) => n.id === active.id)
-      const newIdx = sortedNodes.findIndex((n) => n.id === over.id)
-      if (oldIdx >= 0 && newIdx >= 0) {
-        reorderNodes(arrayMove(sortedNodes, oldIdx, newIdx).map((n) => n.id))
-      }
+      moveNode(active.id as string, over.id as string)
     }
 
     setActiveId(null)
