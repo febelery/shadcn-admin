@@ -155,7 +155,7 @@ export interface ConditionGroup {
   id: string
   type: 'group'
   op: 'and' | 'or'
-  children: ConditionNode[]
+  children: ComparisonNode[]
 }
 
 export type ConditionNode = ComparisonNode | ConditionGroup

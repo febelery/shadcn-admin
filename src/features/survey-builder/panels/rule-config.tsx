@@ -41,13 +41,11 @@ function ConditionNodeEditor({
   questionNodes,
   onUpdate,
   onDelete,
-  onWrap,
 }: {
   node: ConditionNode
   questionNodes: QuestionNode[]
   onUpdate: (id: string, patch: Partial<ConditionNode>) => void
   onDelete: (id: string) => void
-  onWrap: (id: string) => void
 }) {
   // 渲染逻辑组 (AND/OR Group)
   if (node.type === 'group') {
@@ -96,7 +94,6 @@ function ConditionNodeEditor({
               questionNodes={questionNodes}
               onUpdate={onUpdate}
               onDelete={onDelete}
-              onWrap={onWrap}
             />
           ))}
 
@@ -159,15 +156,6 @@ function ConditionNodeEditor({
           </Select>
 
           <div className='flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
-            <Button
-              variant='ghost'
-              size='icon'
-              className='text-muted-foreground hover:text-primary h-6 w-6'
-              title='嵌套组合'
-              onClick={() => onWrap(node.id)}
-            >
-              <Layers className='h-3 w-3' />
-            </Button>
             <Button
               variant='ghost'
               size='icon'
@@ -263,7 +251,9 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
   const ensureIds = (expr: ConditionNode): ConditionNode => {
     if (!expr.id) expr.id = crypto.randomUUID()
     if (expr.type === 'group') {
-      expr.children.forEach(ensureIds)
+      expr.children.forEach((c) => {
+        if (!c.id) c.id = crypto.randomUUID()
+      })
     }
     return expr
   }
@@ -273,10 +263,17 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
       return ensureIds(JSON.parse(JSON.stringify(rule.expression)))
     return {
       id: crypto.randomUUID(),
-      type: 'comparison',
-      field: questionNodes[0]?.id ?? '',
-      operator: 'eq',
-      value: '',
+      type: 'group',
+      op: 'and',
+      children: [
+        {
+          id: crypto.randomUUID(),
+          type: 'comparison',
+          field: questionNodes[0]?.id ?? '',
+          operator: 'eq',
+          value: '',
+        },
+      ],
     }
   })
 
@@ -314,64 +311,34 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
     }
   }
 
-  // 递归更新核心逻辑
   const updateTreeNode = (id: string, patch: Partial<ConditionNode>) => {
-    const walk = (node: ConditionNode): ConditionNode => {
-      if (node.id === id) return { ...node, ...patch } as any
-      if (node.type === 'group') {
+    setExpression((prev) => {
+      // 更新根节点
+      if (prev.id === id) return { ...prev, ...patch } as ConditionNode
+      // 更新子节点 (仅 comparison)
+      if (prev.type === 'group') {
         return {
-          ...node,
-          children: node.children.map(walk),
+          ...prev,
+          children: prev.children.map((c) =>
+            c.id === id ? ({ ...c, ...patch } as ComparisonNode) : c
+          ),
         }
       }
-      return node
-    }
-    setExpression((prev) => walk(prev))
+      return prev
+    })
   }
 
-  // 递归删除节点
   const removeTreeNode = (id: string) => {
-    const walk = (node: ConditionNode): ConditionNode | null => {
-      if (node.id === id) return null
-      if (node.type === 'group') {
-        const newChildren = node.children
-          .map(walk)
-          .filter(Boolean) as ConditionNode[]
-        if (newChildren.length === 0) return null
-        return { ...node, children: newChildren }
-      }
-      return node
-    }
-    const result = walk(expression)
-    if (result) setExpression(result)
-  }
-
-  // 将节点升级为 Group (嵌套)
-  const wrapWithGroup = (id: string) => {
-    const walk = (node: ConditionNode): ConditionNode => {
-      if (node.id === id) {
+    setExpression((prev) => {
+      if (prev.id === id) return prev
+      if (prev.type === 'group') {
         return {
-          id: crypto.randomUUID(),
-          type: 'group',
-          op: 'and',
-          children: [
-            node,
-            {
-              id: crypto.randomUUID(),
-              type: 'comparison',
-              field: questionNodes[0]?.id ?? '',
-              operator: 'eq',
-              value: '',
-            },
-          ],
+          ...prev,
+          children: prev.children.filter((c) => c.id !== id),
         }
       }
-      if (node.type === 'group') {
-        return { ...node, children: node.children.map(walk) }
-      }
-      return node
-    }
-    setExpression((prev) => walk(prev))
+      return prev
+    })
   }
 
   return (
@@ -396,7 +363,6 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
                 questionNodes={questionNodes}
                 onUpdate={updateTreeNode}
                 onDelete={removeTreeNode}
-                onWrap={wrapWithGroup}
               />
             </div>
           </div>

@@ -178,21 +178,36 @@ export const useFlowElements = () => {
     const edges: Edge[] = []
     flow.forEach((rule: any) => {
       if (!rule.enabled) return
-      const fromId = (rule.expression as any)?.field
+
+      // 多源收集：获取规则中引用的所有字段 ID
+      const sourceIds = new Set<string>()
+      const expr = rule.expression
+      if (expr?.type === 'comparison') {
+        if (expr.field) sourceIds.add(expr.field)
+      } else if (expr?.type === 'group') {
+        expr.children?.forEach((c: any) => {
+          if (c.field) sourceIds.add(c.field)
+        })
+      }
+
       rule.actions.forEach((action: any) => {
         const toId = action.target
-        if (!fromId || !toId || fromId === toId) return
-        edges.push({
-          id: `${rule.id}::${action.type}::${toId}`,
-          source: fromId,
-          target: toId,
-          type: 'flowEdge',
-          data: {
-            ruleId: rule.id,
-            actionType: action.type,
-            ruleName: rule.name,
-          },
-          markerEnd: { type: 'arrowclosed' as any, width: 14, height: 14 },
+        if (!toId) return
+
+        sourceIds.forEach((fromId) => {
+          if (fromId === toId) return
+          edges.push({
+            id: `${rule.id}::${fromId}::${action.type}::${toId}`,
+            source: fromId,
+            target: toId,
+            type: 'flowEdge',
+            data: {
+              ruleId: rule.id,
+              actionType: action.type,
+              ruleName: rule.name,
+            },
+            markerEnd: { type: 'arrowclosed' as any, width: 14, height: 14 },
+          })
         })
       })
     })

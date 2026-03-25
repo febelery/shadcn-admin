@@ -255,10 +255,17 @@ function FlowView() {
         priority: 0,
         expression: {
           id: crypto.randomUUID(),
-          type: 'comparison',
-          field: connection.source!,
-          operator: 'is_not_empty',
-          value: '',
+          type: 'group',
+          op: 'and',
+          children: [
+            {
+              id: crypto.randomUUID(),
+              type: 'comparison',
+              field: connection.source!,
+              operator: 'is_not_empty',
+              value: '',
+            },
+          ],
         },
         actions: [
           {

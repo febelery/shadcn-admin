@@ -165,23 +165,39 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
 
     // 3. 将 FlowRule 转化为画布连线 (Edge[])
     const newEdges: Edge[] = []
-    flow.forEach((rule: any) => {
+
+    flow.forEach((rule) => {
       if (!rule.enabled) return
-      const fromId = (rule.expression as any)?.field
-      rule.actions.forEach((action: any) => {
+
+      // 多源收集：获取规则中引用的所有字段 ID
+      const sourceIds = new Set<string>()
+      const expr = rule.expression
+      if (expr.type === 'comparison') {
+        if (expr.field) sourceIds.add(expr.field)
+      } else if (expr.type === 'group') {
+        expr.children.forEach((c) => {
+          if (c.field) sourceIds.add(c.field)
+        })
+      }
+
+      rule.actions.forEach((action) => {
         const toId = action.target
-        if (!fromId || !toId || fromId === toId) return
-        newEdges.push({
-          id: `${rule.id}::${action.type}::${toId}`,
-          source: fromId,
-          target: toId,
-          type: 'flowEdge',
-          data: {
-            ruleId: rule.id,
-            actionType: action.type,
-            ruleName: rule.name,
-          },
-          markerEnd: { type: 'arrowclosed' as any, width: 14, height: 14 },
+        if (!toId) return
+
+        sourceIds.forEach((fromId) => {
+          if (fromId === toId) return
+          newEdges.push({
+            id: `${rule.id}::${fromId}::${action.type}::${toId}`,
+            source: fromId,
+            target: toId,
+            type: 'flowEdge',
+            data: {
+              ruleId: rule.id,
+              actionType: action.type,
+              ruleName: rule.name,
+            },
+            markerEnd: { type: 'arrowclosed' as any, width: 14, height: 14 },
+          })
         })
       })
     })

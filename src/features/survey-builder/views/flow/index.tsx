@@ -170,22 +170,6 @@ export function FlowPanel() {
                 </p>
               </div>
             )}
-
-            <Button
-              variant='outline'
-              onClick={() => openEditor()}
-              className='bg-muted/30 border-border group hover:border-primary/50 hover:bg-primary/2 h-14 w-full flex-col justify-center gap-0.5 rounded-xl border-dashed px-3 transition-all active:scale-[0.98]'
-            >
-              <div className='flex items-center gap-1.5'>
-                <Plus className='text-muted-foreground group-hover:text-primary h-3 w-3 transition-colors' />
-                <span className='text-muted-foreground group-hover:text-primary text-[10px] font-bold transition-colors'>
-                  新增流程规则
-                </span>
-              </div>
-              <span className='text-muted-foreground/40 text-[9px]'>
-                点击定义业务逻辑
-              </span>
-            </Button>
           </div>
         </div>
       </aside>
