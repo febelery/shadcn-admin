@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { Plus, Trash2, Layers, Binary } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Drawer,
@@ -27,10 +29,196 @@ import {
 import {
   type FlowRule,
   type FlowAction,
-  type ComparisonExpression,
+  type ConditionNode,
+  type ComparisonNode,
+  type Operator,
+  type ActionType,
+  type QuestionNode,
 } from '@/features/survey-builder/types'
 
-const ACTION_TYPES = [
+function ConditionNodeEditor({
+  node,
+  questionNodes,
+  onUpdate,
+  onDelete,
+  onWrap,
+}: {
+  node: ConditionNode
+  questionNodes: QuestionNode[]
+  onUpdate: (id: string, patch: Partial<ConditionNode>) => void
+  onDelete: (id: string) => void
+  onWrap: (id: string) => void
+}) {
+  // 渲染逻辑组 (AND/OR Group)
+  if (node.type === 'group') {
+    return (
+      <div
+        className={cn(
+          'border-primary/20 bg-primary/5 mb-3 space-y-3 rounded-xl border-l-[3px] p-4 shadow-sm md:ml-2',
+          node.children.length > 0 && 'pb-5'
+        )}
+      >
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-2'>
+            <div className='bg-primary/10 rounded-md p-1'>
+              <Layers className='text-primary h-3.5 w-3.5' />
+            </div>
+            <Select
+              value={node.op}
+              onValueChange={(v: 'and' | 'or') => onUpdate(node.id, { op: v })}
+            >
+              <SelectTrigger className='h-7 w-20 border-none bg-transparent text-[11px] font-bold uppercase ring-0 focus:ring-0'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='and'>AND</SelectItem>
+                <SelectItem value='or'>OR</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className='flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
+            <Button
+              variant='ghost'
+              size='icon'
+              className='h-6 w-6'
+              onClick={() => onDelete(node.id)}
+            >
+              <Trash2 className='h-3 w-3' />
+            </Button>
+          </div>
+        </div>
+
+        <div className='space-y-3 pl-2'>
+          {node.children.map((child) => (
+            <ConditionNodeEditor
+              key={child.id}
+              node={child}
+              questionNodes={questionNodes}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+              onWrap={onWrap}
+            />
+          ))}
+
+          <Button
+            variant='ghost'
+            size='sm'
+            className='h-7 w-full border-dashed text-[10px] font-medium'
+            onClick={() => {
+              const newNode: ConditionNode = {
+                id: crypto.randomUUID(),
+                type: 'comparison',
+                field: questionNodes[0]?.id ?? '',
+                operator: 'eq',
+                value: '',
+              }
+              onUpdate(node.id, { children: [...node.children, newNode] })
+            }}
+          >
+            <Plus className='mr-1 h-3 w-3' />
+            添加子条件
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // 渲染叶子节点 (Comparison)
+  if (node.type === 'comparison') {
+    return (
+      <div className='group border-border/40 bg-muted/30 hover:border-primary/30 relative mb-2 space-y-2 rounded-lg border p-3 pl-4 shadow-sm transition-all'>
+        <div className='absolute top-3 left-1.5 opacity-40'>
+          <Binary className='h-3 w-3' />
+        </div>
+        <div className='flex items-center justify-between gap-2'>
+          <Select
+            value={node.field}
+            onValueChange={(v) => {
+              const nodeType = questionNodes.find((n) => n.id === v)?.type
+              const patch: Partial<ComparisonNode> = { field: v }
+              if (nodeType) {
+                patch.operator = RuleService.getNextOperator(
+                  nodeType,
+                  node.operator,
+                  OPERATORS
+                ) as Operator
+              }
+              onUpdate(node.id, patch)
+            }}
+          >
+            <SelectTrigger className='bg-background h-8 flex-1 text-[11px]'>
+              <SelectValue placeholder='选择问题' />
+            </SelectTrigger>
+            <SelectContent>
+              {questionNodes.map((n) => (
+                <SelectItem key={n.id} value={n.id}>
+                  {n.title || n.type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className='flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
+            <Button
+              variant='ghost'
+              size='icon'
+              className='text-muted-foreground hover:text-primary h-6 w-6'
+              title='嵌套组合'
+              onClick={() => onWrap(node.id)}
+            >
+              <Layers className='h-3 w-3' />
+            </Button>
+            <Button
+              variant='ghost'
+              size='icon'
+              className='text-muted-foreground hover:text-destructive h-6 w-6'
+              onClick={() => onDelete(node.id)}
+            >
+              <Trash2 className='h-3 w-3' />
+            </Button>
+          </div>
+        </div>
+
+        <div className='flex gap-1.5'>
+          <Select
+            value={node.operator}
+            onValueChange={(v) =>
+              onUpdate(node.id, { operator: v as Operator })
+            }
+            disabled={!questionNodes.find((n) => n.id === node.field)?.type}
+          >
+            <SelectTrigger className='bg-background h-8 w-32 shrink-0 text-[11px]'>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {RuleService.getAvailableOperators(
+                questionNodes.find((n) => n.id === node.field)?.type ?? '',
+                OPERATORS
+              ).map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {!['is_empty', 'is_not_empty'].includes(node.operator) && (
+            <Input
+              className='bg-background h-8 flex-1 text-[11px]'
+              placeholder='值…'
+              value={(node.value as string) ?? ''}
+              onChange={(e) => onUpdate(node.id, { value: e.target.value })}
+            />
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  return null
+}
+
+const ACTION_TYPES: { value: ActionType; label: string }[] = [
   { value: 'jump_question', label: '跳转至问题' },
   { value: 'show', label: '显示问题' },
   { value: 'hide', label: '隐藏问题' },
@@ -43,7 +231,7 @@ const ACTION_TYPES = [
   { value: 'hide_option', label: '隐藏选项' },
 ]
 
-const OPERATORS = [
+const OPERATORS: { value: Operator; label: string }[] = [
   { value: 'eq', label: '等于' },
   { value: 'neq', label: '不等于' },
   { value: 'contains', label: '包含' },
@@ -71,36 +259,43 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
   const [enabled, setEnabled] = useState(rule?.enabled ?? true)
   const [priority, setPriority] = useState(rule?.priority ?? 0)
 
-  // 1. 初始化扁平条件（逻辑下沉至 Service，移除 IIFE）
-  const initialConditions = rule?.expression
-    ? RuleService.toFlatConditions(rule.expression)
-    : [
-        {
-          id: crypto.randomUUID(),
-          type: 'comparison' as const,
-          field: questionNodes[0]?.id ?? '',
-          operator: 'eq' as const,
-          value: '',
-        },
-      ]
+  // 1. 初始化辅助：确保所有节点和动作都有稳定 ID
+  const ensureIds = (expr: ConditionNode): ConditionNode => {
+    if (!expr.id) expr.id = crypto.randomUUID()
+    if (expr.type === 'group') {
+      expr.children.forEach(ensureIds)
+    }
+    return expr
+  }
 
-  const [conditions, setConditions] =
-    useState<ComparisonExpression[]>(initialConditions)
-  const [actions, setActions] = useState<FlowAction[]>(
-    rule?.actions ?? [
+  const [expression, setExpression] = useState<ConditionNode>(() => {
+    if (rule?.expression)
+      return ensureIds(JSON.parse(JSON.stringify(rule.expression)))
+    return {
+      id: crypto.randomUUID(),
+      type: 'comparison',
+      field: questionNodes[0]?.id ?? '',
+      operator: 'eq',
+      value: '',
+    }
+  })
+
+  const [actions, setActions] = useState<FlowAction[]>(() => {
+    const initialActions = rule?.actions ?? [
       {
         id: crypto.randomUUID(),
         type: 'jump_question',
         target: questionNodes[0]?.id ?? '',
       },
     ]
-  )
+    return initialActions.map((a) => ({
+      ...a,
+      id: a.id || crypto.randomUUID(),
+    }))
+  })
 
   const save = () => {
     try {
-      // 2. DSL 转换逻辑核心：保证递归支持与单体黑盒还原
-      const expression = RuleService.fromFlatConditions(conditions)
-
       const payload: Omit<FlowRule, 'id'> & { id?: string } = {
         id: rule?.id ?? crypto.randomUUID(),
         name,
@@ -113,11 +308,70 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
       else addRule(payload as FlowRule)
       onOpenChange(false)
     } catch (err) {
-      // 如果解析失败（如条件列表为空），拦截保存并提示（符合规则 4）
       toast.error(
         '保存规则失败：' + (err instanceof Error ? err.message : '未知错误')
       )
     }
+  }
+
+  // 递归更新核心逻辑
+  const updateTreeNode = (id: string, patch: Partial<ConditionNode>) => {
+    const walk = (node: ConditionNode): ConditionNode => {
+      if (node.id === id) return { ...node, ...patch } as any
+      if (node.type === 'group') {
+        return {
+          ...node,
+          children: node.children.map(walk),
+        }
+      }
+      return node
+    }
+    setExpression((prev) => walk(prev))
+  }
+
+  // 递归删除节点
+  const removeTreeNode = (id: string) => {
+    const walk = (node: ConditionNode): ConditionNode | null => {
+      if (node.id === id) return null
+      if (node.type === 'group') {
+        const newChildren = node.children
+          .map(walk)
+          .filter(Boolean) as ConditionNode[]
+        if (newChildren.length === 0) return null
+        return { ...node, children: newChildren }
+      }
+      return node
+    }
+    const result = walk(expression)
+    if (result) setExpression(result)
+  }
+
+  // 将节点升级为 Group (嵌套)
+  const wrapWithGroup = (id: string) => {
+    const walk = (node: ConditionNode): ConditionNode => {
+      if (node.id === id) {
+        return {
+          id: crypto.randomUUID(),
+          type: 'group',
+          op: 'and',
+          children: [
+            node,
+            {
+              id: crypto.randomUUID(),
+              type: 'comparison',
+              field: questionNodes[0]?.id ?? '',
+              operator: 'eq',
+              value: '',
+            },
+          ],
+        }
+      }
+      if (node.type === 'group') {
+        return { ...node, children: node.children.map(walk) }
+      }
+      return node
+    }
+    setExpression((prev) => walk(prev))
   }
 
   return (
@@ -132,115 +386,19 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
 
         <div className='flex gap-8 overflow-x-auto p-6'>
           {/* Condition column */}
-          <div className='flex min-w-60 flex-col gap-3'>
+          <div className='flex min-w-80 flex-col gap-3'>
             <p className='text-muted-foreground/60 decoration-border text-[10px] font-semibold tracking-widest uppercase underline decoration-2 underline-offset-4'>
               条件 (When)
             </p>
-            {conditions.map((cond, i) => (
-              <div
-                key={i}
-                className='border-border/40 bg-muted/20 mb-1 space-y-1.5 rounded-lg border p-3 shadow-sm'
-              >
-                <Label className='text-muted-foreground/80 text-[10px]'>
-                  选择问题
-                </Label>
-                <Select
-                  value={cond.field}
-                  onValueChange={(v) => {
-                    const nodeType = questionNodes.find((n) => n.id === v)?.type
-                    setConditions((c) =>
-                      c.map((r, idx) => {
-                        if (idx !== i) return r
-                        if (!nodeType) return { ...r, field: v }
-                        return {
-                          ...r,
-                          field: v,
-                          operator: RuleService.getNextOperator(
-                            nodeType,
-                            r.operator,
-                            OPERATORS
-                          ) as any,
-                        }
-                      })
-                    )
-                  }}
-                >
-                  <SelectTrigger className='h-8 text-xs'>
-                    <SelectValue placeholder='选择问题' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {questionNodes.map((n) => (
-                      <SelectItem key={n.id} value={n.id}>
-                        {n.title || n.type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className='flex gap-1.5'>
-                  <Select
-                    value={cond.operator}
-                    onValueChange={(v) =>
-                      setConditions((c) =>
-                        c.map((r, idx) =>
-                          idx === i ? { ...r, operator: v as any } : r
-                        )
-                      )
-                    }
-                    disabled={
-                      !questionNodes.find((n) => n.id === cond.field)?.type
-                    }
-                  >
-                    <SelectTrigger className='h-8 w-32 shrink-0 text-[11px]'>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {RuleService.getAvailableOperators(
-                        questionNodes.find((n) => n.id === cond.field)?.type ??
-                          '',
-                        OPERATORS
-                      ).map((o: any) => (
-                        <SelectItem key={o.value} value={o.value}>
-                          {o.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {!['is_empty', 'is_not_empty'].includes(cond.operator) && (
-                    <Input
-                      className='h-8 flex-1 text-xs'
-                      placeholder='请输入值…'
-                      value={(cond.value as string) ?? ''}
-                      onChange={(e) =>
-                        setConditions((c) =>
-                          c.map((r, idx) =>
-                            idx === i ? { ...r, value: e.target.value } : r
-                          )
-                        )
-                      }
-                    />
-                  )}
-                </div>
-              </div>
-            ))}
-            <Button
-              variant='link'
-              size='sm'
-              className='text-primary mt-1 h-auto justify-start p-0 text-[11px] font-medium hover:opacity-70'
-              onClick={() =>
-                setConditions((c) => [
-                  ...c,
-                  {
-                    id: crypto.randomUUID(),
-                    type: 'comparison',
-                    field: questionNodes[0]?.id ?? '',
-                    operator: 'eq',
-                    value: '',
-                  },
-                ])
-              }
-            >
-              + 添加额外条件 (AND)
-            </Button>
+            <div className='max-h-[50vh] overflow-y-auto pr-2'>
+              <ConditionNodeEditor
+                node={expression}
+                questionNodes={questionNodes}
+                onUpdate={updateTreeNode}
+                onDelete={removeTreeNode}
+                onWrap={wrapWithGroup}
+              />
+            </div>
           </div>
 
           {/* Arrow */}
@@ -253,9 +411,9 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
             <p className='text-muted-foreground/60 decoration-border text-[10px] font-semibold tracking-widest uppercase underline decoration-2 underline-offset-4'>
               动作 (Then)
             </p>
-            {actions.map((action, i) => (
+            {actions.map((action) => (
               <div
-                key={i}
+                key={action.id}
                 className='border-border/40 bg-muted/20 mb-1 space-y-1.5 rounded-lg border p-3 shadow-sm'
               >
                 <Label className='text-muted-foreground/80 text-[10px]'>
@@ -263,10 +421,10 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
                 </Label>
                 <Select
                   value={action.type}
-                  onValueChange={(v) =>
-                    setActions((a) =>
-                      a.map((r, idx) =>
-                        idx === i ? { ...r, type: v as any } : r
+                  onValueChange={(v: ActionType) =>
+                    setActions((prev) =>
+                      prev.map((r) =>
+                        r.id === action.id ? { ...r, type: v } : r
                       )
                     )
                   }
@@ -285,8 +443,10 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
                 <Select
                   value={action.target}
                   onValueChange={(v) =>
-                    setActions((a) =>
-                      a.map((r, idx) => (idx === i ? { ...r, target: v } : r))
+                    setActions((prev) =>
+                      prev.map((r) =>
+                        r.id === action.id ? { ...r, target: v } : r
+                      )
                     )
                   }
                 >
