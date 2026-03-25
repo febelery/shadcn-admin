@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { AlertTriangle, Plus, X } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,7 +15,10 @@ import { RuleEditor } from '../../panels/rule-config'
 import { FlowCanvas } from './flow-canvas'
 
 export function FlowPanel() {
-  const { flow, removeRule, updateRule } = useFlowStore()
+  const flow = useFlowStore(useShallow((s) => s.flow))
+  const removeRule = useFlowStore((s) => s.removeRule)
+  const updateRule = useFlowStore((s) => s.updateRule)
+
   const { setActiveRule, activeRuleId } = useUIStore()
 
   const [editorOpen, setEditorOpen] = useState(false)

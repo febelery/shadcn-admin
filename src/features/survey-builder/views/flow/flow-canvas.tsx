@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect } from 'react'
+import { memo, useCallback } from 'react'
 import dagre from '@dagrejs/dagre'
 import {
   ReactFlow,
@@ -12,8 +12,6 @@ import {
   Handle,
   Position,
   getBezierPath,
-  useNodesState,
-  useEdgesState,
   useReactFlow,
   type Node,
   type Edge,
@@ -24,6 +22,7 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { Trash2 } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -33,10 +32,7 @@ import {
   useFlowStore,
   useSchemaStore,
 } from '@/features/survey-builder/state'
-import {
-  useQuestionNodes,
-  useFlowElements,
-} from '@/features/survey-builder/state/selectors'
+import { useQuestionNodes } from '@/features/survey-builder/state/selectors'
 import {
   type QuestionNode,
   FLOW_ACTION_CONFIG,
@@ -225,29 +221,21 @@ const edgeTypes = { flowEdge: FlowEdgeComponent }
 
 // 流程图核心视图
 function FlowView() {
-  const { addRule } = useFlowStore()
+  const nodes = useFlowStore(useShallow((s) => s.nodes))
+  const edges = useFlowStore(useShallow((s) => s.edges))
+  const onNodesChange = useFlowStore((s) => s.onNodesChange)
+  const onEdgesChange = useFlowStore((s) => s.onEdgesChange)
+  const setNodes = useFlowStore((s) => s.setNodes)
+  const addRule = useFlowStore((s) => s.addRule)
   const { updateExtensions } = useSchemaStore()
   const visibleNodes = useQuestionNodes()
   const { fitView } = useReactFlow()
 
-  // 1. 业务逻辑下沉：直接消费由 Selector 构建好的元素
-  const { nodes: initialNodes, edges: initialEdges } = useFlowElements()
-
-  // 2. 使用 ReactFlow 标准 Hook 管理状态
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
-
-  // 3. 响应外部数据流变更（题目、规则、顺序）
-  useEffect(() => {
-    setNodes(initialNodes)
-    setEdges(initialEdges)
-  }, [initialNodes, initialEdges, setNodes, setEdges])
-
-  // 4. 内容持久化：位置信息归于 SurveySchema.extensions
+  // 1. 内容持久化：位置信息归于 SurveySchema.extensions
   const onNodeDragStop: OnNodeDrag = useCallback(
     (_evt, _node, allNodes) => {
       const posMap: Record<string, { x: number; y: number }> = {}
-      allNodes.forEach((n) => {
+      allNodes.forEach((n: Node) => {
         posMap[n.id] = n.position
       })
       updateExtensions({ flowPositions: posMap })
@@ -287,11 +275,11 @@ function FlowView() {
   const onAutoLayout = useCallback(() => {
     const { nodes: ln } = getLayoutedElements(nodes, edges)
     const posMap: Record<string, { x: number; y: number }> = {}
-    ln.forEach((n) => {
+    ln.forEach((n: Node) => {
       posMap[n.id] = n.position
     })
     updateExtensions({ flowPositions: posMap })
-    setNodes(ln)
+    setNodes(() => ln)
     setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 50)
   }, [nodes, edges, setNodes, fitView, updateExtensions])
 

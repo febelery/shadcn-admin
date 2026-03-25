@@ -1,4 +1,4 @@
-import { type SurveySchema } from '../types'
+import { type SurveySchema, isQuestionNode } from '../types'
 import { useDraftStore } from './draft'
 import { useFlowStore } from './flow'
 import { useSchemaStore } from './schema'
@@ -9,10 +9,13 @@ import { useUIStore } from './ui'
  */
 export const initBuilderStore = (data: SurveySchema) => {
   useSchemaStore.getState().initSchema(data)
-  useFlowStore.getState().initFlow({
-    flow: data.flow,
-    validations: data.validations,
-  })
+  // 同步初始化 Flow 状态
+  useFlowStore.getState().syncElements(
+    data.nodes.filter((n) => isQuestionNode(n.type)),
+    data.flow || [],
+    (data.extensions?.flowPositions as any) || {},
+    data.nodes
+  )
   useDraftStore.getState().markSaved()
 }
 

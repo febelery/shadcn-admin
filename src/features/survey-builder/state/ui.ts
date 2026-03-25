@@ -1,6 +1,12 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import { type BuilderMode, type InspectorTarget } from '../types'
+import {
+  type BuilderMode,
+  type InspectorTarget,
+  isQuestionNode,
+} from '../types'
+import { useFlowStore } from './flow'
+import { useSchemaStore } from './schema'
 
 interface UIState {
   builderMode: BuilderMode
@@ -29,6 +35,16 @@ export const useUIStore = create<UIState>()(
 
     setBuilderMode: (mode) =>
       set((state) => {
+        if (mode === 'flow') {
+          const schema = useSchemaStore.getState()
+          const flow = useFlowStore.getState()
+          flow.syncElements(
+            schema.nodes.filter((n) => isQuestionNode(n.type)),
+            flow.flow,
+            (schema.extensions.flowPositions as any) || {},
+            schema.nodes
+          )
+        }
         state.builderMode = mode
       }),
     setInspectorTarget: (target) =>

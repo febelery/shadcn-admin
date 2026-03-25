@@ -76,22 +76,53 @@ export const useIsBuilderMode = (mode: 'build' | 'flow') =>
  */
 export const RuleService = {
   // 将 DSL 表达式转化为 UI 用的扁平条件数组
+  // 核心：支持递归，仅拍平 AND 嵌套，保留 OR/NOT 等复杂结构为单体，防止静默损坏
   toFlatConditions: (expr: LogicExpression): ComparisonExpression[] => {
-    if (expr.type === 'logical' && expr.operator === 'AND') {
-      return expr.expressions.map((e) => e as ComparisonExpression)
-    }
+    if (!expr) return []
+
+    // 1. 原子比较直接返回
     if (expr.type === 'comparison') return [expr]
-    return []
+
+    // 2. 逻辑组合
+    if (expr.type === 'logical') {
+      // 仅当是 AND 时才尝试递归拍平其子项
+      if (expr.operator === 'AND') {
+        return expr.expressions.flatMap((e) => RuleService.toFlatConditions(e))
+      }
+      // 对于 OR 或 NOT，UI 暂时无法展现其内部结构
+      // 我们将其作为一个整体存入数组（虽然类型不完全匹配，但能保证数据不被丢弃）
+      return [expr as any]
+    }
+
+    // 3. 其他：函数表达式等一律视为黑盒整体
+    return [expr as any]
   },
 
   // 将扁平条件数组转化为 DSL 表达式
   fromFlatConditions: (conditions: ComparisonExpression[]): LogicExpression => {
+    if (conditions.length === 0) {
+      throw new Error('条件列表不能为空')
+    }
+
+    // 1. 结构保护：如果数组中包含之前塞进去的复杂 LogicExpression，且它是唯一的，直接原样返回
+    if (
+      conditions.length === 1 &&
+      (conditions[0] as any).type !== 'comparison'
+    ) {
+      return conditions[0] as any
+    }
+
+    // 2. 正常还原：单条件忽略逻辑包装，多条件采用 AND
     if (conditions.length === 1) return conditions[0]
+
     return {
       id: crypto.randomUUID(),
       type: 'logical',
       operator: 'AND',
-      expressions: conditions,
+      expressions: conditions.map((cond) => {
+        // 如果 cond 本身就是之前保留的逻辑对象，直接返回；否则就是标准 comparison
+        return (cond as any).type === 'comparison' ? cond : (cond as any)
+      }),
     }
   },
 

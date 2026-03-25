@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Drawer,
@@ -61,7 +62,9 @@ interface Props {
 }
 
 export function RuleEditor({ rule, open, onOpenChange }: Props) {
-  const { addRule, updateRule } = useFlowStore()
+  const addRule = useFlowStore((s) => s.addRule)
+  const updateRule = useFlowStore((s) => s.updateRule)
+
   const questionNodes = useQuestionNodes()
 
   const [name, setName] = useState(rule?.name ?? '新流程规则')
@@ -94,20 +97,27 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
   )
 
   const save = () => {
-    // 2. DSL 转换逻辑下沉
-    const expression = RuleService.fromFlatConditions(conditions)
+    try {
+      // 2. DSL 转换逻辑核心：保证递归支持与单体黑盒还原
+      const expression = RuleService.fromFlatConditions(conditions)
 
-    const payload: Omit<FlowRule, 'id'> & { id?: string } = {
-      id: rule?.id ?? crypto.randomUUID(),
-      name,
-      enabled,
-      priority,
-      expression,
-      actions,
+      const payload: Omit<FlowRule, 'id'> & { id?: string } = {
+        id: rule?.id ?? crypto.randomUUID(),
+        name,
+        enabled,
+        priority,
+        expression,
+        actions,
+      }
+      if (rule) updateRule(rule.id, payload as FlowRule)
+      else addRule(payload as FlowRule)
+      onOpenChange(false)
+    } catch (err) {
+      // 如果解析失败（如条件列表为空），拦截保存并提示（符合规则 4）
+      toast.error(
+        '保存规则失败：' + (err instanceof Error ? err.message : '未知错误')
+      )
     }
-    if (rule) updateRule(rule.id, payload as FlowRule)
-    else addRule(payload as FlowRule)
-    onOpenChange(false)
   }
 
   return (
