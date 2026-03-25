@@ -18,14 +18,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { getQuestion } from '@/features/survey-builder/questions'
-import { useBuilderStore } from '@/features/survey-builder/state'
+import { useFlowStore } from '@/features/survey-builder/state'
+import {
+  useQuestionNodes,
+  RuleService,
+} from '@/features/survey-builder/state/selectors'
 import {
   type FlowRule,
   type FlowAction,
-  type LogicExpression,
   type ComparisonExpression,
-  isQuestionNode,
 } from '@/features/survey-builder/types'
 
 const ACTION_TYPES = [
@@ -60,17 +61,17 @@ interface Props {
 }
 
 export function RuleEditor({ rule, open, onOpenChange }: Props) {
-  const { nodes, addRule, updateRule } = useBuilderStore()
-  const questionNodes = nodes.filter((n) => isQuestionNode(n.type))
+  const { addRule, updateRule } = useFlowStore()
+  const questionNodes = useQuestionNodes()
 
   const [name, setName] = useState(rule?.name ?? '新流程规则')
   const [enabled, setEnabled] = useState(rule?.enabled ?? true)
   const [priority, setPriority] = useState(rule?.priority ?? 0)
 
-  // 1. 初始化扁平条件 (UI 只负责编辑扁平层级)
-  const initialConditions = (() => {
-    if (!rule)
-      return [
+  // 1. 初始化扁平条件（逻辑下沉至 Service，移除 IIFE）
+  const initialConditions = rule?.expression
+    ? RuleService.toFlatConditions(rule.expression)
+    : [
         {
           id: crypto.randomUUID(),
           type: 'comparison' as const,
@@ -79,14 +80,6 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
           value: '',
         },
       ]
-
-    const expr = rule.expression
-    if (expr.type === 'logical' && expr.operator === 'AND') {
-      return expr.expressions.map((e) => e as ComparisonExpression)
-    }
-    if (expr.type === 'comparison') return [expr]
-    return []
-  })()
 
   const [conditions, setConditions] =
     useState<ComparisonExpression[]>(initialConditions)
@@ -101,18 +94,8 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
   )
 
   const save = () => {
-    // 2. 在保存时进行 DSL 转换机制：将扁平转化为 AND 组合 (或者单个原子)
-    let expression: LogicExpression
-    if (conditions.length === 1) {
-      expression = conditions[0]
-    } else {
-      expression = {
-        id: crypto.randomUUID(),
-        type: 'logical',
-        operator: 'AND',
-        expressions: conditions,
-      }
-    }
+    // 2. DSL 转换逻辑下沉
+    const expression = RuleService.fromFlatConditions(conditions)
 
     const payload: Omit<FlowRule, 'id'> & { id?: string } = {
       id: rule?.id ?? crypto.randomUUID(),
@@ -154,19 +137,22 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
                 <Select
                   value={cond.field}
                   onValueChange={(v) => {
-                    const nextNode = questionNodes.find((n) => n.id === v)
-                    const nextCaps = nextNode
-                      ? getQuestion(nextNode.type)?.capabilities
-                      : undefined
+                    const nodeType = questionNodes.find((n) => n.id === v)?.type
                     setConditions((c) =>
                       c.map((r, idx) => {
                         if (idx !== i) return r
-                        const newOperator =
-                          nextCaps &&
-                          !nextCaps.operators.includes(r.operator as any)
-                            ? nextCaps.operators[0] // 切换题型后，如果旧操作符不可用，自动重置
-                            : r.operator
-                        return { ...r, field: v, operator: newOperator as any }
+                        if (!nodeType) return { ...r, field: v }
+                        const availableOps = RuleService.getAvailableOperators(
+                          nodeType,
+                          OPERATORS
+                        )
+                        const isOpSupported = availableOps.some(
+                          (o) => o.value === r.operator
+                        )
+                        const nextOp = isOpSupported
+                          ? r.operator
+                          : ((availableOps[0]?.value as any) ?? r.operator)
+                        return { ...r, field: v, operator: nextOp }
                       })
                     )
                   }}
@@ -184,19 +170,11 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
                 </Select>
                 <div className='flex gap-1.5'>
                   {(() => {
-                    const sourceNode = questionNodes.find(
+                    const nodeType = questionNodes.find(
                       (n) => n.id === cond.field
-                    )
-                    const caps = sourceNode
-                      ? getQuestion(sourceNode.type)?.capabilities
-                      : undefined
-
-                    // 1. 根据题型能力过滤可用操作符
-                    // 2. 如果题型没有定义能力，则返回空列表 (题型需显式声明支持逻辑)
-                    const availableOperators = caps
-                      ? OPERATORS.filter((o: any) =>
-                          caps.operators.includes(o.value as any)
-                        )
+                    )?.type
+                    const availableOperators = nodeType
+                      ? RuleService.getAvailableOperators(nodeType, OPERATORS)
                       : []
 
                     return (

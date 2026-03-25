@@ -8,11 +8,8 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 import { useConflictDetection } from '@/features/survey-builder/hooks/use-conflict-detection'
 import { useFlowStore, useUIStore } from '@/features/survey-builder/state'
-import {
-  type FlowRule,
-  FLOW_ACTION_CONFIG,
-  FALLBACK_ACTION_CONFIG,
-} from '@/features/survey-builder/types'
+import { RuleService } from '@/features/survey-builder/state/selectors'
+import { type FlowRule } from '@/features/survey-builder/types'
 import { RuleEditor } from '../../panels/rule-config'
 import { FlowCanvas } from './flow-canvas'
 
@@ -73,13 +70,9 @@ export function FlowPanel() {
             )}
 
             {flow.map((rule) => {
-              const mainType = rule.actions[0]?.type ?? 'default'
-              const config =
-                FLOW_ACTION_CONFIG[mainType] ?? FALLBACK_ACTION_CONFIG
+              const config = RuleService.getActionConfig(rule.actions[0]?.type)
               const isActive = activeRuleId === rule.id
-              const hasConflict =
-                rule.enabled &&
-                rule.actions.some((a) => a.target && conflicts.has(a.target))
+              const hasConflict = RuleService.hasConflict(rule, conflicts)
 
               return (
                 <div
