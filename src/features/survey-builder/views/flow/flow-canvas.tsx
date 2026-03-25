@@ -46,28 +46,129 @@ type QuestionNodeData = { node: QuestionNode; num: number }
 type FlowEdgeData = { ruleId: string; actionType: string; ruleName: string }
 
 function getLayoutedElements(nodes: Node[], edges: Edge[]) {
-  const g = new dagre.graphlib.Graph()
-  g.setGraph({ rankdir: 'TB', nodesep: 60, ranksep: 80 })
-  g.setDefaultEdgeLabel(() => ({}))
-  nodes.forEach((n) =>
-    g.setNode(n.id, {
-      width: n.measured?.width ?? NODE_W,
-      height: n.measured?.height ?? NODE_H,
-    })
-  )
-  edges.forEach((e) => g.setEdge(e.source, e.target))
-  dagre.layout(g)
-  return {
-    nodes: nodes.map((n) => {
-      const { x, y } = g.node(n.id)
-      return {
-        ...n,
-        position: {
-          x: x - (n.measured?.width ?? NODE_W) / 2,
-          y: y - (n.measured?.height ?? NODE_H) / 2,
-        },
+  if (nodes.length === 0) return { nodes, edges }
+
+  // 1. 将节点按连通性分组 (BFS)
+  const adj = new Map<string, string[]>()
+  nodes.forEach((n) => adj.set(n.id, []))
+  edges.forEach((e) => {
+    adj.get(e.source)?.push(e.target)
+    adj.get(e.target)?.push(e.source)
+  })
+
+  const visited = new Set<string>()
+  const components: string[][] = []
+
+  // 按照 nodes 原始顺序（即题目顺序）遍历，保证布局顺序的可预测性
+  nodes.forEach((n) => {
+    if (!visited.has(n.id)) {
+      const component: string[] = []
+      const queue = [n.id]
+      visited.add(n.id)
+      while (queue.length > 0) {
+        const id = queue.shift()!
+        component.push(id)
+        adj.get(id)?.forEach((neighbor) => {
+          if (!visited.has(neighbor)) {
+            visited.add(neighbor)
+            queue.push(neighbor)
+          }
+        })
       }
-    }),
+      components.push(component)
+    }
+  })
+
+  // 2. 对每个连通分量独立进行 Dagre 布局
+  const layoutedComponents = components.map((compIds) => {
+    const compNodes = nodes.filter((n) => compIds.includes(n.id))
+    const compEdges = edges.filter(
+      (e) => compIds.includes(e.source) && compIds.includes(e.target)
+    )
+
+    const g = new dagre.graphlib.Graph()
+    // 使用 LR (Left to Right) 布局，匹配节点左右两侧的 Handle
+    g.setGraph({ rankdir: 'LR', nodesep: 40, ranksep: 60 })
+    g.setDefaultEdgeLabel(() => ({}))
+
+    compNodes.forEach((n) => {
+      g.setNode(n.id, {
+        width: n.measured?.width ?? NODE_W,
+        height: n.measured?.height ?? NODE_H,
+      })
+    })
+    compEdges.forEach((e) => g.setEdge(e.source, e.target))
+
+    dagre.layout(g)
+
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity
+    const nodeRelPositions = new Map<string, { x: number; y: number }>()
+
+    compNodes.forEach((n) => {
+      const { x, y } = g.node(n.id)
+      const w = n.measured?.width ?? NODE_W
+      const h = n.measured?.height ?? NODE_H
+      const posX = x - w / 2
+      const posY = y - h / 2
+      nodeRelPositions.set(n.id, { x: posX, y: posY })
+
+      minX = Math.min(minX, posX)
+      minY = Math.min(minY, posY)
+      maxX = Math.max(maxX, posX + w)
+      maxY = Math.max(maxY, posY + h)
+    })
+
+    return {
+      nodeIds: compIds,
+      positions: nodeRelPositions,
+      width: maxX - minX,
+      height: maxY - minY,
+      offset: { x: minX, y: minY },
+    }
+  })
+
+  // 3. 将这些布局好的分量按网格排列，避免一行太长
+  const MAX_COMP_PER_ROW = 3 // 每行最多放几个独立分量
+  const GAP_X = 160
+  const GAP_Y = 120
+
+  let currentX = 0
+  let currentY = 0
+  let rowMaxHeight = 0
+  let colIndex = 0
+
+  const finalNodePositions = new Map<string, { x: number; y: number }>()
+
+  layoutedComponents.forEach((comp) => {
+    // 换行逻辑
+    if (colIndex > 0 && colIndex >= MAX_COMP_PER_ROW) {
+      currentX = 0
+      currentY += rowMaxHeight + GAP_Y
+      rowMaxHeight = 0
+      colIndex = 0
+    }
+
+    comp.nodeIds.forEach((id) => {
+      const relPos = comp.positions.get(id)!
+      finalNodePositions.set(id, {
+        x: currentX + (relPos.x - comp.offset.x),
+        y: currentY + (relPos.y - comp.offset.y),
+      })
+    })
+
+    currentX += comp.width + GAP_X
+    rowMaxHeight = Math.max(rowMaxHeight, comp.height)
+    colIndex++
+  })
+
+  return {
+    nodes: nodes.map((n) => ({
+      ...n,
+      position: finalNodePositions.get(n.id) || n.position,
+    })),
     edges,
   }
 }
