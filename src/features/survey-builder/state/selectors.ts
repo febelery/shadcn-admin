@@ -11,6 +11,13 @@ import {
 } from '../types'
 
 /**
+ * 核心：基础节点库（唯一排序源）
+ * 强制所有衍生计算基于此排序后的列表，避免多次 sort()
+ */
+const selectSortedNodes = (s: { nodes: QuestionNode[] }) =>
+  [...(s.nodes ?? [])].sort((a, b) => a.order - b.order)
+
+/**
  * 获取当前选中的完整节点对象
  */
 export const useSelectedNode = () => {
@@ -20,30 +27,29 @@ export const useSelectedNode = () => {
 }
 
 /**
- * 获取排序后的根节点列表 (用于画布主渲染)
+ * 获取排序后的根节点列表 (高性能版本)
+ * 使用 useShallow 确保只有在节点顺序或内容变化时才触发重渲染
  */
-export const useRootNodes = () =>
-  useSchemaStore(
-    useShallow((s) => [...(s.nodes ?? [])].sort((a, b) => a.order - b.order))
-  )
+export const useRootNodes = () => useSchemaStore(useShallow(selectSortedNodes))
 
 /**
- * 获取所有可见题目的编号映射
- * 用于 SurveyHeader 等地方展示 "共 X 题"
+ * 获取题目编号索引表 (One-time Correct Design)
+ * 返回格式: { [nodeId]: number }
+ * 解决了分散在各处的手动计数问题
  */
-export const useVisibleNodeNumber = () =>
+export const useQuestionIndexMap = () =>
   useSchemaStore(
     useShallow((s) => {
-      const numMap: Record<string, number> = {}
-      let i = 0
-      ;[...(s.nodes ?? [])]
-        .filter((n: QuestionNode) => isQuestionNode(n.type))
-        .sort((a, b) => a.order - b.order)
-        .forEach((n: QuestionNode) => {
-          i++
-          numMap[n.id] = i
-        })
-      return numMap
+      const sorted = selectSortedNodes(s)
+      const indexMap: Record<string, number> = {}
+      let count = 0
+      for (const node of sorted) {
+        if (isQuestionNode(node.type)) {
+          count++
+          indexMap[node.id] = count
+        }
+      }
+      return indexMap
     })
   )
 
@@ -52,7 +58,9 @@ export const useVisibleNodeNumber = () =>
  */
 export const useQuestionNodes = () =>
   useSchemaStore(
-    useShallow((s) => s.nodes.filter((n) => isQuestionNode(n.type)))
+    useShallow((s) =>
+      selectSortedNodes(s).filter((n) => isQuestionNode(n.type))
+    )
   )
 
 /**

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/tooltip'
 import { getQuestion } from '@/features/survey-builder/questions'
 import { useSchemaStore, useUIStore } from '@/features/survey-builder/state'
-import { useVisibleNodeNumber } from '@/features/survey-builder/state/selectors'
+import { useQuestionIndexMap } from '@/features/survey-builder/state/selectors'
 import {
   type QuestionNode,
   isLayoutNode,
@@ -29,7 +29,7 @@ export function QuestionCard({ node }: Props) {
   const { selectedNodeId, selectNode } = useUIStore()
   const { removeNode, duplicateNode, updateNode, updateNodeConfig } =
     useSchemaStore()
-  const numMap = useVisibleNodeNumber()
+  const numMap = useQuestionIndexMap()
   const isSelected = selectedNodeId === node.id
   const num = numMap[node.id]
 

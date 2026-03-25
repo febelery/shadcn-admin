@@ -1,6 +1,6 @@
 'use client'
 import { useMemo } from 'react'
-import { useBuilderStore } from '../state'
+import { useSchemaStore, useFlowStore } from '../state'
 import type { QuestionNode, FlowRule } from '../types'
 
 /**
@@ -29,8 +29,8 @@ export function detectConflicts(
  * 封装了冲突检测逻辑，避免在多个组件中重复计算
  */
 export function useConflictDetection() {
-  const nodes = useBuilderStore((s) => s.nodes)
-  const flow = useBuilderStore((s) => s.flow)
+  const nodes = useSchemaStore((s) => s.nodes)
+  const flow = useFlowStore((s) => s.flow)
 
   // 计算所有冲突的目标
   const conflicts = useMemo(() => detectConflicts(nodes, flow), [nodes, flow])

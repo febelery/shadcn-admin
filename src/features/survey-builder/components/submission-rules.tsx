@@ -7,11 +7,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { useBuilderStore } from '@/features/survey-builder/state'
+import { useSchemaStore } from '@/features/survey-builder/state'
 
 export function SubmissionRules() {
-  const meta = useBuilderStore((s) => s.meta)
-  const updateMeta = useBuilderStore((s) => s.updateMeta)
+  const meta = useSchemaStore((s) => s.meta)
+  const updateMeta = useSchemaStore((s) => s.updateMeta)
   const rules = meta.submissionRules
 
   const updateRule = (key: string, patch: Record<string, unknown>) => {

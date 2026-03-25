@@ -1,5 +1,5 @@
 import { getQuestion } from '@/features/survey-builder/questions'
-import { useBuilderStore } from '@/features/survey-builder/state'
+import { useSchemaStore } from '@/features/survey-builder/state'
 import type { DragPayload } from '@/features/survey-builder/types'
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 }
 
 export function CardDragPreview({ data, nodeId }: Props) {
-  const { nodes } = useBuilderStore()
+  const { nodes } = useSchemaStore()
 
   // 侧边栏新题型拖拽预览
   if (data?.type === 'NEW_QUESTION') {

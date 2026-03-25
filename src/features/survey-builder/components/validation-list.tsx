@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { getQuestion } from '@/features/survey-builder/questions'
-import { useBuilderStore } from '@/features/survey-builder/state'
+import { useSchemaStore } from '@/features/survey-builder/state'
 import {
   type NodeValidation,
   type QuestionNode,
@@ -71,7 +71,7 @@ const ALL_VALIDATION_META: Record<
 }
 
 export function ValidationConfig({ node }: { node: QuestionNode }) {
-  const updateNode = useBuilderStore((s) => s.updateNode)
+  const updateNode = useSchemaStore((s) => s.updateNode)
   const validations = node.validations ?? []
 
   // 当前题型允许的校验类型（已排除 required）

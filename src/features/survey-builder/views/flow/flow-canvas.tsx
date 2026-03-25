@@ -29,14 +29,16 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getQuestion } from '@/features/survey-builder/questions'
-import { useBuilderStore } from '@/features/survey-builder/state'
-import { useVisibleNodeNumber } from '@/features/survey-builder/state/selectors'
+import { useUIStore, useFlowStore } from '@/features/survey-builder/state'
+import {
+  useQuestionIndexMap,
+  useQuestionNodes,
+} from '@/features/survey-builder/state/selectors'
 import {
   type QuestionNode,
   type FlowRule,
   FLOW_ACTION_CONFIG,
   FALLBACK_ACTION_CONFIG,
-  isQuestionNode,
 } from '@/features/survey-builder/types'
 
 const NODE_W = 220
@@ -107,7 +109,7 @@ function buildGraph(
   const edges: Edge[] = []
   flow.forEach((rule) => {
     if (!rule.enabled) return
-    const fromId = (rule.condition.rules[0] as any)?.field as string | undefined
+    const fromId = (rule.expression as any)?.field as string | undefined
     rule.actions.forEach((action: any) => {
       const toId = action.target
       if (!fromId || !toId || fromId === toId) return
@@ -137,7 +139,7 @@ const QuestionNodeComponent = memo(function QuestionNode({
   const { node, num } = data as QuestionNodeData
   const meta = getQuestion(node.type)?.meta
   const Icon = meta?.icon
-  const { selectNode } = useBuilderStore()
+  const { selectNode } = useUIStore()
 
   return (
     <div
@@ -206,7 +208,8 @@ function FlowEdgeComponent({
   selected,
   markerEnd,
 }: EdgeProps) {
-  const { removeRule, setActiveRule } = useBuilderStore()
+  const { removeRule } = useFlowStore()
+  const { setActiveRule } = useUIStore()
   const { ruleId, actionType, ruleName } = (data ?? {}) as FlowEdgeData
   const meta = FLOW_ACTION_CONFIG[actionType] ?? FALLBACK_ACTION_CONFIG
 
@@ -277,17 +280,10 @@ const edgeTypes = { flowEdge: FlowEdgeComponent }
 
 // 流程图核心功能
 function FlowView() {
-  const { nodes: storeNodes, flow, addRule } = useBuilderStore()
-  const numMap = useVisibleNodeNumber()
+  const { flow, addRule } = useFlowStore()
+  const numMap = useQuestionIndexMap()
+  const visibleNodes = useQuestionNodes()
   const { fitView } = useReactFlow()
-
-  const visibleNodes = useMemo(
-    () =>
-      storeNodes
-        .filter((n: QuestionNode) => isQuestionNode(n.type))
-        .sort((a: QuestionNode, b: QuestionNode) => a.order - b.order),
-    [storeNodes]
-  )
 
   const positionsRef =
     useRef<Record<string, { x: number; y: number }>>(loadPositions())
@@ -348,13 +344,20 @@ function FlowView() {
         name: `${from.title.slice(0, 10) || '题目'} → ${to.title.slice(0, 10) || '题目'}`,
         enabled: true,
         priority: 0,
-        condition: {
-          operator: 'and',
-          rules: [
-            { field: connection.source!, operator: 'is_not_empty', value: '' },
-          ],
+        expression: {
+          id: crypto.randomUUID(),
+          type: 'comparison',
+          field: connection.source!,
+          operator: 'is_not_empty',
+          value: '',
         },
-        actions: [{ type: 'jump_question', target: connection.target! }],
+        actions: [
+          {
+            id: crypto.randomUUID(),
+            type: 'jump_question',
+            target: connection.target!,
+          },
+        ],
       })
     },
     [visibleNodes, addRule]
