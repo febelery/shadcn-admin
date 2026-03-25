@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { getQuestion } from '@/features/survey-builder/questions/index'
-import { useBuilderStore } from '@/features/survey-builder/state'
+import { useSchemaStore } from '@/features/survey-builder/state'
 import { useSelectedNode } from '@/features/survey-builder/state/selectors'
 import type { QuestionNode } from '@/features/survey-builder/types'
 import { ValidationConfig } from '../components/validation-list'
@@ -102,7 +102,7 @@ function Section({
 // 问题属性编辑面板主组件
 export function QuestionPanel() {
   const node = useSelectedNode()
-  const { updateNodeConfig, updateNode } = useBuilderStore()
+  const { updateNodeConfig, updateNode } = useSchemaStore()
 
   const handleConfigChange = useCallback(
     (patch: Partial<QuestionNode['config']>) => {
@@ -174,7 +174,7 @@ export function QuestionPanel() {
 }
 
 function TypeHeader({ node }: { node: QuestionNode }) {
-  const { duplicateNode, removeNode } = useBuilderStore()
+  const { duplicateNode, removeNode } = useSchemaStore()
   const q = getQuestion(node.type)
   const Icon = q?.meta.icon
 
@@ -232,7 +232,7 @@ function TitleSection({
   node: QuestionNode
   showRequired?: boolean
 }) {
-  const updateNode = useBuilderStore((s) => s.updateNode)
+  const updateNode = useSchemaStore((s) => s.updateNode)
   const titleRef = useRef<HTMLTextAreaElement>(null)
 
   return (

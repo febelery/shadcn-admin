@@ -13,14 +13,19 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { Loader2 } from 'lucide-react'
-import { useShallow } from 'zustand/react/shallow'
 import { CardDragPreview } from './components/drag-preview'
 import { SlashCommand } from './components/slash-command'
 import { useSurveyDetail } from './hooks/use-survey-detail'
 import { PropsPanel } from './layout/panel'
 import { TypeSidebar } from './layout/sidebar'
 import { BuilderTopbar } from './layout/topbar'
-import { useBuilderStore } from './state'
+import {
+  useSchemaStore,
+  useUIStore,
+  useFlowStore,
+  useDraftStore,
+  initBuilderStore,
+} from './state'
 import type { DragPayload } from './types'
 import { SurveyCanvas } from './views/canvas/survey-canvas'
 import { FlowPanel } from './views/flow'
@@ -28,16 +33,11 @@ import { FlowPanel } from './views/flow'
 export function SurveyBuilder() {
   const { surveyId } = useParams({ from: '/survey/builder/$surveyId' })
 
-  const builderMode = useBuilderStore((s) => s.builderMode)
-  const nodes = useBuilderStore((s) => s.nodes)
+  const builderMode = useUIStore((s) => s.builderMode)
+  const nodes = useSchemaStore((s) => s.nodes)
 
-  const { initSurvey, addNode, reorderNodes } = useBuilderStore(
-    useShallow((s) => ({
-      initSurvey: s.initSurvey,
-      addNode: s.addNode,
-      reorderNodes: s.reorderNodes,
-    }))
-  )
+  const { addNode, reorderNodes } = useSchemaStore()
+  const { selectNode, closeSlash } = useUIStore()
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
   const [activeDragData, setActiveDragData] = useState<DragPayload | null>(null)
@@ -54,42 +54,49 @@ export function SurveyBuilder() {
     const draft = sessionStorage.getItem(`survey-draft-${surveyId}`)
     if (draft) {
       try {
-        initSurvey(JSON.parse(draft))
+        initBuilderStore(JSON.parse(draft))
         return
       } catch {
         sessionStorage.removeItem(`survey-draft-${surveyId}`)
       }
     }
-    initSurvey(surveyData)
-  }, [surveyData, surveyId, initSurvey])
+    initBuilderStore(surveyData)
+  }, [surveyData, surveyId])
 
   // 自动保存草稿：防抖存储至 sessionStorage
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    const unsub = useBuilderStore.subscribe((state, prevState) => {
-      if (!state.isDirty || state === prevState) return
+    // 监听 Schema 或 Flow 的变更来触发自动保存
+    const save = () => {
+      const isDirty = useDraftStore.getState().isDirty
+      if (!isDirty) return
+
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
       autoSaveTimerRef.current = setTimeout(() => {
-        // 读取最新 state，不依赖闭包中的旧值
-        const s = useBuilderStore.getState()
+        const schema = useSchemaStore.getState()
+        const flow = useFlowStore.getState()
         sessionStorage.setItem(
           `survey-draft-${surveyId}`,
           JSON.stringify({
             id: surveyId,
-            version: s.version ?? '1',
-            meta: s.meta,
-            nodes: s.nodes,
-            flow: s.flow,
-            validations: s.validations,
-            extensions: s.extensions ?? {},
+            version: schema.version ?? '1',
+            meta: schema.meta,
+            nodes: schema.nodes,
+            flow: flow.flow,
+            validations: flow.validations,
+            extensions: schema.extensions ?? {},
           })
         )
       }, 1000)
-    })
+    }
+
+    const unsubSchema = useSchemaStore.subscribe(save)
+    const unsubFlow = useFlowStore.subscribe(save)
 
     return () => {
-      unsub()
+      unsubSchema()
+      unsubFlow()
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
     }
   }, [surveyId])
@@ -104,10 +111,9 @@ export function SurveyBuilder() {
         target.isContentEditable
       if (isEditing) return
 
-      const store = useBuilderStore.getState()
       if (e.key === 'Escape') {
-        store.selectNode(null)
-        store.closeSlash()
+        selectNode(null)
+        closeSlash()
       }
     }
     window.addEventListener('keydown', handle)

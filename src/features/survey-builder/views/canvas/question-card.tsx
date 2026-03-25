@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { getQuestion } from '@/features/survey-builder/questions'
-import { useBuilderStore } from '@/features/survey-builder/state'
+import { useSchemaStore, useUIStore } from '@/features/survey-builder/state'
 import { useVisibleNodeNumber } from '@/features/survey-builder/state/selectors'
 import {
   type QuestionNode,
@@ -26,14 +26,9 @@ interface Props {
 }
 
 export function QuestionCard({ node }: Props) {
-  const {
-    selectedNodeId,
-    selectNode,
-    removeNode,
-    duplicateNode,
-    updateNode,
-    updateNodeConfig,
-  } = useBuilderStore()
+  const { selectedNodeId, selectNode } = useUIStore()
+  const { removeNode, duplicateNode, updateNode, updateNodeConfig } =
+    useSchemaStore()
   const numMap = useVisibleNodeNumber()
   const isSelected = selectedNodeId === node.id
   const num = numMap[node.id]
@@ -219,7 +214,6 @@ export function QuestionCard({ node }: Props) {
               </div>
             ) : null)}
 
-          {/* Inline editors / Previews */}
           {isSelected && EditorComponent ? (
             <EditorComponent
               node={node}

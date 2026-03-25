@@ -3,13 +3,13 @@ import { Settings2, LayoutTemplate, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useBuilderStore } from '@/features/survey-builder/state'
+import { useUIStore } from '@/features/survey-builder/state'
 import { QuestionPanel } from '../panels/node-config'
 import { SurveySettingsPanel } from '../panels/survey-config'
 
 // 面板内容（桌面端和移动端复用）
 function PanelContent() {
-  const { inspectorTarget, setInspectorTarget } = useBuilderStore()
+  const { inspectorTarget, setInspectorTarget } = useUIStore()
 
   return (
     <Tabs

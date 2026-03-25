@@ -8,15 +8,15 @@ import {
 } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverAnchor } from '@/components/ui/popover'
 import { getAllQuestions } from '@/features/survey-builder/questions'
-import { useBuilderStore } from '@/features/survey-builder/state'
+import { useUIStore, useSchemaStore } from '@/features/survey-builder/state'
 import {
   QUESTION_TYPE_CATEGORIES,
   type NodeType,
 } from '@/features/survey-builder/types'
 
 export function SlashCommand() {
-  const { slashOpen, slashAnchor, closeSlash, addNode, selectedNodeId } =
-    useBuilderStore()
+  const { slashOpen, slashAnchor, closeSlash, selectedNodeId } = useUIStore()
+  const { addNode } = useSchemaStore()
 
   const handleSelect = (type: NodeType) => {
     addNode(type, { afterId: selectedNodeId })

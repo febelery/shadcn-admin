@@ -7,22 +7,21 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 import { useConflictDetection } from '@/features/survey-builder/hooks/use-conflict-detection'
-import { useBuilderStore } from '@/features/survey-builder/state'
+import { useFlowStore, useUIStore } from '@/features/survey-builder/state'
 import {
   type FlowRule,
   FLOW_ACTION_CONFIG,
   FALLBACK_ACTION_CONFIG,
 } from '@/features/survey-builder/types'
-import { FlowCanvas } from './flow-canvas'
 import { RuleEditor } from '../../panels/rule-config'
+import { FlowCanvas } from './flow-canvas'
 
 export function FlowPanel() {
-  const { flow, removeRule, updateRule, setActiveRule, activeRuleId } =
-    useBuilderStore()
+  const { flow, removeRule, updateRule } = useFlowStore()
+  const { setActiveRule, activeRuleId } = useUIStore()
 
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<FlowRule | null>(null)
-  // 规则编辑器分发：通过 key 驱动组件重挂载，确保状态同步
   const [editCount, setEditCount] = useState(0)
 
   const { conflicts, conflictRules } = useConflictDetection()

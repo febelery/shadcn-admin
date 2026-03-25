@@ -1,8 +1,9 @@
 import { cn } from '@/lib/utils'
-import { useBuilderStore } from '@/features/survey-builder/state'
+import { useSchemaStore, useUIStore } from '@/features/survey-builder/state'
 
 export function SurveyHeader() {
-  const { meta, updateMeta, selectNode } = useBuilderStore()
+  const { meta, updateMeta } = useSchemaStore()
+  const { selectNode } = useUIStore()
   const fontStyle = meta.fontColor ? { color: meta.fontColor } : {}
   const subFontStyle = meta.fontColor
     ? { color: meta.fontColor, opacity: 0.5 }
@@ -23,7 +24,10 @@ export function SurveyHeader() {
       }}
       onClick={(e) => {
         const target = e.target as HTMLElement
-        if (target === e.currentTarget || target.hasAttribute('data-canvas-bg')) {
+        if (
+          target === e.currentTarget ||
+          target.hasAttribute('data-canvas-bg')
+        ) {
           selectNode(null)
         }
       }}
@@ -40,10 +44,7 @@ export function SurveyHeader() {
         </>
       )}
 
-      <div
-        data-canvas-bg
-        className='relative z-10 px-8 py-10 sm:px-12'
-      >
+      <div data-canvas-bg className='relative z-10 px-8 py-10 sm:px-12'>
         <input
           className='placeholder:text-foreground/40 mb-2 w-full bg-transparent text-2xl font-bold transition-colors outline-none sm:text-3xl'
           style={fontStyle}

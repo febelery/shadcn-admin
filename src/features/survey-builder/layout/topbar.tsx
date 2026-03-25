@@ -14,40 +14,44 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { useUpdateSurvey } from '../hooks/use-update-survey'
 import { useConflictDetection } from '../hooks/use-conflict-detection'
-import { useBuilderStore } from '../state'
+import { useUpdateSurvey } from '../hooks/use-update-survey'
+import {
+  useSchemaStore,
+  useUIStore,
+  useDraftStore,
+  useFlowStore,
+} from '../state'
 
 export function BuilderTopbar() {
   const { surveyId } = useParams({ from: '/survey/builder/$surveyId' })
   const navigate = useNavigate()
 
-  // 修复 #18：用响应式 selector 替代 render 阶段的 getState() 调用。
-  // getState() 是非响应式读取，结果不会随 store 变化而触发重渲染。
-  const title = useBuilderStore((s) => s.meta.title)
-  const builderMode = useBuilderStore((s) => s.builderMode)
-  const isDirty = useBuilderStore((s) => s.isDirty)
-  const flowCount = useBuilderStore((s) => s.flow.length)
-  const setBuilderMode = useBuilderStore((s) => s.setBuilderMode)
-  const markSaved = useBuilderStore((s) => s.markSaved)
+  const title = useSchemaStore((s) => s.meta.title)
+  const builderMode = useUIStore((s) => s.builderMode)
+  const isDirty = useDraftStore((s) => s.isDirty)
+  const flowCount = useFlowStore((s) => s.flow.length)
+  const setBuilderMode = useUIStore((s) => s.setBuilderMode)
+  const markSaved = useDraftStore((s) => s.markSaved)
 
   const { conflictRules } = useConflictDetection()
   const { mutate: updateSurvey, isPending: isSaving } = useUpdateSurvey()
 
   const handleSave = () => {
     if (!isDirty || isSaving) return
-    const state = useBuilderStore.getState()
+    const schema = useSchemaStore.getState()
+    const flow = useFlowStore.getState()
     updateSurvey(
       {
         id: surveyId,
         data: {
           id: surveyId,
-          version: state.version ?? '1',
-          meta: state.meta,
-          nodes: state.nodes,
-          flow: state.flow,
+          version: schema.version ?? '1',
+          meta: schema.meta,
+          nodes: schema.nodes,
+          flow: flow.flow,
           validations: [],
-          extensions: state.extensions ?? {},
+          extensions: schema.extensions ?? {},
         },
       },
       {
@@ -59,7 +63,6 @@ export function BuilderTopbar() {
     )
   }
 
-  // 修复 #32：预览按钮跳转到预览页，而非静态占位。
   const handlePreview = () => {
     navigate({ to: '/survey/preview/$surveyId', params: { surveyId } })
   }
@@ -87,7 +90,9 @@ export function BuilderTopbar() {
         <ToggleGroup
           type='single'
           value={builderMode}
-          onValueChange={(v) => { if (v) setBuilderMode(v as typeof builderMode) }}
+          onValueChange={(v) => {
+            if (v) setBuilderMode(v as typeof builderMode)
+          }}
           className='bg-muted absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center space-x-0 rounded-md p-1 shadow-sm'
         >
           <ToggleGroupItem
@@ -124,7 +129,11 @@ export function BuilderTopbar() {
         </ToggleGroup>
 
         <div className='ml-auto flex items-center gap-2'>
-          <SaveButton isDirty={isDirty} isSaving={isSaving} onClick={handleSave} />
+          <SaveButton
+            isDirty={isDirty}
+            isSaving={isSaving}
+            onClick={handleSave}
+          />
           <Separator orientation='vertical' className='h-4' />
           <Button
             variant='outline'
@@ -152,7 +161,12 @@ function SaveButton({
 }) {
   if (isSaving) {
     return (
-      <Button size='sm' variant='ghost' className='h-8 px-3 text-xs font-medium' disabled>
+      <Button
+        size='sm'
+        variant='ghost'
+        className='h-8 px-3 text-xs font-medium'
+        disabled
+      >
         <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />
         保存中…
       </Button>

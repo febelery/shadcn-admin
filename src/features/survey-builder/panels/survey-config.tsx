@@ -13,12 +13,12 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { FileUpload } from '@/components/file-upload'
-import { useBuilderStore } from '@/features/survey-builder/state'
+import { useSchemaStore } from '@/features/survey-builder/state'
 import { SubmissionRules } from '../components/submission-rules'
 
 export function SurveySettingsPanel() {
-  const meta = useBuilderStore((s) => s.meta)
-  const updateMeta = useBuilderStore((s) => s.updateMeta)
+  const meta = useSchemaStore((s) => s.meta)
+  const updateMeta = useSchemaStore((s) => s.updateMeta)
 
   return (
     <div className='flex h-full flex-col overflow-hidden'>

@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { getAllQuestions } from '../questions'
-import { useBuilderStore } from '../state'
+import { useSchemaStore, useUIStore } from '../state'
 import { type NodeType, QUESTION_TYPE_CATEGORIES } from '../types'
 
 // 单个可拖拽题型项
@@ -21,7 +21,8 @@ function DraggableTypeItem({
   item: any
   collapsed: boolean
 }) {
-  const { addNode, selectedNodeId } = useBuilderStore()
+  const { addNode } = useSchemaStore()
+  const { selectedNodeId } = useUIStore()
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `sidebar:${item.type}`,
     data: { type: 'NEW_QUESTION', questionType: item.type },

@@ -2,7 +2,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import { useBuilderStore } from '@/features/survey-builder/state'
+import { useUIStore } from '@/features/survey-builder/state'
 import { useRootNodes } from '@/features/survey-builder/state/selectors'
 import { QuestionCard } from './question-card'
 import { SurveyHeader } from './survey-header'
@@ -11,7 +11,7 @@ interface Props {
   isDraggingNew: boolean
 }
 
-// 每个节点前渲染一个 gap，列表末尾额外渲染最后一个 gap，所有 gap ID 均唯一且覆盖全部插入位置。
+// 每个节点前渲染一个 gap，列表末尾额外渲染最后一个 gap
 function GapDropzone({ id }: { id: string }) {
   const { setNodeRef, isOver } = useDroppable({ id })
   return (
@@ -48,7 +48,7 @@ function EmptyCanvasDropzone() {
 
 export function SurveyCanvas({ isDraggingNew }: Props) {
   const rootNodes = useRootNodes()
-  const { openSlash, selectNode } = useBuilderStore()
+  const { openSlash, selectNode } = useUIStore()
   const { setNodeRef: setCanvasRef } = useDroppable({ id: 'canvas-drop' })
 
   const handleAddClick = (e: React.MouseEvent) => {
@@ -62,7 +62,10 @@ export function SurveyCanvas({ isDraggingNew }: Props) {
       className='bg-muted/20 relative flex flex-1 flex-col items-center overflow-y-auto px-4 py-8 pb-32 md:px-8'
       onClick={(e) => {
         const target = e.target as HTMLElement
-        if (target === e.currentTarget || target.hasAttribute('data-canvas-bg')) {
+        if (
+          target === e.currentTarget ||
+          target.hasAttribute('data-canvas-bg')
+        ) {
           selectNode(null)
         }
       }}
