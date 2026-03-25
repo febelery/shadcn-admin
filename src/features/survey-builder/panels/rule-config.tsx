@@ -142,17 +142,15 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
                       c.map((r, idx) => {
                         if (idx !== i) return r
                         if (!nodeType) return { ...r, field: v }
-                        const availableOps = RuleService.getAvailableOperators(
-                          nodeType,
-                          OPERATORS
-                        )
-                        const isOpSupported = availableOps.some(
-                          (o) => o.value === r.operator
-                        )
-                        const nextOp = isOpSupported
-                          ? r.operator
-                          : ((availableOps[0]?.value as any) ?? r.operator)
-                        return { ...r, field: v, operator: nextOp }
+                        return {
+                          ...r,
+                          field: v,
+                          operator: RuleService.getNextOperator(
+                            nodeType,
+                            r.operator,
+                            OPERATORS
+                          ) as any,
+                        }
                       })
                     )
                   }}
@@ -169,39 +167,34 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
                   </SelectContent>
                 </Select>
                 <div className='flex gap-1.5'>
-                  {(() => {
-                    const nodeType = questionNodes.find(
-                      (n) => n.id === cond.field
-                    )?.type
-                    const availableOperators = nodeType
-                      ? RuleService.getAvailableOperators(nodeType, OPERATORS)
-                      : []
-
-                    return (
-                      <Select
-                        value={cond.operator}
-                        onValueChange={(v) =>
-                          setConditions((c) =>
-                            c.map((r, idx) =>
-                              idx === i ? { ...r, operator: v as any } : r
-                            )
-                          )
-                        }
-                        disabled={availableOperators.length === 0}
-                      >
-                        <SelectTrigger className='h-8 w-32 shrink-0 text-[11px]'>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableOperators.map((o: any) => (
-                            <SelectItem key={o.value} value={o.value}>
-                              {o.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )
-                  })()}
+                  <Select
+                    value={cond.operator}
+                    onValueChange={(v) =>
+                      setConditions((c) =>
+                        c.map((r, idx) =>
+                          idx === i ? { ...r, operator: v as any } : r
+                        )
+                      )
+                    }
+                    disabled={
+                      !questionNodes.find((n) => n.id === cond.field)?.type
+                    }
+                  >
+                    <SelectTrigger className='h-8 w-32 shrink-0 text-[11px]'>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RuleService.getAvailableOperators(
+                        questionNodes.find((n) => n.id === cond.field)?.type ??
+                          '',
+                        OPERATORS
+                      ).map((o: any) => (
+                        <SelectItem key={o.value} value={o.value}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {!['is_empty', 'is_not_empty'].includes(cond.operator) && (
                     <Input
                       className='h-8 flex-1 text-xs'

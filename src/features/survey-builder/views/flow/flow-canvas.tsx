@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect } from 'react'
 import dagre from '@dagrejs/dagre'
 import {
   ReactFlow,
@@ -11,7 +11,6 @@ import {
   EdgeLabelRenderer,
   Handle,
   Position,
-  MarkerType,
   getBezierPath,
   useNodesState,
   useEdgesState,
@@ -29,21 +28,23 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getQuestion } from '@/features/survey-builder/questions'
-import { useUIStore, useFlowStore } from '@/features/survey-builder/state'
 import {
-  useQuestionIndexMap,
+  useUIStore,
+  useFlowStore,
+  useSchemaStore,
+} from '@/features/survey-builder/state'
+import {
   useQuestionNodes,
+  useFlowElements,
 } from '@/features/survey-builder/state/selectors'
 import {
   type QuestionNode,
-  type FlowRule,
   FLOW_ACTION_CONFIG,
   FALLBACK_ACTION_CONFIG,
 } from '@/features/survey-builder/types'
 
 const NODE_W = 220
 const NODE_H = 84
-const FLOW_POS_KEY = 'survey-builder:flow-positions'
 
 type QuestionNodeData = { node: QuestionNode; num: number }
 type FlowEdgeData = { ruleId: string; actionType: string; ruleName: string }
@@ -73,62 +74,6 @@ function getLayoutedElements(nodes: Node[], edges: Edge[]) {
     }),
     edges,
   }
-}
-
-function loadPositions(): Record<string, { x: number; y: number }> {
-  try {
-    return JSON.parse(sessionStorage.getItem(FLOW_POS_KEY) ?? '{}')
-  } catch {
-    return {}
-  }
-}
-function savePositions(nodes: Node[]) {
-  const map: Record<string, { x: number; y: number }> = {}
-  nodes.forEach((n) => {
-    map[n.id] = n.position
-  })
-  sessionStorage.setItem(FLOW_POS_KEY, JSON.stringify(map))
-}
-
-// 构建图：nodes 和 edges
-function buildGraph(
-  visibleNodes: QuestionNode[],
-  flow: FlowRule[],
-  numMap: Record<string, number>
-): { nodes: Node[]; edges: Edge[] } {
-  const nodes: Node[] = visibleNodes.map((node, i) => ({
-    id: node.id,
-    type: 'questionNode',
-    // 不在此处设置 position，由调用方合并
-    position: { x: 120, y: i * (NODE_H + 56) },
-    data: { node, num: numMap[node.id] } satisfies QuestionNodeData,
-    width: NODE_W,
-    height: NODE_H,
-  }))
-
-  const edges: Edge[] = []
-  flow.forEach((rule) => {
-    if (!rule.enabled) return
-    const fromId = (rule.expression as any)?.field as string | undefined
-    rule.actions.forEach((action: any) => {
-      const toId = action.target
-      if (!fromId || !toId || fromId === toId) return
-      edges.push({
-        id: `${rule.id}::${action.type}::${toId}`,
-        source: fromId,
-        target: toId,
-        type: 'flowEdge',
-        data: {
-          ruleId: rule.id,
-          actionType: action.type,
-          ruleName: rule.name,
-        } satisfies FlowEdgeData,
-        markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14 },
-      })
-    })
-  })
-
-  return { nodes, edges }
 }
 
 // 自定义题目节点
@@ -278,68 +223,44 @@ function FlowEdgeComponent({
 const nodeTypes = { questionNode: QuestionNodeComponent }
 const edgeTypes = { flowEdge: FlowEdgeComponent }
 
-// 流程图核心功能
+// 流程图核心视图
 function FlowView() {
-  const { flow, addRule } = useFlowStore()
-  const numMap = useQuestionIndexMap()
+  const { addRule } = useFlowStore()
+  const { updateExtensions } = useSchemaStore()
   const visibleNodes = useQuestionNodes()
   const { fitView } = useReactFlow()
 
-  const positionsRef =
-    useRef<Record<string, { x: number; y: number }>>(loadPositions())
+  // 1. 业务逻辑下沉：直接消费由 Selector 构建好的元素
+  const { nodes: initialNodes, edges: initialEdges } = useFlowElements()
 
-  const { nodes: initNodes, edges: initEdges } = useMemo(() => {
-    const { nodes, edges } = buildGraph(visibleNodes, flow, numMap)
-    return {
-      nodes: nodes.map((n) => ({
-        ...n,
-        position: positionsRef.current[n.id] ?? n.position,
-      })),
-      edges,
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visibleNodes, flow, numMap])
+  // 2. 使用 ReactFlow 标准 Hook 管理状态
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initEdges)
-
-  // 当 store 变化时同步 ReactFlow 状态
+  // 3. 响应外部数据流变更（题目、规则、顺序）
   useEffect(() => {
-    const { nodes: next, edges: nextEdges } = buildGraph(
-      visibleNodes,
-      flow,
-      numMap
-    )
-    setNodes((prev) => {
-      const currentPos: Record<string, { x: number; y: number }> = {}
-      prev.forEach((n) => {
-        currentPos[n.id] = n.position
-      })
-      return next.map((n) => ({
-        ...n,
-        // 优先级：用户拖拽位置（positionsRef）> 当前 RF 位置 > 默认布局位置
-        position: positionsRef.current[n.id] ?? currentPos[n.id] ?? n.position,
-      }))
-    })
-    setEdges(nextEdges)
-  }, [visibleNodes, flow, numMap, setNodes, setEdges])
+    setNodes(initialNodes)
+    setEdges(initialEdges)
+  }, [initialNodes, initialEdges, setNodes, setEdges])
 
-  const onNodeDragStop: OnNodeDrag = useCallback((_evt, _node, allNodes) => {
-    allNodes.forEach((n) => {
-      positionsRef.current[n.id] = n.position
-    })
-    savePositions(allNodes)
-  }, [])
+  // 4. 内容持久化：位置信息归于 SurveySchema.extensions
+  const onNodeDragStop: OnNodeDrag = useCallback(
+    (_evt, _node, allNodes) => {
+      const posMap: Record<string, { x: number; y: number }> = {}
+      allNodes.forEach((n) => {
+        posMap[n.id] = n.position
+      })
+      updateExtensions({ flowPositions: posMap })
+    },
+    [updateExtensions]
+  )
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      const from = visibleNodes.find(
-        (n: QuestionNode) => n.id === connection.source
-      )
-      const to = visibleNodes.find(
-        (n: QuestionNode) => n.id === connection.target
-      )
+      const from = visibleNodes.find((n) => n.id === connection.source)
+      const to = visibleNodes.find((n) => n.id === connection.target)
       if (!from || !to) return
+
       addRule({
         name: `${from.title.slice(0, 10) || '题目'} → ${to.title.slice(0, 10) || '题目'}`,
         enabled: true,
@@ -365,13 +286,14 @@ function FlowView() {
 
   const onAutoLayout = useCallback(() => {
     const { nodes: ln } = getLayoutedElements(nodes, edges)
+    const posMap: Record<string, { x: number; y: number }> = {}
     ln.forEach((n) => {
-      positionsRef.current[n.id] = n.position
+      posMap[n.id] = n.position
     })
-    savePositions(ln)
+    updateExtensions({ flowPositions: posMap })
     setNodes(ln)
     setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 50)
-  }, [nodes, edges, setNodes, fitView])
+  }, [nodes, edges, setNodes, fitView, updateExtensions])
 
   if (visibleNodes.length === 0) {
     return (

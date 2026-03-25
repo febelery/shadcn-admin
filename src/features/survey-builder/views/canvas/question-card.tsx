@@ -129,13 +129,7 @@ export function QuestionCard({ node }: Props) {
           </Tooltip>
         </div>
 
-        {/* 内容区域 */}
-        <div
-          className={cn(
-            'px-8 py-8 transition-all lg:pr-24',
-            isSelected ? 'pl-8' : 'pl-8'
-          )}
-        >
+        <div className='px-8 py-8 transition-all lg:pr-24 pl-8'>
           {/* Meta row */}
           <div className='mb-3 flex items-center gap-2'>
             {!isLayout && num !== undefined && (

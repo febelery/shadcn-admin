@@ -36,6 +36,7 @@ interface SchemaState {
   updateNodeConfig: (id: string, config: Partial<NodeConfig>) => void
   reorderNodes: (ids: string[]) => void
   moveNodeAfter: (nodeId: string, targetId: string) => void
+  updateExtensions: (patch: Record<string, unknown>) => void
 }
 
 export const useSchemaStore = create<SchemaState>()(
@@ -149,6 +150,12 @@ export const useSchemaStore = create<SchemaState>()(
 
         node.order = calculateNewOrder(state.nodes, { afterId: targetId })
         state.nodes.sort((a, b) => a.order - b.order)
+        useDraftStore.getState().setDirty(true)
+      }),
+
+    updateExtensions: (patch) =>
+      set((state) => {
+        Object.assign(state.extensions, patch)
         useDraftStore.getState().setDirty(true)
       }),
   }))

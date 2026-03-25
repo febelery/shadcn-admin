@@ -1,6 +1,8 @@
+import { useMemo } from 'react'
+import { type Node, type Edge } from '@xyflow/react'
 import { useShallow } from 'zustand/react/shallow'
 import { getQuestion } from '../questions'
-import { useSchemaStore, useUIStore } from '../state'
+import { useSchemaStore, useUIStore, useFlowStore } from '../state'
 import {
   isQuestionNode,
   FLOW_ACTION_CONFIG,
@@ -107,10 +109,113 @@ export const RuleService = {
   },
 
   // 判断是否与冲突题集存在交集
-  hasConflict: (rule: any, conflicts: Set<string>) => {
+  hasConflict: (
+    rule: { enabled: boolean; actions: any[] },
+    conflicts: Set<string>
+  ) => {
     return (
       rule.enabled &&
       rule.actions.some((a: any) => a.target && conflicts.has(a.target))
     )
   },
+
+  // 计算所有逻辑冲突题目的 ID (规则：必填题被隐藏)
+  calculateConflicts: (nodes: QuestionNode[], flow: any[]): Set<string> => {
+    const conflictIds = new Set<string>()
+    flow.forEach((rule) => {
+      if (!rule.enabled) return
+      rule.actions.forEach((action: any) => {
+        if (action.type === 'hide' && action.target) {
+          const target = nodes.find((n) => n.id === action.target)
+          if (target?.required) conflictIds.add(action.target)
+        }
+      })
+    })
+    return conflictIds
+  },
+
+  // 当题目类型变化时，计算下一个合法的操作符
+  getNextOperator: (
+    nodeType: string,
+    currentOp: string,
+    allOperators: any[]
+  ): string => {
+    const availableOps = RuleService.getAvailableOperators(
+      nodeType,
+      allOperators
+    )
+    if (availableOps.length === 0) return currentOp
+    const isSupported = availableOps.some((o) => o.value === currentOp)
+    return isSupported ? currentOp : (availableOps[0].value as string)
+  },
+}
+
+/**
+ * 衍生状态 Hook：ReactFlow 所需电元素 (Nodes & Edges)
+ */
+export const useFlowElements = () => {
+  // 1. 细粒度订阅并使用 useShallow 保证原子引用稳定
+  const visibleNodes = useSchemaStore(
+    useShallow((s) => s.nodes.filter((n) => isQuestionNode(n.type)))
+  ) as QuestionNode[]
+  const allNodes = useSchemaStore(useShallow((s) => s.nodes)) as QuestionNode[]
+  const flow = useFlowStore(useShallow((s) => s.flow)) as any[]
+  const flowPositions = useSchemaStore(
+    useShallow(
+      (s) =>
+        (s.extensions.flowPositions || {}) as Record<
+          string,
+          { x: number; y: number }
+        >
+    )
+  )
+
+  // 2. 将复杂转换逻辑收拢至 useMemo，仅在核心数据变动时重算
+  return useMemo(() => {
+    // 预计算题号索引表 (基于全量节点的排序)
+    const indexMap: Record<string, number> = {}
+    let count = 0
+    const sorted = [...allNodes].sort((a, b) => a.order - b.order)
+    for (const node of sorted) {
+      if (isQuestionNode(node.type)) {
+        count++
+        indexMap[node.id] = count
+      }
+    }
+
+    // 构建 ReactFlow 节点
+    const nodes: Node[] = visibleNodes.map((node: QuestionNode, i: number) => ({
+      id: node.id,
+      type: 'questionNode',
+      position: flowPositions[node.id] ?? { x: 120, y: i * 140 },
+      data: { node, num: indexMap[node.id] },
+      width: 220,
+      height: 84,
+    }))
+
+    // 构建 ReactFlow 连线
+    const edges: Edge[] = []
+    flow.forEach((rule: any) => {
+      if (!rule.enabled) return
+      const fromId = (rule.expression as any)?.field
+      rule.actions.forEach((action: any) => {
+        const toId = action.target
+        if (!fromId || !toId || fromId === toId) return
+        edges.push({
+          id: `${rule.id}::${action.type}::${toId}`,
+          source: fromId,
+          target: toId,
+          type: 'flowEdge',
+          data: {
+            ruleId: rule.id,
+            actionType: action.type,
+            ruleName: rule.name,
+          },
+          markerEnd: { type: 'arrowclosed' as any, width: 14, height: 14 },
+        })
+      })
+    })
+
+    return { nodes, edges }
+  }, [visibleNodes, allNodes, flow, flowPositions])
 }

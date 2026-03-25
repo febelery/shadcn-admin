@@ -16,11 +16,4 @@ export const surveyBuilderApi = {
   update: async (id: string, data: Partial<SurveySchema>): Promise<void> => {
     await axios.put(`/api/surveys/${id}`, data)
   },
-
-  /**
-   * 发布问卷
-   */
-  publish: async (id: string): Promise<void> => {
-    await axios.post(`/api/surveys/${id}/publish`)
-  },
 }
