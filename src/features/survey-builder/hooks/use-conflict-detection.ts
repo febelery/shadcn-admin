@@ -17,7 +17,7 @@ export function detectConflicts(
     rule.actions.forEach((action) => {
       if (action.type === 'hide') {
         const target = nodes.find((n) => n.id === action.target)
-        if (target?.required) conflictIds.add(target.id)
+        if (target?.required && action.target) conflictIds.add(action.target)
       }
     })
   })
@@ -39,7 +39,9 @@ export function useConflictDetection() {
   const conflictRules = useMemo(
     () =>
       flow.filter(
-        (r) => r.enabled && r.actions.some((a) => conflicts.has(a.target))
+        (r) =>
+          r.enabled &&
+          r.actions.some((a) => a.target && conflicts.has(a.target))
       ),
     [flow, conflicts]
   )

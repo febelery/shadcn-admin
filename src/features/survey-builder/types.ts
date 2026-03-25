@@ -124,7 +124,7 @@ export interface QuestionNode {
 }
 
 // 逻辑配置相关类型
-type FlowOperator = 'and' | 'or'
+// 逻辑配置相关类型
 export type ConditionOperator =
   | 'eq'
   | 'neq'
@@ -137,6 +137,52 @@ export type ConditionOperator =
   | 'is_empty'
   | 'is_not_empty'
   | 'regex'
+
+/**
+ * Expression DSL
+ * ----------------------------------------------------------------
+ * 采用 AST 风格的表达式定义，支持无限嵌套、逻辑组合与自定义函数。
+ */
+
+export type ExpressionType = 'comparison' | 'logical' | 'function'
+
+export interface BaseExpression {
+  id: string
+  type: ExpressionType
+}
+
+/**
+ * 原子比较表达式：例如 "Q1 eq 'Yes'"
+ */
+export interface ComparisonExpression extends BaseExpression {
+  type: 'comparison'
+  field: string
+  operator: ConditionOperator
+  value?: unknown
+}
+
+/**
+ * 逻辑组合表达式：支持 AND / OR / NOT
+ */
+export interface LogicalExpression extends BaseExpression {
+  type: 'logical'
+  operator: 'AND' | 'OR' | 'NOT'
+  expressions: LogicExpression[]
+}
+
+/**
+ * 函数表达式：用于未来扩展复杂的内置逻辑
+ */
+export interface FunctionExpression extends BaseExpression {
+  type: 'function'
+  name: string
+  args: Record<string, unknown>
+}
+
+export type LogicExpression =
+  | ComparisonExpression
+  | LogicalExpression
+  | FunctionExpression
 
 export type ActionType =
   | 'show'
@@ -228,29 +274,25 @@ export const FALLBACK_ACTION_CONFIG: FlowActionConfig = {
   cssVar: 'hsl(215 14% 55%)',
 }
 
-export interface ConditionRule {
-  field: string
-  operator: ConditionOperator
-  value?: unknown
-}
-
-export interface ConditionGroup {
-  operator: FlowOperator
-  rules: Array<ConditionRule | ConditionGroup>
-}
-
+/**
+ * 动作定义
+ */
 export interface FlowAction {
+  id: string
   type: ActionType
-  target: string
-  value?: unknown
+  target?: string // 改为可选，因为 'end' 类动作不需要 target
+  params?: Record<string, unknown> // 扩展参数支持
 }
 
+/**
+ * 流程规则定义
+ */
 export interface FlowRule {
   id: string
   name: string
   enabled: boolean
   priority: number
-  condition: ConditionGroup
+  expression: LogicExpression // 顶层不再强制是 ConditionGroup，可以是任意表达式
   actions: FlowAction[]
 }
 

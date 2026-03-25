@@ -80,7 +80,7 @@ export function FlowPanel() {
               const isActive = activeRuleId === rule.id
               const hasConflict =
                 rule.enabled &&
-                rule.actions.some((a) => conflicts.has(a.target))
+                rule.actions.some((a) => a.target && conflicts.has(a.target))
 
               return (
                 <div

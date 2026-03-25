@@ -23,7 +23,8 @@ import { useBuilderStore } from '@/features/survey-builder/state'
 import {
   type FlowRule,
   type FlowAction,
-  type ConditionRule,
+  type LogicExpression,
+  type ComparisonExpression,
   isQuestionNode,
 } from '@/features/survey-builder/types'
 
@@ -65,28 +66,64 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
   const [name, setName] = useState(rule?.name ?? '新流程规则')
   const [enabled, setEnabled] = useState(rule?.enabled ?? true)
   const [priority, setPriority] = useState(rule?.priority ?? 0)
-  const [conditions, setConditions] = useState<ConditionRule[]>(
-    (rule?.condition.rules as ConditionRule[]) ?? [
-      { field: questionNodes[0]?.id ?? '', operator: 'eq', value: '' },
-    ]
-  )
+
+  // 1. 初始化扁平条件 (UI 只负责编辑扁平层级)
+  const initialConditions = (() => {
+    if (!rule)
+      return [
+        {
+          id: crypto.randomUUID(),
+          type: 'comparison' as const,
+          field: questionNodes[0]?.id ?? '',
+          operator: 'eq' as const,
+          value: '',
+        },
+      ]
+
+    const expr = rule.expression
+    if (expr.type === 'logical' && expr.operator === 'AND') {
+      return expr.expressions.map((e) => e as ComparisonExpression)
+    }
+    if (expr.type === 'comparison') return [expr]
+    return []
+  })()
+
+  const [conditions, setConditions] =
+    useState<ComparisonExpression[]>(initialConditions)
   const [actions, setActions] = useState<FlowAction[]>(
     rule?.actions ?? [
-      { type: 'jump_question', target: questionNodes[0]?.id ?? '' },
+      {
+        id: crypto.randomUUID(),
+        type: 'jump_question',
+        target: questionNodes[0]?.id ?? '',
+      },
     ]
   )
 
   const save = () => {
-    const payload = {
+    // 2. 在保存时进行 DSL 转换机制：将扁平转化为 AND 组合 (或者单个原子)
+    let expression: LogicExpression
+    if (conditions.length === 1) {
+      expression = conditions[0]
+    } else {
+      expression = {
+        id: crypto.randomUUID(),
+        type: 'logical',
+        operator: 'AND',
+        expressions: conditions,
+      }
+    }
+
+    const payload: Omit<FlowRule, 'id'> & { id?: string } = {
       id: rule?.id ?? crypto.randomUUID(),
       name,
       enabled,
       priority,
-      condition: { operator: 'and' as const, rules: conditions },
+      expression,
       actions,
     }
-    if (rule) updateRule(rule.id, payload)
-    else addRule(payload)
+    if (rule) updateRule(rule.id, payload as FlowRule)
+    else addRule(payload as FlowRule)
     onOpenChange(false)
   }
 
@@ -212,6 +249,8 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
                 setConditions((c) => [
                   ...c,
                   {
+                    id: crypto.randomUUID(),
+                    type: 'comparison',
                     field: questionNodes[0]?.id ?? '',
                     operator: 'eq',
                     value: '',
@@ -290,7 +329,11 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
               onClick={() =>
                 setActions((a) => [
                   ...a,
-                  { type: 'jump_question', target: questionNodes[0]?.id ?? '' },
+                  {
+                    id: crypto.randomUUID(),
+                    type: 'jump_question',
+                    target: questionNodes[0]?.id ?? '',
+                  },
                 ])
               }
             >
