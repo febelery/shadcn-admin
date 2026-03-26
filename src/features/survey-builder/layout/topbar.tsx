@@ -111,7 +111,7 @@ export function BuilderTopbar() {
             ) : (
               <GitBranch className='mr-1.5 h-3.5 w-3.5' />
             )}
-            流程
+            逻辑
             {flowCount > 0 && (
               <Badge
                 variant='secondary'
