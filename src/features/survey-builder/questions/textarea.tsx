@@ -23,7 +23,7 @@ export const textareaType = defineQuestion({
   }),
   preview: function Preview({ node }: { node: QuestionNode }) {
     return (
-      <div className='space-y-2 p-4 opacity-50'>
+      <div className='flex flex-col gap-2 p-4 opacity-50'>
         <div className='border-muted-foreground/20 bg-muted/20 h-20 w-full rounded-md border-2' />
         <span className='text-muted-foreground px-0.5 text-[10px] italic'>
           {node.config.placeholder || '默认多行占位符'}
@@ -36,8 +36,8 @@ export const textareaType = defineQuestion({
     onConfigChange,
   }: QuestionComponentProps) {
     return (
-      <div className='space-y-4 p-3 font-sans'>
-        <div className='space-y-2'>
+      <div className='flex flex-col gap-4 p-3 font-sans'>
+        <div className='flex flex-col gap-2'>
           <label className='text-muted-foreground/60 text-[11px] font-bold tracking-widest uppercase'>
             输入框占位符
           </label>
@@ -48,7 +48,7 @@ export const textareaType = defineQuestion({
             onChange={(e) => onConfigChange({ placeholder: e.target.value })}
           />
         </div>
-        <div className='border-border/40 space-y-2 border-t pt-3'>
+        <div className='border-border/40 flex flex-col gap-2 border-t pt-3'>
           <label className='text-muted-foreground/60 text-[11px] font-bold tracking-widest uppercase'>
             输入限制
           </label>

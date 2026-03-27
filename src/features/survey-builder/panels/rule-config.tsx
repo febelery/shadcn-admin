@@ -52,7 +52,7 @@ function ConditionNodeEditor({
     return (
       <div
         className={cn(
-          'border-primary/20 bg-primary/5 mb-3 space-y-3 rounded-xl border-l-[3px] p-4 shadow-sm md:ml-2',
+          'border-primary/20 bg-primary/5 mb-3 flex flex-col gap-3 rounded-xl border-l-[3px] p-4 shadow-sm md:ml-2',
           node.children.length > 0 && 'pb-5'
         )}
       >
@@ -86,7 +86,7 @@ function ConditionNodeEditor({
           </div>
         </div>
 
-        <div className='space-y-3 pl-2'>
+        <div className='flex flex-col gap-3 pl-2'>
           {node.children.map((child) => (
             <ConditionNodeEditor
               key={child.id}
@@ -123,7 +123,7 @@ function ConditionNodeEditor({
   // 渲染叶子节点 (Comparison)
   if (node.type === 'comparison') {
     return (
-      <div className='group border-border/40 bg-muted/30 hover:border-primary/30 relative mb-2 space-y-2 rounded-lg border p-3 pl-4 shadow-sm transition-all'>
+      <div className='group border-border/40 bg-muted/30 hover:border-primary/30 relative mb-2 flex flex-col gap-2 rounded-lg border p-3 pl-4 shadow-sm transition-all'>
         <div className='absolute top-3 left-1.5 opacity-40'>
           <Binary className='h-3 w-3' />
         </div>
@@ -143,13 +143,15 @@ function ConditionNodeEditor({
               onUpdate(node.id, patch)
             }}
           >
-            <SelectTrigger className='bg-background h-8 flex-1 text-[11px]'>
+            <SelectTrigger className='bg-background h-8 flex-1 text-[11px] overflow-hidden'>
               <SelectValue placeholder='选择问题' />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className='max-w-[400px]'>
               {questionNodes.map((n) => (
                 <SelectItem key={n.id} value={n.id}>
-                  {n.title || n.type}
+                  <div className='truncate max-w-[360px]'>
+                    {n.title || n.type}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -380,7 +382,7 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
             {actions.map((action) => (
               <div
                 key={action.id}
-                className='border-border/40 bg-muted/20 mb-1 space-y-1.5 rounded-lg border p-3 shadow-sm'
+                className='border-border/40 bg-muted/20 mb-1 flex flex-col gap-1.5 rounded-lg border p-3 shadow-sm'
               >
                 <Label className='text-muted-foreground/80 text-[10px]'>
                   执行动作
@@ -416,13 +418,15 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
                     )
                   }
                 >
-                  <SelectTrigger className='h-8 text-xs'>
+                  <SelectTrigger className='h-8 text-xs overflow-hidden'>
                     <SelectValue placeholder='选择目标问题' />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className='max-w-[400px]'>
                     {questionNodes.map((n) => (
                       <SelectItem key={n.id} value={n.id}>
-                        {n.title || n.type}
+                        <div className='truncate max-w-[360px]'>
+                          {n.title || n.type}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -466,7 +470,7 @@ export function RuleEditor({ rule, open, onOpenChange }: Props) {
                 placeholder='例如：特定省份跳转'
               />
             </div>
-            <div className='border-border/40 space-y-3 rounded-lg border p-3 shadow-sm'>
+            <div className='border-border/40 flex flex-col gap-3 rounded-lg border p-3 shadow-sm'>
               <div className='flex items-center justify-between'>
                 <span className='text-foreground text-xs font-medium'>
                   启用该规则

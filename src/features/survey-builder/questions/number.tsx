@@ -50,8 +50,8 @@ export const numberType = defineQuestion({
     const config = node.config as any
 
     return (
-      <div className='space-y-4 p-3 font-sans'>
-        <div className='space-y-2'>
+      <div className='flex flex-col gap-4 p-3 font-sans'>
+        <div className='flex flex-col gap-2'>
           <label className='text-muted-foreground/60 text-[11px] font-bold tracking-widest uppercase'>
             数字占位符
           </label>
@@ -64,7 +64,7 @@ export const numberType = defineQuestion({
         </div>
 
         <div className='border-border/40 grid grid-cols-2 gap-2 border-t pt-3'>
-          <div className='col-span-2 space-y-1.5'>
+          <div className='col-span-2 flex flex-col gap-1.5'>
             <label className='text-muted-foreground pl-0.5 text-[11px] font-bold tracking-wider uppercase'>
               单位设置
             </label>
@@ -82,7 +82,7 @@ export const numberType = defineQuestion({
               />
             </div>
           </div>
-          <div className='space-y-1.5'>
+          <div className='flex flex-col gap-1.5'>
             <label className='text-muted-foreground text-[10px]'>最小值</label>
             <Input
               type='number'
@@ -96,7 +96,7 @@ export const numberType = defineQuestion({
               }
             />
           </div>
-          <div className='space-y-1.5'>
+          <div className='flex flex-col gap-1.5'>
             <label className='text-muted-foreground text-[10px]'>最大值</label>
             <Input
               type='number'

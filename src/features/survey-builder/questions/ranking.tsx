@@ -83,7 +83,7 @@ export const rankingType = defineQuestion({
     )
 
     return (
-      <div className='space-y-4 p-3 font-sans'>
+      <div className='flex flex-col gap-4 p-3 font-sans'>
         <div className='text-muted-foreground/60 flex items-center justify-between text-[11px] font-bold tracking-widest uppercase'>
           <span>排序列表设置</span>
           <Badge
@@ -94,7 +94,7 @@ export const rankingType = defineQuestion({
           </Badge>
         </div>
 
-        <div className='space-y-1.5'>
+        <div className='flex flex-col gap-1.5'>
           {options.map((opt, i) => (
             <div key={opt.id} className='group flex items-center gap-2'>
               <div className='text-muted-foreground/40 w-4 text-center font-mono text-[10px] font-bold'>

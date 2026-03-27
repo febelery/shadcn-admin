@@ -102,7 +102,8 @@ function Section({
 // 问题属性编辑面板主组件
 export function QuestionPanel() {
   const node = useSelectedNode()
-  const { updateNodeConfig, updateNode } = useSchemaStore()
+  const updateNodeConfig = useSchemaStore((s) => s.updateNodeConfig)
+  const updateNode = useSchemaStore((s) => s.updateNode)
 
   const handleConfigChange = useCallback(
     (patch: Partial<QuestionNode['config']>) => {
@@ -174,7 +175,8 @@ export function QuestionPanel() {
 }
 
 function TypeHeader({ node }: { node: QuestionNode }) {
-  const { duplicateNode, removeNode } = useSchemaStore()
+  const duplicateNode = useSchemaStore((s) => s.duplicateNode)
+  const removeNode = useSchemaStore((s) => s.removeNode)
   const q = getQuestion(node.type)
   const Icon = q?.meta.icon
 
@@ -236,9 +238,9 @@ function TitleSection({
   const titleRef = useRef<HTMLTextAreaElement>(null)
 
   return (
-    <div className='bg-background space-y-4 px-3 py-3'>
+    <div className='bg-background flex flex-col gap-4 px-3 py-3'>
       {/* 题目标题 + 必填 toggle 同行 */}
-      <div className='space-y-2'>
+      <div className='flex flex-col gap-2'>
         <div className='flex items-center justify-between'>
           <label className='text-foreground text-xs font-semibold tracking-wide'>
             题目标题
@@ -272,7 +274,7 @@ function TitleSection({
       </div>
 
       {/* 描述说明 */}
-      <div className='space-y-2'>
+      <div className='flex flex-col gap-2'>
         <label className='text-foreground text-xs font-semibold tracking-wide'>
           描述说明{' '}
           <span className='text-muted-foreground/60 ml-1 text-[10px] font-normal'>

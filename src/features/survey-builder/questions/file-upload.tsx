@@ -36,7 +36,7 @@ export const fileUploadType = defineQuestion({
           <div className='bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full'>
             <Upload className='text-primary h-5 w-5' />
           </div>
-          <div className='space-y-1 text-center font-sans'>
+          <div className='flex flex-col gap-1 text-center font-sans'>
             <p className='text-foreground/80 text-xs font-bold'>
               {node.config.placeholder || '点击上传文件或拖拽到此处'}
             </p>
@@ -75,9 +75,9 @@ export const fileUploadType = defineQuestion({
     }
 
     return (
-      <div className='space-y-5 p-3 font-sans'>
+      <div className='flex flex-col gap-5 p-3 font-sans'>
         {/* 占位文本 */}
-        <div className='space-y-2'>
+        <div className='flex flex-col gap-2'>
           <label className='text-muted-foreground/60 text-[11px] font-bold tracking-widest uppercase'>
             上传区域文本
           </label>
@@ -90,7 +90,7 @@ export const fileUploadType = defineQuestion({
         </div>
 
         {/* 格式限制 */}
-        <div className='border-border/40 space-y-3 border-t pt-3'>
+        <div className='border-border/40 flex flex-col gap-3 border-t pt-3'>
           <label className='text-muted-foreground/60 text-[11px] font-bold tracking-widest uppercase'>
             允许的 MIME 类型
           </label>
@@ -117,7 +117,7 @@ export const fileUploadType = defineQuestion({
 
         {/* 限制设置 */}
         <div className='border-border/40 grid grid-cols-2 gap-3 border-t pt-3'>
-          <div className='space-y-1.5'>
+          <div className='flex flex-col gap-1.5'>
             <label className='text-muted-foreground text-[10px]'>
               文件个数上限
             </label>
@@ -128,7 +128,7 @@ export const fileUploadType = defineQuestion({
               onChange={(e) => onConfigChange({ maxCount: +e.target.value })}
             />
           </div>
-          <div className='space-y-1.5'>
+          <div className='flex flex-col gap-1.5'>
             <label className='text-muted-foreground text-[10px]'>
               单文件上限 (MB)
             </label>

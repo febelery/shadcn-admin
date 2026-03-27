@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import { ChevronLeft, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -9,7 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { getAllQuestions } from '../questions'
+import { ALL_QUESTION_ITEMS } from '../questions'
 import { useSchemaStore, useUIStore } from '../state'
 import { type NodeType, QUESTION_TYPE_CATEGORIES } from '../types'
 
@@ -80,20 +80,28 @@ export function TypeSidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [query, setQuery] = useState('')
 
-  // 核心重构：将静态常量替换为从 Registry 获取的动态数据
-  const allQuestions = getAllQuestions().map((q) => ({
-    type: q.type,
-    label: q.meta.label,
-    description: q.meta.description || '',
-    icon: q.meta.icon as any,
-    category: q.meta.category,
-  }))
+  // 核心重构：使用静态常量并配合 useMemo 过滤
+  const allQuestions = useMemo(
+    () =>
+      ALL_QUESTION_ITEMS.map((q) => ({
+        type: q.type,
+        label: q.meta.label,
+        description: q.meta.description || '',
+        icon: q.meta.icon as any,
+        category: q.meta.category,
+      })),
+    []
+  )
 
-  const filtered = query
-    ? allQuestions.filter(
-        (t) => t.label.includes(query) || t.description?.includes(query)
-      )
-    : allQuestions
+  const filtered = useMemo(
+    () =>
+      query
+        ? allQuestions.filter(
+            (t) => t.label.includes(query) || t.description?.includes(query)
+          )
+        : allQuestions,
+    [query, allQuestions]
+  )
 
   return (
     <TooltipProvider>

@@ -49,9 +49,9 @@ export const signatureType = defineQuestion({
     const config = node.config as any
 
     return (
-      <div className='space-y-5 p-3 font-sans'>
+      <div className='flex flex-col gap-5 p-3 font-sans'>
         {/* 按钮文本 */}
-        <div className='space-y-2'>
+        <div className='flex flex-col gap-2'>
           <label className='text-muted-foreground/60 text-[11px] font-bold tracking-widest uppercase'>
             签名引导文本
           </label>
@@ -64,9 +64,9 @@ export const signatureType = defineQuestion({
         </div>
 
         {/* 功能开关 */}
-        <div className='border-border/40 space-y-4 border-t pt-3'>
+        <div className='border-border/40 flex flex-col gap-4 border-t pt-3'>
           <div className='flex items-center justify-between'>
-            <div className='space-y-0.5'>
+            <div className='flex flex-col gap-0.5'>
               <p className='text-xs font-medium'>支持导入图片</p>
               <p className='text-muted-foreground/60 text-[10px]'>
                 允许用户手动上传签名图
@@ -79,7 +79,7 @@ export const signatureType = defineQuestion({
           </div>
 
           <div className='flex items-center justify-between'>
-            <div className='space-y-0.5'>
+            <div className='flex flex-col gap-0.5'>
               <p className='text-xs font-medium'>必选笔迹颜色</p>
               <p className='text-muted-foreground/60 text-[10px]'>
                 固定使用黑色笔迹
@@ -92,7 +92,7 @@ export const signatureType = defineQuestion({
           </div>
         </div>
 
-        <div className='border-border/40 text-muted-foreground/60 space-y-2 border-t pt-3 text-[10px] leading-tight italic'>
+        <div className='border-border/40 text-muted-foreground/60 flex flex-col gap-2 border-t pt-3 text-[10px] leading-tight italic'>
           <p>
             💡 提示：
             <br />

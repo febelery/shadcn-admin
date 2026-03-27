@@ -27,7 +27,7 @@ export const richTextType = defineQuestion({
   }),
   preview: function Preview({ node }: { node: QuestionNode }) {
     return (
-      <div className='space-y-2 p-4 font-sans opacity-80'>
+      <div className='flex flex-col gap-2 p-4 font-sans opacity-80'>
         <h4 className='text-foreground/80 text-sm font-bold'>
           {node.title || '说明标题'}
         </h4>

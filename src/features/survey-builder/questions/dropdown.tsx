@@ -46,7 +46,7 @@ export const dropdownType = defineQuestion({
     )
 
     return (
-      <div className='space-y-4 p-3 font-sans'>
+      <div className='flex flex-col gap-4 p-3 font-sans'>
         <div className='text-muted-foreground/60 flex items-center justify-between text-[11px] font-bold tracking-widest uppercase'>
           <span>下拉项列表</span>
           <Badge
@@ -57,7 +57,7 @@ export const dropdownType = defineQuestion({
           </Badge>
         </div>
 
-        <div className='space-y-2'>
+        <div className='flex flex-col gap-2'>
           {options.map((opt, i) => (
             <div key={opt.id} className='group flex items-center gap-2'>
               <Input

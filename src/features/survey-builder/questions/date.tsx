@@ -46,9 +46,9 @@ export const dateType = defineQuestion({
     const config = node.config as any
 
     return (
-      <div className='space-y-4 p-3 font-sans'>
+      <div className='flex flex-col gap-4 p-3 font-sans'>
         {/* 占位提示 */}
-        <div className='space-y-2'>
+        <div className='flex flex-col gap-2'>
           <label className='text-muted-foreground/60 text-[11px] font-bold tracking-widest uppercase'>
             占位提示
           </label>
@@ -61,12 +61,12 @@ export const dateType = defineQuestion({
         </div>
 
         {/* 日期范围约束 */}
-        <div className='border-border/40 space-y-3 border-t pt-3'>
+        <div className='border-border/40 flex flex-col gap-3 border-t pt-3'>
           <p className='text-muted-foreground/60 text-[10px] font-bold tracking-widest uppercase'>
             日期范围约束
           </p>
           <div className='grid grid-cols-2 gap-2'>
-            <div className='space-y-1.5'>
+            <div className='flex flex-col gap-1.5'>
               <label className='text-muted-foreground pl-0.5 text-[10px]'>
                 起始日期
               </label>
@@ -77,7 +77,7 @@ export const dateType = defineQuestion({
                 onChange={(e) => onConfigChange({ minDate: e.target.value })}
               />
             </div>
-            <div className='space-y-1.5'>
+            <div className='flex flex-col gap-1.5'>
               <label className='text-muted-foreground pl-0.5 text-[10px]'>
                 结束日期
               </label>
@@ -93,7 +93,7 @@ export const dateType = defineQuestion({
 
         {/* 功能开关 */}
         <div className='border-border/40 flex items-center justify-between border-t pt-3'>
-          <div className='space-y-0.5'>
+          <div className='flex flex-col gap-0.5'>
             <p className='text-xs font-medium'>包含具体时间</p>
             <p className='text-muted-foreground/60 text-[10px]'>
               允许用户选择具体小时和分钟

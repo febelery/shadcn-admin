@@ -42,7 +42,7 @@ export const textType = defineQuestion({
   }),
   preview: function Preview({ node }: { node: QuestionNode }) {
     return (
-      <div className='space-y-2 p-4 opacity-50'>
+      <div className='flex flex-col gap-2 p-4 opacity-50'>
         <div className='border-muted-foreground/20 bg-muted/20 flex h-9 w-full items-center rounded-md border-2 px-3'>
           <span className='text-muted-foreground/40 font-mono text-xs'>
             {node.config.placeholder || '请输入...'}
@@ -58,9 +58,9 @@ export const textType = defineQuestion({
     const config = node.config
 
     return (
-      <div className='space-y-4 p-3 font-sans'>
+      <div className='flex flex-col gap-4 p-3 font-sans'>
         {/* 占位符 */}
-        <div className='space-y-2'>
+        <div className='flex flex-col gap-2'>
           <label className='text-muted-foreground/60 text-[11px] font-bold tracking-widest uppercase'>
             占位提示
           </label>
@@ -74,7 +74,7 @@ export const textType = defineQuestion({
 
         {/* 长度限制 */}
         <div className='border-border/40 grid grid-cols-2 gap-2 border-t pt-3'>
-          <div className='space-y-1.5'>
+          <div className='flex flex-col gap-1.5'>
             <label className='text-muted-foreground pl-0.5 text-[10px]'>
               最小长度
             </label>
@@ -90,7 +90,7 @@ export const textType = defineQuestion({
               }
             />
           </div>
-          <div className='space-y-1.5'>
+          <div className='flex flex-col gap-1.5'>
             <label className='text-muted-foreground pl-0.5 text-[10px]'>
               最大长度
             </label>
@@ -109,7 +109,7 @@ export const textType = defineQuestion({
         </div>
 
         {/* 格式校验 */}
-        <div className='border-border/40 space-y-2 border-t pt-3'>
+        <div className='border-border/40 flex flex-col gap-2 border-t pt-3'>
           <label className='text-muted-foreground/60 text-[11px] font-bold tracking-widest uppercase'>
             格式限定
           </label>

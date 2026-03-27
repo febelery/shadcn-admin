@@ -164,24 +164,38 @@ function SaveButton({
       <Button
         size='sm'
         variant='ghost'
-        className='h-8 px-3 text-xs font-medium'
+        className='h-8 bg-transparent px-3 text-[11px] font-medium transition-all'
         disabled
       >
-        <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />
+        <Loader2
+          data-icon='saving'
+          className='text-primary mr-1.5 h-3.5 w-3.5 animate-spin'
+        />
         保存中…
       </Button>
     )
   }
+
   if (!isDirty) {
     return (
-      <div className='text-muted-foreground flex items-center gap-1.5 px-2 text-xs'>
-        <Check className='h-3.5 w-3.5' />
+      <div className='text-muted-foreground/60 flex items-center gap-1.5 px-2 text-[11px] font-medium transition-all'>
+        <Check data-icon='saved' className='h-3.5 w-3.5 text-emerald-500' />
         已保存
       </div>
     )
   }
+
   return (
-    <Button size='sm' className='h-8 px-4 text-xs shadow-sm' onClick={onClick}>
+    <Button
+      size='sm'
+      variant='default'
+      className='h-8 px-4 text-[11px] font-bold shadow-sm transition-all active:scale-95'
+      onClick={onClick}
+    >
+      <div
+        data-icon='pending'
+        className='mr-1.5 h-1.5 w-1.5 animate-pulse rounded-full bg-white'
+      />
       保存修改
     </Button>
   )

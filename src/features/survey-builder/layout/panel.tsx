@@ -1,7 +1,13 @@
 'use client'
 import { Settings2, LayoutTemplate, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useUIStore } from '@/features/survey-builder/state'
 import { QuestionPanel } from '../panels/node-config'
@@ -73,6 +79,9 @@ export function PropsPanel() {
             </Button>
           </SheetTrigger>
           <SheetContent side='right' className='flex w-80 flex-col p-0'>
+            <SheetHeader className='sr-only'>
+              <SheetTitle>属性面板</SheetTitle>
+            </SheetHeader>
             <PanelContent />
           </SheetContent>
         </Sheet>

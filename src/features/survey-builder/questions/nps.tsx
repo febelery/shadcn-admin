@@ -67,9 +67,9 @@ export const npsType = defineQuestion({
     const config = node.config as any
 
     return (
-      <div className='space-y-5 p-3 font-sans'>
+      <div className='flex flex-col gap-5 p-3 font-sans'>
         {/* 标签设置 */}
-        <div className='space-y-3'>
+        <div className='flex flex-col gap-3'>
           <div className='flex items-center justify-between'>
             <label className='text-muted-foreground/60 text-[11px] font-bold tracking-widest uppercase'>
               端点标签
@@ -80,7 +80,7 @@ export const npsType = defineQuestion({
             />
           </div>
           <div className='grid grid-cols-2 gap-2'>
-            <div className='space-y-1.5'>
+            <div className='flex flex-col gap-1.5'>
               <label className='text-muted-foreground text-[10px]'>
                 极差端
               </label>
@@ -91,7 +91,7 @@ export const npsType = defineQuestion({
                 onChange={(e) => onConfigChange({ lowLabel: e.target.value })}
               />
             </div>
-            <div className='space-y-1.5'>
+            <div className='flex flex-col gap-1.5'>
               <label className='text-muted-foreground text-[10px]'>
                 极佳端
               </label>
@@ -106,11 +106,11 @@ export const npsType = defineQuestion({
         </div>
 
         {/* 分段标签 */}
-        <div className='border-border/40 space-y-3 border-t pt-3'>
+        <div className='border-border/40 flex flex-col gap-3 border-t pt-3'>
           <label className='text-muted-foreground/60 text-[10px] font-bold tracking-widest uppercase'>
             分段描述 (可选)
           </label>
-          <div className='space-y-1.5'>
+          <div className='flex flex-col gap-1.5'>
             <Input
               className='bg-muted/20 hover:bg-muted/40 h-7 border-transparent text-xs shadow-none transition-colors'
               value={config.detractorLabel || ''}

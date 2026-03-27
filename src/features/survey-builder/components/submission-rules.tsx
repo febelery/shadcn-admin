@@ -15,7 +15,7 @@ import { useSchemaStore } from '@/features/survey-builder/state'
 
 function DailyLimitEditor({ rules, update }: any) {
   return (
-    <div className='mt-2 space-y-2'>
+    <div className='mt-2 flex flex-col gap-2'>
       <div className='flex items-center gap-2'>
         <span className='text-muted-foreground w-14 shrink-0 text-[11px]'>
           每日上限
@@ -54,7 +54,7 @@ function DailyLimitEditor({ rules, update }: any) {
 
 function QuotaEditor({ rules, update }: any) {
   return (
-    <div className='mt-2 space-y-2'>
+    <div className='mt-2 flex flex-col gap-2'>
       <div className='flex items-center gap-2'>
         <span className='text-muted-foreground w-14 shrink-0 text-[11px]'>
           总上限
@@ -92,7 +92,7 @@ function QuotaEditor({ rules, update }: any) {
 
 function TimeWindowEditor({ rules, update }: any) {
   return (
-    <div className='mt-2 space-y-2'>
+    <div className='mt-2 flex flex-col gap-2'>
       <div className='flex items-center gap-2'>
         <span className='text-muted-foreground w-10 shrink-0 text-[11px]'>
           开始
@@ -139,7 +139,7 @@ function TimeWindowEditor({ rules, update }: any) {
 
 function IpDedupEditor({ rules, update }: any) {
   return (
-    <div className='mt-2 space-y-2'>
+    <div className='mt-2 flex flex-col gap-2'>
       <div className='flex items-center gap-2'>
         <span className='text-muted-foreground w-10 shrink-0 text-[11px]'>
           每 IP
@@ -176,7 +176,7 @@ function IpDedupEditor({ rules, update }: any) {
 
 function LoginEditor({ rules, update }: any) {
   return (
-    <div className='mt-2 space-y-2'>
+    <div className='mt-2 flex flex-col gap-2'>
       <div className='flex items-center gap-2'>
         <span className='text-muted-foreground w-16 shrink-0 text-[11px]'>
           登录方式
@@ -234,7 +234,7 @@ export function SubmissionRules() {
   }
 
   return (
-    <div className='space-y-2'>
+    <div className='flex flex-col gap-2'>
       {RULE_CONFIGS.map(({ key, title, component: Editor }) => {
         const enabled = (rules as any)[key].enabled
         return (

@@ -1,5 +1,5 @@
 import type React from 'react'
-import type { QuestionNode, NodeValidation } from '../types'
+import type { QuestionNode, NodeValidation, NodeType } from '../types'
 import { dateType } from './date'
 import { dateRangeType } from './date-range'
 import { dividerType } from './divider'
@@ -14,7 +14,6 @@ import { npsType } from './nps'
 import { numberType } from './number'
 import { rankingType } from './ranking'
 import { ratingType } from './rating'
-import { type NodeType } from './registry-keys'
 import { richTextType } from './rich-text'
 import { signatureType } from './signature'
 import { singleChoiceType } from './single-choice'
@@ -131,6 +130,11 @@ const QUESTION_REGISTRY = {
 } as const satisfies Record<NodeType, QuestionTypeDefinition>
 
 /**
+ * 模块级常量
+ */
+export const ALL_QUESTION_ITEMS = Object.values(QUESTION_REGISTRY)
+
+/**
  * 获取题型定义
  */
 export function getQuestion(type: string) {
@@ -140,8 +144,8 @@ export function getQuestion(type: string) {
 }
 
 /**
- * 获取所有题型定义
+ * 获取所有题型定义 (返回静态常量)
  */
 export function getAllQuestions() {
-  return Object.values(QUESTION_REGISTRY)
+  return ALL_QUESTION_ITEMS
 }

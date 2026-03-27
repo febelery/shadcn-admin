@@ -63,7 +63,7 @@ export function FlowPanel() {
         </div>
 
         <div className='scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border/30 flex-1 overflow-x-hidden overflow-y-auto'>
-          <div className='w-full min-w-0 space-y-2 p-3 pb-20'>
+          <div className='w-full min-w-0 flex flex-col gap-2 p-3 pb-20'>
             {conflictRules.length > 0 && (
               <div className='border-destructive/20 bg-destructive/5 flex gap-2.5 rounded-xl border p-3'>
                 <AlertTriangle className='text-destructive mt-0.5 h-3.5 w-3.5 shrink-0' />

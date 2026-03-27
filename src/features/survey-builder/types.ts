@@ -1,15 +1,31 @@
-import {
-  type QuestionType,
-  type LayoutType,
-  type NodeType,
-  LAYOUT_TYPES,
-} from './questions/registry-keys'
+/**
+ * 题型与布局类型定义 (Source of Truth)
+ */
+export const QUESTION_TYPES = [
+  'single_choice',
+  'multiple_choice',
+  'dropdown',
+  'matrix_single',
+  'matrix_multiple',
+  'image_choice',
+  'ranking',
+  'text',
+  'textarea',
+  'number',
+  'fill_in',
+  'date',
+  'date_range',
+  'rating',
+  'nps',
+  'file_upload',
+  'signature',
+] as const
 
-export type {
-  QuestionType,
-  LayoutType,
-  NodeType,
-} from './questions/registry-keys'
+export const LAYOUT_TYPES = ['divider', 'rich_text'] as const
+
+export type QuestionType = (typeof QUESTION_TYPES)[number]
+export type LayoutType = (typeof LAYOUT_TYPES)[number]
+export type NodeType = QuestionType | LayoutType
 
 export type SurveyMode = 'scroll' | 'card'
 export type SurveyStatus = 'draft' | 'published' | 'archived'

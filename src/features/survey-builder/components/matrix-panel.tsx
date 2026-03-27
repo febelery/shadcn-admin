@@ -14,16 +14,16 @@ export function MatrixPanel({
     useMatrixManager(node, onConfigChange)
 
   return (
-    <div className='space-y-6 p-3 font-sans'>
+    <div className='flex flex-col gap-6 p-3 font-sans'>
       {/* 行管理 */}
-      <div className='space-y-3'>
+      <div className='flex flex-col gap-3'>
         <div className='text-muted-foreground/60 flex items-center justify-between text-[11px] font-bold tracking-widest uppercase'>
           <span>矩阵行</span>
           <Badge variant='secondary' className='h-4 px-1.5 shadow-none'>
             {rows.length}
           </Badge>
         </div>
-        <div className='space-y-1.5'>
+        <div className='flex flex-col gap-1.5'>
           {rows.map((row, i) => (
             <div key={row.id} className='group flex items-center gap-2'>
               <Input
@@ -54,14 +54,14 @@ export function MatrixPanel({
       </div>
 
       {/* 列管理 */}
-      <div className='border-border/40 space-y-3 border-t pt-4'>
+      <div className='border-border/40 flex flex-col gap-3 border-t pt-4'>
         <div className='text-muted-foreground/60 flex items-center justify-between text-[11px] font-bold tracking-widest uppercase'>
           <span>矩阵列</span>
           <Badge variant='secondary' className='h-4 px-1.5 shadow-none'>
             {cols.length}
           </Badge>
         </div>
-        <div className='space-y-1.5'>
+        <div className='flex flex-col gap-1.5'>
           {cols.map((col, i) => (
             <div key={col.id} className='group flex items-center gap-2'>
               <Input

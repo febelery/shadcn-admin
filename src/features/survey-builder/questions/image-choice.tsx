@@ -78,7 +78,7 @@ export const imageChoiceType = defineQuestion({
     )
 
     return (
-      <div className='space-y-4 p-3 font-sans'>
+      <div className='flex flex-col gap-4 p-3 font-sans'>
         <div className='text-muted-foreground/60 flex items-center justify-between text-[11px] font-bold tracking-widest uppercase'>
           <span>图片选项列表</span>
           <Badge
@@ -89,7 +89,7 @@ export const imageChoiceType = defineQuestion({
           </Badge>
         </div>
 
-        <div className='space-y-3'>
+        <div className='flex flex-col gap-3'>
           {options.map((opt, i) => (
             <div
               key={opt.id}
@@ -107,7 +107,7 @@ export const imageChoiceType = defineQuestion({
                 </button>
               </div>
 
-              <div className='space-y-1.5'>
+              <div className='flex flex-col gap-1.5'>
                 <input
                   className='hover:border-border/50 focus:border-primary/50 h-6 w-full border-b border-transparent bg-transparent text-xs font-medium shadow-none transition-colors outline-none'
                   value={opt.label}

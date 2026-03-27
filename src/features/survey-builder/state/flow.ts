@@ -42,6 +42,12 @@ interface FlowState {
   setEdges: (updater: (prev: Edge[]) => Edge[]) => void
   onNodesChange: OnNodesChange
   onEdgesChange: OnEdgesChange
+  getSyncArgs: () => readonly [
+    QuestionNode[],
+    FlowRule[],
+    Record<string, { x: number; y: number }>,
+    QuestionNode[],
+  ]
   syncElements: (
     visibleNodes: QuestionNode[],
     flow: FlowRule[],
@@ -57,6 +63,17 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
   nodes: [],
   edges: [],
 
+  // --- 辅助同步逻辑 ---
+  getSyncArgs: () => {
+    const schema = useSchemaStore.getState()
+    return [
+      schema.nodes.filter((n) => isQuestionNode(n.type)) as QuestionNode[],
+      get().flow,
+      (schema.extensions.flowPositions as any) || {},
+      schema.nodes as QuestionNode[],
+    ] as const
+  },
+
   // --- 规则管理 (Rule Actions) ---
   addRule: (rule) => {
     const newRule = { ...rule, id: crypto.randomUUID() }
@@ -66,13 +83,7 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
     }))
 
     // 联动刷新画布元素
-    const schema = useSchemaStore.getState()
-    get().syncElements(
-      schema.nodes.filter((n) => isQuestionNode(n.type)),
-      get().flow,
-      (schema.extensions.flowPositions as any) || {},
-      schema.nodes
-    )
+    get().syncElements(...get().getSyncArgs())
   },
 
   updateRule: (id, patch) => {
@@ -81,13 +92,7 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
       flow: state.flow.map((r) => (r.id === id ? { ...r, ...patch } : r)),
     }))
 
-    const schema = useSchemaStore.getState()
-    get().syncElements(
-      schema.nodes.filter((n) => isQuestionNode(n.type)),
-      get().flow,
-      (schema.extensions.flowPositions as any) || {},
-      schema.nodes
-    )
+    get().syncElements(...get().getSyncArgs())
   },
 
   removeRule: (id) => {
@@ -101,13 +106,7 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
       useUIStore.getState().setActiveRule(null)
     }
 
-    const schema = useSchemaStore.getState()
-    get().syncElements(
-      schema.nodes.filter((n) => isQuestionNode(n.type)),
-      get().flow,
-      (schema.extensions.flowPositions as any) || {},
-      schema.nodes
-    )
+    get().syncElements(...get().getSyncArgs())
   },
 
   // --- 画布基础操作 (Canvas Primatives) ---

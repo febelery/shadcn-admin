@@ -72,7 +72,7 @@ export function SurveySettingsPanel() {
             </ToggleGroup>
 
             {meta.mode === 'card' && (
-              <div className='mt-3 space-y-2'>
+              <div className='mt-3 flex flex-col gap-2'>
                 <div>
                   <Label className='text-muted-foreground mb-1.5 block text-[10px] font-semibold tracking-wide uppercase'>
                     过渡动画
@@ -156,7 +156,7 @@ export function SurveySettingsPanel() {
           </div>
 
           {/* Basic info */}
-          <div className='space-y-4 p-3'>
+          <div className='flex flex-col gap-4 p-3'>
             <p className='text-muted-foreground/80 mb-2 text-[10px] font-semibold tracking-wider uppercase'>
               基本信息
             </p>

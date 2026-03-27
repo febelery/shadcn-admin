@@ -166,7 +166,7 @@ export const singleChoiceType = defineQuestion({
     )
 
     return (
-      <div className='space-y-4 p-3'>
+      <div className='flex flex-col gap-4 p-3'>
         <div className='text-muted-foreground/60 flex items-center justify-between text-[11px] font-bold tracking-widest uppercase'>
           <span>选项设置</span>
           <Badge variant='secondary' className='h-4 px-1.5 font-mono'>
@@ -174,7 +174,7 @@ export const singleChoiceType = defineQuestion({
           </Badge>
         </div>
 
-        <div className='space-y-2'>
+        <div className='flex flex-col gap-2'>
           {options.map((opt, i) => (
             <div key={opt.id} className='group flex items-center gap-2'>
               <div className='text-muted-foreground/30 w-3 font-mono text-[10px]'>

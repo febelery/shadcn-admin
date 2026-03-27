@@ -62,7 +62,7 @@ export const multipleChoiceType = defineQuestion({
     const config = node.config as any
 
     return (
-      <div className='space-y-4 p-3'>
+      <div className='flex flex-col gap-4 p-3'>
         <div className='text-muted-foreground/60 flex items-center justify-between text-[11px] font-bold tracking-widest uppercase'>
           <span>多选选项列表</span>
           <Badge
@@ -74,7 +74,7 @@ export const multipleChoiceType = defineQuestion({
         </div>
 
         {/* 选项增删改区域 */}
-        <div className='space-y-2'>
+        <div className='flex flex-col gap-2'>
           {options.map((opt, i) => (
             <div key={opt.id} className='group flex items-center gap-2'>
               <div className='text-muted-foreground/30 w-3 font-mono text-[10px]'>
@@ -111,7 +111,7 @@ export const multipleChoiceType = defineQuestion({
             选择限制
           </p>
           <div className='grid grid-cols-2 gap-2'>
-            <div className='space-y-1.5'>
+            <div className='flex flex-col gap-1.5'>
               <label className='text-muted-foreground pl-0.5 text-[10px]'>
                 最少选(项)
               </label>
@@ -128,7 +128,7 @@ export const multipleChoiceType = defineQuestion({
                 }
               />
             </div>
-            <div className='space-y-1.5'>
+            <div className='flex flex-col gap-1.5'>
               <label className='text-muted-foreground pl-0.5 text-[10px]'>
                 最多选(项)
               </label>

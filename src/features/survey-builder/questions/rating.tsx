@@ -49,9 +49,9 @@ export const ratingType = defineQuestion({
     const config = node.config as any
 
     return (
-      <div className='space-y-5 p-3 font-sans'>
+      <div className='flex flex-col gap-5 p-3 font-sans'>
         {/* 评分级数 */}
-        <div className='space-y-3'>
+        <div className='flex flex-col gap-3'>
           <div className='flex items-center justify-between'>
             <label className='text-muted-foreground/60 text-[11px] font-bold tracking-widest uppercase'>
               评分级数
@@ -72,7 +72,7 @@ export const ratingType = defineQuestion({
 
         {/* 标签设置 */}
         <div className='border-border/40 grid grid-cols-2 gap-2 border-t pt-2'>
-          <div className='space-y-1.5'>
+          <div className='flex flex-col gap-1.5'>
             <label className='text-muted-foreground text-[10px]'>
               低分标签
             </label>
@@ -83,7 +83,7 @@ export const ratingType = defineQuestion({
               onChange={(e) => onConfigChange({ lowLabel: e.target.value })}
             />
           </div>
-          <div className='space-y-1.5'>
+          <div className='flex flex-col gap-1.5'>
             <label className='text-muted-foreground text-[10px]'>
               高分标签
             </label>
@@ -97,9 +97,9 @@ export const ratingType = defineQuestion({
         </div>
 
         {/* 其他开关 */}
-        <div className='border-border/40 space-y-3 border-t pt-3'>
+        <div className='border-border/40 flex flex-col gap-3 border-t pt-3'>
           <div className='flex items-center justify-between'>
-            <div className='space-y-0.5'>
+            <div className='flex flex-col gap-0.5'>
               <p className='text-xs font-medium'>允许半星</p>
               <p className='text-muted-foreground/60 text-[10px]'>
                 支持 0.5 分采集

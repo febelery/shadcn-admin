@@ -2,15 +2,19 @@ import { cn } from '@/lib/utils'
 import { useSchemaStore, useUIStore } from '@/features/survey-builder/state'
 
 export function SurveyHeader() {
-  const { meta, updateMeta } = useSchemaStore()
+  const updateMeta = useSchemaStore((s) => s.updateMeta)
+  const fontColor = useSchemaStore((s) => s.meta.fontColor)
+  const coverType = useSchemaStore((s) => s.meta.coverType)
+  const coverColor = useSchemaStore((s) => s.meta.coverColor)
+  const cover = useSchemaStore((s) => s.meta.cover)
+  const title = useSchemaStore((s) => s.meta.title)
+  const description = useSchemaStore((s) => s.meta.description)
+
   const { selectNode } = useUIStore()
-  const fontStyle = meta.fontColor ? { color: meta.fontColor } : {}
-  const subFontStyle = meta.fontColor
-    ? { color: meta.fontColor, opacity: 0.5 }
-    : {}
-  const badgeFontStyle = meta.fontColor
-    ? { color: meta.fontColor, opacity: 0.35 }
-    : {}
+
+  const fontStyle = fontColor ? { color: fontColor } : {}
+  const subFontStyle = fontColor ? { color: fontColor, opacity: 0.5 } : {}
+  const badgeFontStyle = fontColor ? { color: fontColor, opacity: 0.35 } : {}
 
   return (
     <div
@@ -19,8 +23,7 @@ export function SurveyHeader() {
         'hover:bg-muted/30 focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-none'
       )}
       style={{
-        background:
-          meta.coverType === 'color' ? meta.coverColor : 'var(--background)',
+        background: coverType === 'color' ? coverColor : 'var(--background)',
       }}
       onClick={(e) => {
         const target = e.target as HTMLElement
@@ -34,11 +37,11 @@ export function SurveyHeader() {
       data-canvas-bg
     >
       {/* Cover image */}
-      {meta.coverType === 'image' && meta.cover && (
+      {coverType === 'image' && cover && (
         <>
           <div
             className='absolute inset-0 bg-cover bg-center transition-transform duration-500'
-            style={{ backgroundImage: `url(${meta.cover})` }}
+            style={{ backgroundImage: `url(${cover})` }}
           />
           <div className='absolute inset-0 bg-black/40 transition-colors group-hover:bg-black/50' />
         </>
@@ -48,7 +51,7 @@ export function SurveyHeader() {
         <input
           className='placeholder:text-foreground/40 mb-2 w-full bg-transparent text-2xl font-bold transition-colors outline-none sm:text-3xl'
           style={fontStyle}
-          value={meta.title}
+          value={title}
           placeholder='未命名问卷'
           onChange={(e) => updateMeta({ title: e.target.value })}
         />
@@ -56,7 +59,7 @@ export function SurveyHeader() {
           rows={2}
           className='placeholder:text-foreground/30 field-sizing-content w-full resize-none bg-transparent text-sm leading-relaxed transition-colors outline-none sm:text-base'
           style={subFontStyle}
-          value={meta.description}
+          value={description}
           placeholder='添加问卷描述说明...'
           onChange={(e) => updateMeta({ description: e.target.value })}
         />

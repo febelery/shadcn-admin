@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import dagre from '@dagrejs/dagre'
 import {
   ReactFlow,
@@ -193,12 +193,24 @@ function getLayoutedElements(
   const connectedNodes = nodes.filter((n) => connectedIds.has(n.id))
   const isolatedNodes = nodes.filter((n) => !connectedIds.has(n.id))
 
+  // 根据图的大小编程决定方向：
+  // 节点较少时左右排列方便一眼看全，节点较多时改为垂直排列，避免横向溢出过长
+  const direction = connectedNodes.length > 5 ? 'TB' : 'LR'
+  const isTB = direction === 'TB'
+
   let maxY = 0
+  let maxX = 0
   let layoutedConnected: Node[] = []
 
   if (connectedNodes.length > 0) {
     const g = new dagre.graphlib.Graph()
-    g.setGraph({ rankdir: 'LR', nodesep: 48, ranksep: 100 })
+    g.setGraph({
+      rankdir: direction,
+      nodesep: isTB ? 100 : 48, // 垂直模式加宽同级间距，水平模式加宽跨级间距
+      ranksep: isTB ? 60 : 100,
+      marginx: 40,
+      marginy: 40,
+    })
     g.setDefaultEdgeLabel(() => ({}))
 
     connectedNodes.forEach((n) =>
@@ -208,14 +220,14 @@ function getLayoutedElements(
       })
     )
 
-    // Real jump edges
+    // 真正的逻辑连线
     edges.forEach((e) => {
       if (connectedIds.has(e.source) && connectedIds.has(e.target)) {
         g.setEdge(e.source, e.target)
       }
     })
 
-    // Ghost spine edges ordered by num to anchor rank positions
+    // 辅助主脊椎：按题号顺序添加轻量级约束，防止节点乱跳，维持总体逻辑流向
     const connectedSorted = connectedNodes
       .map((n) => ({ id: n.id, num: idToNum[n.id] ?? 0 }))
       .sort((a, b) => a.num - b.num)
@@ -235,13 +247,16 @@ function getLayoutedElements(
       const w = n.measured?.width ?? NODE_W
       const h = n.measured?.height ?? NODE_H
       const pos = { x: x - w / 2, y: y - h / 2 }
+
       if (pos.y + h > maxY) maxY = pos.y + h
+      if (pos.x + w > maxX) maxX = pos.x + w
+
       return { ...n, position: pos }
     })
   }
 
-  // Isolated: grid below, sorted by num
-  const COLS = 3
+  // 孤立节点：在下方以网格平铺，保持整洁
+  const COLS = isTB ? 4 : 3 // 垂直布局主干较窄，网格可以多放几列
   const GAP_X = 40
   const GAP_Y = 40
   const SECTION_GAP = connectedNodes.length > 0 ? 80 : 0
@@ -616,6 +631,7 @@ function useIsValidConnection() {
   )
 }
 
+// 提升为模块级常量以保证引用稳定
 const nodeTypes = { questionNode: QuestionNodeComponent }
 const edgeTypes = { flowEdge: FloatingEdgeComponent }
 
@@ -630,14 +646,22 @@ function FlowView() {
   const onEdgesChange = useFlowStore((s) => s.onEdgesChange)
   const setNodes = useFlowStore((s) => s.setNodes)
   const addRule = useFlowStore((s) => s.addRule)
-  const { updateExtensions } = useSchemaStore()
+  const updateExtensions = useSchemaStore((s) => s.updateExtensions)
+
   const visibleNodes = useQuestionNodes()
   const indexMap = useQuestionIndexMap()
   const { fitView } = useReactFlow()
   const isValidConnection = useIsValidConnection()
 
-  const nodes = deriveNodeRoles(rawNodes, rawEdges, indexMap)
-  const edges = deriveEdgeKinds(rawEdges, indexMap)
+  // 性能优化：仅在原始数据或索引表变化时重算角色
+  const nodes = useMemo(
+    () => deriveNodeRoles(rawNodes, rawEdges, indexMap),
+    [rawNodes, rawEdges, indexMap]
+  )
+  const edges = useMemo(
+    () => deriveEdgeKinds(rawEdges, indexMap),
+    [rawEdges, indexMap]
+  )
 
   const onNodeDragStop: OnNodeDrag = useCallback(
     (_evt, _node, allNodes) => {

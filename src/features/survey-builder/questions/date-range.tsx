@@ -54,14 +54,14 @@ export const dateRangeType = defineQuestion({
     const config = node.config as any
 
     return (
-      <div className='space-y-4 p-3 font-sans'>
+      <div className='flex flex-col gap-4 p-3 font-sans'>
         {/* 占位提示 (双位) */}
-        <div className='space-y-3'>
+        <div className='flex flex-col gap-3'>
           <label className='text-muted-foreground/60 text-[11px] font-bold tracking-widest uppercase'>
             占位提示设置
           </label>
           <div className='grid grid-cols-2 gap-2'>
-            <div className='space-y-1'>
+            <div className='flex flex-col gap-1'>
               <label className='text-muted-foreground px-0.5 text-[9px]'>
                 开始位置
               </label>
@@ -74,7 +74,7 @@ export const dateRangeType = defineQuestion({
                 }
               />
             </div>
-            <div className='space-y-1'>
+            <div className='flex flex-col gap-1'>
               <label className='text-muted-foreground px-0.5 text-[9px]'>
                 结束位置
               </label>
@@ -91,12 +91,12 @@ export const dateRangeType = defineQuestion({
         </div>
 
         {/* 范围约束 */}
-        <div className='border-border/40 space-y-3 border-t pt-3'>
+        <div className='border-border/40 flex flex-col gap-3 border-t pt-3'>
           <p className='text-muted-foreground/60 text-[10px] font-bold tracking-widest uppercase'>
             可选择范围限制
           </p>
           <div className='grid grid-cols-2 gap-2'>
-            <div className='space-y-1.5'>
+            <div className='flex flex-col gap-1.5'>
               <label className='text-muted-foreground pl-0.5 text-[10px]'>
                 最早界限
               </label>
@@ -107,7 +107,7 @@ export const dateRangeType = defineQuestion({
                 onChange={(e) => onConfigChange({ minDate: e.target.value })}
               />
             </div>
-            <div className='space-y-1.5'>
+            <div className='flex flex-col gap-1.5'>
               <label className='text-muted-foreground pl-0.5 text-[10px]'>
                 最晚界限
               </label>
@@ -122,9 +122,9 @@ export const dateRangeType = defineQuestion({
         </div>
 
         {/* 功能开关 */}
-        <div className='border-border/40 space-y-3 border-t pt-3'>
+        <div className='border-border/40 flex flex-col gap-3 border-t pt-3'>
           <div className='flex items-center justify-between'>
-            <div className='space-y-0.5'>
+            <div className='flex flex-col gap-0.5'>
               <p className='text-xs font-medium'>包含具体时间</p>
               <p className='text-muted-foreground/60 text-[10px]'>
                 允许范围精确到时分
