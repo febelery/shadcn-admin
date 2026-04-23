@@ -103,13 +103,17 @@ export function SurveyBuilder() {
       const overId = over?.id ? String(over.id) : null
       const overIndex = nodes.findIndex((n) => n.id === overId)
 
-      if (overIndex === 0) {
+      if (overId === 'canvas-core' || !overId) {
+        // 拖到画布空白处或末尾
+        addNode(data.questionType)
+      } else if (overIndex === 0) {
         addNode(data.questionType, { atTop: true })
       } else if (overIndex > 0) {
+        // 插入到当前位置（即插入到 over 节点之前）
         addNode(data.questionType, { afterId: nodes[overIndex - 1].id })
       } else {
-        // 拖到空白处，默认加到最后
-        // addNode(data.questionType)
+        // 兜底：加到最后
+        addNode(data.questionType)
       }
     } else if (over && active.id !== over.id) {
       moveNode(active.id as string, over.id as string)

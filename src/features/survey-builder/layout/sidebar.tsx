@@ -50,8 +50,7 @@ function DraggableTypeItem({
     >
       <Icon
         className={cn(
-          'text-muted-foreground/50 group-hover:text-foreground shrink-0 transition-colors',
-          collapsed ? 'h-4 w-4' : 'h-4 w-4'
+          'text-muted-foreground/50 group-hover:text-foreground size-4 shrink-0 transition-colors'
         )}
       />
       {!collapsed && <span className='truncate'>{item.label}</span>}
@@ -135,7 +134,7 @@ export function TypeSidebar() {
           >
             <ChevronLeft
               className={cn(
-                'h-4 w-4 transition-transform duration-300',
+                'size-4 transition-transform duration-300',
                 collapsed && 'rotate-180'
               )}
             />

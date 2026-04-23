@@ -71,8 +71,8 @@ export function BuilderTopbar() {
     <TooltipProvider>
       <header className='bg-background relative z-50 flex h-14 shrink-0 items-center gap-2 border-b px-4'>
         <div className='mr-2 flex items-center gap-2'>
-          <div className='bg-primary text-primary-foreground flex h-7 w-7 items-center justify-center rounded-md'>
-            <LayoutTemplate className='h-4 w-4' />
+          <div className='bg-primary text-primary-foreground flex size-7 items-center justify-center rounded-md'>
+            <LayoutTemplate className='size-4' />
           </div>
           <span className='hidden text-sm font-semibold sm:block'>
             SurveyBuilder
@@ -99,7 +99,7 @@ export function BuilderTopbar() {
             value='build'
             className='data-[state=on]:bg-background data-[state=on]:text-foreground h-7 rounded-sm px-4 text-xs font-medium transition-all data-[state=on]:shadow-sm'
           >
-            <LayoutTemplate className='mr-1.5 h-3.5 w-3.5' />
+            <LayoutTemplate className='mr-1.5 size-3.5' />
             构建
           </ToggleGroupItem>
           <ToggleGroupItem
@@ -107,9 +107,9 @@ export function BuilderTopbar() {
             className='data-[state=on]:bg-background data-[state=on]:text-foreground h-7 rounded-sm px-4 text-xs font-medium transition-all data-[state=on]:shadow-sm'
           >
             {conflictRules.length > 0 ? (
-              <AlertTriangle className='text-destructive mr-1.5 h-3.5 w-3.5 animate-pulse' />
+              <AlertTriangle className='text-destructive mr-1.5 size-3.5 animate-pulse' />
             ) : (
-              <GitBranch className='mr-1.5 h-3.5 w-3.5' />
+              <GitBranch className='mr-1.5 size-3.5' />
             )}
             逻辑
             {flowCount > 0 && (
@@ -141,7 +141,7 @@ export function BuilderTopbar() {
             className='h-8 px-3 font-medium'
             onClick={handlePreview}
           >
-            <Eye className='mr-1.5 h-3.5 w-3.5' />
+            <Eye className='mr-1.5 size-3.5' />
             <span className='hidden sm:block'>预览</span>
           </Button>
         </div>
@@ -169,7 +169,7 @@ function SaveButton({
       >
         <Loader2
           data-icon='saving'
-          className='text-primary mr-1.5 h-3.5 w-3.5 animate-spin'
+          className='text-primary mr-1.5 size-3.5 animate-spin'
         />
         保存中…
       </Button>
@@ -179,7 +179,7 @@ function SaveButton({
   if (!isDirty) {
     return (
       <div className='text-muted-foreground/60 flex items-center gap-1.5 px-2 text-[11px] font-medium transition-all'>
-        <Check data-icon='saved' className='h-3.5 w-3.5 text-emerald-500' />
+        <Check data-icon='saved' className='size-3.5 text-emerald-500' />
         已保存
       </div>
     )

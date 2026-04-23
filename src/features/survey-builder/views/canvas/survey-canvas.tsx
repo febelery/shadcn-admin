@@ -32,8 +32,8 @@ function SmoothPlaceholder({ show, type }: { show: boolean; type?: string }) {
         )}
       >
         <div className='flex items-center gap-4 px-8'>
-          <div className='bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg shadow-inner'>
-            {Icon && <Icon className='text-primary h-4 w-4 opacity-70' />}
+          <div className='bg-primary/10 flex size-8 items-center justify-center rounded-lg shadow-inner'>
+            {Icon && <Icon className='text-primary size-4 opacity-70' />}
           </div>
           <div className='flex flex-col gap-0.5'>
             <span className='text-primary/60 text-[11px] font-bold tracking-widest uppercase'>
