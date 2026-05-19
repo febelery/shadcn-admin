@@ -1,0 +1,25 @@
+allowBuilds:
+  msw: true
+minimumReleaseAgeExclude:
+  - '@tanstack/eslint-plugin-query@5.100.11'
+  - '@tanstack/query-core@5.100.11'
+  - '@tanstack/query-devtools@5.100.11'
+  - '@tanstack/react-query-devtools@5.100.11'
+  - '@tanstack/react-query@5.100.11'
+  - '@types/node@25.9.0'
+  - '@typescript-eslint/eslint-plugin@8.59.4'
+  - '@typescript-eslint/parser@8.59.4'
+  - '@typescript-eslint/project-service@8.59.4'
+  - '@typescript-eslint/scope-manager@8.59.4'
+  - '@typescript-eslint/tsconfig-utils@8.59.4'
+  - '@typescript-eslint/type-utils@8.59.4'
+  - '@typescript-eslint/types@8.59.4'
+  - '@typescript-eslint/typescript-estree@8.59.4'
+  - '@typescript-eslint/utils@8.59.4'
+  - '@typescript-eslint/visitor-keys@8.59.4'
+  - date-fns@4.2.1
+  - framer-motion@12.39.0
+  - motion-dom@12.39.0
+  - motion-utils@12.39.0
+  - motion@12.39.0
+  - typescript-eslint@8.59.4
