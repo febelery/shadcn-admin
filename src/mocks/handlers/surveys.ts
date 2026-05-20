@@ -1,191 +1,286 @@
+import {
+  createAllTypesDemoSurvey,
+  DEMO_SURVEY_ID,
+} from '@/mocks/fixtures/survey-all-types-demo'
 import { faker } from '@faker-js/faker'
 import { http, HttpResponse } from 'msw'
+import * as XLSX from 'xlsx'
+import {
+  matchFilterValue,
+  parseQueryFilterParam,
+} from '@/lib/data-grid-filters'
 import { sleep } from '@/lib/utils'
-import { createEmptySurvey } from '@/features/survey-builder/state/operations'
+import {
+  countQuestions,
+  createEmptySurvey,
+  flattenQuestions,
+} from '@/features/surveys/core/schema-defaults'
+import type {
+  SurveyListItem,
+  SurveyResponseItem,
+  SurveySchema,
+  SurveyStats,
+} from '@/features/surveys/core/types'
 
-// 保存问卷详情的内存缓存
-const surveyDetailsTable = new Map<string, any>()
+faker.seed(42)
 
-faker.seed(20260320)
+const detailMap = new Map<string, SurveySchema>()
+const listItems: SurveyListItem[] = []
+const responsesMap = new Map<string, SurveyResponseItem[]>()
 
-export const surveys = Array.from({ length: 45 }, () => {
-  const statuses = ['draft', 'published', 'archived'] as const
-  const modes = ['scroll', 'card'] as const
-
-  return {
-    id: `SURVEY-${faker.string.alphanumeric(8).toUpperCase()}`,
-    title: faker.lorem.words({ min: 2, max: 5 }),
-    description: faker.lorem.paragraph({ min: 1, max: 2 }),
-    status: faker.helpers.arrayElement(statuses),
-    mode: faker.helpers.arrayElement(modes),
-    questionCount: faker.number.int({ min: 2, max: 25 }),
-    responseCount: faker.number.int({ min: 0, max: 500 }),
-    createdAt: faker.date.past().toISOString(),
-    updatedAt: faker.date.recent().toISOString(),
-    startTime: faker.helpers.maybe(() => faker.date.recent().toISOString(), {
-      probability: 0.8,
-    }),
-    endTime: faker.helpers.maybe(() => faker.date.future().toISOString(), {
-      probability: 0.6,
-    }),
+function syncListFromDetail(schema: SurveySchema) {
+  const idx = listItems.findIndex((s) => s.id === schema.id)
+  const item: SurveyListItem = {
+    id: schema.id,
+    title: schema.meta.title,
+    description: schema.meta.description,
+    status: schema.status,
+    questionCount: countQuestions(schema),
+    responseCount:
+      responsesMap.get(schema.id)?.length ??
+      faker.number.int({ min: 0, max: 200 }),
+    createdAt: listItems[idx]?.createdAt ?? new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    slug: schema.slug,
   }
-})
+  if (idx >= 0) listItems[idx] = item
+  else listItems.unshift(item)
+}
+
+function seedResponses(surveyId: string, schema: SurveySchema) {
+  if (responsesMap.has(surveyId)) return
+  const questions = flattenQuestions(schema)
+  const rows: SurveyResponseItem[] = Array.from({ length: 25 }, () => {
+    const answers: Record<string, unknown> = {}
+    for (const q of questions.slice(0, 5)) {
+      if (q.type === 'nps')
+        answers[q.id] = faker.number.int({ min: 0, max: 10 })
+      else if (q.type === 'single_choice' && q.config.options?.[0])
+        answers[q.id] = q.config.options[0].id
+      else answers[q.id] = faker.lorem.words(2)
+    }
+    const started = faker.date.recent()
+    return {
+      id: faker.string.uuid(),
+      surveyId,
+      status: 'complete' as const,
+      answers,
+      startedAt: started.toISOString(),
+      completedAt: new Date(started.getTime() + 120000).toISOString(),
+      durationMs: 120000,
+    }
+  })
+  responsesMap.set(surveyId, rows)
+}
+
+// 置顶全题型演示问卷，便于从列表进入编辑页测试
+const demoSurvey = createAllTypesDemoSurvey()
+detailMap.set(DEMO_SURVEY_ID, demoSurvey)
+seedResponses(demoSurvey.id, demoSurvey)
+syncListFromDetail(demoSurvey)
+
+// seed list
+for (let i = 0; i < 20; i++) {
+  const schema = createEmptySurvey(faker.lorem.words(3))
+  schema.status = faker.helpers.arrayElement(['draft', 'published', 'archived'])
+  if (schema.status === 'published') {
+    schema.slug = faker.lorem.slug()
+    schema.publishedAt = faker.date.recent().toISOString()
+  }
+  detailMap.set(schema.id, schema)
+  seedResponses(schema.id, schema)
+  syncListFromDetail(schema)
+}
+
+function buildStats(surveyId: string): SurveyStats {
+  const responses = responsesMap.get(surveyId) ?? []
+  const completions = responses.filter((r) => r.status === 'complete').length
+  const starts = responses.length
+  return {
+    views: Math.round(starts * 1.4),
+    starts,
+    completions,
+    completionRate: starts ? completions / starts : 0,
+    avgDurationSec: 95,
+  }
+}
 
 export const surveysHandlers = [
   http.get('/api/surveys', async ({ request }) => {
-    await sleep(300)
-
+    await sleep(200)
     const url = new URL(request.url)
-    const page = parseInt(url.searchParams.get('page') || '1')
-    const pageSize = parseInt(url.searchParams.get('pageSize') || '10')
+    const page = Number(url.searchParams.get('page') || 1)
+    const pageSize = Number(url.searchParams.get('pageSize') || 10)
     const sortBy = url.searchParams.get('sortBy') || 'updatedAt'
     const sortOrder = url.searchParams.get('sortOrder') || 'desc'
-    const search = url.searchParams.get('search') || ''
-    const status = url.searchParams.get('status') || ''
-    const mode = url.searchParams.get('mode') || ''
 
-    // Filter
-    let filteredSurveys = [...surveys]
+    const titleFilter = parseQueryFilterParam(url.searchParams.get('title'))
+    const statusFilter = parseQueryFilterParam(url.searchParams.get('status'))
 
-    if (search) {
-      filteredSurveys = filteredSurveys.filter(
+    let filtered = [...listItems]
+    if (titleFilter) {
+      filtered = filtered.filter(
         (s) =>
-          s.title.toLowerCase().includes(search.toLowerCase()) ||
-          s.id.toLowerCase().includes(search.toLowerCase())
+          matchFilterValue(s.title, titleFilter) ||
+          matchFilterValue(s.id, titleFilter)
+      )
+    }
+    if (statusFilter) {
+      filtered = filtered.filter((s) =>
+        matchFilterValue(s.status, statusFilter)
       )
     }
 
-    if (status) {
-      const statusList = status.split(',')
-      filteredSurveys = filteredSurveys.filter((s) =>
-        statusList.includes(s.status)
-      )
-    }
-
-    if (mode) {
-      const modeList = mode.split(',')
-      filteredSurveys = filteredSurveys.filter((s) => modeList.includes(s.mode))
-    }
-
-    // Sort
-    filteredSurveys.sort((a: any, b: any) => {
-      const aValue = a[sortBy] ?? ''
-      const bValue = b[sortBy] ?? ''
-
-      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1
-      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1
+    filtered.sort((a, b) => {
+      const aVal = a[sortBy as keyof SurveyListItem]
+      const bVal = b[sortBy as keyof SurveyListItem]
+      if (aVal == null && bVal == null) return 0
+      if (aVal == null) return sortOrder === 'asc' ? -1 : 1
+      if (bVal == null) return sortOrder === 'asc' ? 1 : -1
+      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1
+      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1
       return 0
     })
 
-    // Paginate
-    const total = filteredSurveys.length
-    const totalPages = Math.ceil(total / pageSize)
+    const total = filtered.length
     const start = (page - 1) * pageSize
-    const end = start + pageSize
-    const paginatedSurveys = filteredSurveys.slice(start, end)
-
+    const data = filtered.slice(start, start + pageSize)
     return HttpResponse.json({
-      data: paginatedSurveys,
-      meta: {
-        page,
-        pageSize,
-        total,
-        totalPages,
-      },
+      data,
+      meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
     })
   }),
 
   http.post('/api/surveys', async ({ request }) => {
-    const data = (await request.json()) as { title: string }
-    const id = `SURVEY-${faker.string.alphanumeric(8).toUpperCase()}`
-    const newSurvey = {
-      id,
-      title: data.title,
-      description: '',
-      status: 'draft',
-      mode: 'scroll',
-      questionCount: 0,
-      responseCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      startTime: null,
-      endTime: null,
+    await sleep(150)
+    const body = (await request.json()) as { title?: string }
+    const schema = createEmptySurvey(body.title || '未命名问卷')
+    detailMap.set(schema.id, schema)
+    responsesMap.set(schema.id, [])
+    syncListFromDetail(schema)
+    return HttpResponse.json({ id: schema.id })
+  }),
+
+  http.get('/api/surveys/:id', async ({ params }) => {
+    await sleep(150)
+    const id = params.id as string
+    let schema = detailMap.get(id)
+    if (!schema) {
+      // 未知 ID：返回全题型演示副本，便于直接打开编辑 URL 测试
+      schema = createAllTypesDemoSurvey()
+      schema.id = id
+      detailMap.set(id, schema)
+      syncListFromDetail(schema)
+      seedResponses(id, schema)
     }
-    surveys.unshift(newSurvey as any)
-    return HttpResponse.json({ id })
+    return HttpResponse.json(schema)
+  }),
+
+  http.put('/api/surveys/:id', async ({ params, request }) => {
+    await sleep(200)
+    const id = params.id as string
+    const data = (await request.json()) as SurveySchema
+    data.id = id
+    detailMap.set(id, data)
+    syncListFromDetail(data)
+    return new HttpResponse(null, { status: 204 })
   }),
 
   http.delete('/api/surveys/:id', async ({ params }) => {
-    const { id } = params
-    const index = surveys.findIndex((s) => s.id === id)
-    if (index !== -1) {
-      surveys.splice(index, 1)
-    }
+    const id = params.id as string
+    detailMap.delete(id)
+    responsesMap.delete(id)
+    const idx = listItems.findIndex((s) => s.id === id)
+    if (idx >= 0) listItems.splice(idx, 1)
     return new HttpResponse(null, { status: 204 })
   }),
 
   http.patch('/api/surveys/:id/status', async ({ params, request }) => {
-    const { id } = params
-    const { status } = (await request.json()) as { status: string }
-    const survey = surveys.find((s) => s.id === id)
-    if (survey) {
-      ;(survey as any).status = status
-      survey.updatedAt = new Date().toISOString()
-
-      // 同步更新详情缓存
-      const detail = surveyDetailsTable.get(id as string)
-      if (detail) {
-        detail.meta.status = status
-        detail.meta.updatedAt = survey.updatedAt
-      }
+    const id = params.id as string
+    const { status } = (await request.json()) as {
+      status: SurveySchema['status']
+    }
+    const schema = detailMap.get(id)
+    if (schema) {
+      schema.status = status
+      syncListFromDetail(schema)
     }
     return new HttpResponse(null, { status: 204 })
   }),
 
-  /**
-   * 获取问卷详情 (SurveyBuilder 使用)
-   */
-  http.get('/api/surveys/:id', async ({ params }) => {
-    await sleep(200)
-    const { id } = params as { id: string }
-
-    // 优先从详情缓存取
-    if (surveyDetailsTable.has(id)) {
-      return HttpResponse.json(surveyDetailsTable.get(id))
-    }
-
-    // 找不到则从列表找基础信息，并生成一个空 Schema
-    const base = surveys.find((s) => s.id === id)
-    const newDetail = createEmptySurvey(base?.title || '未命名问卷')
-    newDetail.id = id
-    if (base) {
-      newDetail.meta.status = base.status as any
-      newDetail.meta.description = base.description
-    }
-
-    surveyDetailsTable.set(id, newDetail)
-    return HttpResponse.json(newDetail)
+  http.post('/api/surveys/:id/publish', async ({ params }) => {
+    const id = params.id as string
+    const schema = detailMap.get(id)
+    if (!schema) return new HttpResponse(null, { status: 404 })
+    schema.status = 'published'
+    schema.version = String(Number(schema.version) + 1)
+    schema.slug = schema.slug || faker.lorem.slug()
+    schema.publishedAt = new Date().toISOString()
+    syncListFromDetail(schema)
+    return HttpResponse.json({
+      slug: schema.slug,
+      version: schema.version,
+      publishedAt: schema.publishedAt,
+    })
   }),
 
-  /**
-   * 更新问卷 Schema
-   */
-  http.put('/api/surveys/:id', async ({ params, request }) => {
-    await sleep(300)
-    const { id } = params as { id: string }
-    const data = (await request.json()) as any
+  http.get('/api/surveys/:id/stats', async ({ params }) => {
+    await sleep(150)
+    const id = params.id as string
+    return HttpResponse.json(buildStats(id))
+  }),
 
-    surveyDetailsTable.set(id, data)
+  http.get('/api/surveys/:id/responses', async ({ params, request }) => {
+    await sleep(150)
+    const id = params.id as string
+    const url = new URL(request.url)
+    const page = Number(url.searchParams.get('page') || 1)
+    const pageSize = Number(url.searchParams.get('pageSize') || 10)
+    const all = responsesMap.get(id) ?? []
+    const start = (page - 1) * pageSize
+    const data = all.slice(start, start + pageSize)
+    return HttpResponse.json({
+      data,
+      meta: {
+        page,
+        pageSize,
+        total: all.length,
+        totalPages: Math.ceil(all.length / pageSize),
+      },
+    })
+  }),
 
-    // 同步更新列表中的基础信息
-    const index = surveys.findIndex((s) => s.id === id)
-    if (index !== -1) {
-      surveys[index].title = data.meta.title
-      surveys[index].description = data.meta.description
-      surveys[index].status = data.meta.status
-      surveys[index].updatedAt = new Date().toISOString()
-    }
-
-    return new HttpResponse(null, { status: 204 })
+  http.get('/api/surveys/:id/responses/export', async ({ params }) => {
+    const id = params.id as string
+    const schema = detailMap.get(id)
+    const responses = responsesMap.get(id) ?? []
+    const questions = schema ? flattenQuestions(schema) : []
+    const headers = [
+      'response_id',
+      'status',
+      'started_at',
+      ...questions.map((q) => q.title),
+    ]
+    const rows = responses.map((r) => [
+      r.id,
+      r.status,
+      r.startedAt,
+      ...questions.map((q) => {
+        const v = r.answers[q.id]
+        if (v == null) return ''
+        return typeof v === 'object' ? JSON.stringify(v) : String(v)
+      }),
+    ])
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Responses')
+    const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' })
+    return new HttpResponse(buf, {
+      headers: {
+        'Content-Type':
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="surveys-${id}.xlsx"`,
+      },
+    })
   }),
 ]
