@@ -108,16 +108,31 @@ export function getOperatorsForVariant(variant: string): ReadonlyArray<{
   }
 }
 
-export function getFilterFn<TData>(): FilterFn<TData> {
-  return (row: Row<TData>, columnId: string, filterValue: unknown): boolean => {
-    if (!filterValue || typeof filterValue !== 'object') {
-      return true
+/** 解析 useTableState / FilterMenu 序列化到 URL 的筛选参数 */
+export function parseQueryFilterParam(raw: string | null): FilterValue | null {
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      'operator' in parsed &&
+      typeof (parsed as FilterValue).operator === 'string'
+    ) {
+      return parsed as FilterValue
     }
+  } catch {
+    // 忽略非法 JSON
+  }
+  return null
+}
 
-    const filter = filterValue as FilterValue
-    const { operator, value, value2 } = filter
-
-    const cellValue = row.getValue(columnId)
+/** 判断单个字段值是否满足筛选条件（供 MSW / 服务端复用） */
+export function matchFilterValue(
+  cellValue: unknown,
+  filter: FilterValue
+): boolean {
+  const { operator, value, value2 } = filter
 
     if (operator === 'isEmpty') {
       return (
@@ -275,6 +290,14 @@ export function getFilterFn<TData>(): FilterFn<TData> {
       return !value.some((fv) => String(cellValue) === String(fv))
     }
 
-    return true
+  return true
+}
+
+export function getFilterFn<TData>(): FilterFn<TData> {
+  return (row: Row<TData>, columnId: string, filterValue: unknown): boolean => {
+    if (!filterValue || typeof filterValue !== 'object') {
+      return true
+    }
+    return matchFilterValue(row.getValue(columnId), filterValue as FilterValue)
   }
 }
