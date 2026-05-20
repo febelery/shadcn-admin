@@ -15,8 +15,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Alias */
-    "baseUrl": ".",
+    /* Alias — TS 6+ 不再使用 baseUrl，paths 写完整相对路径 */
     "paths": {
       "@/*": ["./src/*"]
     },
