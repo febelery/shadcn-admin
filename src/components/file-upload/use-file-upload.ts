@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { toast } from 'sonner'
-import { validateFile, getFileNameFromUrl } from '@/lib/file-utils'
-import { getMimeTypeFromExtension } from '@/lib/utils'
+import { createPlaceholderFileFromUrl, validateFile } from '@/lib/files'
 import type {
   FileItem,
   FileValidation,
@@ -10,13 +9,10 @@ import type {
   CropSource,
 } from './types'
 
-/** 将回显 URL 转换为 FileItem（file 为空壳，不触发上传） */
 function urlToItem(url: string): FileItem {
-  const name = getFileNameFromUrl(url)
-  const type = getMimeTypeFromExtension(name)
   return {
     id: `echo:${url}`,
-    file: new File([], name, { type }),
+    file: createPlaceholderFileFromUrl(url),
     url,
     progress: 100,
     status: 'success',

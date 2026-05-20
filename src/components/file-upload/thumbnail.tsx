@@ -18,24 +18,10 @@ import {
   Loader2Icon,
   PlayIcon,
 } from 'lucide-react'
-import { getFileIconType } from '@/lib/file-utils'
+import { getFileKind, type FileKind } from '@/lib/files'
 import { cn } from '@/lib/utils'
 
 export type ThumbnailView = 'card' | 'list'
-
-type FileKind =
-  | 'image'
-  | 'video'
-  | 'audio'
-  | 'pdf'
-  | 'word'
-  | 'excel'
-  | 'powerpoint'
-  | 'text'
-  | 'code'
-  | 'archive'
-  | 'application'
-  | 'file'
 
 interface FileThumbnailProps {
   file: File
@@ -47,7 +33,7 @@ interface FileThumbnailProps {
 }
 
 function getKind(file: File): FileKind {
-  return getFileIconType(file) as FileKind
+  return getFileKind(file)
 }
 
 function getKindIcon(kind: FileKind, size: 'sm' | 'md' | 'lg' = 'md') {

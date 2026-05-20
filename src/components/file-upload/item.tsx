@@ -9,7 +9,7 @@ import {
   CheckCircle2Icon,
   CropIcon,
 } from 'lucide-react'
-import { formatBytes } from '@/lib/file-utils'
+import { formatBytes } from '@/lib/files'
 import { cn } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 import { useFileUploadContext } from './context'

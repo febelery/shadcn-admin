@@ -4,7 +4,7 @@
 import * as React from 'react'
 import { CloudUploadIcon, UploadCloudIcon, PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
-import { formatBytes } from '@/lib/file-utils'
+import { formatBytes } from '@/lib/files'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useFileUploadContext } from './context'

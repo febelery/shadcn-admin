@@ -20,7 +20,7 @@ import {
   RefreshCwIcon,
 } from 'lucide-react'
 import { createPortal } from 'react-dom'
-import { getFileIconType } from '@/lib/file-utils'
+import { getFileKind } from '@/lib/files'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -43,7 +43,7 @@ export interface FilePreviewDialogProps {
 type PreviewKind = 'image' | 'video' | 'audio' | 'pdf' | 'other'
 
 function getPreviewKind(file: File): PreviewKind {
-  const k = getFileIconType(file)
+  const k = getFileKind(file)
   if (k === 'image') return 'image'
   if (k === 'video') return 'video'
   if (k === 'audio') return 'audio'
@@ -405,7 +405,7 @@ export function FilePreviewDialog({
           <div className='flex min-w-[200px] items-center gap-3'>
             <div className='flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 ring-1 ring-white/10'>
               {(() => {
-                const kind = getFileIconType(item.file)
+                const kind = getFileKind(item.file)
                 const Icon =
                   (
                     {
@@ -682,7 +682,7 @@ function PdfPreview({ src, name }: { src: string | null; name: string }) {
 
 /** 通用文件预览组件 */
 function OtherPreview({ file, url }: { file: File; url?: string }) {
-  const kind = getFileIconType(file)
+  const kind = getFileKind(file)
   const Icon =
     (
       {

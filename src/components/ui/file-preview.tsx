@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
 import * as ReactDOM from 'react-dom'
-import { getFileIconType, getFileTypeFromUrl } from '@/lib/file-utils'
+import { getFileKind, getFileKindFromUrl } from '@/lib/files'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
@@ -77,8 +77,8 @@ function usePreviewUrl(file?: File, url?: string) {
 
 function useFileType(file?: File, url?: string) {
   return React.useMemo(() => {
-    if (file) return getFileIconType(file)
-    if (url) return getFileTypeFromUrl(url)
+    if (file) return getFileKind(file)
+    if (url) return getFileKindFromUrl(url)
     return 'file'
   }, [file, url])
 }
