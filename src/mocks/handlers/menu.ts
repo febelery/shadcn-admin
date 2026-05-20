@@ -52,7 +52,7 @@ const menuData: MenuData = {
         },
         {
           title: 'Surveys',
-          url: '/surveys',
+          url: '/surveys/list',
           icon: 'LayoutTemplate',
           permission: 'surveys:access',
         },
@@ -197,49 +197,64 @@ const menuData: MenuData = {
   ],
 }
 
-function hasPermission(item: NavItem, userPermissions: readonly string[]): boolean {
+function hasPermission(
+  item: NavItem,
+  userPermissions: readonly string[]
+): boolean {
   if (userPermissions.includes('*')) return true
-  
+
   if (item.permission) {
     return userPermissions.includes(item.permission)
   }
-  
-  return true 
+
+  return true
 }
 
-function filterMenu(groups: MenuData['navGroups'], permissions: readonly string[]): MenuData['navGroups'] {
+function filterMenu(
+  groups: MenuData['navGroups'],
+  permissions: readonly string[]
+): MenuData['navGroups'] {
   // Deep clone to avoid mutating the original
-  const clonedGroups = JSON.parse(JSON.stringify(groups)) as MenuData['navGroups']
+  const clonedGroups = JSON.parse(
+    JSON.stringify(groups)
+  ) as MenuData['navGroups']
 
-  return clonedGroups.map(group => {
-    const filterItems = (items: NavItem[]): NavItem[] => {
-      return items.filter(item => {
-        if (!hasPermission(item, permissions)) {
-          return false
-        }
-        if (item.items) {
-          item.items = filterItems(item.items)
-          if (item.items.length === 0 && !item.url) return false
-        }
-        return true
-      })
-    }
-    
-    return {
-      ...group,
-      items: filterItems(group.items)
-    }
-  }).filter(group => group.items.length > 0)
+  return clonedGroups
+    .map((group) => {
+      const filterItems = (items: NavItem[]): NavItem[] => {
+        return items.filter((item) => {
+          if (!hasPermission(item, permissions)) {
+            return false
+          }
+          if (item.items) {
+            item.items = filterItems(item.items)
+            if (item.items.length === 0 && !item.url) return false
+          }
+          return true
+        })
+      }
+
+      return {
+        ...group,
+        items: filterItems(group.items),
+      }
+    })
+    .filter((group) => group.items.length > 0)
 }
 
 export const menuHandlers = [
   http.get('/api/menu', ({ request }) => {
     const authHeader = request.headers.get('Authorization')
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : ''
+    const token = authHeader?.startsWith('Bearer ')
+      ? authHeader.replace('Bearer ', '')
+      : ''
     const user = getUserByToken(token)
 
     if (!user) {
-      return HttpResponse.json({ code: 401, msg: 'Unauthorized' }, { status: 401 })
+      return HttpResponse.json(
+        { code: 401, msg: 'Unauthorized' },
+        { status: 401 }
+      )
     }
 
     const filteredMenu = filterMenu(menuData.navGroups, user.user.permissions)

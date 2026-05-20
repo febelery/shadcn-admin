@@ -15,14 +15,8 @@ import { AppSidebar } from '@/components/layout/app-sidebar'
 import { SkipToMain } from '@/components/skip-to-main'
 
 /**
- * 应用主布局。
- *
- * 职责：
- * - 挂载全局 context（搜索、布局、侧边栏）
- * - 侧边栏开合状态持久化（读取 cookie，仅挂载时读一次）
- * - ErrorBoundary + Suspense 双层防线
- *
- * 仅作为路由布局使用，由 TanStack Router 自动渲染子路由。
+ * 后台主布局（带侧栏）。
+ * 挂载于 `_authenticated/_app` 路由树。
  */
 export function AuthenticatedLayout() {
   // 惰性初始化：只在挂载时读一次 cookie，不随父级重渲染重复执行
