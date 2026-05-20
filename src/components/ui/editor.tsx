@@ -4,7 +4,7 @@ import 'aieditor/dist/style.css'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
 
-export type EditorVariant = 'basic' | 'standard' | 'full'
+export type EditorVariant = 'plain' | 'basic' | 'standard' | 'full'
 
 export interface EditorProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
@@ -22,6 +22,7 @@ export interface EditorProps extends Omit<
 }
 
 const TOOLBAR_VARIANTS: Record<EditorVariant, string[]> = {
+  plain: [],
   basic: [
     'undo',
     'redo',
