@@ -22,6 +22,14 @@ import {
   parseOptionLines,
   sliceLinesForAppend,
 } from '../parse-option-lines'
+import {
+  builderSpaceForm,
+  builderSpaceTight,
+  builderTypeCaption,
+  builderTypeControl,
+  builderTypeLabel,
+  builderTypeMicro,
+} from '../ui'
 
 type Props = {
   options: ChoiceOption[]
@@ -84,16 +92,16 @@ export function OptionEditor({
   }
 
   return (
-    <div className='max-w-full min-w-0 space-y-2 overflow-hidden'>
+    <div className={cn('max-w-full min-w-0 overflow-hidden', builderSpaceForm)}>
       <div className='flex items-center justify-between gap-2'>
-        <Label className='text-xs'>{label}</Label>
+        <Label className={builderTypeLabel}>{label}</Label>
         <div className='flex shrink-0 items-center gap-0.5'>
           {enableBatch ? (
             <Button
               type='button'
               variant='ghost'
               size='sm'
-              className='text-muted-foreground h-7 px-2 text-xs'
+              className={cn('text-muted-foreground h-7 px-2', builderTypeMicro)}
               onClick={toggleBatch}
             >
               <ListPlus className='mr-1 h-3 w-3' />
@@ -104,7 +112,7 @@ export function OptionEditor({
             type='button'
             variant='ghost'
             size='sm'
-            className='h-7 text-xs'
+            className={cn('h-7', builderTypeControl)}
             onClick={() =>
               onChange([
                 ...options,
@@ -129,13 +137,13 @@ export function OptionEditor({
               onChange={(e) => setBatchText(e.target.value)}
               placeholder='每行一项'
               rows={5}
-              className='min-h-0 resize-y text-xs'
+              className={cn('min-h-0 resize-y', builderTypeControl)}
             />
             <div className='flex flex-wrap gap-1.5'>
               <Button
                 type='button'
                 size='sm'
-                className='h-7 text-xs'
+                className={cn('h-7', builderTypeControl)}
                 disabled={!batchText.trim()}
                 onClick={() => applyBatch('replace')}
               >
@@ -145,7 +153,7 @@ export function OptionEditor({
                 type='button'
                 size='sm'
                 variant='outline'
-                className='h-7 text-xs'
+                className={cn('h-7', builderTypeControl)}
                 disabled={!batchText.trim()}
                 onClick={() => applyBatch('append')}
               >
@@ -153,7 +161,7 @@ export function OptionEditor({
               </Button>
             </div>
             <div className='flex flex-wrap gap-1'>
-              <span className='text-muted-foreground w-full text-[10px]'>
+              <span className={cn(builderTypeCaption, 'w-full')}>
                 快捷模板（填入文本框）：
               </span>
               <PresetChip
@@ -173,7 +181,7 @@ export function OptionEditor({
                 onClick={() => applyPreset(OPTION_LINE_PRESETS.frequency5)}
               />
             </div>
-            <p className='text-muted-foreground text-[10px] leading-relaxed'>
+            <p className={builderTypeCaption}>
               打开时会载入当前列表；应用修改保存全部行。追加仅在文末新增行时生效。
             </p>
           </CollapsibleContent>
@@ -185,7 +193,7 @@ export function OptionEditor({
         onValueChange={onChange}
         getItemValue={(o) => o.id}
       >
-        <SortableContent className='max-w-full min-w-0 space-y-1.5'>
+        <SortableContent className={cn('max-w-full min-w-0', builderSpaceTight)}>
           {options.map((opt, idx) => (
             <SortableItem
               key={opt.id}
@@ -197,7 +205,7 @@ export function OptionEditor({
                   <GripVertical className='h-3.5 w-3.5' />
                 </SortableItemHandle>
                 <Input
-                  className='h-8 w-0 min-w-0 flex-1 overflow-hidden border-0 bg-transparent text-xs text-ellipsis shadow-none focus-visible:ring-0'
+                  className={cn('h-8 w-0 min-w-0 flex-1 overflow-hidden border-0 bg-transparent text-ellipsis shadow-none focus-visible:ring-0', builderTypeControl)}
                   value={opt.label}
                   placeholder={`${label} ${idx + 1}`}
                   maxLength={labelMaxLength}
@@ -228,7 +236,7 @@ export function OptionEditor({
         <SortableOverlay>
           <div className='bg-background flex items-center gap-1 rounded-md border px-2 py-1 shadow-lg'>
             <GripVertical className='text-muted-foreground h-3.5 w-3.5' />
-            <span className='text-xs'>拖动中…</span>
+            <span className={builderTypeMicro}>拖动中…</span>
           </div>
         </SortableOverlay>
       </Sortable>
@@ -247,7 +255,8 @@ function PresetChip({
     <button
       type='button'
       className={cn(
-        'bg-background hover:bg-muted rounded-md border px-2 py-0.5 text-[10px] transition-colors'
+        builderTypeMicro,
+        'bg-background hover:bg-muted rounded-md border px-2 py-0.5 transition-colors'
       )}
       onClick={onClick}
     >

@@ -2,27 +2,31 @@ import { useEffect, useLayoutEffect } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
 import { ArrowLeft, Loader2, Save, Send } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { analyseSurvey } from '../core/expression/parser'
 import { createEmptySurvey } from '../core/schema-defaults'
-import { validateSurveySchema } from '../core/validators'
 import type { SurveySchema } from '../core/types'
+import { validateSurveySchema } from '../core/validators'
 import {
   useCreateSurvey,
   usePublishSurvey,
   useSurveyDetail,
   useUpdateSurvey,
 } from '../queries/hooks'
-import { useBuilderStore } from './store'
 import { BuilderDndProvider } from './components/builder-dnd-provider'
+import { useBuilderStore } from './store'
+import {
+  builderRoot,
+  builderTopBar,
+  builderTopBarStatusCenter,
+  builderTypeChromeTitle,
+  builderTypeStatus,
+} from './ui'
 import { BuilderWorkspace } from './workspace/shell'
-import { builderTopBar } from './ui'
-import { cn } from '@/lib/utils'
 
-type Props =
-  | { mode: 'create' }
-  | { mode: 'edit'; surveyId: string }
+type Props = { mode: 'create' } | { mode: 'edit'; surveyId: string }
 
 function formatSchemaValidationError(err: unknown): string {
   if (
@@ -83,7 +87,6 @@ export function SurveyBuilderPage(props: Props) {
     )
   }
 
-
   if (!schema) {
     return null
   }
@@ -133,33 +136,34 @@ export function SurveyBuilderPage(props: Props) {
   const saveDisabled = saving || creating || (!isCreate && !isDirty)
 
   return (
-    <div className='bg-background flex h-svh flex-col'>
-      <header className={cn(builderTopBar, 'gap-2 px-2 sm:gap-3 sm:px-4')}>
-        <Button variant='ghost' size='icon' className='shrink-0' asChild>
-          <Link to='/surveys/list'>
-            <ArrowLeft className='h-4 w-4' />
-          </Link>
-        </Button>
-        <Input
-          className='min-w-0 flex-1 border-0 bg-transparent text-base font-semibold shadow-none focus-visible:ring-0 sm:max-w-md'
-          value={schema.meta.title}
-          placeholder='问卷标题'
-          onChange={(e) =>
-            useBuilderStore.getState().updateMeta({ title: e.target.value })
-          }
-        />
-        {isCreate ? (
-          <span className='text-muted-foreground hidden shrink-0 text-xs sm:inline'>
-            新建
-          </span>
-        ) : (
-          isDirty && (
-            <span className='text-muted-foreground hidden shrink-0 text-xs sm:inline'>
-              未保存
+    <div className={builderRoot}>
+      <header className={cn(builderTopBar, 'gap-2 px-3 sm:gap-3 sm:px-5')}>
+        <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
+          <Button variant='ghost' size='icon' className='shrink-0' asChild>
+            <Link to='/surveys/list'>
+              <ArrowLeft className='h-4 w-4' />
+            </Link>
+          </Button>
+          <Input
+            className={cn(
+              builderTypeChromeTitle,
+              'min-w-0 flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 sm:max-w-md'
+            )}
+            value={schema.meta.title}
+            placeholder='问卷标题'
+            onChange={(e) =>
+              useBuilderStore.getState().updateMeta({ title: e.target.value })
+            }
+          />
+        </div>
+        {(isCreate || isDirty) && (
+          <div className={builderTopBarStatusCenter}>
+            <span className={builderTypeStatus}>
+              {isCreate ? '新建' : '未保存'}
             </span>
-          )
+          </div>
         )}
-        <div className='ml-auto flex shrink-0 gap-1 sm:gap-2'>
+        <div className='flex shrink-0 gap-1 sm:gap-2'>
           <Button
             variant='outline'
             size='icon'
@@ -167,7 +171,11 @@ export function SurveyBuilderPage(props: Props) {
             onClick={handleSave}
             disabled={saveDisabled}
           >
-            <Save className='h-4 w-4' />
+            {saving || creating ? (
+              <Loader2 className='size-4 animate-spin' />
+            ) : (
+              <Save className='size-4' />
+            )}
             <span className='sr-only'>保存</span>
           </Button>
           <Button
@@ -176,7 +184,11 @@ export function SurveyBuilderPage(props: Props) {
             onClick={handlePublish}
             disabled={publishing || isCreate}
           >
-            <Send className='h-4 w-4' />
+            {publishing ? (
+              <Loader2 className='size-4 animate-spin' />
+            ) : (
+              <Send className='size-4' />
+            )}
             <span className='sr-only'>发布</span>
           </Button>
           <Button
@@ -185,7 +197,11 @@ export function SurveyBuilderPage(props: Props) {
             onClick={handleSave}
             disabled={saveDisabled}
           >
-            <Save className='mr-2 h-4 w-4' />
+            {saving || creating ? (
+              <Loader2 className='mr-2 size-4 animate-spin' />
+            ) : (
+              <Save className='mr-2 size-4' />
+            )}
             {isCreate ? '创建' : '保存'}
           </Button>
           <Button
@@ -193,7 +209,11 @@ export function SurveyBuilderPage(props: Props) {
             onClick={handlePublish}
             disabled={publishing || isCreate}
           >
-            <Send className='mr-2 h-4 w-4' />
+            {publishing ? (
+              <Loader2 className='mr-2 size-4 animate-spin' />
+            ) : (
+              <Send className='mr-2 size-4' />
+            )}
             发布
           </Button>
         </div>

@@ -17,6 +17,7 @@ import type {
 import { LABEL_LIMITS } from '../label-limits'
 import { InlineEditable } from './inline-editable'
 import { useChoiceOptions } from './use-choice-options'
+import { builderTypeAnswer, builderTypeBody } from '../ui'
 
 type Props = {
   question: QuestionElement
@@ -106,7 +107,7 @@ export function SurfaceChoiceList({
                 onChange={(label) => updateOptionLabel(opt.id, label)}
                 placeholder={`选项 ${index + 1}`}
                 maxLength={LABEL_LIMITS.choiceOption}
-                className='text-foreground min-w-0 text-[15px]'
+                className={cn('text-foreground min-w-0', builderTypeAnswer)}
                 onKeyDown={handleOptionKeyDown(index, opt.id)}
               />
               {options.length > 1 && !isOtherOption(opt) ? (
@@ -128,7 +129,7 @@ export function SurfaceChoiceList({
         <li>
           <button
             type='button'
-            className='text-muted-foreground hover:text-foreground flex items-center gap-1.5 py-0.5 text-sm'
+            className={cn(builderTypeBody, 'text-muted-foreground hover:text-foreground flex items-center gap-1.5 py-0.5')}
             data-surface-chrome
             onClick={() => insertAfterLastRegular()}
           >
@@ -137,7 +138,7 @@ export function SurfaceChoiceList({
         </li>
       </ul>
       {showAllowOther && onConfigChange ? (
-        <label className='text-muted-foreground flex cursor-pointer items-center gap-2 text-sm'>
+        <label className={cn(builderTypeBody, 'text-muted-foreground flex cursor-pointer items-center gap-2')}>
           <Checkbox
             checked={allowOther}
             data-surface-chrome
@@ -168,7 +169,7 @@ export function SurfaceRankingList({
       {options.map((opt, index) => (
         <li key={opt.id} className='group/option flex items-center gap-2'>
           <GripVertical className='text-muted-foreground/50 h-4 w-4 shrink-0' />
-          <span className='text-muted-foreground w-5 text-sm tabular-nums'>
+          <span className={cn(builderTypeBody, 'text-muted-foreground w-5 tabular-nums')}>
             {index + 1}
           </span>
           <InlineEditable
@@ -176,7 +177,7 @@ export function SurfaceRankingList({
             onChange={(label) => updateOptionLabel(opt.id, label)}
             placeholder={`选项 ${index + 1}`}
             maxLength={LABEL_LIMITS.choiceOption}
-            className='max-w-full min-w-0 flex-1 text-[15px]'
+            className={cn('max-w-full min-w-0 flex-1', builderTypeAnswer)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()

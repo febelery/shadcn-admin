@@ -10,7 +10,7 @@ import { useQuestionNumbering } from '../context/question-numbering-context'
 import { SurfaceQuestionBlock } from '../question-surface/question-block'
 import { QUESTION_NUMBER_TOGGLE_ATTR } from '../question-surface/question-number-toggle'
 import { useBuilderStore } from '../store'
-import { builderQuestionBlockClass, builderQuestionBodyPad } from '../ui'
+import { builderQuestionBlockClass, builderQuestionBodyPad, builderTypeBody, builderTypeCaption } from '../ui'
 import {
   WorkspaceQuestionActions,
   type QuestionDragHandleProps,
@@ -166,9 +166,9 @@ export const WorkspaceElementCard = memo(
           style={style}
           drag={drag}
         >
-          <p className='text-muted-foreground text-sm'>
+          <p className={cn(builderTypeBody, 'text-muted-foreground')}>
             {element.title?.trim() || '题目分组'}
-            <span className='text-muted-foreground/70 ml-1.5 text-xs'>
+            <span className={cn(builderTypeCaption, 'ml-1.5 opacity-70')}>
               （{element.elements.length} 项）
             </span>
           </p>

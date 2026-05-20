@@ -7,15 +7,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { cn } from '@/lib/utils'
 import { QuestionNumberingProvider } from '../context/question-numbering-context'
 import { InspectorPanel } from '../components/inspector-panel'
 import { QuestionPalette } from '../components/question-palette'
-import { builderWorkspace } from '../ui'
+import { builderMobileDock, builderTypeMicro, builderWorkspace } from '../ui'
 import { BuilderWorkspacePanel } from './workspace-panel'
 
 const desktopOnly = 'hidden lg:flex'
 
-/** 编辑器三栏布局；小屏仅中间工作区 + Sheet 打开侧栏 */
 export function BuilderWorkspace() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [inspectorOpen, setInspectorOpen] = useState(false)
@@ -30,15 +30,13 @@ export function BuilderWorkspace() {
         </div>
       </QuestionNumberingProvider>
 
-      <div
-        className='border-border bg-background/95 pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center border-t p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-sm lg:hidden'
-      >
+      <div className={builderMobileDock}>
         <div className='pointer-events-auto flex gap-2'>
           <Button
             type='button'
             variant='outline'
             size='sm'
-            className='h-9 gap-1.5 shadow-sm'
+            className={cn('h-9 gap-1.5 shadow-sm', builderTypeMicro)}
             onClick={() => setPaletteOpen(true)}
           >
             <LayoutGrid className='size-4' />
@@ -48,7 +46,7 @@ export function BuilderWorkspace() {
             type='button'
             variant='outline'
             size='sm'
-            className='h-9 gap-1.5 shadow-sm'
+            className={cn('h-9 gap-1.5 shadow-sm', builderTypeMicro)}
             onClick={() => setInspectorOpen(true)}
           >
             <Settings2 className='size-4' />

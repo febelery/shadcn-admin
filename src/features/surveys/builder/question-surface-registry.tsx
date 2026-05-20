@@ -1,4 +1,5 @@
 import { Star } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { FileUpload } from '@/components/file-upload'
 import { partitionChoiceOptions } from '../core/choice-other-option'
 import {
@@ -7,6 +8,7 @@ import {
 } from '../core/question-capabilities'
 import type { QuestionElement, QuestionConfig } from '../core/types'
 import { LABEL_LIMITS } from './label-limits'
+import { builderTypeAnswer, builderTypeBody, builderTypeCaption } from './ui'
 import { SurfaceCascaderEditor } from './question-surface/cascader-editor'
 import {
   SurfaceChoiceList,
@@ -83,7 +85,7 @@ export function QuestionSurfaceBody({
           onChange={(placeholder) => onConfigChange({ placeholder })}
           placeholder='请输入…'
           maxLength={LABEL_LIMITS.placeholder}
-          className='text-muted-foreground/80 max-w-full text-[15px]'
+          className={cn('text-muted-foreground/80 max-w-full', builderTypeAnswer)}
         />
       </div>
     )
@@ -97,7 +99,7 @@ export function QuestionSurfaceBody({
           onChange={(placeholder) => onConfigChange({ placeholder })}
           placeholder='请输入详细内容…'
           multiline
-          className='text-muted-foreground/80 text-[15px]'
+          className={cn('text-muted-foreground/80', builderTypeAnswer)}
         />
       </div>
     )
@@ -120,7 +122,7 @@ export function QuestionSurfaceBody({
   if (q.type === 'nps') {
     return (
       <div className='flex flex-col gap-2'>
-        <div className='text-muted-foreground flex justify-between gap-2 text-xs'>
+        <div className={cn(builderTypeCaption, 'flex justify-between gap-2')}>
           <InlineEditable
             value={q.config.npsLeftLabel ?? ''}
             onChange={(npsLeftLabel) => onConfigChange({ npsLeftLabel })}
@@ -142,7 +144,7 @@ export function QuestionSurfaceBody({
           {Array.from({ length: 11 }).map((_, i) => (
             <span
               key={i}
-              className='text-muted-foreground/60 border-border/60 flex h-9 w-9 items-center justify-center rounded-md border text-sm'
+              className={cn(builderTypeBody, 'text-muted-foreground/60 border-border/60 flex h-9 w-9 items-center justify-center rounded-md border')}
             >
               {i}
             </span>
@@ -162,7 +164,7 @@ export function QuestionSurfaceBody({
 
   if (q.type === 'date' || q.type === 'date_range') {
     return (
-      <div className='border-border/80 text-muted-foreground/70 inline-flex min-w-[200px] border-b pb-2 text-[15px]'>
+      <div className={cn('border-border/80 text-muted-foreground/70 inline-flex min-w-[200px] border-b pb-2', builderTypeAnswer)}>
         {q.type === 'date_range' ? '开始日期 — 结束日期' : '选择日期'}
       </div>
     )
@@ -186,7 +188,7 @@ export function QuestionSurfaceBody({
 
   if (q.type === 'signature') {
     return (
-      <div className='border-border/60 text-muted-foreground/60 flex min-h-[100px] items-center justify-center rounded-lg border border-dashed text-sm'>
+      <div className={cn(builderTypeBody, 'border-border/60 text-muted-foreground/60 flex min-h-[100px] items-center justify-center rounded-lg border border-dashed')}>
         签名区域
       </div>
     )
@@ -210,7 +212,7 @@ export function QuestionSurfaceBody({
 
   if (q.type === 'dynamic_panel') {
     return (
-      <p className='text-muted-foreground/70 text-sm'>
+      <p className={cn(builderTypeBody, 'text-muted-foreground/70')}>
         重复组 · {q.config.minItems ?? 1}–{q.config.maxItems ?? 5} 条
         {(q.config.templateElements?.length ?? 0) > 0
           ? ` · 模板 ${q.config.templateElements!.length} 项`

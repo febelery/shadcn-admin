@@ -25,6 +25,7 @@ import {
   TextInputInspectorFields,
 } from './components/question-inspector-fields'
 import { LABEL_LIMITS } from './label-limits'
+import { builderTypeCaption } from './ui'
 
 export type QuestionInspectorConfigProps = {
   type: QuestionType
@@ -201,7 +202,7 @@ export function QuestionTypeInspectorFields({
   if (type === 'fill_in') {
     return (
       <InspectorFormGroup title='填空说明'>
-        <p className='text-muted-foreground text-xs leading-relaxed'>
+        <p className={builderTypeCaption}>
           在<strong>题目标题</strong>
           中用连续下划线表示填空位，例如：「我叫___，今年___岁」。作答端将按顺序展示输入框。
         </p>
@@ -212,7 +213,7 @@ export function QuestionTypeInspectorFields({
   if (type === 'signature') {
     return (
       <InspectorFormGroup title='签名说明'>
-        <p className='text-muted-foreground text-xs leading-relaxed'>
+        <p className={builderTypeCaption}>
           填写端提供手写签名区域；无需额外配置项。
         </p>
       </InspectorFormGroup>

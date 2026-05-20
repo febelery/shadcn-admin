@@ -6,6 +6,7 @@ import {
   type SurveyDefaultNumberingStyle,
 } from '../../shared/question-numbering'
 import { useBuilderStore } from '../store'
+import { builderTypeCaption } from '../ui'
 import { InspectorSwitchField } from './inspector-primitives'
 
 type Props = {
@@ -32,7 +33,7 @@ export function QuestionNumberingInspector({ question, patch }: Props) {
 
   if (!surveyEnabled) {
     return (
-      <p className='text-muted-foreground text-[11px] leading-relaxed'>
+      <p className={builderTypeCaption}>
         全卷已关闭题号（问卷设置 → {surveyStyleLabel}）。可在画布点击题号区域切换单题显隐。
       </p>
     )

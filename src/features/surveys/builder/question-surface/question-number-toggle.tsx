@@ -15,6 +15,7 @@ import {
   getQuestionNumberTextClass,
   isQuestionNumberVisible,
 } from '../../shared/question-numbering'
+import { builderTypeMicro } from '../ui'
 
 /** 画布题号区点击 — 不触发题目选中 */
 export const QUESTION_NUMBER_TOGGLE_ATTR = 'data-question-number-toggle'
@@ -86,7 +87,7 @@ export function SurfaceQuestionNumberToggle({
           </span>
         </button>
       </TooltipTrigger>
-      <TooltipContent side='top' className='max-w-xs text-xs'>
+      <TooltipContent side='top' className={cn('max-w-xs', builderTypeMicro)}>
         {tooltip}
         {showGlobalReference ? (
           <span className='text-muted-foreground mt-1 block'>

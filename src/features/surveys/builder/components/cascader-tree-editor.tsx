@@ -11,6 +11,14 @@ import {
 } from '../../shared/cascader-adapters'
 import { LABEL_LIMITS } from '../label-limits'
 
+import { cn } from '@/lib/utils'
+import {
+  builderTypeCaption,
+  builderTypeControl,
+  builderTypeLabel,
+} from '../ui'
+
+
 type Props = {
   nodes: CascaderNode[]
   onChange: (nodes: CascaderNode[]) => void
@@ -59,7 +67,7 @@ function CascaderTreeNodeRow({
           <span className='size-3.5 shrink-0' />
         )}
         <Input
-          className='h-8 min-w-0 flex-1 border-0 bg-transparent text-xs shadow-none focus-visible:ring-0'
+          className={cn('h-8 min-w-0 flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0', builderTypeControl)}
           value={node.label}
           placeholder={depth === 0 ? '一级选项' : '子级选项'}
           maxLength={LABEL_LIMITS.cascaderOption}
@@ -110,12 +118,12 @@ export function CascaderTreeEditor({ nodes, onChange }: Props) {
   return (
     <div className='flex flex-col gap-2'>
       <div className='flex items-center justify-between gap-2'>
-        <Label className='text-xs'>级联选项</Label>
+        <Label className={builderTypeLabel}>级联选项</Label>
         <Button
           type='button'
           variant='ghost'
           size='sm'
-          className='h-7 text-xs'
+          className={cn('h-7', builderTypeControl)}
           onClick={handleAddRoot}
         >
           <Plus className='mr-1 size-3.5' />
@@ -135,7 +143,7 @@ export function CascaderTreeEditor({ nodes, onChange }: Props) {
           />
         ))}
       </div>
-      <p className='text-muted-foreground text-[11px] leading-relaxed'>
+      <p className={builderTypeCaption}>
         点击 + 为当前项添加子级；末级节点即为可选项叶子。
       </p>
     </div>

@@ -50,3 +50,56 @@ export function getQuestionTypeHint(type: PaletteTypeId): string {
 export function hasQuestionTypePreview(type: PaletteTypeId): boolean {
   return QUESTION_TYPES_WITH_PREVIEW.has(type)
 }
+
+/** 题型库搜索别名（中文简称 + 英文技术词） */
+export const QUESTION_TYPE_KEYWORDS: Record<PaletteTypeId, string[]> = {
+  single_choice: ['单选', 'radio', 'single choice'],
+  multiple_choice: ['多选', 'checkbox', 'multiple choice'],
+  dropdown: ['下拉', 'select', 'dropdown'],
+  ranking: ['排序', 'rank', 'ranking'],
+  matrix_single: ['矩阵单选', 'matrix single'],
+  matrix_multiple: ['矩阵多选', 'matrix multiple'],
+  cascader: ['级联', 'cascade', 'cascader'],
+  text: ['单行', 'text', 'input'],
+  textarea: ['多行', 'textarea', 'long text'],
+  number: ['数字', 'number', 'numeric'],
+  email: ['邮箱', 'email', 'mail'],
+  phone: ['手机', 'phone', 'mobile', 'tel'],
+  url: ['网址', 'url', 'link', 'website'],
+  date: ['日期', 'date'],
+  date_range: ['日期范围', 'date range', 'daterange'],
+  fill_in: ['填空', 'fill in', 'fill-in', 'cloze'],
+  rating: ['星级', 'star', 'rating'],
+  slider: ['滑块', 'slider', 'range'],
+  nps: ['nps', '净推荐', 'net promoter'],
+  likert: ['李克特', 'likert', 'scale'],
+  dynamic_panel: ['重复组', 'repeat', 'panel', 'dynamic'],
+  file_upload: ['文件', 'upload', 'file'],
+  signature: ['签名', 'signature', 'sign'],
+  divider: ['分割', 'divider', 'separator', 'hr'],
+  html_block: ['富文本', 'html', 'richtext', '说明'],
+}
+
+export function matchesPaletteSearch(
+  item: { type: PaletteTypeId; label: string; category: string },
+  query: string
+): boolean {
+  const q = query.trim().toLowerCase()
+  if (!q) return true
+
+  const hint = getQuestionTypeHint(item.type)
+  const typeSpaced = item.type.replace(/_/g, ' ').toLowerCase()
+  const typeCompact = item.type.replace(/_/g, '').toLowerCase()
+  const keywords = QUESTION_TYPE_KEYWORDS[item.type] ?? []
+
+  const haystack = [
+    item.label,
+    item.category,
+    hint,
+    typeSpaced,
+    typeCompact,
+    ...keywords,
+  ].map((s) => s.toLowerCase())
+
+  return haystack.some((text) => text.includes(q))
+}

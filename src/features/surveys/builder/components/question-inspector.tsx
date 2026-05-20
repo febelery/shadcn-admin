@@ -16,7 +16,7 @@ import {
 import { QuestionTypePreview } from '../../shared/question-type-preview'
 import { QuestionTypeInspectorFields } from '../question-type-inspector'
 import { useBuilderStore } from '../store'
-import { builderSettingsRoot } from '../ui'
+import { builderSettingsRoot, builderTypeCaption } from '../ui'
 import {
   InspectorFormField,
   InspectorSection,
@@ -44,7 +44,7 @@ export function QuestionInspector({ sectionId, el }: Props) {
   return (
     <div className={builderSettingsRoot}>
       <InspectorSection title='题型说明' description={typeLabel}>
-        <p className='text-muted-foreground text-xs leading-relaxed'>
+        <p className={builderTypeCaption}>
           {getQuestionTypeHint(el.type)}
         </p>
         {hasQuestionTypePreview(el.type) ? (
@@ -74,7 +74,7 @@ export function QuestionInspector({ sectionId, el }: Props) {
             onChange={(e) => patch({ description: e.target.value })}
           />
         </InspectorFormField>
-        <p className='text-muted-foreground text-[11px] leading-relaxed'>
+        <p className={builderTypeCaption}>
           标题、选项、必/选与题号也可在画布上直接点击编辑。
         </p>
       </InspectorSection>

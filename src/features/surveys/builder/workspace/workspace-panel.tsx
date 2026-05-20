@@ -1,25 +1,26 @@
 import { Fragment } from 'react'
-import { BUILDER_WORKSPACE_SCROLL_ATTR } from './workspace-scroll'
-import { useScrollSelectedIntoWorkspace } from './use-workspace-scroll'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { LayoutTemplate } from 'lucide-react'
+import { LayoutGrid, LayoutTemplate } from 'lucide-react'
 import { getEditorSection } from '../../core/editor-schema'
+import { useBuilderDnd } from '../components/builder-dnd-provider'
+import { BuilderGuidance } from '../components/builder-guidance'
+import { BuilderPanelHeader } from '../components/builder-panel-header'
+import { BuilderSurveyCover } from '../components/builder-survey-cover'
 import { useBuilderStore } from '../store'
 import {
+  builderGuidanceCanvas,
   builderWorkspaceArea,
-  builderWorkspaceEmpty,
   builderWorkspaceInner,
   builderWorkspaceScroll,
   builderQuestionList,
   builderSurveyBody,
   builderSurveyFrame,
 } from '../ui'
-import { BuilderSurveyCover } from '../components/builder-survey-cover'
-import { useBuilderDnd } from '../components/builder-dnd-provider'
-import { BuilderPanelHeader } from '../components/builder-panel-header'
 import { WorkspaceAddFooter } from './add-footer'
 import { WorkspaceElementCard } from './element-card'
 import { WorkspaceInsertSlot } from './insert-slot'
+import { useScrollSelectedIntoWorkspace } from './use-workspace-scroll'
+import { BUILDER_WORKSPACE_SCROLL_ATTR } from './workspace-scroll'
 
 export function BuilderWorkspacePanel() {
   const schema = useBuilderStore((s) => s.schema)!
@@ -41,9 +42,11 @@ export function BuilderWorkspacePanel() {
           title='画布'
           description='问卷题目编排'
         />
-        <div className='text-muted-foreground flex flex-1 items-center justify-center text-sm'>
-          暂无题目
-        </div>
+        <BuilderGuidance
+          className={builderGuidanceCanvas}
+          title='暂无可用页面'
+          description='问卷数据异常或尚未初始化，请刷新后重试。'
+        />
       </main>
     )
   }
@@ -56,19 +59,22 @@ export function BuilderWorkspacePanel() {
         description='问卷题目编排'
       />
 
-      <div className={builderWorkspaceScroll} {...{ [BUILDER_WORKSPACE_SCROLL_ATTR]: '' }}>
+      <div
+        className={builderWorkspaceScroll}
+        {...{ [BUILDER_WORKSPACE_SCROLL_ATTR]: '' }}
+      >
         <div className={builderWorkspaceInner}>
           <div className={builderSurveyFrame}>
             <BuilderSurveyCover meta={schema.meta} theme={schema.theme} />
 
             <div className={builderSurveyBody}>
               {activeSection.elements.length === 0 && !isPaletteDragging && (
-                <div className={builderWorkspaceEmpty}>
-                  <p className='text-sm'>从左侧拖入或点击添加题目</p>
-                  <p className='max-w-xs text-xs leading-relaxed'>
-                    在画布上直接编辑题目与选项
-                  </p>
-                </div>
+                <BuilderGuidance
+                  className={builderGuidanceCanvas}
+                  icon={LayoutGrid}
+                  title='从左侧拖入或点击添加题目'
+                  description='在画布上直接编辑题目与选项；选中题目后可在右侧属性面板调整设置。'
+                />
               )}
 
               {activeSection.elements.length === 0 && isPaletteDragging && (
@@ -82,7 +88,10 @@ export function BuilderWorkspacePanel() {
                 <div className={builderQuestionList}>
                   {activeSection.elements.map((el, index) => (
                     <Fragment key={el.id}>
-                      <WorkspaceInsertSlot sectionId={sectionId} index={index} />
+                      <WorkspaceInsertSlot
+                        sectionId={sectionId}
+                        index={index}
+                      />
                       <WorkspaceElementCard
                         sectionId={sectionId}
                         element={el}

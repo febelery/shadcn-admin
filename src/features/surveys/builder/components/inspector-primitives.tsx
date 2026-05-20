@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -36,8 +37,18 @@ import {
 import { Switch } from '@/components/ui/switch'
 import type { SurveyDefaultNumberingStyle } from '../../core/types'
 import { SURVEY_NUMBERING_OPTIONS } from '../../shared/question-numbering'
+import {
+  builderInspectorGroup,
+  builderSpaceForm,
+  builderSpaceSection,
+  builderSpaceTight,
+  builderTypeBody,
+  builderTypeCaption,
+  builderTypeHeadline,
+  builderTypeLabel,
+  builderTypeMono,
+} from '../ui'
 
-/** 纵向表单项：标签在上、控件通栏 */
 export function InspectorFormField({
   label,
   htmlFor,
@@ -50,24 +61,16 @@ export function InspectorFormField({
   children: ReactNode
 }) {
   return (
-    <div className='flex flex-col gap-1.5'>
-      <Label
-        htmlFor={htmlFor}
-        className='text-muted-foreground text-xs font-normal'
-      >
+    <div className={cn('flex flex-col', builderSpaceTight)}>
+      <Label htmlFor={htmlFor} className={builderTypeLabel}>
         {label}
       </Label>
       {children}
-      {hint ? (
-        <p className='text-muted-foreground text-[11px] leading-relaxed'>
-          {hint}
-        </p>
-      ) : null}
+      {hint ? <p className={builderTypeCaption}>{hint}</p> : null}
     </div>
   )
 }
 
-/** 开关行：说明左、Switch 右 */
 export function InspectorSwitchField({
   id,
   label,
@@ -86,16 +89,11 @@ export function InspectorSwitchField({
   return (
     <div className='flex items-start justify-between gap-3'>
       <div className='flex min-w-0 flex-col gap-0.5'>
-        <Label
-          htmlFor={id}
-          className='text-sm leading-snug font-normal'
-        >
+        <Label htmlFor={id} className={cn(builderTypeBody, 'font-normal')}>
           {label}
         </Label>
         {description ? (
-          <p className='text-muted-foreground text-[11px] leading-relaxed'>
-            {description}
-          </p>
+          <p className={builderTypeCaption}>{description}</p>
         ) : null}
       </div>
       <Switch
@@ -109,7 +107,6 @@ export function InspectorSwitchField({
   )
 }
 
-/** 轻量分组（无折叠） */
 export function InspectorFormGroup({
   title,
   description,
@@ -120,21 +117,18 @@ export function InspectorFormGroup({
   children: ReactNode
 }) {
   return (
-    <div className='bg-muted/25 flex flex-col gap-3 rounded-lg border p-3'>
+    <div className={builderInspectorGroup}>
       <div className='flex flex-col gap-0.5'>
-        <p className='text-xs font-medium'>{title}</p>
+        <p className={builderTypeLabel}>{title}</p>
         {description ? (
-          <p className='text-muted-foreground text-[11px] leading-relaxed'>
-            {description}
-          </p>
+          <p className={builderTypeCaption}>{description}</p>
         ) : null}
       </div>
-      <div className='flex flex-col gap-3'>{children}</div>
+      <div className={cn('flex flex-col', builderSpaceForm)}>{children}</div>
     </div>
   )
 }
 
-/** 可折叠卡片分组 */
 export function InspectorSection({
   title,
   description,
@@ -148,18 +142,18 @@ export function InspectorSection({
 }) {
   return (
     <Collapsible defaultOpen={defaultOpen} className='group/panel'>
-      <Card className='gap-0 overflow-hidden py-0 shadow-sm'>
+      <Card className='gap-0 overflow-hidden border-border/60 py-0 shadow-sm'>
         <CardHeader className='block p-0'>
           <CollapsibleTrigger asChild>
             <Button
               type='button'
               variant='ghost'
-              className='hover:bg-muted/60 h-auto min-h-11 w-full justify-between rounded-none px-4 py-3 font-medium'
+              className='hover:bg-muted/50 h-auto min-h-12 w-full justify-between rounded-none px-4 py-3'
             >
-              <div className='flex min-w-0 flex-col items-start gap-0.5 text-start'>
-                <CardTitle className='text-sm'>{title}</CardTitle>
+              <div className='flex min-w-0 flex-col items-start gap-1 text-start'>
+                <CardTitle className={builderTypeHeadline}>{title}</CardTitle>
                 {description ? (
-                  <CardDescription className='text-[11px] leading-snug'>
+                  <CardDescription className={builderTypeCaption}>
                     {description}
                   </CardDescription>
                 ) : null}
@@ -169,7 +163,12 @@ export function InspectorSection({
           </CollapsibleTrigger>
         </CardHeader>
         <CollapsibleContent className='overflow-hidden'>
-          <CardContent className='flex min-w-0 flex-col gap-4 overflow-x-hidden px-4 pt-0 pb-4'>
+          <CardContent
+            className={cn(
+              'flex min-w-0 flex-col overflow-x-hidden px-4 pt-0 pb-4',
+              builderSpaceSection
+            )}
+          >
             {children}
           </CardContent>
         </CollapsibleContent>
@@ -178,7 +177,6 @@ export function InspectorSection({
   )
 }
 
-/** 主题色选择器 */
 export function InspectorColorField({
   value,
   onValueChange,
@@ -200,7 +198,7 @@ export function InspectorColorField({
           className='h-9 w-full justify-start gap-2 px-2 font-normal'
         >
           <ColorPickerSwatch className='size-5 shrink-0 rounded-sm' />
-          <span className='text-muted-foreground min-w-0 flex-1 truncate text-left font-mono text-xs'>
+          <span className={cn(builderTypeMono, 'min-w-0 flex-1 truncate text-left')}>
             {value}
           </span>
         </Button>
@@ -221,7 +219,6 @@ export function InspectorColorField({
   )
 }
 
-/** 题号样式选择器 */
 export function NumberingStyleSelect({
   value,
   onValueChange,
@@ -240,10 +237,10 @@ export function NumberingStyleSelect({
         <SelectValue placeholder='选择题号样式'>
           {selected ? (
             <span className='flex flex-col items-start gap-0.5 text-left'>
-              <span className='text-sm leading-none'>{selected.label}</span>
-              <span className='text-muted-foreground font-mono text-[11px] leading-none'>
-                {selected.sample}
+              <span className={cn(builderTypeBody, 'leading-none')}>
+                {selected.label}
               </span>
+              <span className={builderTypeMono}>{selected.sample}</span>
             </span>
           ) : null}
         </SelectValue>
@@ -253,9 +250,7 @@ export function NumberingStyleSelect({
           <SelectItem key={o.value} value={o.value} className='py-2'>
             <span className='flex flex-col gap-0.5'>
               <span>{o.label}</span>
-              <span className='text-muted-foreground font-mono text-[11px]'>
-                {o.sample}
-              </span>
+              <span className={builderTypeMono}>{o.sample}</span>
             </span>
           </SelectItem>
         ))}

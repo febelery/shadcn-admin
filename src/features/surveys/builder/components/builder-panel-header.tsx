@@ -1,17 +1,20 @@
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  builderPanelHeaderBar,
+  builderTypeHeadline,
+  builderTypeSubhead,
+} from '../ui'
 
 type Props = {
   title: string
   description?: string
   icon?: LucideIcon
   action?: React.ReactNode
-  /** compact：更高信息密度，省略副标题行 */
   density?: 'default' | 'compact'
   className?: string
 }
 
-/** 三栏工作区统一顶栏（高度、边框、对齐一致） */
 export function BuilderPanelHeader({
   title,
   description,
@@ -25,25 +28,18 @@ export function BuilderPanelHeader({
   return (
     <div
       className={cn(
-        'bg-background flex h-11 shrink-0 items-center gap-2 border-b border-border px-4',
-        compact && 'h-9 min-h-9 px-2.5',
+        builderPanelHeaderBar,
+        compact && 'h-10 min-h-10 px-3',
         className
       )}
     >
-      {Icon ? <Icon className='text-muted-foreground size-4 shrink-0' /> : null}
+      {Icon ? (
+        <Icon className='text-foreground/60 size-4 shrink-0' />
+      ) : null}
       <div className='min-w-0 flex-1'>
-        <p
-          className={cn(
-            'truncate font-medium leading-none',
-            compact ? 'text-xs' : 'text-sm'
-          )}
-        >
-          {title}
-        </p>
+        <p className={cn(builderTypeHeadline, 'truncate')}>{title}</p>
         {!compact && description ? (
-          <p className='text-muted-foreground mt-0.5 truncate text-xs leading-none'>
-            {description}
-          </p>
+          <p className={cn(builderTypeSubhead, 'mt-1 truncate')}>{description}</p>
         ) : null}
       </div>
       {action}

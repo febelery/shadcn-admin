@@ -11,7 +11,7 @@ import {
 import { cn } from '@/lib/utils'
 import type { SurveyElement } from '../../core/types'
 import { useBuilderStore } from '../store'
-import { builderQuestionActions } from '../ui'
+import { builderQuestionActions, builderTypeMicro } from '../ui'
 
 const actionIcon = 'size-3 shrink-0 stroke-[2]'
 
@@ -31,7 +31,7 @@ function ActionTooltip({
   return (
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent side='left' className='text-xs'>
+      <TooltipContent side='left' className={builderTypeMicro}>
         {label}
       </TooltipContent>
     </Tooltip>

@@ -1,3 +1,5 @@
+import { cn } from '@/lib/utils'
+import { builderTypeAnswer, builderTypeBody } from '../ui'
 /** 将题目标题中的连续下划线渲染为填空位预览 */
 const BLANK_RE = /_{2,}/g
 
@@ -30,14 +32,14 @@ export function SurfaceFillInPreview({ title }: Props) {
 
   if (!hasBlank) {
     return (
-      <p className='text-muted-foreground/70 border-border/60 rounded-md border border-dashed px-3 py-2.5 text-sm'>
+      <p className={cn(builderTypeBody, 'text-muted-foreground/70 border-border/60 rounded-md border border-dashed px-3 py-2.5')}>
         在题目标题中用连续下划线表示填空，例如：「我叫___，今年___岁」
       </p>
     )
   }
 
   return (
-    <p className='text-foreground flex flex-wrap items-baseline gap-x-0.5 text-[15px] leading-relaxed'>
+    <p className={cn('text-foreground flex flex-wrap items-baseline gap-x-0.5', builderTypeAnswer)}>
       {segments.map((seg, i) =>
         seg.kind === 'text' ? (
           <span key={i}>{seg.value}</span>

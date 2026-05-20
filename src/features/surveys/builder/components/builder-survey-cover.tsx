@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils'
 import type { SurveyMeta, ThemeConfig } from '../../core/types'
 import { SurveyCoverHeader } from '../../shared/survey-cover-header'
 import { LABEL_LIMITS } from '../label-limits'
+import { builderTypeBody, builderTypeDisplay } from '../ui'
 import { InlineEditable } from '../question-surface/inline-editable'
 import { useBuilderStore } from '../store'
 
@@ -10,7 +11,6 @@ type Props = {
   theme: ThemeConfig
 }
 
-/** 构建器画布问卷头图 — 标题与说明可内联编辑 */
 export function BuilderSurveyCover({ meta, theme }: Props) {
   const updateMeta = useBuilderStore((s) => s.updateMeta)
 
@@ -19,12 +19,13 @@ export function BuilderSurveyCover({ meta, theme }: Props) {
     meta.coverType === 'color' || (meta.coverType === 'image' && hasCoverImage)
 
   const titleClass = cn(
-    'text-lg font-semibold leading-snug',
+    builderTypeDisplay,
     onLightText ? 'text-white' : 'text-foreground'
   )
 
   const descriptionClass = cn(
-    'mt-1.5 min-h-[1.25em] text-sm leading-relaxed',
+    builderTypeBody,
+    'mt-2 min-h-[1.25em]',
     onLightText ? 'text-white/90' : 'text-muted-foreground'
   )
 

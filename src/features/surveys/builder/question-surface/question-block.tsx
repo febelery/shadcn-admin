@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils'
 import type {
   QuestionElement,
   QuestionNumberingMode,
@@ -11,6 +12,7 @@ import {
 } from '../../shared/question-numbering'
 import { QuestionRequiredMark } from '../../shared/question-required-mark'
 import { LABEL_LIMITS } from '../label-limits'
+import { builderTypeBody } from '../ui'
 import { QuestionSurfaceBody } from '../question-surface-registry'
 import { InlineEditable } from './inline-editable'
 import { SurfaceQuestionNumberToggle } from './question-number-toggle'
@@ -60,7 +62,7 @@ export function SurfaceQuestionBlock({
       placeholder='添加说明（选填）'
       multiline
       maxLength={LABEL_LIMITS.questionDescription}
-      className='text-muted-foreground min-h-[1.25em] max-w-full text-sm leading-relaxed'
+      className={cn(builderTypeBody, 'text-muted-foreground min-h-[1.25em] max-w-full')}
     />
   ) : undefined
 

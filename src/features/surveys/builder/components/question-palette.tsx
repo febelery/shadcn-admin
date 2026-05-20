@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
-import { ChevronRight, LayoutGrid } from 'lucide-react'
+import { ChevronRight, LayoutGrid, Search } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Collapsible,
@@ -10,30 +11,33 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandList,
 } from '@/components/ui/command'
+import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { cn } from '@/lib/utils'
+import type { QuestionType } from '../../core/types'
 import {
   LAYOUT_MANIFESTS,
   QUESTION_CATEGORIES,
   QUESTION_MANIFESTS,
   type QuestionManifest,
 } from '../../shared/question-registry'
-import { getQuestionTypeHint } from '../../shared/question-type-hints'
+import { matchesPaletteSearch } from '../../shared/question-type-hints'
+import { useBuilderStore } from '../store'
 import {
-  PaletteItemRow,
-  type PaletteRowItem,
-} from './palette-item-row'
-import {
+  builderSidePanelBody,
+  builderPaletteSearch,
+  builderPaletteSearchField,
+  builderPaletteSearchIcon,
+  builderPaletteSearchInput,
   builderPanelPalette,
   builderPanelScroll,
   builderPaletteGrid,
+  builderTypeCaption,
+  builderTypeOverline,
 } from '../ui'
-import { useBuilderStore } from '../store'
 import { BuilderPanelHeader } from './builder-panel-header'
-import type { QuestionType } from '../../core/types'
+import { PaletteItemRow, type PaletteRowItem } from './palette-item-row'
 
 type PaletteItem = QuestionManifest | (typeof LAYOUT_MANIFESTS)[number]
 
@@ -59,16 +63,21 @@ function PaletteCategory({
   if (count === 0) return null
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className='group/collapsible'>
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className='group/collapsible'
+    >
       <CollapsibleTrigger
         className={cn(
-          'text-muted-foreground flex h-7 w-full items-center gap-1 rounded-md px-2 text-xs font-medium',
-          'hover:bg-muted/50 hover:text-foreground transition-colors'
+          builderTypeOverline,
+          'flex h-8 w-full items-center gap-1.5 rounded-md px-2',
+          'hover:bg-muted/50 hover:text-foreground transition-colors duration-150'
         )}
       >
         <ChevronRight className='size-3.5 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90' />
         <span className='truncate'>{title}</span>
-        <span className='ms-auto tabular-nums opacity-60'>{count}</span>
+        <span className='text-muted-foreground ms-auto tabular-nums'>{count}</span>
       </CollapsibleTrigger>
       <CollapsibleContent className={builderPaletteGrid}>
         {children}
@@ -89,16 +98,7 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
   const disabled = !sectionId
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    const match = (item: PaletteItem) => {
-      if (!q) return true
-      const hint = getQuestionTypeHint(item.type)
-      return (
-        item.label.toLowerCase().includes(q) ||
-        item.category.toLowerCase().includes(q) ||
-        hint.toLowerCase().includes(q)
-      )
-    }
+    const match = (item: PaletteItem) => matchesPaletteSearch(item, query)
 
     const byCategory = (cat: string) =>
       QUESTION_MANIFESTS.filter((m) => m.category === cat && match(m))
@@ -112,7 +112,7 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
       layout,
       flat: [...QUESTION_MANIFESTS.filter(match), ...layout] as PaletteItem[],
       total: QUESTION_MANIFESTS.filter(match).length + layout.length,
-      searching: Boolean(q),
+      searching: Boolean(query.trim()),
     }
   }, [query])
 
@@ -144,23 +144,29 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
     <aside className={cn(builderPanelPalette, className)}>
       <BuilderPanelHeader icon={LayoutGrid} title='题型库' />
 
-      <Command
-        shouldFilter={false}
-        className='bg-transparent flex min-h-0 flex-1 flex-col rounded-none'
-      >
-        <CommandInput
-          value={query}
-          onValueChange={setQuery}
-          placeholder='搜索题型…'
-          className='h-8 border-0 bg-transparent shadow-none focus-visible:ring-0'
-        />
+      <div className={builderSidePanelBody}>
+        <Command
+          shouldFilter={false}
+          className='flex min-h-0 flex-1 flex-col rounded-none bg-transparent'
+        >
+        <div className={builderPaletteSearch}>
+          <div className={builderPaletteSearchField}>
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder='搜索题型'
+              className={builderPaletteSearchInput}
+            />
+            <Search className={builderPaletteSearchIcon} aria-hidden />
+          </div>
+        </div>
 
         <ScrollArea className={builderPanelScroll}>
           <CommandList className='max-h-none px-0 py-2'>
             {disabled ? (
               <div className='px-2 pb-2'>
-                <Alert className='py-2'>
-                  <AlertDescription className='text-muted-foreground text-[11px] leading-snug'>
+                <Alert className='py-2.5'>
+                  <AlertDescription className={builderTypeCaption}>
                     请先在画布选中页面，再添加题型
                   </AlertDescription>
                 </Alert>
@@ -168,7 +174,7 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
             ) : null}
 
             {filtered.total === 0 ? (
-              <CommandEmpty className='text-muted-foreground text-xs'>
+              <CommandEmpty className={builderTypeCaption}>
                 无匹配题型
               </CommandEmpty>
             ) : filtered.searching ? (
@@ -206,7 +212,8 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
             )}
           </CommandList>
         </ScrollArea>
-      </Command>
+        </Command>
+      </div>
     </aside>
   )
 }

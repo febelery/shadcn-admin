@@ -14,6 +14,13 @@ import {
   type PaletteTypeId,
 } from '../../shared/question-type-hints'
 import { QuestionTypePreview } from '../../shared/question-type-preview'
+import {
+  builderPaletteIcon,
+  builderPaletteItem,
+  builderTypeBody,
+  builderTypeHeadline,
+  builderTypeMicro,
+} from '../ui'
 import { PALETTE_DRAG } from '../dnd'
 
 export type PaletteRowItem = {
@@ -32,16 +39,12 @@ function paletteData(item: PaletteRowItem) {
   } as const
 }
 
-const iconBoxClass =
-  'bg-muted/60 text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-md'
-
 type Props = {
   item: PaletteRowItem
   disabled?: boolean
   onAdd: () => void
 }
 
-/** 题型库双列卡片 — 悬停左侧题型图标显示说明 */
 export function PaletteItemRow({ item, disabled, onAdd }: Props) {
   const isLayout = item.type === 'divider' || item.type === 'html_block'
   const id = `palette-${isLayout ? 'l' : 'q'}-${item.type}`
@@ -57,7 +60,7 @@ export function PaletteItemRow({ item, disabled, onAdd }: Props) {
   const showHelp = !isDragging && !disabled
 
   const typeIcon = (
-    <span className={iconBoxClass}>
+    <span className={builderPaletteIcon}>
       <Icon className='size-3.5' />
     </span>
   )
@@ -71,10 +74,7 @@ export function PaletteItemRow({ item, disabled, onAdd }: Props) {
       style={style}
       disabled={disabled}
       onClick={onAdd}
-      className={cn(
-        'group h-8 w-full justify-start gap-1.5 px-1.5 font-normal',
-        'hover:bg-muted/50 hover:text-foreground'
-      )}
+      className={builderPaletteItem}
       {...listeners}
       {...attributes}
     >
@@ -82,7 +82,7 @@ export function PaletteItemRow({ item, disabled, onAdd }: Props) {
         <HoverCard openDelay={200} closeDelay={80}>
           <HoverCardTrigger asChild>
             <span
-              className={cn(iconBoxClass, 'cursor-help')}
+              className={cn(builderPaletteIcon, 'cursor-help')}
               aria-label={`${item.label} 说明`}
             >
               <Icon className='size-3.5' />
@@ -101,7 +101,12 @@ export function PaletteItemRow({ item, disabled, onAdd }: Props) {
       ) : (
         typeIcon
       )}
-      <span className='text-muted-foreground group-hover:text-foreground min-w-0 flex-1 truncate text-left text-[11px] leading-none'>
+      <span
+        className={cn(
+          builderTypeMicro,
+          'min-w-0 flex-1 truncate text-left font-medium'
+        )}
+      >
         {item.label}
       </span>
     </Button>
@@ -121,8 +126,8 @@ function PaletteItemHelpContent({
   return (
     <div className='flex flex-col gap-3'>
       <div className='flex flex-col gap-1.5'>
-        <p className='text-sm leading-none font-medium'>{label}</p>
-        <p className='text-muted-foreground text-sm leading-relaxed'>{hint}</p>
+        <p className={builderTypeHeadline}>{label}</p>
+        <p className={cn(builderTypeBody, 'text-muted-foreground')}>{hint}</p>
       </div>
       {showPreview ? <QuestionTypePreview type={type} /> : null}
     </div>

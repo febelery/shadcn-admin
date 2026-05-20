@@ -1,8 +1,10 @@
+import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { DEFAULT_META } from '../../../core/schema-defaults'
 import { useBuilderStore } from '../../store'
+import { builderTypeMicro } from '../../ui'
 import { MediaUrlField } from '../media-url-field'
 import {
   InspectorColorField,
@@ -26,13 +28,13 @@ export function SurveyMetaCoverPanel() {
           }
         >
           <TabsList className='grid h-8 w-full grid-cols-3'>
-            <TabsTrigger value='none' className='px-2 text-xs'>
+            <TabsTrigger value='none' className={cn('px-2', builderTypeMicro)}>
               无头图
             </TabsTrigger>
-            <TabsTrigger value='color' className='px-2 text-xs'>
+            <TabsTrigger value='color' className={cn('px-2', builderTypeMicro)}>
               纯色头图
             </TabsTrigger>
-            <TabsTrigger value='image' className='px-2 text-xs'>
+            <TabsTrigger value='image' className={cn('px-2', builderTypeMicro)}>
               图片头图
             </TabsTrigger>
           </TabsList>

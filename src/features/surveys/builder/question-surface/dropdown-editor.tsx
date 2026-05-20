@@ -12,6 +12,8 @@ import type { ChoiceOption, QuestionElement } from '../../core/types'
 import { LABEL_LIMITS } from '../label-limits'
 import { InlineEditable } from './inline-editable'
 import { useChoiceOptions } from './use-choice-options'
+import { cn } from '@/lib/utils'
+import { builderTypeAnswer, builderTypeBody } from '../ui'
 
 type Props = {
   question: QuestionElement
@@ -79,7 +81,7 @@ export function SurfaceDropdownEditor({
               onChange={(label) => updateOptionLabel(opt.id, label)}
               placeholder={`选项 ${index + 1}`}
               maxLength={LABEL_LIMITS.choiceOption}
-              className='text-foreground border-border/60 min-w-0 rounded-md border border-dashed px-2 py-1 text-[15px]'
+              className={cn('text-foreground border-border/60 min-w-0 rounded-md border border-dashed px-2 py-1', builderTypeAnswer)}
               onKeyDown={handleOptionKeyDown(index, opt.id)}
             />
             {regular.length > 1 ? (
@@ -100,7 +102,7 @@ export function SurfaceDropdownEditor({
         <li>
           <button
             type='button'
-            className='text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-sm'
+            className={cn(builderTypeBody, 'text-muted-foreground hover:text-foreground flex items-center gap-1.5')}
             data-surface-chrome
             onClick={() => insertAfterLastRegular()}
           >

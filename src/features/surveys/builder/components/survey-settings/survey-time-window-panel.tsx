@@ -6,6 +6,7 @@ import {
 import { DEFAULT_SUBMISSION } from '../../../core/schema-defaults'
 import type { SubmissionTimeWindow } from '../../../core/types'
 import { useBuilderStore } from '../../store'
+import { builderTypeCaption } from '../../ui'
 import {
   InspectorFormField,
   InspectorSection,
@@ -63,9 +64,7 @@ export function SurveyTimeWindowPanel() {
               }
             />
           </InspectorFormField>
-          <p className='text-muted-foreground text-[11px] leading-relaxed'>
-            未填开始或结束表示该端不限制
-          </p>
+          <p className={builderTypeCaption}>未填开始或结束表示该端不限制</p>
         </div>
       ) : null}
     </InspectorSection>

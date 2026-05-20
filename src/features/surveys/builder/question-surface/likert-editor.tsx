@@ -1,8 +1,14 @@
 import { Circle, Plus, Trash2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { LikertStatement, QuestionElement } from '../../core/types'
 import { createQuestionId } from '../../core/schema-defaults'
 import { LABEL_LIMITS } from '../label-limits'
+import {
+  builderTypeBody,
+  builderTypeCaption,
+  builderTypeControl,
+} from '../ui'
 import { InlineEditable } from './inline-editable'
 
 type Props = {
@@ -35,7 +41,7 @@ export function SurfaceLikertEditor({ question, onConfigChange }: Props) {
 
   return (
     <div className='max-w-full overflow-x-auto'>
-      <table className='w-full min-w-[280px] table-fixed border-collapse text-sm'>
+      <table className={cn('w-full min-w-[280px] table-fixed border-collapse', builderTypeBody)}>
         <colgroup>
           <col style={{ width: ROW_LABEL_WIDTH }} />
           {scalePoints.map((p) => (
@@ -48,7 +54,7 @@ export function SurfaceLikertEditor({ question, onConfigChange }: Props) {
             {scalePoints.map((p) => (
               <th
                 key={p}
-                className='text-muted-foreground p-1 text-center text-xs font-normal tabular-nums'
+                className={cn(builderTypeCaption, 'p-1 text-center font-normal tabular-nums')}
               >
                 {p}
               </th>
@@ -72,7 +78,7 @@ export function SurfaceLikertEditor({ question, onConfigChange }: Props) {
                     placeholder='陈述句'
                     compact
                     maxLength={LABEL_LIMITS.likertStatement}
-                    className='min-w-0 flex-1 text-xs'
+                    className={cn('min-w-0 flex-1', builderTypeControl)}
                   />
                   {statements.length > 1 ? (
                     <Button
@@ -106,7 +112,7 @@ export function SurfaceLikertEditor({ question, onConfigChange }: Props) {
         type='button'
         variant='ghost'
         size='sm'
-        className='text-muted-foreground mt-2 h-8 text-xs'
+        className={cn(builderTypeCaption, 'mt-2 h-8')}
         data-surface-chrome
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {

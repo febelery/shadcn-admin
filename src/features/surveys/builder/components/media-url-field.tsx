@@ -13,6 +13,14 @@ import {
 } from '@/lib/files'
 import { validateMediaUrl } from '../../shared/validate-media-url'
 
+import {
+  builderTypeCaption,
+  builderTypeControl,
+  builderTypeError,
+  builderTypeLabel,
+} from '../ui'
+
+
 type EditorPanelProps = {
   value: string
   onChange: (url: string) => void
@@ -83,19 +91,19 @@ export function MediaUrlEditorPanel({
 
       <div className='relative flex items-center gap-2'>
         <Separator className='flex-1' />
-        <span className='text-muted-foreground shrink-0 text-[11px]'>或粘贴链接</span>
+        <span className={cn(builderTypeCaption, 'shrink-0')}>或粘贴链接</span>
         <Separator className='flex-1' />
       </div>
 
       <div className='flex flex-col gap-1.5'>
-        <Label htmlFor={inputId} className='text-muted-foreground text-xs font-normal'>
+        <Label htmlFor={inputId} className={builderTypeLabel}>
           {getMediaUrlFieldLabel(mediaKind)}
         </Label>
         <div className='relative'>
           <Link2 className='text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2' />
           <Input
             id={inputId}
-            className={cn('h-9 pl-8 text-xs', urlError && 'border-destructive')}
+            className={cn('h-9 pl-8', builderTypeControl, urlError && 'border-destructive')}
             value={urlDraft}
             placeholder={
               urlPlaceholder ?? getMediaUrlPlaceholder(mediaKind)
@@ -115,13 +123,11 @@ export function MediaUrlEditorPanel({
           />
         </div>
         {urlError ? (
-          <p className='text-destructive text-[11px]' role='alert'>
+          <p className={builderTypeError} role='alert'>
             {urlError}
           </p>
         ) : (
-          <p className='text-muted-foreground text-[10px] leading-relaxed'>
-            仅支持 http / https
-          </p>
+          <p className={builderTypeCaption}>仅支持 http / https</p>
         )}
       </div>
     </div>

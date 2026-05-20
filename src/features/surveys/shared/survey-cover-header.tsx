@@ -54,7 +54,7 @@ function CoverImageTextZone({
           'pointer-events-none absolute inset-x-0 bottom-0 h-[72%]',
           hasImage
             ? 'bg-linear-to-t from-black/75 via-black/35 to-transparent'
-            : 'bg-linear-to-t from-muted via-muted/55 to-transparent'
+            : 'from-muted via-muted/55 bg-linear-to-t to-transparent'
         )}
       />
       <div
@@ -78,7 +78,7 @@ export function SurveyCoverHeader({
   descriptionSlot,
 }: Props) {
   const titleEl = titleSlot ?? (
-    <h1 className='text-lg font-semibold leading-snug'>{meta.title}</h1>
+    <h1 className='text-lg leading-snug font-semibold'>{meta.title}</h1>
   )
 
   const descriptionEl =
@@ -128,7 +128,9 @@ export function SurveyCoverHeader({
             <SurveyDescription
               html={meta.description}
               className={cn(
-                hasImage ? 'prose-invert text-white/90' : 'text-muted-foreground'
+                hasImage
+                  ? 'prose-invert text-white/90'
+                  : 'text-muted-foreground'
               )}
             />
           )}
