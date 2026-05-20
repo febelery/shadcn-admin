@@ -13,11 +13,21 @@ import {
   FileAudioIcon,
   FileCodeIcon,
   FileArchiveIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
+  RotateCcwIcon,
+  RotateCwIcon,
+  RefreshCwIcon,
 } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { getFileIconType } from '@/lib/file-utils'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import type { FileItem } from './types'
 
 export interface FilePreviewDialogProps {
@@ -55,63 +65,79 @@ function useBlobUrl(file: File, enabled: boolean) {
   return url
 }
 
-const ZOOM_MIN = 0.5
-const ZOOM_MAX = 8
-const ZOOM_STEP = 0.25
+const ZOOM_MIN = 0.25
+const ZOOM_MAX = 128
+const ZOOM_WHEEL_FACTOR = 1.12
+const ZOOM_BUTTON_FACTOR = 1.25
 
 function clamp(v: number, lo: number, hi: number) {
   return Math.min(Math.max(v, lo), hi)
 }
 
-function useImageTransform(resetKey: unknown) {
+function nextZoom(scale: number, factor: number) {
+  return clamp(+(scale * factor).toFixed(3), ZOOM_MIN, ZOOM_MAX)
+}
+
+function useImageTransform(
+  resetKey: unknown,
+  viewportEl: HTMLDivElement | null,
+  enabled = true
+) {
   const [scale, setScale] = React.useState(1)
+  const [rotate, setRotate] = React.useState(0)
   const [offset, setOffset] = React.useState({ x: 0, y: 0 })
   const isDragging = React.useRef(false)
   const dragStart = React.useRef({ mx: 0, my: 0, ox: 0, oy: 0 })
   const lastPinchDist = React.useRef<number | null>(null)
   const offsetRef = React.useRef(offset)
-  const [containerEl, setContainerEl] = React.useState<HTMLDivElement | null>(
-    null
-  )
+  const scaleRef = React.useRef(scale)
 
   React.useEffect(() => {
     offsetRef.current = offset
   }, [offset])
 
   React.useEffect(() => {
+    scaleRef.current = scale
+  }, [scale])
+
+  React.useEffect(() => {
     setScale(1)
+    setRotate(0)
     setOffset({ x: 0, y: 0 })
     isDragging.current = false
   }, [resetKey])
 
   const reset = React.useCallback(() => {
     setScale(1)
+    setRotate(0)
     setOffset({ x: 0, y: 0 })
   }, [])
+  const rotateLeft = React.useCallback(() => setRotate((r) => r - 90), [])
+  const rotateRight = React.useCallback(() => setRotate((r) => r + 90), [])
   const zoomIn = React.useCallback(
-    () =>
-      setScale((s) => clamp(+(s + ZOOM_STEP).toFixed(2), ZOOM_MIN, ZOOM_MAX)),
+    () => setScale((s) => nextZoom(s, ZOOM_BUTTON_FACTOR)),
     []
   )
   const zoomOut = React.useCallback(
     () =>
       setScale((s) => {
-        const n = clamp(+(s - ZOOM_STEP).toFixed(2), ZOOM_MIN, ZOOM_MAX)
+        const n = nextZoom(s, 1 / ZOOM_BUTTON_FACTOR)
         if (n <= 1) setOffset({ x: 0, y: 0 })
         return n
       }),
     []
   )
 
-  // wheel + touchmove
+  // 滚轮/双指缩放绑在视口层（capture），空白区仍可点击穿透关闭
   React.useEffect(() => {
-    if (!containerEl) return
+    if (!viewportEl || !enabled) return
+    const opts = { passive: false, capture: true } as const
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
-      const d = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP
+      const factor = e.deltaY < 0 ? ZOOM_WHEEL_FACTOR : 1 / ZOOM_WHEEL_FACTOR
       setScale((s) => {
-        const n = clamp(+(s + d).toFixed(2), ZOOM_MIN, ZOOM_MAX)
+        const n = nextZoom(s, factor)
         if (n <= 1) setOffset({ x: 0, y: 0 })
         return n
       })
@@ -130,33 +156,27 @@ function useImageTransform(resetKey: unknown) {
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
       )
-      setScale((s) =>
-        clamp(
-          +(s * (dist / lastPinchDist.current!)).toFixed(2),
-          ZOOM_MIN,
-          ZOOM_MAX
-        )
-      )
+      setScale((s) => nextZoom(s, dist / lastPinchDist.current!))
       lastPinchDist.current = dist
     }
     const onTouchEnd = () => {
       lastPinchDist.current = null
     }
 
-    containerEl.addEventListener('wheel', onWheel, { passive: false })
-    containerEl.addEventListener('touchstart', onTouchStart, { passive: false })
-    containerEl.addEventListener('touchmove', onTouchMove, { passive: false })
-    containerEl.addEventListener('touchend', onTouchEnd)
+    viewportEl.addEventListener('wheel', onWheel, opts)
+    viewportEl.addEventListener('touchstart', onTouchStart, opts)
+    viewportEl.addEventListener('touchmove', onTouchMove, opts)
+    viewportEl.addEventListener('touchend', onTouchEnd)
     return () => {
-      containerEl.removeEventListener('wheel', onWheel)
-      containerEl.removeEventListener('touchstart', onTouchStart)
-      containerEl.removeEventListener('touchmove', onTouchMove)
-      containerEl.removeEventListener('touchend', onTouchEnd)
+      viewportEl.removeEventListener('wheel', onWheel, opts)
+      viewportEl.removeEventListener('touchstart', onTouchStart, opts)
+      viewportEl.removeEventListener('touchmove', onTouchMove, opts)
+      viewportEl.removeEventListener('touchend', onTouchEnd)
     }
-  }, [containerEl])
+  }, [viewportEl, enabled])
 
   const onMouseDown = React.useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0) return
+    if (e.button !== 0 || scaleRef.current <= 1) return
     isDragging.current = true
     dragStart.current = {
       mx: e.clientX,
@@ -166,7 +186,7 @@ function useImageTransform(resetKey: unknown) {
     }
   }, [])
   const onMouseMove = React.useCallback((e: React.MouseEvent) => {
-    if (!isDragging.current) return
+    if (!isDragging.current || scaleRef.current <= 1) return
     setOffset({
       x: dragStart.current.ox + (e.clientX - dragStart.current.mx),
       y: dragStart.current.oy + (e.clientY - dragStart.current.my),
@@ -178,13 +198,15 @@ function useImageTransform(resetKey: unknown) {
   const onDoubleClick = React.useCallback(() => reset(), [reset])
 
   return {
-    containerRef: setContainerEl,
     isDragging,
     scale,
+    rotate,
     offset,
     reset,
     zoomIn,
     zoomOut,
+    rotateLeft,
+    rotateRight,
     handlers: {
       onMouseDown,
       onMouseMove,
@@ -193,6 +215,98 @@ function useImageTransform(resetKey: unknown) {
       onDoubleClick,
     },
   }
+}
+
+type ImageTransform = ReturnType<typeof useImageTransform>
+
+function ToolbarTooltip({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactElement
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side='bottom' sideOffset={6} className='text-xs'>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+function ImagePreviewToolbar({ transform }: { transform: ImageTransform }) {
+  const { scale, zoomIn, zoomOut, rotateLeft, rotateRight, reset } = transform
+  const btnClass = 'h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white'
+
+  return (
+    <div className='flex items-center gap-0.5'>
+      <ToolbarTooltip label='缩小'>
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          className={btnClass}
+          onClick={zoomOut}
+          aria-label='缩小'
+        >
+          <ZoomOutIcon className='size-4' />
+        </Button>
+      </ToolbarTooltip>
+      <span className='min-w-10 text-center font-mono text-xs text-white/60'>
+        {Math.round(scale * 100)}%
+      </span>
+      <ToolbarTooltip label='放大'>
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          className={btnClass}
+          onClick={zoomIn}
+          aria-label='放大'
+        >
+          <ZoomInIcon className='size-4' />
+        </Button>
+      </ToolbarTooltip>
+      <ToolbarTooltip label='向左旋转'>
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          className={btnClass}
+          onClick={rotateLeft}
+          aria-label='向左旋转'
+        >
+          <RotateCcwIcon className='size-4' />
+        </Button>
+      </ToolbarTooltip>
+      <ToolbarTooltip label='向右旋转'>
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          className={btnClass}
+          onClick={rotateRight}
+          aria-label='向右旋转'
+        >
+          <RotateCwIcon className='size-4' />
+        </Button>
+      </ToolbarTooltip>
+      <ToolbarTooltip label='重置视图'>
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          className={btnClass}
+          onClick={reset}
+          aria-label='重置视图'
+        >
+          <RefreshCwIcon className='size-4' />
+        </Button>
+      </ToolbarTooltip>
+    </div>
+  )
 }
 
 /** 文件预览弹窗组件 */
@@ -205,12 +319,18 @@ export function FilePreviewDialog({
   onPrev,
   onNext,
 }: FilePreviewDialogProps) {
-  const [currentScale, setCurrentScale] = React.useState(1)
+  const [viewportEl, setViewportEl] = React.useState<HTMLDivElement | null>(
+    null
+  )
   const close = React.useCallback(() => onOpenChange(false), [onOpenChange])
 
-  React.useEffect(() => {
-    setCurrentScale(1)
-  }, [item?.id])
+  const previewKind = item ? getPreviewKind(item.file) : 'other'
+  const isImage = previewKind === 'image'
+  const imageTransform = useImageTransform(
+    item?.id,
+    viewportEl,
+    isImage && open
+  )
 
   React.useEffect(() => {
     if (!open) return
@@ -280,8 +400,8 @@ export function FilePreviewDialog({
         )}
       >
         {/* Top bar */}
-        <div className='pointer-events-auto flex items-center justify-between border-b border-white/5 bg-black/40 px-6 py-3.5 backdrop-blur-xl'>
-          {/* 左侧：文件信息与缩放 */}
+        <div className='pointer-events-auto relative flex items-center justify-between border-b border-white/5 bg-black/40 px-6 py-3.5 backdrop-blur-xl'>
+          {/* 左侧：文件信息 */}
           <div className='flex min-w-[200px] items-center gap-3'>
             <div className='flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 ring-1 ring-white/10'>
               {(() => {
@@ -301,81 +421,99 @@ export function FilePreviewDialog({
               })()}
             </div>
             <div className='min-w-0'>
-              <div className='flex items-center gap-2'>
-                <p className='max-w-[240px] truncate text-sm font-semibold text-white/90'>
-                  {item.file.name}
-                </p>
-                {getPreviewKind(item.file) === 'image' && (
-                  <span className='inline-flex items-center justify-center rounded-full bg-white/10 px-2 py-0.5 font-mono text-[10px] font-bold text-white/70 ring-1 ring-white/10'>
-                    {Math.round(currentScale * 100)}%
-                  </span>
-                )}
-              </div>
-              <p className='text-[10px] font-bold tracking-[0.05em] text-white/30 uppercase'>
+              <p className='max-w-[240px] truncate text-sm font-semibold text-white/90'>
+                {item.file.name}
+              </p>
+              <p className='text-[10px] font-bold tracking-wider text-white/30 uppercase'>
                 {item.file.type.split('/')[1] || 'FILE'}
               </p>
             </div>
           </div>
+
+          {isImage ? (
+            <div className='absolute left-1/2 flex -translate-x-1/2 items-center'>
+              <ImagePreviewToolbar transform={imageTransform} />
+            </div>
+          ) : null}
+
           <div className='flex items-center gap-1 text-white/40'>
-            {/* 分页切换组 */}
-            <Button
-              variant='ghost'
-              size='icon'
-              onClick={onPrev}
-              disabled={!hasPrev}
-              className='h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-20'
-              aria-label='上一个'
-            >
-              <ChevronLeftIcon className='size-5' />
-            </Button>
-            <Button
-              variant='ghost'
-              size='icon'
-              onClick={onNext}
-              disabled={!hasNext}
-              className='h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-20'
-              aria-label='下一个'
-            >
-              <ChevronRightIcon className='size-5' />
-            </Button>
+            <ToolbarTooltip label='上一个'>
+              <span className='inline-flex'>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  onClick={onPrev}
+                  disabled={!hasPrev}
+                  className='h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-20'
+                  aria-label='上一个'
+                >
+                  <ChevronLeftIcon className='size-5' />
+                </Button>
+              </span>
+            </ToolbarTooltip>
+            <ToolbarTooltip label='下一个'>
+              <span className='inline-flex'>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  onClick={onNext}
+                  disabled={!hasNext}
+                  className='h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-20'
+                  aria-label='下一个'
+                >
+                  <ChevronRightIcon className='size-5' />
+                </Button>
+              </span>
+            </ToolbarTooltip>
 
             <div className='mx-2 h-4 w-px bg-white/10' />
 
             {item.url && (
+              <ToolbarTooltip label='下载'>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  asChild
+                  className='h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white'
+                >
+                  <a
+                    href={item.url}
+                    download={item.file.name}
+                    target='_blank'
+                    rel='noreferrer'
+                    aria-label='下载'
+                  >
+                    <DownloadIcon className='size-4' />
+                  </a>
+                </Button>
+              </ToolbarTooltip>
+            )}
+            <div className='mx-2 h-4 w-px bg-white/10' />
+            <ToolbarTooltip label='关闭'>
               <Button
                 variant='ghost'
                 size='icon'
-                asChild
+                onClick={close}
                 className='h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white'
+                aria-label='关闭'
               >
-                <a
-                  href={item.url}
-                  download={item.file.name}
-                  target='_blank'
-                  rel='noreferrer'
-                  aria-label='下载'
-                >
-                  <DownloadIcon className='size-4' />
-                </a>
+                <XIcon className='size-4' />
               </Button>
-            )}
-            <div className='mx-2 h-4 w-px bg-white/10' />
-            <Button
-              variant='ghost'
-              size='icon'
-              onClick={close}
-              className='h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white'
-              aria-label='关闭'
-            >
-              <XIcon className='size-4' />
-            </Button>
+            </ToolbarTooltip>
           </div>
         </div>
 
-        <div className='relative min-h-0 flex-1 overflow-hidden'>
-          <div className='flex h-full w-full items-center justify-center'>
-            <PreviewContent item={item} onScaleChange={setCurrentScale} />
-          </div>
+        <div
+          ref={setViewportEl}
+          className='pointer-events-auto relative flex min-h-0 flex-1 items-center justify-center'
+          onClick={(e) => {
+            if (e.target === e.currentTarget) close()
+          }}
+        >
+          <PreviewContent
+            item={item}
+            imageTransform={isImage ? imageTransform : undefined}
+          />
         </div>
       </div>
     </div>,
@@ -385,10 +523,10 @@ export function FilePreviewDialog({
 
 function PreviewContent({
   item,
-  onScaleChange,
+  imageTransform,
 }: {
   item: FileItem
-  onScaleChange?: (scale: number) => void
+  imageTransform?: ImageTransform
 }) {
   const kind = getPreviewKind(item.file)
   const needBlob = !item.url && item.file.size > 0
@@ -401,8 +539,7 @@ function PreviewContent({
         <ImagePreview
           src={src}
           alt={item.file.name}
-          resetKey={item.id}
-          onScaleChange={onScaleChange}
+          transform={imageTransform!}
         />
       )
     case 'video':
@@ -416,48 +553,59 @@ function PreviewContent({
   }
 }
 
-/** 图片预览组件 */
+/** 图片预览：视口层缩放 + 仅图片区域拦截点击/拖拽 */
 function ImagePreview({
   src,
   alt,
-  resetKey,
-  onScaleChange,
+  transform,
 }: {
   src: string | null
   alt: string
-  resetKey: unknown
-  onScaleChange?: (scale: number) => void
+  transform: ImageTransform
 }) {
-  const { containerRef, isDragging, scale, offset, handlers } =
-    useImageTransform(resetKey)
-
-  React.useEffect(() => {
-    onScaleChange?.(scale)
-  }, [scale, onScaleChange])
+  const { isDragging, scale, rotate, offset, handlers } = transform
+  const [dragging, setDragging] = React.useState(false)
 
   if (!src) return <NoPreview />
 
+  const mergedHandlers = {
+    ...handlers,
+    onMouseDown: (e: React.MouseEvent) => {
+      if (scale <= 1) return
+      setDragging(true)
+      handlers.onMouseDown(e)
+    },
+    onMouseUp: () => {
+      setDragging(false)
+      handlers.onMouseUp()
+    },
+    onMouseLeave: () => {
+      setDragging(false)
+      handlers.onMouseLeave()
+    },
+  }
+
   return (
-    <div className='relative flex h-full w-full items-center justify-center'>
-      {/* ── 图片容器：居中，仅在内容处拦截点击 ── */}
+    <div className='pointer-events-none absolute inset-0 overflow-hidden select-none'>
       <div
-        ref={containerRef}
         className={cn(
-          'pointer-events-auto relative cursor-grab overflow-hidden rounded-lg select-none'
+          'pointer-events-auto absolute top-1/2 left-1/2 will-change-transform',
+          scale > 1 ? 'cursor-grab' : 'cursor-zoom-in',
+          dragging && 'cursor-grabbing'
         )}
-        style={{ touchAction: 'none' }}
-        {...handlers}
+        style={{
+          touchAction: 'none',
+          transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) scale(${scale}) rotate(${rotate}deg)`,
+          transition: isDragging.current ? 'none' : 'transform 0.12s ease-out',
+        }}
+        {...mergedHandlers}
         onClick={(e) => e.stopPropagation()}
       >
         <img
           src={src}
           alt={alt}
           draggable={false}
-          className='max-h-[calc(100dvh-120px)] max-w-[90vw] object-contain shadow-2xl transition-shadow duration-300'
-          style={{
-            transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
-            transition: isDragging.current ? 'none' : 'transform 0.15s ease',
-          }}
+          className='block max-h-[calc(100dvh-120px)] max-w-[90vw] object-contain shadow-2xl'
         />
       </div>
     </div>
