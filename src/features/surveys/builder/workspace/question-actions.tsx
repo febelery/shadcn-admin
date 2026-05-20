@@ -109,9 +109,6 @@ export function WorkspaceQuestionActions({
   selected,
   drag,
 }: Props) {
-  const duplicateElement = useBuilderStore((s) => s.duplicateElement)
-  const removeElement = useBuilderStore((s) => s.removeElement)
-
   return (
     <div
       className={builderQuestionActions(selected)}
@@ -131,7 +128,9 @@ export function WorkspaceQuestionActions({
         <ActionDivider />
         <ActionButton
           label='复制'
-          onClick={() => duplicateElement(sectionId, element.id)}
+          onClick={() =>
+            useBuilderStore.getState().duplicateElement(sectionId, element.id)
+          }
         >
           <Copy className={actionIcon} />
         </ActionButton>
@@ -139,7 +138,9 @@ export function WorkspaceQuestionActions({
         <ActionButton
           label='删除'
           destructive
-          onClick={() => removeElement(sectionId, element.id)}
+          onClick={() =>
+            useBuilderStore.getState().removeElement(sectionId, element.id)
+          }
         >
           <Trash2 className={actionIcon} />
         </ActionButton>

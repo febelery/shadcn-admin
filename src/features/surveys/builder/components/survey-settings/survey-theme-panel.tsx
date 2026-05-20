@@ -1,10 +1,3 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import type { QuestionNumberingMode } from '../../../core/types'
 import {
   isSurveyNumberingEnabled,
@@ -17,13 +10,20 @@ import {
   InspectorSection,
   NumberingStyleSelect,
 } from '../inspector-primitives'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export function SurveyThemePanel() {
-  const schema = useBuilderStore((s) => s.schema)!
-  const updateMeta = useBuilderStore((s) => s.updateMeta)
-  const updateTheme = useBuilderStore((s) => s.updateTheme)
+  const meta = useBuilderStore((s) => s.schema!.meta)
+  const primaryColor = useBuilderStore((s) => s.schema!.theme.primaryColor)
 
-  const numberingStyle = schema.meta.defaultQuestionNumbering ?? 'decimal'
+  const numberingStyle = meta.defaultQuestionNumbering ?? 'decimal'
+  const numberingMode = meta.questionNumberingMode ?? 'global'
 
   return (
     <InspectorSection title='主题' description='品牌色与题号样式' defaultOpen>
@@ -33,23 +33,23 @@ export function SurveyThemePanel() {
       >
         <NumberingStyleSelect
           value={numberingStyle}
-          onValueChange={(v) => updateMeta({ defaultQuestionNumbering: v })}
+          onValueChange={(v) =>
+            useBuilderStore.getState().updateMeta({ defaultQuestionNumbering: v })
+          }
         />
       </InspectorFormField>
       {isSurveyNumberingEnabled(numberingStyle) ? (
         <InspectorFormField
           label='题号编号方式'
           hint={
-            SURVEY_NUMBERING_MODE_OPTIONS.find(
-              (o) =>
-                o.value === (schema.meta.questionNumberingMode ?? 'global')
-            )?.hint
+            SURVEY_NUMBERING_MODE_OPTIONS.find((o) => o.value === numberingMode)
+              ?.hint
           }
         >
           <Select
-            value={schema.meta.questionNumberingMode ?? 'global'}
+            value={numberingMode}
             onValueChange={(v) =>
-              updateMeta({
+              useBuilderStore.getState().updateMeta({
                 questionNumberingMode: v as QuestionNumberingMode,
               })
             }
@@ -69,8 +69,10 @@ export function SurveyThemePanel() {
       ) : null}
       <InspectorFormField label='主题色'>
         <InspectorColorField
-          value={schema.theme.primaryColor}
-          onValueChange={(primaryColor) => updateTheme({ primaryColor })}
+          value={primaryColor}
+          onValueChange={(color) =>
+            useBuilderStore.getState().updateTheme({ primaryColor: color })
+          }
         />
       </InspectorFormField>
     </InspectorSection>

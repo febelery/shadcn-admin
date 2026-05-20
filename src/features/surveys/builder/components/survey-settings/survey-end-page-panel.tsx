@@ -4,8 +4,8 @@ import { useBuilderStore } from '../../store'
 import { InspectorFormField, InspectorSection } from '../inspector-primitives'
 
 export function SurveyEndPagePanel() {
-  const schema = useBuilderStore((s) => s.schema)!
-  const updateMeta = useBuilderStore((s) => s.updateMeta)
+  const endTitle = useBuilderStore((s) => s.schema!.meta.endTitle)
+  const endDescription = useBuilderStore((s) => s.schema!.meta.endDescription)
 
   return (
     <InspectorSection
@@ -17,16 +17,22 @@ export function SurveyEndPagePanel() {
         <Input
           id='end-title'
           className='h-9'
-          value={schema.meta.endTitle}
-          onChange={(e) => updateMeta({ endTitle: e.target.value })}
+          value={endTitle}
+          onChange={(e) =>
+            useBuilderStore.getState().updateMeta({ endTitle: e.target.value })
+          }
         />
       </InspectorFormField>
       <InspectorFormField label='结束说明' htmlFor='end-desc'>
         <Textarea
           id='end-desc'
           rows={3}
-          value={schema.meta.endDescription}
-          onChange={(e) => updateMeta({ endDescription: e.target.value })}
+          value={endDescription}
+          onChange={(e) =>
+            useBuilderStore
+              .getState()
+              .updateMeta({ endDescription: e.target.value })
+          }
         />
       </InspectorFormField>
     </InspectorSection>

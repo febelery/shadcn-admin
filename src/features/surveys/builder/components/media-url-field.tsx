@@ -33,7 +33,7 @@ type EditorPanelProps = {
 }
 
 /** 上传 + 链接（问卷头图等） */
-export function MediaUrlEditorPanel({
+function MediaUrlEditorPanel({
   value,
   onChange,
   mediaKind = 'image',

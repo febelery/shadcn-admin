@@ -10,6 +10,12 @@ import {
 } from '../../core/question-capabilities'
 import { getQuestionTypeLabel } from '../../shared/question-registry'
 import {
+  isQuestionNumberVisible,
+  isSurveyNumberingEnabled,
+  SURVEY_NUMBERING_OPTIONS,
+  type SurveyDefaultNumberingStyle,
+} from '../../shared/question-numbering'
+import {
   getQuestionTypeHint,
   hasQuestionTypePreview,
 } from '../../shared/question-type-hints'
@@ -22,7 +28,6 @@ import {
   InspectorSection,
   InspectorSwitchField,
 } from './inspector-primitives'
-import { QuestionNumberingInspector } from './question-numbering-inspector'
 
 type Props = {
   sectionId: string
@@ -30,16 +35,22 @@ type Props = {
 }
 
 export function QuestionInspector({ sectionId, el }: Props) {
-  const updateQuestion = useBuilderStore((s) => s.updateQuestion)
-  const updateQuestionConfig = useBuilderStore((s) => s.updateQuestionConfig)
-  const removeElement = useBuilderStore((s) => s.removeElement)
+  const surveyStyle = useBuilderStore(
+    (s) =>
+      (s.schema?.meta.defaultQuestionNumbering ?? 'decimal') as SurveyDefaultNumberingStyle
+  )
 
   const patch = (p: Partial<QuestionElement>) =>
-    updateQuestion(sectionId, el.id, p)
+    useBuilderStore.getState().updateQuestion(sectionId, el.id, p)
   const patchConfig = (p: Partial<QuestionElement['config']>) =>
-    updateQuestionConfig(sectionId, el.id, p)
+    useBuilderStore.getState().updateQuestionConfig(sectionId, el.id, p)
 
   const typeLabel = getQuestionTypeLabel(el.type)
+  const surveyEnabled = isSurveyNumberingEnabled(surveyStyle)
+  const numberVisible = isQuestionNumberVisible(el, surveyStyle)
+  const surveyStyleLabel =
+    SURVEY_NUMBERING_OPTIONS.find((o) => o.value === surveyStyle)?.label ??
+    surveyStyle
 
   return (
     <div className={builderSettingsRoot}>
@@ -80,7 +91,19 @@ export function QuestionInspector({ sectionId, el }: Props) {
       </InspectorSection>
 
       <InspectorSection title='展示与逻辑'>
-        <QuestionNumberingInspector question={el} patch={patch} />
+        {!surveyEnabled ? (
+          <p className={builderTypeCaption}>
+            全卷已关闭题号（问卷设置 → {surveyStyleLabel}）。可在画布点击题号区域切换单题显隐。
+          </p>
+        ) : (
+          <InspectorSwitchField
+            id={`show-number-${el.id}`}
+            label='显示本题题号'
+            description={`全卷样式：${surveyStyleLabel}，在「问卷设置」中修改`}
+            checked={numberVisible}
+            onCheckedChange={(c) => patch({ numbering: { show: !!c } })}
+          />
+        )}
         <InspectorSwitchField
           id={`required-${el.id}`}
           label='必填'
@@ -110,7 +133,9 @@ export function QuestionInspector({ sectionId, el }: Props) {
         variant='destructive'
         size='sm'
         className='w-full'
-        onClick={() => removeElement(sectionId, el.id)}
+        onClick={() =>
+          useBuilderStore.getState().removeElement(sectionId, el.id)
+        }
       >
         删除此题
       </Button>

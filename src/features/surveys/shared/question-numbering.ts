@@ -5,6 +5,7 @@ import type {
   SurveySchema,
 } from '../core/types'
 import { flattenQuestions } from '../core/schema-defaults'
+import { questionNumberText, questionNumberTextWide } from './question-layout'
 
 export type {
   SurveyDefaultNumberingStyle,
@@ -48,7 +49,7 @@ const NUMBER_LABEL_FORMATTERS: Record<
 }
 
 /** 1–99 的中文序号（用于题号） */
-export function toChineseNumeral(n: number): string {
+function toChineseNumeral(n: number): string {
   if (n <= 0 || !Number.isFinite(n)) return String(n)
   if (n < 10) return ZH_DIGITS[n]
   if (n === 10) return '十'
@@ -62,7 +63,7 @@ export function toChineseNumeral(n: number): string {
 }
 
 /** Excel 列标式字母：1→A，26→Z，27→AA */
-export function toLetterOrdinal(n: number, upper: boolean): string {
+function toLetterOrdinal(n: number, upper: boolean): string {
   if (n <= 0 || !Number.isFinite(n)) return String(n)
   const base = upper ? 65 : 97
   let num = Math.floor(n)
@@ -76,7 +77,7 @@ export function toLetterOrdinal(n: number, upper: boolean): string {
 }
 
 /** 1–3999 罗马数字；超出范围回退为阿拉伯数字 */
-export function toRomanNumeral(n: number, upper: boolean): string {
+function toRomanNumeral(n: number, upper: boolean): string {
   if (n <= 0 || !Number.isFinite(n)) return String(n)
   if (n > 3999) return String(n)
   let num = Math.floor(n)
@@ -117,16 +118,6 @@ export function isQuestionNumberVisible(
   return true
 }
 
-/** 题目在全卷中的顺序（1-based，仅 kind=question，与显隐无关） */
-export function getQuestionGlobalOrdinal(
-  schema: SurveySchema,
-  questionId: string
-): number | null {
-  const list = flattenQuestions(schema)
-  const idx = list.findIndex((q) => q.id === questionId)
-  return idx >= 0 ? idx + 1 : null
-}
-
 /** 卷内全局序号（每题均有，用于连续模式下编辑器对照） */
 export function buildQuestionOrdinalMap(
   schema: SurveySchema
@@ -164,14 +155,6 @@ export function buildQuestionDisplayOrdinalMap(
   return map
 }
 
-/** 单题展示序号；连续模式且隐藏时为 null */
-export function getQuestionDisplayOrdinal(
-  schema: SurveySchema,
-  questionId: string
-): number | null {
-  return buildQuestionDisplayOrdinalMap(schema).get(questionId) ?? null
-}
-
 /** 按序号生成题号文案（不考虑单题显隐） */
 export function getQuestionNumberLabel(
   ordinal: number,
@@ -185,20 +168,7 @@ export function getQuestionNumberLabel(
 export function getQuestionNumberTextClass(
   style: SurveyDefaultNumberingStyle
 ): string {
-  return style === 'chinese'
-    ? 'text-foreground shrink-0 text-base font-semibold leading-snug'
-    : 'text-foreground shrink-0 text-base font-semibold leading-snug tabular-nums'
-}
-
-/** 题目前缀；不显示或无可展示序号时返回 null */
-export function formatQuestionNumberPrefix(
-  question: QuestionElement,
-  ordinal: number | null,
-  surveyStyle: SurveyDefaultNumberingStyle = 'decimal'
-): string | null {
-  if (ordinal == null) return null
-  if (!isQuestionNumberVisible(question, surveyStyle)) return null
-  return getQuestionNumberLabel(ordinal, surveyStyle)
+  return style === 'chinese' ? questionNumberTextWide : questionNumberText
 }
 
 export const SURVEY_NUMBERING_OPTIONS: {

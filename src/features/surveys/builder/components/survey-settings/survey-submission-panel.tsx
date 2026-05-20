@@ -13,34 +13,28 @@ import {
   InspectorSwitchField,
 } from '../inspector-primitives'
 
-function useSubmissionState(): SubmissionConfig {
-  const schema = useBuilderStore((s) => s.schema)!
-  const sub = schema.submission
-  return {
+export function SurveySubmissionPanel() {
+  const submission = useBuilderStore((s) => s.schema!.submission)
+  const sub: SubmissionConfig = {
     ...DEFAULT_SUBMISSION,
-    ...sub,
+    ...submission,
     timeWindow: {
       enabled: false,
       ...DEFAULT_SUBMISSION.timeWindow,
-      ...sub.timeWindow,
+      ...submission.timeWindow,
     },
     quota: {
       enabled: false,
       total: 1000,
       ...DEFAULT_SUBMISSION.quota,
-      ...sub.quota,
+      ...submission.quota,
     },
     rateLimit: {
       enabled: false,
       ...DEFAULT_SUBMISSION.rateLimit,
-      ...sub.rateLimit,
+      ...submission.rateLimit,
     },
   }
-}
-
-export function SurveySubmissionPanel() {
-  const updateSubmission = useBuilderStore((s) => s.updateSubmission)
-  const sub = useSubmissionState()
   const quota = sub.quota as SubmissionQuota
   const rate = sub.rateLimit as SubmissionRateLimit
 
@@ -52,7 +46,9 @@ export function SurveySubmissionPanel() {
           label='启用总份数上限'
           checked={quota.enabled}
           onCheckedChange={(c) =>
-            updateSubmission({ quota: { ...quota, enabled: !!c } })
+            useBuilderStore.getState().updateSubmission({
+              quota: { ...quota, enabled: !!c },
+            })
           }
         />
         {quota.enabled ? (
@@ -64,7 +60,7 @@ export function SurveySubmissionPanel() {
               className='h-9'
               value={quota.total ?? ''}
               onChange={(e) =>
-                updateSubmission({
+                useBuilderStore.getState().updateSubmission({
                   quota: {
                     ...quota,
                     total: Number(e.target.value) || 1,
@@ -82,7 +78,9 @@ export function SurveySubmissionPanel() {
           label='启用人次 / 日次限制'
           checked={rate.enabled}
           onCheckedChange={(c) =>
-            updateSubmission({ rateLimit: { ...rate, enabled: !!c } })
+            useBuilderStore.getState().updateSubmission({
+              rateLimit: { ...rate, enabled: !!c },
+            })
           }
         />
         {rate.enabled ? (
@@ -100,7 +98,7 @@ export function SurveySubmissionPanel() {
                 placeholder='不限制'
                 value={rate.maxPerUser ?? ''}
                 onChange={(e) =>
-                  updateSubmission({
+                  useBuilderStore.getState().updateSubmission({
                     rateLimit: {
                       ...rate,
                       maxPerUser:
@@ -121,7 +119,7 @@ export function SurveySubmissionPanel() {
                 placeholder='不限制'
                 value={rate.maxPerUserPerDay ?? ''}
                 onChange={(e) =>
-                  updateSubmission({
+                  useBuilderStore.getState().updateSubmission({
                     rateLimit: {
                       ...rate,
                       maxPerUserPerDay:
@@ -142,7 +140,7 @@ export function SurveySubmissionPanel() {
                 placeholder='不限制'
                 value={rate.maxPerDay ?? ''}
                 onChange={(e) =>
-                  updateSubmission({
+                  useBuilderStore.getState().updateSubmission({
                     rateLimit: {
                       ...rate,
                       maxPerDay:
@@ -163,13 +161,17 @@ export function SurveySubmissionPanel() {
           id='once-user'
           label='每人仅可填写一次'
           checked={!!sub.oncePerUser}
-          onCheckedChange={(c) => updateSubmission({ oncePerUser: !!c })}
+          onCheckedChange={(c) =>
+            useBuilderStore.getState().updateSubmission({ oncePerUser: !!c })
+          }
         />
         <InspectorSwitchField
           id='once-device'
           label='每设备仅可填写一次'
           checked={!!sub.oncePerDevice}
-          onCheckedChange={(c) => updateSubmission({ oncePerDevice: !!c })}
+          onCheckedChange={(c) =>
+            useBuilderStore.getState().updateSubmission({ oncePerDevice: !!c })
+          }
         />
         <InspectorFormField
           label='访问密码'
@@ -184,7 +186,9 @@ export function SurveySubmissionPanel() {
             placeholder='设置后需输入才可填写'
             value={sub.password ?? ''}
             onChange={(e) =>
-              updateSubmission({ password: e.target.value || undefined })
+              useBuilderStore.getState().updateSubmission({
+                password: e.target.value || undefined,
+              })
             }
           />
         </InspectorFormField>

@@ -117,7 +117,6 @@ export interface LikertStatement {
 
 /**
  * 题目 config（扁平结构，便于 patch / 表单绑定）。
- * 按题型收窄见 question-config.ts 的 QuestionConfigByType。
  */
 export interface QuestionConfig {
   options?: ChoiceOption[]

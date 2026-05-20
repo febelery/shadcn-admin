@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow'
 import {
   Card,
   CardContent,
@@ -16,9 +17,15 @@ import {
 
 
 export function SurveyPublishInfoCard() {
-  const schema = useBuilderStore((s) => s.schema)
+  const publishInfo = useBuilderStore(
+    useShallow((s) =>
+      s.schema?.slug
+        ? { slug: s.schema.slug, version: s.schema.version }
+        : null
+    )
+  )
 
-  if (!schema?.slug) return null
+  if (!publishInfo) return null
 
   return (
     <Card className='gap-0 py-0 shadow-sm'>
@@ -29,13 +36,13 @@ export function SurveyPublishInfoCard() {
         <div className='flex items-center justify-between gap-2'>
           <span className={builderTypeCaption}>标识</span>
           <code className={cn(builderTypeMono, 'bg-muted rounded px-1.5 py-0.5')}>
-            {schema.slug}
+            {publishInfo.slug}
           </code>
         </div>
         <div className='flex items-center justify-between gap-2'>
           <span className={builderTypeCaption}>版本</span>
           <code className={cn(builderTypeMono, 'bg-muted rounded px-1.5 py-0.5')}>
-            v{schema.version}
+            v{publishInfo.version}
           </code>
         </div>
       </CardContent>

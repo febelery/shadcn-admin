@@ -65,7 +65,7 @@ export const builderTypeError = 'text-xs leading-relaxed text-destructive'
 export const builderSpaceSection = 'gap-4'
 export const builderSpaceForm = 'gap-3'
 export const builderSpaceTight = 'gap-1.5'
-export const builderSpaceField = 'gap-1'
+const builderSpaceField = 'gap-1'
 
 // ─── Chrome ─────────────────────────────────────────────────────────────────
 
@@ -83,11 +83,10 @@ export const builderTopBarStatusCenter = cn(
 
 export const builderWorkspace = 'flex min-h-0 flex-1 overflow-hidden'
 
-export const builderShellColumn =
+const builderShellColumn =
   'flex min-h-0 min-w-0 flex-col overflow-hidden'
 
-/** 侧栏外框 Chrome */
-export const builderSidePanelChrome = 'bg-muted/35'
+const builderSidePanelChrome = 'bg-muted/35'
 
 export const builderPanelPalette = cn(
   builderShellColumn,

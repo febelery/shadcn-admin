@@ -1,4 +1,5 @@
 import { Settings2 } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Editor } from '@/components/ui/editor'
@@ -15,6 +16,7 @@ import {
   builderPanelScroll,
   builderSidePanelBody,
   builderSpaceTight,
+  builderSettingsRoot,
   builderTypeBody,
   builderTypeHeadline,
   builderTypeLabel,
@@ -22,7 +24,12 @@ import {
 import { BuilderGuidance } from './builder-guidance'
 import { BuilderPanelHeader } from './builder-panel-header'
 import { QuestionInspector } from './question-inspector'
-import { SurveySettingsInspector } from './survey-settings-inspector'
+import { SurveyEndPagePanel } from './survey-settings/survey-end-page-panel'
+import { SurveyMetaCoverPanel } from './survey-settings/survey-meta-cover-panel'
+import { SurveyPublishInfoCard } from './survey-settings/survey-publish-info-card'
+import { SurveySubmissionPanel } from './survey-settings/survey-submission-panel'
+import { SurveyThemePanel } from './survey-settings/survey-theme-panel'
+import { SurveyTimeWindowPanel } from './survey-settings/survey-time-window-panel'
 
 function LayoutInspector({
   sectionId,
@@ -31,9 +38,6 @@ function LayoutInspector({
   sectionId: string
   el: SurveyElement
 }) {
-  const updateHtmlBlock = useBuilderStore((s) => s.updateHtmlBlock)
-  const removeElement = useBuilderStore((s) => s.removeElement)
-
   if (el.kind === 'divider') {
     return (
       <div className={builderInspectorForm}>
@@ -44,7 +48,9 @@ function LayoutInspector({
           variant='destructive'
           size='sm'
           className='w-full'
-          onClick={() => removeElement(sectionId, el.id)}
+          onClick={() =>
+            useBuilderStore.getState().removeElement(sectionId, el.id)
+          }
         >
           删除分割线
         </Button>
@@ -60,7 +66,11 @@ function LayoutInspector({
           <Editor
             variant='plain'
             value={el.html}
-            onChange={(html) => updateHtmlBlock(sectionId, el.id, { html })}
+            onChange={(html) =>
+              useBuilderStore
+                .getState()
+                .updateHtmlBlock(sectionId, el.id, { html })
+            }
             placeholder='输入说明内容…'
           />
         </div>
@@ -68,7 +78,9 @@ function LayoutInspector({
           variant='destructive'
           size='sm'
           className='w-full'
-          onClick={() => removeElement(sectionId, el.id)}
+          onClick={() =>
+            useBuilderStore.getState().removeElement(sectionId, el.id)
+          }
         >
           删除说明块
         </Button>
@@ -84,11 +96,28 @@ type Props = {
 }
 
 export function InspectorPanel({ className }: Props = {}) {
-  const schema = useBuilderStore((s) => s.schema)
-  const selectedSectionId = useBuilderStore((s) => s.selectedSectionId)
-  const selectedElementId = useBuilderStore((s) => s.selectedElementId)
+  const { hasSchema, selectedSectionId, selectedEl } = useBuilderStore(
+      useShallow((s) => {
+        if (!s.schema || !s.selectedSectionId) {
+          return {
+            hasSchema: false as const,
+            selectedSectionId: null,
+            selectedEl: undefined as SurveyElement | undefined,
+          }
+        }
+        const section = getEditorSection(s.schema)
+        const selectedEl = section?.elements.find(
+          (e) => e.id === s.selectedElementId
+        )
+        return {
+          hasSchema: true as const,
+          selectedSectionId: s.selectedSectionId,
+          selectedEl,
+        }
+      })
+    )
 
-  if (!schema || !selectedSectionId) {
+  if (!hasSchema || !selectedSectionId) {
     return (
       <aside className={cn(builderPanelInspector, className)}>
         <BuilderPanelHeader icon={Settings2} title='属性' />
@@ -100,9 +129,6 @@ export function InspectorPanel({ className }: Props = {}) {
       </aside>
     )
   }
-
-  const section = getEditorSection(schema)
-  const selectedEl = section?.elements.find((e) => e.id === selectedElementId)
 
   return (
     <aside className={cn(builderPanelInspector, className)}>
@@ -159,7 +185,14 @@ export function InspectorPanel({ className }: Props = {}) {
                 )}
               </TabsContent>
               <TabsContent value='settings' className='mt-0 outline-none'>
-                <SurveySettingsInspector />
+                <div className={builderSettingsRoot}>
+                  <SurveyTimeWindowPanel />
+                  <SurveyMetaCoverPanel />
+                  <SurveyEndPagePanel />
+                  <SurveySubmissionPanel />
+                  <SurveyThemePanel />
+                  <SurveyPublishInfoCard />
+                </div>
               </TabsContent>
             </div>
           </ScrollArea>

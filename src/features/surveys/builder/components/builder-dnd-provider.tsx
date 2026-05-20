@@ -11,7 +11,6 @@ import {
   useSensors,
   type CollisionDetection,
   type DragEndEvent,
-  type DragOverEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
@@ -37,20 +36,17 @@ type ActiveDrag =
   | { kind: 'element'; label: string }
   | null
 
-export type DropTarget = { sectionId: string; index: number } | null
+const ActiveDragCtx = createContext<ActiveDrag>(null)
 
-type BuilderDndContextValue = {
-  activeDrag: ActiveDrag
-  dropTarget: DropTarget
+/** 低频：仅在拖拽开始/结束时变化 */
+export function useActiveDrag() {
+  return useContext(ActiveDragCtx)
 }
 
-const BuilderDndCtx = createContext<BuilderDndContextValue>({
-  activeDrag: null,
-  dropTarget: null,
-})
-
-export function useBuilderDnd() {
-  return useContext(BuilderDndCtx)
+/** 是否正在从题型库拖入（用于画布 dimmed 等） */
+export function useIsPaletteDragging() {
+  const activeDrag = useActiveDrag()
+  return activeDrag?.kind === 'palette'
 }
 
 const workspaceCollisionDetection: CollisionDetection = (args) => {
@@ -69,7 +65,6 @@ type Props = {
 
 export function BuilderDndProvider({ sectionId, children }: Props) {
   const [activeDrag, setActiveDrag] = useState<ActiveDrag>(null)
-  const [dropTarget, setDropTarget] = useState<DropTarget>(null)
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -83,7 +78,6 @@ export function BuilderDndProvider({ sectionId, children }: Props) {
 
   const resetDragState = () => {
     setActiveDrag(null)
-    setDropTarget(null)
   }
 
   const onDragStart = (event: DragStartEvent) => {
@@ -107,20 +101,6 @@ export function BuilderDndProvider({ sectionId, children }: Props) {
       return
     }
     setActiveDrag({ kind: 'element', label: '调整顺序' })
-  }
-
-  const onDragOver = (event: DragOverEvent) => {
-    const over = event.over
-    if (!over) {
-      setDropTarget(null)
-      return
-    }
-    const data = over.data.current as InsertDropData | undefined
-    if (data?.type === INSERT_DROP) {
-      setDropTarget({ sectionId: data.sectionId, index: data.index })
-      return
-    }
-    setDropTarget(null)
   }
 
   const onDragEnd = (event: DragEndEvent) => {
@@ -167,12 +147,11 @@ export function BuilderDndProvider({ sectionId, children }: Props) {
   const onDragCancel = () => resetDragState()
 
   return (
-    <BuilderDndCtx value={{ activeDrag, dropTarget }}>
+    <ActiveDragCtx value={activeDrag}>
       <DndContext
         sensors={sensors}
         collisionDetection={workspaceCollisionDetection}
         onDragStart={onDragStart}
-        onDragOver={onDragOver}
         onDragEnd={onDragEnd}
         onDragCancel={onDragCancel}
       >
@@ -196,6 +175,6 @@ export function BuilderDndProvider({ sectionId, children }: Props) {
           ) : null}
         </DragOverlay>
       </DndContext>
-    </BuilderDndCtx>
+    </ActiveDragCtx>
   )
 }

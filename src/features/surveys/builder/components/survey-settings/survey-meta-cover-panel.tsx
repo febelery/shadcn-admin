@@ -13,17 +13,16 @@ import {
 } from '../inspector-primitives'
 
 export function SurveyMetaCoverPanel() {
-  const schema = useBuilderStore((s) => s.schema)!
-  const updateMeta = useBuilderStore((s) => s.updateMeta)
+  const meta = useBuilderStore((s) => s.schema!.meta)
 
   return (
     <InspectorSection title='头图与展示' description='封面、说明与提交按钮'>
       <InspectorFormField label='头图样式'>
         <Tabs
-          value={schema.meta.coverType}
+          value={meta.coverType}
           onValueChange={(v) =>
-            updateMeta({
-              coverType: v as typeof schema.meta.coverType,
+            useBuilderStore.getState().updateMeta({
+              coverType: v as typeof meta.coverType,
             })
           }
         >
@@ -41,23 +40,27 @@ export function SurveyMetaCoverPanel() {
         </Tabs>
       </InspectorFormField>
 
-      {schema.meta.coverType === 'color' ? (
+      {meta.coverType === 'color' ? (
         <InspectorFormField label='头图背景色'>
           <InspectorColorField
-            value={schema.meta.coverColor ?? DEFAULT_META.coverColor}
-            onValueChange={(coverColor) => updateMeta({ coverColor })}
+            value={meta.coverColor ?? DEFAULT_META.coverColor}
+            onValueChange={(coverColor) =>
+              useBuilderStore.getState().updateMeta({ coverColor })
+            }
           />
         </InspectorFormField>
       ) : null}
 
-      {schema.meta.coverType === 'image' ? (
+      {meta.coverType === 'image' ? (
         <InspectorFormField
           label='头图图片'
           hint='上传或粘贴图片链接，保存前会校验地址'
         >
           <MediaUrlField
-            value={schema.meta.cover ?? ''}
-            onChange={(cover) => updateMeta({ cover })}
+            value={meta.cover ?? ''}
+            onChange={(cover) =>
+              useBuilderStore.getState().updateMeta({ cover })
+            }
             crop
             aspect={2}
           />
@@ -68,8 +71,10 @@ export function SurveyMetaCoverPanel() {
         <Textarea
           id='survey-desc'
           rows={3}
-          value={schema.meta.description}
-          onChange={(e) => updateMeta({ description: e.target.value })}
+          value={meta.description}
+          onChange={(e) =>
+            useBuilderStore.getState().updateMeta({ description: e.target.value })
+          }
         />
       </InspectorFormField>
 
@@ -77,8 +82,10 @@ export function SurveyMetaCoverPanel() {
         <Input
           id='submit-label'
           className='h-9'
-          value={schema.meta.submitLabel}
-          onChange={(e) => updateMeta({ submitLabel: e.target.value })}
+          value={meta.submitLabel}
+          onChange={(e) =>
+            useBuilderStore.getState().updateMeta({ submitLabel: e.target.value })
+          }
         />
       </InspectorFormField>
     </InspectorSection>

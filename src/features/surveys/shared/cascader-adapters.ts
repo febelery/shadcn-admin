@@ -30,20 +30,6 @@ export function cloneCascaderNodes(nodes: CascaderNode[]): CascaderNode[] {
   }))
 }
 
-export function findCascaderNode(
-  nodes: CascaderNode[],
-  id: string
-): CascaderNode | null {
-  for (const node of nodes) {
-    if (node.id === id) return node
-    if (node.children) {
-      const found = findCascaderNode(node.children, id)
-      if (found) return found
-    }
-  }
-  return null
-}
-
 export function updateCascaderNode(
   nodes: CascaderNode[],
   id: string,

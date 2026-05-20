@@ -8,7 +8,6 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
-import { QuestionNumberingProvider } from '../context/question-numbering-context'
 import { InspectorPanel } from '../components/inspector-panel'
 import { QuestionPalette } from '../components/question-palette'
 import { builderMobileDock, builderTypeMicro, builderWorkspace } from '../ui'
@@ -22,13 +21,11 @@ export function BuilderWorkspace() {
 
   return (
     <>
-      <QuestionNumberingProvider>
-        <div className={builderWorkspace}>
-          <QuestionPalette className={desktopOnly} />
-          <BuilderWorkspacePanel />
-          <InspectorPanel className={desktopOnly} />
-        </div>
-      </QuestionNumberingProvider>
+      <div className={builderWorkspace}>
+        <QuestionPalette className={desktopOnly} />
+        <BuilderWorkspacePanel />
+        <InspectorPanel className={desktopOnly} />
+      </div>
 
       <div className={builderMobileDock}>
         <div className='pointer-events-auto flex gap-2'>

@@ -3,7 +3,7 @@ import type { QuestionType } from '../core/types'
 export type PaletteTypeId = QuestionType | 'divider' | 'html_block'
 
 /** 题型库 / 帮助提示文案 */
-export const QUESTION_TYPE_HINTS: Record<PaletteTypeId, string> = {
+const QUESTION_TYPE_HINTS: Record<PaletteTypeId, string> = {
   single_choice: '多个选项中只能选一个，适合性别、满意度等等互斥场景。',
   multiple_choice: '可同时选择多个选项，适合兴趣、功能等多选场景。',
   dropdown: '以下拉菜单展示选项，选项较多时更节省空间。',
@@ -32,7 +32,7 @@ export const QUESTION_TYPE_HINTS: Record<PaletteTypeId, string> = {
 }
 
 /** 需要图示预览的复杂题型 */
-export const QUESTION_TYPES_WITH_PREVIEW = new Set<PaletteTypeId>([
+const QUESTION_TYPES_WITH_PREVIEW = new Set<PaletteTypeId>([
   'matrix_single',
   'matrix_multiple',
   'likert',
@@ -52,7 +52,7 @@ export function hasQuestionTypePreview(type: PaletteTypeId): boolean {
 }
 
 /** 题型库搜索别名（中文简称 + 英文技术词） */
-export const QUESTION_TYPE_KEYWORDS: Record<PaletteTypeId, string[]> = {
+const QUESTION_TYPE_KEYWORDS: Record<PaletteTypeId, string[]> = {
   single_choice: ['单选', 'radio', 'single choice'],
   multiple_choice: ['多选', 'checkbox', 'multiple choice'],
   dropdown: ['下拉', 'select', 'dropdown'],

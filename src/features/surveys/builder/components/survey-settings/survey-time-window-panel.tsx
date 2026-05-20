@@ -14,12 +14,11 @@ import {
 } from '../inspector-primitives'
 
 export function SurveyTimeWindowPanel() {
-  const schema = useBuilderStore((s) => s.schema)!
-  const updateSubmission = useBuilderStore((s) => s.updateSubmission)
+  const timeWindow = useBuilderStore((s) => s.schema!.submission.timeWindow)
 
   const tw: SubmissionTimeWindow = {
     ...DEFAULT_SUBMISSION.timeWindow!,
-    ...schema.submission.timeWindow,
+    ...timeWindow,
   }
 
   return (
@@ -29,7 +28,9 @@ export function SurveyTimeWindowPanel() {
         label='限制开放时间'
         checked={tw.enabled}
         onCheckedChange={(c) =>
-          updateSubmission({ timeWindow: { ...tw, enabled: !!c } })
+          useBuilderStore.getState().updateSubmission({
+            timeWindow: { ...tw, enabled: !!c },
+          })
         }
       />
       {tw.enabled ? (
@@ -40,7 +41,7 @@ export function SurveyTimeWindowPanel() {
               value={parseLocalDateTime(tw.startAt)}
               placeholder='不限制开始'
               onChange={(date) =>
-                updateSubmission({
+                useBuilderStore.getState().updateSubmission({
                   timeWindow: {
                     ...tw,
                     startAt: date ? formatLocalDateTime(date) : undefined,
@@ -55,7 +56,7 @@ export function SurveyTimeWindowPanel() {
               value={parseLocalDateTime(tw.endAt)}
               placeholder='不限制结束'
               onChange={(date) =>
-                updateSubmission({
+                useBuilderStore.getState().updateSubmission({
                   timeWindow: {
                     ...tw,
                     endAt: date ? formatLocalDateTime(date) : undefined,
