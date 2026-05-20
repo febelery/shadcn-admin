@@ -6,7 +6,7 @@ import type {
 } from './types'
 
 /** 填写端主题默认值 — 色值为 #hex，与 ColorPicker 一致 */
-export const DEFAULT_THEME = {
+const DEFAULT_THEME = {
   primaryColor: '#000000',
   backgroundColor: '#ffffff',
   borderRadius: '0.625rem',

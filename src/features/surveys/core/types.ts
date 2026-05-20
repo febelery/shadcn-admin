@@ -202,9 +202,13 @@ export type RuleActionType =
   | 'show'
   | 'hide'
   | 'jump_to_section'
+  | 'jump_to_question'
   | 'end'
   | 'set_required'
   | 'set_value'
+
+/** 设计器顶栏模式：编辑内容 / 流程图 */
+export type BuilderMode = 'edit' | 'flow'
 
 export interface RuleAction {
   id: string
@@ -309,18 +313,4 @@ export interface SurveyResponseItem {
   startedAt: string
   completedAt?: string
   durationMs?: number
-}
-
-export interface QuestionStat {
-  questionId: string
-  title: string
-  type: QuestionType
-  distribution?: { label: string; count: number }[]
-  average?: number
-  nps?: {
-    promoters: number
-    passives: number
-    detractors: number
-    score: number
-  }
 }

@@ -5,9 +5,10 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { analyseSurvey } from '../core/expression/parser'
 import { createEmptySurvey } from '../core/schema-defaults'
-import type { SurveySchema } from '../core/types'
+import type { BuilderMode, SurveySchema } from '../core/types'
 import { validateSurveySchema } from '../core/validators'
 import {
   useCreateSurvey,
@@ -15,16 +16,10 @@ import {
   useSurveyDetail,
   useUpdateSurvey,
 } from '../queries/hooks'
-import { BuilderDndProvider } from './components/builder-dnd-provider'
+import { BuilderContextProvider } from './context'
+import { EditWorkspace } from './edit/workspace'
+import { FlowWorkspace } from './flow/workspace'
 import { useBuilderStore } from './store'
-import {
-  builderRoot,
-  builderTopBar,
-  builderTopBarStatusCenter,
-  builderTypeChromeTitle,
-  builderTypeStatus,
-} from './ui'
-import { BuilderWorkspace } from './workspace/shell'
 
 type Props = { mode: 'create' } | { mode: 'edit'; surveyId: string }
 
@@ -67,8 +62,9 @@ export function SurveyBuilderPage(props: Props) {
   const init = useBuilderStore((s) => s.init)
   const isDirty = useBuilderStore((s) => s.isDirty)
   const markSaved = useBuilderStore((s) => s.markSaved)
-  const selectedSectionId = useBuilderStore((s) => s.selectedSectionId)
   const getSchemaForSave = useBuilderStore((s) => s.getSchemaForSave)
+  const builderMode = useBuilderStore((s) => s.builderMode)
+  const setBuilderMode = useBuilderStore((s) => s.setBuilderMode)
 
   useLayoutEffect(() => {
     if (isCreate) init(createEmptySurvey())
@@ -122,7 +118,7 @@ export function SurveyBuilderPage(props: Props) {
     }
     const payload = getSchemaForSave()
     if (!payload || !assertValidPayload(payload)) return
-    const issues = analyseSurvey(payload)
+    const issues = analyseSurvey(payload).filter((i) => i.severity === 'error')
     if (issues.length) {
       toast.error(issues[0].message)
       return
@@ -136,9 +132,14 @@ export function SurveyBuilderPage(props: Props) {
   const saveDisabled = saving || creating || (!isCreate && !isDirty)
 
   return (
-    <div className={builderRoot}>
-      <header className={cn(builderTopBar, 'gap-2 px-3 sm:gap-3 sm:px-5')}>
-        <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
+    <div className='bg-background flex h-svh flex-col antialiased'>
+      <header
+        className={cn(
+          'border-border bg-background/80 supports-backdrop-filter:bg-background/70 flex h-14 shrink-0 items-center gap-3 border-b px-4 backdrop-blur-sm',
+          'grid grid-cols-[1fr_auto_1fr] gap-2 px-3 sm:gap-3 sm:px-5'
+        )}
+      >
+        <div className='flex min-w-0 items-center gap-2 sm:gap-3'>
           <Button variant='ghost' size='icon' className='shrink-0' asChild>
             <Link to='/surveys/list'>
               <ArrowLeft className='h-4 w-4' />
@@ -146,7 +147,7 @@ export function SurveyBuilderPage(props: Props) {
           </Button>
           <Input
             className={cn(
-              builderTypeChromeTitle,
+              'placeholder:text-muted-foreground/50 text-base leading-none font-semibold tracking-tight',
               'min-w-0 flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 sm:max-w-md'
             )}
             value={schema.meta.title}
@@ -156,14 +157,26 @@ export function SurveyBuilderPage(props: Props) {
             }
           />
         </div>
-        {(isCreate || isDirty) && (
-          <div className={builderTopBarStatusCenter}>
-            <span className={builderTypeStatus}>
+        <Tabs
+          value={builderMode}
+          onValueChange={(v) => setBuilderMode(v as BuilderMode)}
+          className='justify-self-center'
+        >
+          <TabsList className='h-8 sm:h-9'>
+            <TabsTrigger value='edit' className='px-2.5 text-xs sm:px-4'>
+              编辑
+            </TabsTrigger>
+            <TabsTrigger value='flow' className='px-2.5 text-xs sm:px-4'>
+              流程
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <div className='flex shrink-0 items-center justify-end gap-2 sm:gap-3'>
+          {(isCreate || isDirty) && (
+            <span className='text-muted-foreground text-xs tabular-nums'>
               {isCreate ? '新建' : '未保存'}
             </span>
-          </div>
-        )}
-        <div className='flex shrink-0 gap-1 sm:gap-2'>
+          )}
           <Button
             variant='outline'
             size='icon'
@@ -219,9 +232,10 @@ export function SurveyBuilderPage(props: Props) {
         </div>
       </header>
 
-      <BuilderDndProvider sectionId={selectedSectionId}>
-        <BuilderWorkspace />
-      </BuilderDndProvider>
+      <BuilderContextProvider>
+        {builderMode === 'edit' && <EditWorkspace />}
+        {builderMode === 'flow' && <FlowWorkspace />}
+      </BuilderContextProvider>
     </div>
   )
 }

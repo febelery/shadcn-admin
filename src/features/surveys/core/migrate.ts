@@ -10,9 +10,7 @@ import type {
 } from './types'
 
 /** 编辑器持久化契约版本（与填写端协商） */
-export const EDITOR_SCHEMA_VERSION = '3'
-
-export type MigrateMode = 'load' | 'save'
+const EDITOR_SCHEMA_VERSION = '3'
 
 /** 载入时 API 可能仍带旧字段，迁移后不再出现在类型中 */
 type LegacyChoiceOption = ChoiceOption & {
@@ -114,15 +112,8 @@ function mergeSectionsForEditor(sections: Section[]): Section[] {
   return [first]
 }
 
-/**
- * 问卷 Schema 迁移（唯一入口）
- * - load：载入编辑器，合并 section、迁移 legacy 字段
- * - save：在 load 基础上剥离 legacy 字段
- */
-export function migrateSurveySchema(
-  schema: SurveySchema,
-  _mode: MigrateMode = 'load'
-): SurveySchema {
+/** 问卷 Schema 迁移：合并 section、剥离 legacy 字段、写入编辑器契约版本 */
+export function migrateSurveySchema(schema: SurveySchema): SurveySchema {
   const next = cloneSchema(schema)
 
   next.sections = mergeSectionsForEditor(next.sections)
@@ -136,7 +127,7 @@ export function migrateSurveySchema(
   return next
 }
 
-/** 保存/发布前：剥离 legacy 字段并写入编辑器契约版本 */
+/** 保存/发布前迁移（与载入同一套逻辑） */
 export function prepareSurveySchemaForSave(schema: SurveySchema): SurveySchema {
-  return migrateSurveySchema(schema, 'save')
+  return migrateSurveySchema(schema)
 }

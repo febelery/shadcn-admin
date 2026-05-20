@@ -12,7 +12,6 @@ type Props = {
 }
 
 /** 纯色 / 图片头图统一高度 */
-const COVER_HEIGHT = 'h-60'
 
 function hasDescriptionHtml(html: string) {
   return html.replace(/<[^>]*>/g, '').trim().length > 0
@@ -103,7 +102,7 @@ export function SurveyCoverHeader({
     const hasImage = Boolean(meta.cover)
 
     return (
-      <div className={cn('relative overflow-hidden', COVER_HEIGHT, className)}>
+      <div className={cn('relative overflow-hidden', 'h-60', className)}>
         {hasImage ? (
           <img
             src={meta.cover}
@@ -142,7 +141,7 @@ export function SurveyCoverHeader({
   return (
     <div
       className={cn(
-        COVER_HEIGHT,
+        'h-60',
         'flex flex-col justify-end px-6 py-8 text-white',
         className
       )}

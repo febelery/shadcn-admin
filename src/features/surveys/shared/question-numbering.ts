@@ -7,11 +7,7 @@ import type {
 import { flattenQuestions } from '../core/schema-defaults'
 import { questionNumberText, questionNumberTextWide } from './question-layout'
 
-export type {
-  SurveyDefaultNumberingStyle,
-  QuestionNumbering,
-  QuestionNumberingMode,
-} from '../core/types'
+export type { SurveyDefaultNumberingStyle } from '../core/types'
 
 const ZH_DIGITS = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九']
 
@@ -163,6 +159,41 @@ export function getQuestionNumberLabel(
   if (surveyStyle === 'none') return null
   const format = NUMBER_LABEL_FORMATTERS[surveyStyle as NumberingStyleKey]
   return format ? format(ordinal) : `${ordinal}.`
+}
+
+/** 流程图/规则列表用：仅题号前缀，未启用题号时返回 null */
+export function getQuestionNumberPrefix(
+  question: QuestionElement,
+  schema: SurveySchema
+): string | null {
+  const style = getSurveyDefaultNumberingStyle(schema)
+  if (!isQuestionNumberVisible(question, style)) return null
+  const displayOrdinal = buildQuestionDisplayOrdinalMap(schema).get(question.id)
+  if (displayOrdinal == null) return null
+  return getQuestionNumberLabel(displayOrdinal, style)
+}
+
+/** 编辑器/流程图用：带题号的题目引用文案 */
+export function getQuestionReferenceLabel(
+  question: QuestionElement,
+  schema: SurveySchema
+): string {
+  const globalOrdinal =
+    buildQuestionOrdinalMap(schema).get(question.id) ??
+    flattenQuestions(schema).findIndex((q) => q.id === question.id) + 1
+  const displayOrdinal = buildQuestionDisplayOrdinalMap(schema).get(question.id) ?? null
+  const style = getSurveyDefaultNumberingStyle(schema)
+  const title = question.title?.trim()
+
+  if (!isQuestionNumberVisible(question, style)) {
+    return title || `题目 ${globalOrdinal}`
+  }
+
+  const ordinal = displayOrdinal ?? globalOrdinal
+  const num = getQuestionNumberLabel(ordinal, style)
+  if (!num) return title || `题目 ${globalOrdinal}`
+
+  return title ? `${num} ${title}` : num
 }
 
 export function getQuestionNumberTextClass(

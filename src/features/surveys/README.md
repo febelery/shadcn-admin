@@ -13,7 +13,7 @@ Design surveys, publish schemas, view analytics, export Excel.
 
 **命名**：工作区 `workspace/*`（`Workspace*`）· 作答区 `question-surface/*`（`Surface*`）
 
-**Schema 边界**：`rules` / `variables` / `validators` / `panel` 暂无可视化编辑；`dynamic_panel.templateElements` 仅数据层支持。历史字段（含已废弃 `media_choice`）仅在 `migrate.ts` 的 `Legacy*` 类型中处理。
+**Schema 边界**：`variables` / `validators` / `panel` 暂无可视化编辑；`rules` 与 `jump_to_question` 已在设计器「逻辑」Tab 与「流程」模式中编辑。`dynamic_panel.templateElements` 仅数据层支持。
 
 **保存/发布**：`getSchemaForSave()` → `validateSurveySchema` + 发布前 `analyseSurvey`。
 

@@ -34,7 +34,7 @@ const surveyElementSchema = z.discriminatedUnion('kind', [
   }),
 ])
 
-export const surveySchemaZod = z.object({
+const surveySchemaZod = z.object({
   id: z.string(),
   version: z.string(),
   status: z.enum(['draft', 'published', 'archived']),

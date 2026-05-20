@@ -34,7 +34,7 @@ export const QUESTION_CATEGORIES = [
   '布局',
 ] as const
 
-export type QuestionCategory = (typeof QUESTION_CATEGORIES)[number]
+type QuestionCategory = (typeof QUESTION_CATEGORIES)[number]
 
 export interface QuestionManifest {
   type: QuestionType

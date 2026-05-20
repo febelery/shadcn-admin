@@ -1,19 +1,19 @@
 import type { QuestionType } from './types'
 
 /** 选择类题型（含排序） */
-export const CHOICE_QUESTION_TYPES: ReadonlySet<QuestionType> = new Set([
+const CHOICE_QUESTION_TYPES: ReadonlySet<QuestionType> = new Set([
   'single_choice',
   'multiple_choice',
   'dropdown',
   'ranking',
 ])
 
-export const MATRIX_QUESTION_TYPES: ReadonlySet<QuestionType> = new Set([
+const MATRIX_QUESTION_TYPES: ReadonlySet<QuestionType> = new Set([
   'matrix_single',
   'matrix_multiple',
 ])
 
-export const TEXT_INPUT_QUESTION_TYPES: ReadonlySet<QuestionType> = new Set([
+const TEXT_INPUT_QUESTION_TYPES: ReadonlySet<QuestionType> = new Set([
   'text',
   'textarea',
   'email',

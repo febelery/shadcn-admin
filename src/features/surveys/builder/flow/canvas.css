@@ -1,0 +1,62 @@
+/**
+ * 流程图画布样式 — 将 React Flow 内置变量映射到 app design tokens。
+ * 禁止在 SVG 属性中使用 hsl(var(--token))，主题色为 oklch 会渲染成黑块。
+ */
+.survey-flow-canvas.react-flow {
+  --xy-background-color: transparent;
+  --xy-background-pattern-dots-color: color-mix(in oklch, var(--border) 70%, transparent);
+  --xy-edge-stroke-default: var(--border);
+  --xy-edge-stroke-selected-default: var(--primary);
+  --xy-minimap-background-color: var(--card);
+  --xy-minimap-mask-background-color: color-mix(in oklch, var(--background) 55%, transparent);
+  --xy-minimap-mask-stroke-color: var(--primary);
+  --xy-minimap-mask-stroke-width: 1.5;
+  --xy-minimap-node-background-color: var(--muted);
+  --xy-minimap-node-stroke-color: var(--border);
+  --xy-edge-label-background-color: var(--card);
+  --xy-edge-label-color: var(--muted-foreground);
+  --xy-controls-button-background-color: var(--card);
+  --xy-controls-button-background-color-hover: var(--muted);
+  --xy-controls-button-border-color: var(--border);
+  --xy-controls-box-shadow: 0 1px 3px color-mix(in oklch, var(--foreground) 8%, transparent);
+  --xy-handle-background-color: var(--muted-foreground);
+  --xy-handle-border-color: var(--card);
+}
+
+.survey-flow-canvas .react-flow__minimap {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 1px 3px color-mix(in oklch, var(--foreground) 10%, transparent);
+}
+
+.survey-flow-canvas .react-flow__controls {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.survey-flow-canvas .react-flow__controls-button {
+  border-color: var(--border);
+  background: var(--card);
+}
+
+.survey-flow-canvas .react-flow__controls-button:hover {
+  background: var(--muted);
+}
+
+.survey-flow-canvas .react-flow__edge-textbg {
+  fill: var(--card);
+}
+
+.survey-flow-canvas .react-flow__edge-text {
+  fill: var(--muted-foreground);
+}
+
+/* 节点以 React Flow 定位框为准，内容在框内居中 */
+.survey-flow-canvas .react-flow__node {
+  pointer-events: all;
+}
+
+/* 固定尺寸节点：内容填满定位框，Handle 落在栏宽中心线 */
+.survey-flow-canvas .react-flow__node-graphNode {
+  display: flex;
+}
