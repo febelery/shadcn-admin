@@ -2,7 +2,12 @@ import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { getEditorSectionId } from '../../core/editor-schema'
 import { canUseQuestionAsRuleSource } from '../../core/logic/rule-capabilities'
-import { createEmptyRule, createRuleAction } from '../../core/logic/rule-utils'
+import {
+  createEmptyRule,
+  createRuleAction,
+  normalizeRulePriorities,
+  removeRulesReferencingQuestions,
+} from '../../core/logic/rule-utils'
 import {
   migrateSurveySchema,
   prepareSurveySchemaForSave,
@@ -14,7 +19,12 @@ import {
 } from '../../core/schema-defaults'
 import { getQuestionManifest } from '../../shared/question-registry'
 import type { SurveySchema, SurveyElement, Rule } from '../types'
-import { findSection, cloneElement, insertAt } from './helpers'
+import {
+  findSection,
+  cloneElement,
+  collectQuestionIdsFromElement,
+  insertAt,
+} from './helpers'
 import type { BuilderState } from './types'
 
 export const useBuilderStore = create<BuilderState>()(
@@ -54,13 +64,15 @@ export const useBuilderStore = create<BuilderState>()(
 
     updateMeta: (patch) =>
       set((s) => {
-        if (s.schema) Object.assign(s.schema.meta, patch)
+        if (!s.schema) return
+        Object.assign(s.schema.meta, patch)
         s.isDirty = true
       }),
 
     updateTheme: (patch) =>
       set((s) => {
-        if (s.schema?.theme) Object.assign(s.schema.theme, patch)
+        if (!s.schema?.theme) return
+        Object.assign(s.schema.theme, patch)
         s.isDirty = true
       }),
 
@@ -152,7 +164,8 @@ export const useBuilderStore = create<BuilderState>()(
       set((s) => {
         const sec = s.schema && findSection(s.schema, sectionId)
         const el = sec?.elements.find((e) => e.id === elementId)
-        if (el?.kind === 'question') Object.assign(el, patch)
+        if (el?.kind !== 'question') return
+        Object.assign(el, patch)
         s.isDirty = true
       }),
 
@@ -160,7 +173,8 @@ export const useBuilderStore = create<BuilderState>()(
       set((s) => {
         const sec = s.schema && findSection(s.schema, sectionId)
         const el = sec?.elements.find((e) => e.id === elementId)
-        if (el?.kind === 'question') Object.assign(el.config, patch)
+        if (el?.kind !== 'question') return
+        Object.assign(el.config, patch)
         s.isDirty = true
       }),
 
@@ -168,15 +182,24 @@ export const useBuilderStore = create<BuilderState>()(
       set((s) => {
         const sec = s.schema && findSection(s.schema, sectionId)
         const el = sec?.elements.find((e) => e.id === elementId)
-        if (el?.kind === 'html_block') Object.assign(el, patch)
+        if (el?.kind !== 'html_block') return
+        Object.assign(el, patch)
         s.isDirty = true
       }),
 
     removeElement: (sectionId, elementId) =>
       set((s) => {
-        const sec = s.schema && findSection(s.schema, sectionId)
+        const schema = s.schema
+        const sec = schema && findSection(schema, sectionId)
         if (!sec) return
+        const removed = sec.elements.find((e) => e.id === elementId)
+        if (!removed) return
+        const removedQuestionIds = collectQuestionIdsFromElement(removed)
         sec.elements = sec.elements.filter((e) => e.id !== elementId)
+        schema.rules = removeRulesReferencingQuestions(
+          schema.rules,
+          removedQuestionIds
+        )
         if (s.selectedElementId === elementId) s.selectedElementId = null
         s.isDirty = true
       }),
@@ -257,13 +280,13 @@ export const useBuilderStore = create<BuilderState>()(
         if (source) {
           const sourceIndex = questions.findIndex((q) => q.id === source.id)
           const target = questions[sourceIndex + 1]
-          rule.when = `{q.${source.id}} = ''`
+          rule.when = `{q.${source.id}} notEmpty`
           if (target) {
             rule.name = '按条件显示题目'
-            rule.actions = [createRuleAction('show', target.id)]
+            rule.action = createRuleAction('show', target.id)
           } else {
             rule.name = '按条件结束问卷'
-            rule.actions = [createRuleAction('end')]
+            rule.action = createRuleAction('end')
           }
         }
         s.schema.rules.push(rule)
@@ -287,7 +310,7 @@ export const useBuilderStore = create<BuilderState>()(
       return rule.id
     },
 
-    addDisplayRule: (payload) => {
+    addVisibilityRule: (payload) => {
       const { schema } = get()
       if (!schema) return ''
       const ruleId = createEmptyRule().id
@@ -298,7 +321,7 @@ export const useBuilderStore = create<BuilderState>()(
         enabled: true,
         priority: schema.rules.length,
         when: payload.when,
-        actions: [action],
+        action,
       }
       set((s) => {
         if (s.schema) {
@@ -311,7 +334,7 @@ export const useBuilderStore = create<BuilderState>()(
       return ruleId
     },
 
-    addSkipRule: (payload) => {
+    addNavigationRule: (payload) => {
       const { schema } = get()
       if (!schema) return ''
       const ruleId = createEmptyRule().id
@@ -322,7 +345,7 @@ export const useBuilderStore = create<BuilderState>()(
         enabled: true,
         priority: schema.rules.length,
         when: payload.when,
-        actions: [action],
+        action,
       }
       set((s) => {
         if (s.schema) {
@@ -348,7 +371,11 @@ export const useBuilderStore = create<BuilderState>()(
     removeRule: (ruleId) =>
       set((s) => {
         if (!s.schema) return
-        s.schema.rules = s.schema.rules.filter((r) => r.id !== ruleId)
+        const nextRules = s.schema.rules.filter((r) => r.id !== ruleId)
+        if (nextRules.length === s.schema.rules.length) return
+        s.schema.rules = normalizeRulePriorities(
+          nextRules
+        )
         if (s.editingRuleId === ruleId) {
           s.editingRuleId = null
         }

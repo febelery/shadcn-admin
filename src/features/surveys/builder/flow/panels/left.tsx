@@ -4,9 +4,12 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { analyseSurvey } from '../../../core/expression/parser'
+import { ruleMatchesSearch } from '../../../core/logic/rule-meta'
+import { flattenQuestions } from '../../../core/schema-defaults'
+import { getQuestionReferenceLabel } from '../../../shared/question-numbering'
 import { BuilderPanelHeader } from '../../shared/panel-header'
 import { useBuilderStore } from '../../store'
-import { useFlowContext } from '../context'
 import { groupIssuesByRule } from '../issues/issue-utils'
 import { RulesList } from '../rules/rule-list'
 
@@ -18,13 +21,6 @@ type Props = {
 
 /** 流程模式 · 左栏：纯规则索引（搜索 / 筛选 / 列表） */
 export function LeftPanel({ className, onNewRule }: Props) {
-  const {
-    analyseSurvey,
-    ruleMatchesSearch,
-    flattenQuestions,
-    getQuestionReferenceLabel,
-  } = useFlowContext()
-
   const schema = useBuilderStore((s) => s.schema)
   const searchQuery = useBuilderStore((s) => s.flowRuleSearchQuery)
   const setFlowSearchQuery = useBuilderStore((s) => s.setFlowRuleSearchQuery)
@@ -34,7 +30,7 @@ export function LeftPanel({ className, onNewRule }: Props) {
   const issuesByRule = useMemo(() => {
     if (!schema) return new Map()
     return groupIssuesByRule(analyseSurvey(schema))
-  }, [schema, analyseSurvey])
+  }, [schema])
 
   const questionTitles = useMemo(() => {
     const map = new Map<string, string>()
@@ -43,11 +39,11 @@ export function LeftPanel({ className, onNewRule }: Props) {
       map.set(q.id, getQuestionReferenceLabel(q, schema))
     })
     return map
-  }, [schema, flattenQuestions, getQuestionReferenceLabel])
+  }, [schema])
 
   const questions = useMemo(
     () => (schema ? flattenQuestions(schema) : []),
-    [schema, flattenQuestions]
+    [schema]
   )
 
   const filteredRules = useMemo(
@@ -55,7 +51,7 @@ export function LeftPanel({ className, onNewRule }: Props) {
       [...rules]
         .sort((a, b) => a.priority - b.priority)
         .filter((r) => ruleMatchesSearch(r, searchQuery, questionTitles)),
-    [rules, searchQuery, questionTitles, ruleMatchesSearch]
+    [rules, searchQuery, questionTitles]
   )
 
   const createDraftRule = useCallback(() => {

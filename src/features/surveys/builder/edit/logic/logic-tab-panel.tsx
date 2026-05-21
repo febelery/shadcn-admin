@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
-import { useBuilderStatic } from '../context'
+import { canUseQuestionAsRuleSource } from '../../../core/logic/rule-capabilities'
+import { useBuilderStatic } from '../../context'
 import { BuilderGuidance } from '../guidance'
 import { RuleList } from './rule-list'
 import { useSurveyQuestions } from './use-survey-questions'
@@ -10,32 +11,34 @@ type Props = {
 }
 
 export function LogicTabPanel({ selectedQuestionId, onEditRule }: Props) {
-  const { addDisplayRule, addSkipRule, serializeCondition } = useBuilderStatic()
+  const { addVisibilityRule, addNavigationRule, serializeCondition } =
+    useBuilderStatic()
   const questions = useSurveyQuestions()
 
   const selectedQ = selectedQuestionId
     ? questions.find((q) => q.id === selectedQuestionId)
     : undefined
 
-  const priorIds = selectedQuestionId
+  const priorSourceIds = selectedQuestionId
     ? questions
         .slice(
           0,
           questions.findIndex((q) => q.id === selectedQuestionId)
         )
+        .filter(canUseQuestionAsRuleSource)
         .map((q) => q.id)
     : []
 
   const handleQuickShow = () => {
-    if (!selectedQuestionId || priorIds.length === 0) return
-    const src = priorIds[priorIds.length - 1]
+    if (!selectedQuestionId || priorSourceIds.length === 0) return
+    const src = priorSourceIds[priorSourceIds.length - 1]
     const srcQ = questions.find((q) => q.id === src)
     const when = serializeCondition({
       source: 'q',
       ref: src,
       operator: 'not_empty',
     })
-    const id = addDisplayRule({
+    const id = addVisibilityRule({
       targetQuestionId: selectedQuestionId,
       when,
       action: 'show',
@@ -46,13 +49,13 @@ export function LogicTabPanel({ selectedQuestionId, onEditRule }: Props) {
 
   const handleQuickEnd = () => {
     if (!selectedQuestionId) return
+    if (!selectedQ || !canUseQuestionAsRuleSource(selectedQ)) return
     const when = serializeCondition({
       source: 'q',
       ref: selectedQuestionId,
       operator: 'not_empty',
     })
-    const id = addSkipRule({
-      sourceQuestionId: selectedQuestionId,
+    const id = addNavigationRule({
       when,
       action: 'end',
       name: `结束 · ${selectedQ?.title?.slice(0, 12) ?? '本题'}`,
@@ -88,7 +91,7 @@ export function LogicTabPanel({ selectedQuestionId, onEditRule }: Props) {
             type='button'
             variant='outline'
             size='sm'
-            disabled={priorIds.length === 0}
+            disabled={priorSourceIds.length === 0}
             onClick={handleQuickShow}
           >
             当前题 · 按条件显示
@@ -97,6 +100,7 @@ export function LogicTabPanel({ selectedQuestionId, onEditRule }: Props) {
             type='button'
             variant='outline'
             size='sm'
+            disabled={!selectedQ || !canUseQuestionAsRuleSource(selectedQ)}
             onClick={handleQuickEnd}
           >
             本题作答后 · 结束问卷

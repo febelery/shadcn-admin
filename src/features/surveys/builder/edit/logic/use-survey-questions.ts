@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { QuestionElement } from '../../types'
-import { useBuilderStatic, useBuilderStructure } from '../context'
+import { useBuilderStatic, useBuilderStructure } from '../../context'
 
 export function useSurveyQuestions(): QuestionElement[] {
   const { schema } = useBuilderStructure()

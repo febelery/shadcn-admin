@@ -1,8 +1,12 @@
+import {
+  extractQuestionRefsFromWhen,
+  tryParseSimpleCondition,
+} from '../logic/condition-serializer'
 import { findReachableQuestionIds } from '../logic/flow-graph'
-import { extractQuestionRefsFromWhen } from '../logic/condition-serializer'
 import { canUseQuestionAsRuleSource } from '../logic/rule-capabilities'
-import type { SurveySchema } from '../types'
+import { ruleActionTargetsQuestion } from '../logic/rule-utils'
 import { flattenQuestions } from '../schema-defaults'
+import type { SurveySchema } from '../types'
 
 const REF_RE = /\{([a-zA-Z_][\w.]*)\}/g
 
@@ -41,8 +45,9 @@ export function analyseSurvey(schema: SurveySchema): StaticIssue[] {
   const questions = flattenQuestions(schema)
   const questionById = new Map(questions.map((q) => [q.id, q]))
   const qIds = new Set(questions.map((q) => q.id))
-  const sectionIds = new Set(schema.sections.map((s) => s.id))
-  const requiredIds = new Set(questions.filter((q) => q.required).map((q) => q.id))
+  const requiredIds = new Set(
+    questions.filter((q) => q.required).map((q) => q.id)
+  )
 
   const showTargets = new Map<string, string[]>()
   const hideTargets = new Map<string, string[]>()
@@ -58,6 +63,13 @@ export function analyseSurvey(schema: SurveySchema): StaticIssue[] {
       issues.push({
         code: 'expr_syntax',
         message: `规则「${rule.name}」：${syntax}`,
+        ruleId: rule.id,
+        severity: 'error',
+      })
+    } else if (!tryParseSimpleCondition(rule.when)) {
+      issues.push({
+        code: 'expr_unsupported',
+        message: `规则「${rule.name}」使用了当前不支持的复杂条件；规则条件只支持单个题目引用`,
         ruleId: rule.id,
         severity: 'error',
       })
@@ -90,99 +102,94 @@ export function analyseSurvey(schema: SurveySchema): StaticIssue[] {
       }
     }
 
-    for (const action of rule.actions) {
-      const target = action.target
+    const action = rule.action
+    const target = action.target
 
-      if (action.type === 'hide' && target && requiredIds.has(target)) {
+    if (
+      action.type !== 'jump_to_question' &&
+      ruleActionTargetsQuestion(action.type)
+    ) {
+      if (!target || !qIds.has(target)) {
         issues.push({
-          code: 'hide_required',
-          message: `规则「${rule.name}」隐藏了必填题`,
+          code: 'action_target',
+          message: `规则「${rule.name}」动作目标题目不存在`,
           targetId: target,
           ruleId: rule.id,
           severity: 'error',
         })
       }
+    }
 
-      if (action.type === 'jump_to_section' && target && !sectionIds.has(target)) {
+    if (action.type === 'hide' && target && requiredIds.has(target)) {
+      issues.push({
+        code: 'hide_required',
+        message: `规则「${rule.name}」隐藏了必填题`,
+        targetId: target,
+        ruleId: rule.id,
+        severity: 'error',
+      })
+    }
+
+    if (action.type === 'jump_to_question') {
+      if (!target || !qIds.has(target)) {
         issues.push({
-          code: 'jump_target',
-          message: `规则「${rule.name}」跳转目标节不存在`,
+          code: 'jump_question_target',
+          message: `规则「${rule.name}」跳转目标题目不存在`,
           targetId: target,
           ruleId: rule.id,
           severity: 'error',
         })
-      }
-
-      if (action.type === 'jump_to_question') {
-        if (!target || !qIds.has(target)) {
-          issues.push({
-            code: 'jump_question_target',
-            message: `规则「${rule.name}」跳转目标题目不存在`,
-            targetId: target,
-            ruleId: rule.id,
-            severity: 'error',
-          })
-        } else if (sourceQIds.length > 0) {
-          const srcIdx = questionOrderIndex(questions, sourceQIds[0])
-          const tgtIdx = questionOrderIndex(questions, target)
-          if (srcIdx >= 0 && tgtIdx >= 0 && srcIdx >= tgtIdx) {
-            issues.push({
-              code: 'order_violation',
-              message: `规则「${rule.name}」不能跳转到条件题之前或同一题`,
-              targetId: target,
-              ruleId: rule.id,
-              severity: 'error',
-            })
-          }
-        }
-      }
-
-      if (action.type === 'jump_to_question' || action.type === 'end') {
-        const sourceKey = sourceQIds[0] ?? '__unknown__'
-        const targetKey =
-          action.type === 'end' ? '__end__' : (action.target ?? '__missing__')
-        const key = `${sourceKey}\n${rule.when.trim()}`
-        const list = navigationBySourceAndWhen.get(key) ?? []
-        list.push({ ruleId: rule.id, target: targetKey, name: rule.name })
-        navigationBySourceAndWhen.set(key, list)
-      }
-
-      if (
-        (action.type === 'show' || action.type === 'hide') &&
-        target &&
-        sourceQIds.length > 0
-      ) {
+      } else if (sourceQIds.length > 0) {
         const srcIdx = questionOrderIndex(questions, sourceQIds[0])
         const tgtIdx = questionOrderIndex(questions, target)
         if (srcIdx >= 0 && tgtIdx >= 0 && srcIdx >= tgtIdx) {
           issues.push({
             code: 'order_violation',
-            message: `规则「${rule.name}」条件题必须在目标题之前`,
+            message: `规则「${rule.name}」不能跳转到条件题之前或同一题`,
             targetId: target,
             ruleId: rule.id,
             severity: 'error',
           })
         }
-        if (action.type === 'show' && target) {
-          const list = showTargets.get(target) ?? []
-          list.push(rule.id)
-          showTargets.set(target, list)
-        }
-        if (action.type === 'hide' && target) {
-          const list = hideTargets.get(target) ?? []
-          list.push(rule.id)
-          hideTargets.set(target, list)
-        }
       }
     }
 
-    if (rule.actions.length === 0) {
-      issues.push({
-        code: 'no_actions',
-        message: `规则「${rule.name}」未配置动作`,
-        ruleId: rule.id,
-        severity: 'error',
-      })
+    if (action.type === 'jump_to_question' || action.type === 'end') {
+      const sourceKey = sourceQIds[0] ?? '__unknown__'
+      const targetKey =
+        action.type === 'end' ? '__end__' : (action.target ?? '__missing__')
+      const key = `${sourceKey}\n${rule.when.trim()}`
+      const list = navigationBySourceAndWhen.get(key) ?? []
+      list.push({ ruleId: rule.id, target: targetKey, name: rule.name })
+      navigationBySourceAndWhen.set(key, list)
+    }
+
+    if (
+      (action.type === 'show' || action.type === 'hide') &&
+      target &&
+      sourceQIds.length > 0
+    ) {
+      const srcIdx = questionOrderIndex(questions, sourceQIds[0])
+      const tgtIdx = questionOrderIndex(questions, target)
+      if (srcIdx >= 0 && tgtIdx >= 0 && srcIdx >= tgtIdx) {
+        issues.push({
+          code: 'order_violation',
+          message: `规则「${rule.name}」条件题必须在目标题之前`,
+          targetId: target,
+          ruleId: rule.id,
+          severity: 'error',
+        })
+      }
+      if (action.type === 'show') {
+        const list = showTargets.get(target) ?? []
+        list.push(rule.id)
+        showTargets.set(target, list)
+      }
+      if (action.type === 'hide') {
+        const list = hideTargets.get(target) ?? []
+        list.push(rule.id)
+        hideTargets.set(target, list)
+      }
     }
   }
 

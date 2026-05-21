@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { GitBranch, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -8,39 +8,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { analyseSurvey } from '../../core/expression/parser'
-import {
-  buildFlowGraph,
-  flowNodeDimensions,
-  layoutFlowGraphWithMeta,
-  START_ID,
-} from '../../core/logic/flow-graph'
-import { ruleMatchesSearch, getRuleCategory } from '../../core/logic/rule-meta'
-import {
-  getRulesForQuestion,
-  ruleReferencesQuestionAsSource,
-  summarizeRuleAction,
-  createRuleAction,
-} from '../../core/logic/rule-utils'
-import { flattenQuestions } from '../../core/schema-defaults'
-import {
-  questionNumberColumn,
-  questionPrefixCluster,
-  questionTitleText,
-} from '../../shared/question-layout'
-import {
-  getQuestionReferenceLabel,
-  buildQuestionOrdinalMap,
-  getQuestionNumberLabel,
-  getSurveyDefaultNumberingStyle,
-  getQuestionNumberPrefix,
-} from '../../shared/question-numbering'
-import {
-  getQuestionManifest,
-  getQuestionTypeLabel,
-} from '../../shared/question-registry'
 import { useBuilderStore } from '../store'
-import { FlowContext, type FlowContextType } from './context'
 import { CenterPanel } from './panels/center'
 import { LeftPanel } from './panels/left'
 import { RightPanel } from './panels/right'
@@ -81,37 +49,8 @@ export function FlowWorkspace() {
     }
   }, [isMobile, editingRuleId])
 
-  const contextValue = useMemo<FlowContextType>(() => {
-    return {
-      analyseSurvey,
-      buildFlowGraph,
-      flowNodeDimensions,
-      layoutFlowGraphWithMeta,
-      START_ID,
-      ruleMatchesSearch,
-      getRuleCategory,
-      getRulesForQuestion,
-      ruleReferencesQuestionAsSource,
-      summarizeRuleAction,
-      createRuleAction,
-      flattenQuestions,
-      getQuestionReferenceLabel,
-      getQuestionNumberPrefix,
-      buildQuestionOrdinalMap,
-      getQuestionNumberLabel,
-      getSurveyDefaultNumberingStyle,
-      getQuestionManifest,
-      getQuestionTypeLabel,
-      layout: {
-        questionNumberColumn,
-        questionPrefixCluster,
-        questionTitleText,
-      },
-    }
-  }, [])
-
   return (
-    <FlowContext.Provider value={contextValue}>
+    <>
       <div className='flex min-h-0 flex-1 overflow-hidden'>
         <aside
           className={cn(
@@ -188,6 +127,6 @@ export function FlowWorkspace() {
           <RightPanel className='flex h-full w-full max-w-none shrink border-0' />
         </SheetContent>
       </Sheet>
-    </FlowContext.Provider>
+    </>
   )
 }

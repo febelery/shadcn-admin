@@ -84,8 +84,6 @@ export type QuestionType =
   | 'dynamic_panel'
   | 'file_upload'
   | 'signature'
-  | 'divider'
-  | 'html_block'
 
 export interface ChoiceOption {
   id: string
@@ -198,14 +196,7 @@ export interface Section {
   elements: SurveyElement[]
 }
 
-export type RuleActionType =
-  | 'show'
-  | 'hide'
-  | 'jump_to_section'
-  | 'jump_to_question'
-  | 'end'
-  | 'set_required'
-  | 'set_value'
+export type RuleActionType = 'show' | 'hide' | 'jump_to_question' | 'end'
 
 /** 设计器顶栏模式：编辑内容 / 流程图 */
 export type BuilderMode = 'edit' | 'flow'
@@ -223,7 +214,7 @@ export interface Rule {
   enabled: boolean
   priority: number
   when: string
-  actions: RuleAction[]
+  action: RuleAction
 }
 
 export interface CrossFieldValidator {

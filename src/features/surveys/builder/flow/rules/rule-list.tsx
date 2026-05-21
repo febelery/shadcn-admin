@@ -2,10 +2,14 @@ import { Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { extractQuestionRefsFromWhen } from '../../../core/logic/condition-serializer'
+import {
+  getRuleCategory,
+  RULE_CATEGORY_LABEL,
+} from '../../../core/logic/rule-meta'
+import { summarizeRuleAction } from '../../../core/logic/rule-utils'
 import { useQuestionLabel } from '../../edit/logic/use-survey-questions'
 import { useBuilderStore } from '../../store'
 import type { StaticIssue, Rule } from '../../types'
-import { useFlowContext, RULE_CATEGORY_LABEL } from '../context'
 import { worstSeverity } from '../issues/issue-utils'
 
 function RuleRow({
@@ -19,17 +23,17 @@ function RuleRow({
   ruleIssues?: StaticIssue[]
   onSelect: () => void
 }) {
-  const { getRuleCategory, summarizeRuleAction } = useFlowContext()
   const removeRule = useBuilderStore((s) => s.removeRule)
   const category = getRuleCategory(rule)
-  const action = rule.actions[0]
-  const targetLabel = useQuestionLabel(action?.target ?? '')
+  const action = rule.action
+  const targetLabel = useQuestionLabel(action.target ?? '')
   const sourceId = extractQuestionRefsFromWhen(rule.when)[0]
   const sourceLabel = useQuestionLabel(sourceId ?? '')
   const severity = ruleIssues?.length ? worstSeverity(ruleIssues) : null
-  const actionText = action
-    ? summarizeRuleAction(action, action.target ? targetLabel : undefined)
-    : '未配置动作'
+  const actionText = summarizeRuleAction(
+    action,
+    action.target ? targetLabel : undefined
+  )
   const statusColor = severity
     ? severity === 'error'
       ? 'bg-destructive'
@@ -39,7 +43,7 @@ function RuleRow({
   return (
     <div
       className={cn(
-        'group flex min-w-0 items-stretch rounded-md border bg-card transition-colors',
+        'group bg-card flex min-w-0 items-stretch rounded-md border transition-colors',
         selected
           ? 'border-primary/50 bg-primary/7 shadow-xs'
           : 'hover:border-border hover:bg-muted/30 border-border/60',
@@ -104,10 +108,7 @@ function RuleRow({
       </button>
       <div className='flex w-9 shrink-0 flex-col items-center justify-between gap-2 px-1 py-2'>
         <span
-          className={cn(
-            'size-1.5 rounded-full opacity-70',
-            statusColor
-          )}
+          className={cn('size-1.5 rounded-full opacity-70', statusColor)}
           title={severity ? ruleIssues?.[0]?.message : '配置正确'}
         />
         <Button

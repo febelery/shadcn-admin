@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react'
+import { useEffect } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
 import { ArrowLeft, Loader2, Save, Send } from 'lucide-react'
 import { toast } from 'sonner'
@@ -65,8 +65,9 @@ export function SurveyBuilderPage(props: Props) {
   const getSchemaForSave = useBuilderStore((s) => s.getSchemaForSave)
   const builderMode = useBuilderStore((s) => s.builderMode)
   const setBuilderMode = useBuilderStore((s) => s.setBuilderMode)
+  const updateMeta = useBuilderStore((s) => s.updateMeta)
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (isCreate) init(createEmptySurvey())
   }, [isCreate, init])
 
@@ -152,9 +153,7 @@ export function SurveyBuilderPage(props: Props) {
             )}
             value={schema.meta.title}
             placeholder='问卷标题'
-            onChange={(e) =>
-              useBuilderStore.getState().updateMeta({ title: e.target.value })
-            }
+            onChange={(e) => updateMeta({ title: e.target.value })}
           />
         </div>
         <Tabs

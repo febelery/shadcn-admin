@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { LABEL_LIMITS } from '../../store'
 import type { MatrixColumn, MatrixRow, QuestionElement } from '../../types'
-import { useBuilderStatic } from '../context'
+import { useBuilderStatic } from '../../context'
 import { InlineEditable } from '../inline-editable'
 
 type Props = {

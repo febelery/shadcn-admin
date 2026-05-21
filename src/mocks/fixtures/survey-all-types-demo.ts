@@ -367,7 +367,7 @@ export function createAllTypesDemoSurvey(): SurveySchema {
       enabled: true,
       priority: survey.rules.length,
       when: `{q.${source.id}} ${op}${rhs ? ` ${rhs}` : ''}`,
-      actions: [createRuleAction(action, target?.id)],
+      action: createRuleAction(action, target?.id),
     })
   }
 

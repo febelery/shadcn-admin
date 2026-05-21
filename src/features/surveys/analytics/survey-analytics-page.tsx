@@ -19,15 +19,56 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { flattenQuestions } from '../core/schema-defaults'
 import {
   useExportSurveyExcel,
   useSurveyDetail,
   useSurveyResponses,
   useSurveyStats,
 } from '../queries/hooks'
-import { flattenQuestions } from '../core/schema-defaults'
+import type { QuestionElement, SurveyResponseItem } from '../core/types'
 
 type Props = { surveyId: string }
+
+function getAnswerValues(answer: unknown): string[] {
+  if (Array.isArray(answer)) {
+    return answer
+      .filter((item): item is string | number | boolean =>
+        ['string', 'number', 'boolean'].includes(typeof item)
+      )
+      .map(String)
+  }
+  if (
+    typeof answer === 'string' ||
+    typeof answer === 'number' ||
+    typeof answer === 'boolean'
+  ) {
+    return [String(answer)]
+  }
+  return []
+}
+
+function buildOptionDistribution(
+  question: QuestionElement | undefined,
+  responses: SurveyResponseItem[]
+) {
+  const options = question?.config.options ?? []
+  const counts = new Map(options.map((option) => [option.id, 0]))
+
+  for (const response of responses) {
+    const values = getAnswerValues(response.answers[question?.id ?? ''])
+    for (const value of values) {
+      const option = options.find((item) => item.id === value || item.label === value)
+      if (!option) continue
+      counts.set(option.id, (counts.get(option.id) ?? 0) + 1)
+    }
+  }
+
+  return options.map((option) => ({
+    name: option.label,
+    count: counts.get(option.id) ?? 0,
+  }))
+}
 
 export function SurveyAnalyticsPage({ surveyId }: Props) {
   const { data: schema } = useSurveyDetail(surveyId)
@@ -36,15 +77,18 @@ export function SurveyAnalyticsPage({ surveyId }: Props) {
     page: 1,
     pageSize: 10,
   })
+  const { data: distributionResponses } = useSurveyResponses(surveyId, {
+    page: 1,
+    pageSize: 1000,
+  })
   const { mutate: exportExcel, isPending: exporting } = useExportSurveyExcel()
 
   const questions = schema ? flattenQuestions(schema) : []
   const firstChoice = questions.find((q) => q.config.options?.length)
-  const chartData =
-    firstChoice?.config.options?.map((o) => ({
-      name: o.label,
-      count: Math.floor(Math.random() * 20) + 1,
-    })) ?? []
+  const chartData = buildOptionDistribution(
+    firstChoice,
+    distributionResponses?.data ?? []
+  )
 
   return (
     <div className='flex flex-col gap-6 p-6'>
@@ -76,13 +120,17 @@ export function SurveyAnalyticsPage({ surveyId }: Props) {
             <CardHeader className='pb-2'>
               <CardTitle className='text-sm'>Views</CardTitle>
             </CardHeader>
-            <CardContent className='text-2xl font-bold'>{stats.views}</CardContent>
+            <CardContent className='text-2xl font-bold'>
+              {stats.views}
+            </CardContent>
           </Card>
           <Card>
             <CardHeader className='pb-2'>
               <CardTitle className='text-sm'>Starts</CardTitle>
             </CardHeader>
-            <CardContent className='text-2xl font-bold'>{stats.starts}</CardContent>
+            <CardContent className='text-2xl font-bold'>
+              {stats.starts}
+            </CardContent>
           </Card>
           <Card>
             <CardHeader className='pb-2'>
@@ -140,7 +188,9 @@ export function SurveyAnalyticsPage({ surveyId }: Props) {
             <TableBody>
               {(responses?.data ?? []).map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className='font-mono text-xs'>{r.id.slice(0, 8)}</TableCell>
+                  <TableCell className='font-mono text-xs'>
+                    {r.id.slice(0, 8)}
+                  </TableCell>
                   <TableCell>{r.status}</TableCell>
                   <TableCell>
                     {new Date(r.startedAt).toLocaleString()}

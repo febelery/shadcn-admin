@@ -1,10 +1,10 @@
-import { useEffect, useId, useState } from 'react'
+import { useId, useState } from 'react'
 import { Link2 } from 'lucide-react'
-import type { MediaKind } from '@/lib/files'
 import {
   getMediaUploadValidation,
   getMediaUrlFieldLabel,
   getMediaUrlPlaceholder,
+  type MediaKind,
 } from '@/lib/files'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
@@ -55,20 +55,17 @@ function MediaUrlEditorPanel({
   className,
 }: EditorPanelProps) {
   const inputId = useId()
-  const [urlDraft, setUrlDraft] = useState(value)
+  const [urlDraft, setUrlDraft] = useState<string | null>(null)
   const [urlError, setUrlError] = useState<string | null>(null)
   const validation = getMediaUploadValidation(mediaKind)
   const enableCrop = crop && mediaKind === 'image'
-
-  useEffect(() => {
-    setUrlDraft(value)
-    if (!value.trim()) setUrlError(null)
-  }, [value])
+  const currentUrlDraft = urlDraft ?? value
 
   const commitUrl = () => {
-    const normalized = urlDraft.trim()
+    const normalized = currentUrlDraft.trim()
     if (!normalized) {
       setUrlError(null)
+      setUrlDraft(null)
       if (value) onChange('')
       return
     }
@@ -78,14 +75,14 @@ function MediaUrlEditorPanel({
       return
     }
     setUrlError(null)
-    setUrlDraft(normalized)
+    setUrlDraft(null)
     if (normalized !== value) onChange(normalized)
   }
 
   const handleUploadChange = (next: string | string[]) => {
     const url = typeof next === 'string' ? next : (next[0] ?? '')
     setUrlError(null)
-    setUrlDraft(url)
+    setUrlDraft(null)
     onChange(url)
   }
 
@@ -130,7 +127,7 @@ function MediaUrlEditorPanel({
               'text-xs leading-none',
               urlError && 'border-destructive'
             )}
-            value={urlDraft}
+            value={currentUrlDraft}
             placeholder={urlPlaceholder ?? getMediaUrlPlaceholder(mediaKind)}
             aria-invalid={Boolean(urlError)}
             onChange={(e) => {

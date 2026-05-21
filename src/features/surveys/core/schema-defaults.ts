@@ -47,7 +47,7 @@ export function createSection(overrides?: Partial<Section>): Section {
 export function createEmptySurvey(title = '未命名问卷'): SurveySchema {
   return {
     id: createQuestionId(),
-    version: '1',
+    version: '4',
     status: 'draft',
     meta: { ...DEFAULT_META, title },
     presentation: { type: 'scroll' },

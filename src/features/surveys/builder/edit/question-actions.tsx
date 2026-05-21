@@ -71,20 +71,24 @@ function ActionDivider() {
   return <Separator className='bg-border/50 mx-0.5 w-[calc(100%-0.25rem)]' />
 }
 
-function DragHandleButton({ drag }: { drag: QuestionDragHandleProps }) {
+function DragHandleButton({
+  setActivatorNodeRef,
+  attributes,
+  listeners,
+}: QuestionDragHandleProps) {
   return (
     <ActionTooltip label='拖动排序'>
       <Button
         type='button'
         variant='ghost'
         size='icon'
-        ref={drag.setActivatorNodeRef}
+        ref={setActivatorNodeRef}
         aria-label='拖动排序'
         className='text-muted-foreground hover:bg-muted hover:text-foreground size-6 cursor-grab rounded-md active:cursor-grabbing'
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
-        {...drag.attributes}
-        {...drag.listeners}
+        {...attributes}
+        {...listeners}
       >
         <GripVertical className='size-3 shrink-0 stroke-2' />
       </Button>
@@ -127,7 +131,7 @@ export function WorkspaceQuestionActions({
         role='toolbar'
         aria-label='题目操作'
       >
-        <DragHandleButton drag={drag} />
+        <DragHandleButton {...drag} />
         <ActionDivider />
         <ActionButton
           label='复制'

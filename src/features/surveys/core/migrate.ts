@@ -1,3 +1,4 @@
+import { sanitizeRulesForSchema } from './logic/rule-utils'
 import { createSection } from './schema-defaults'
 import type {
   CascaderNode,
@@ -10,7 +11,7 @@ import type {
 } from './types'
 
 /** 编辑器持久化契约版本（与填写端协商） */
-const EDITOR_SCHEMA_VERSION = '3'
+const EDITOR_SCHEMA_VERSION = '4'
 
 /** 载入时 API 可能仍带旧字段，迁移后不再出现在类型中 */
 type LegacyChoiceOption = ChoiceOption & {
@@ -123,6 +124,7 @@ export function migrateSurveySchema(schema: SurveySchema): SurveySchema {
     walkElements(section.elements)
   }
 
+  next.rules = sanitizeRulesForSchema(next)
   next.version = EDITOR_SCHEMA_VERSION
   return next
 }

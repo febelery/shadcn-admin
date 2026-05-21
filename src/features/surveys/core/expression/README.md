@@ -1,9 +1,9 @@
-# Expression DSL (design-time)
+# Rule Expression DSL
 
-References: `{q.<id>}`, `{var.<name>}`, `{section.<id>}`.
+Admin 当前只支持单条件表达式，作为可视化规则编辑器和流程图的共同契约。
 
-Operators: `=`, `!=`, `>`, `<`, `>=`, `<=`, `contains`, `empty`, `notEmpty`, `and`, `or`, `not`.
+References: `{q.<id>}`.
 
-Functions: `today()`, `length()`, `iif(cond, a, b)`.
+Operators: `=`, `!=`, `>`, `<`, `>=`, `<=`, `contains`, `not contains`, `empty`, `notEmpty`.
 
-Admin only validates syntax and referenced IDs; evaluation runs in the fill app.
+Unsupported for now: `{var.*}`, `{section.*}`, `and`, `or`, `not`, functions, nested expressions. Admin publishes these as blocking errors instead of guessing a source question.

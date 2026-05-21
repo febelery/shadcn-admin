@@ -5,7 +5,7 @@ Admin 设计器仅校验规则语法与引用；**规则求值、显隐、跳题
 ## 数据模型
 
 - 规则数组：`schema.rules: Rule[]`
-- 单条规则：`when`（字符串表达式）+ `actions[]`
+- 单条规则：`when`（字符串表达式）+ `action`
 - 动作类型（MVP）：`show` | `hide` | `jump_to_question` | `end`
 
 表达式 DSL 见 [`README.md`](./README.md)。
@@ -14,7 +14,7 @@ Admin 设计器仅校验规则语法与引用；**规则求值、显隐、跳题
 
 1. 仅处理 `enabled === true` 的规则
 2. 按 `priority` **升序**；同优先级按 `id` 字典序稳定排序
-3. 对每条规则：若 `evaluate(when)` 为真，则依次执行 `actions`
+3. 对每条规则：若 `evaluate(when)` 为真，则执行 `action`
 4. `end` 动作命中后**立即终止**问卷，不再评估后续规则
 
 ## 显隐默认策略
@@ -39,7 +39,7 @@ Admin 设计器仅校验规则语法与引用；**规则求值、显隐、跳题
 function getNextQuestion(currentId, answers, schema):
   rules = sorted enabled rules by priority
   for rule in rules:
-    if evaluate(rule.when, answers) and rule.actions has jump/end from current:
+    if evaluate(rule.when, answers) and rule.action is jump/end from current:
       return apply jump/end action
 
   candidates = questions after currentId in flatten order
@@ -57,7 +57,7 @@ function getNextQuestion(currentId, answers, schema):
 
 ## 答案引用
 
-- 表达式引用：`{q.<questionId>}`
+- 表达式引用：`{q.<questionId>}`；Admin 当前只发布单条件表达式
 - 单选/下拉：值为 option `id` 或字面量
 - 多选：数组，使用 `contains` 运算符
 - 空值：`empty` / `notEmpty`
@@ -76,4 +76,4 @@ warn 级（不可达题、显隐冲突）不阻断发布，填写端可按契约
 ## 版本
 
 - Schema `version: "1"` 起支持 `jump_to_question`
-- `jump_to_section` 保留供多节问卷未来使用
+- 多节跳转不再保留在当前 Schema 契约内；需要多节能力时应先恢复 section 编辑模型，再扩展规则动作。

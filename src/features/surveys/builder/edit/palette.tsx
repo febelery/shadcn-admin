@@ -22,11 +22,16 @@ import {
 } from '@/components/ui/hover-card'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { PALETTE_DRAG } from '../shared/dnd-provider'
+import { useBuilderStatic } from '../context'
+import { PALETTE_DRAG } from '../shared/dnd-types'
 import { BuilderPanelHeader } from '../shared/panel-header'
 import { useBuilderStore } from '../store'
+import {
+  LAYOUT_MANIFESTS,
+  QUESTION_CATEGORIES,
+  QUESTION_MANIFESTS,
+} from '../../shared/question-registry'
 import type { QuestionType, QuestionManifest, PaletteTypeId } from '../types'
-import { useBuilderStatic } from '../context'
 
 type PaletteItem =
   | QuestionManifest
@@ -37,6 +42,11 @@ type PaletteRowItem = {
   label: string
   icon: LucideIcon
   category: string
+}
+
+function isCreatableQuestion(item: QuestionManifest): boolean {
+  // dynamic_panel 只有数据层/旧数据展示能力，没有模板编辑器，先从新建入口隔离。
+  return item.type !== 'dynamic_panel'
 }
 
 function paletteData(item: PaletteRowItem) {
@@ -203,36 +213,30 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
   const sectionId = useBuilderStore((s) => s.selectedSectionId)
   const disabled = !sectionId
 
-  const {
-    matchesPaletteSearch,
-    QUESTION_MANIFESTS,
-    LAYOUT_MANIFESTS,
-    QUESTION_CATEGORIES,
-  } = useBuilderStatic()
+  const { matchesPaletteSearch } = useBuilderStatic()
 
   const filtered = useMemo(() => {
+    const questionManifests = QUESTION_MANIFESTS.filter(isCreatableQuestion)
     const match = (item: PaletteItem) => matchesPaletteSearch(item, query)
 
     const byCategory = (cat: string) =>
-      QUESTION_MANIFESTS.filter((m) => m.category === cat && match(m))
+      questionManifests.filter((m) => m.category === cat && match(m))
 
     const layout = LAYOUT_MANIFESTS.filter(match)
+    const categories = QUESTION_CATEGORIES.filter((c) => c !== '布局')
+      .map((cat) => ({ cat, items: byCategory(cat) }))
+      .filter(({ items }) => items.length > 0)
 
     return {
-      categories: QUESTION_CATEGORIES.filter((c) => c !== '布局').map(
-        (cat) => ({ cat, items: byCategory(cat) })
-      ),
+      categories,
       layout,
-      flat: [...QUESTION_MANIFESTS.filter(match), ...layout] as PaletteItem[],
-      total: QUESTION_MANIFESTS.filter(match).length + layout.length,
+      flat: [...questionManifests.filter(match), ...layout] as PaletteItem[],
+      total: questionManifests.filter(match).length + layout.length,
       searching: Boolean(query.trim()),
     }
   }, [
     query,
     matchesPaletteSearch,
-    QUESTION_MANIFESTS,
-    LAYOUT_MANIFESTS,
-    QUESTION_CATEGORIES,
   ])
 
   const addItem = (item: PaletteItem) => {

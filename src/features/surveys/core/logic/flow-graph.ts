@@ -166,10 +166,8 @@ export function buildFlowGraph(schema: SurveySchema): FlowGraph {
       hasVisibilityRules: schema.rules.some(
         (r) =>
           r.enabled &&
-          r.actions.some(
-            (a) =>
-              (a.type === 'show' || a.type === 'hide') && a.target === el.id
-          )
+          (r.action.type === 'show' || r.action.type === 'hide') &&
+          r.action.target === el.id
       ),
       hasBranchRules: schema.rules.some(
         (r) => r.enabled && ruleReferencesQuestionAsSource(r, el.id)
@@ -224,42 +222,41 @@ export function buildFlowGraph(schema: SurveySchema): FlowGraph {
       sourceQuestion
     )
 
-    for (const action of rule.actions) {
-      if (action.type === 'end') {
-        edges.push({
-          id: `rule:${rule.id}:${action.id}`,
-          kind: 'end',
-          source: sourceNodeId,
-          target: END_ID,
-          label: conditionLabel,
-          ruleId: rule.id,
-        })
-      } else if (action.type === 'jump_to_question' && action.target) {
-        const targetNodeId = nodeIdForElement(action.target)
-        if (!nodeIds.includes(targetNodeId)) continue
-        edges.push({
-          id: `rule:${rule.id}:${action.id}`,
-          kind: 'jump',
-          source: sourceNodeId,
-          target: targetNodeId,
-          label: conditionLabel,
-          ruleId: rule.id,
-        })
-      } else if (
-        (action.type === 'show' || action.type === 'hide') &&
-        action.target
-      ) {
-        const targetNodeId = nodeIdForElement(action.target)
-        if (!nodeIds.includes(targetNodeId)) continue
-        edges.push({
-          id: `rule:${rule.id}:${action.id}`,
-          kind: 'visibility',
-          source: sourceNodeId,
-          target: targetNodeId,
-          label: conditionLabel,
-          ruleId: rule.id,
-        })
-      }
+    const action = rule.action
+    if (action.type === 'end') {
+      edges.push({
+        id: `rule:${rule.id}:${action.id}`,
+        kind: 'end',
+        source: sourceNodeId,
+        target: END_ID,
+        label: conditionLabel,
+        ruleId: rule.id,
+      })
+    } else if (action.type === 'jump_to_question' && action.target) {
+      const targetNodeId = nodeIdForElement(action.target)
+      if (!nodeIds.includes(targetNodeId)) continue
+      edges.push({
+        id: `rule:${rule.id}:${action.id}`,
+        kind: 'jump',
+        source: sourceNodeId,
+        target: targetNodeId,
+        label: conditionLabel,
+        ruleId: rule.id,
+      })
+    } else if (
+      (action.type === 'show' || action.type === 'hide') &&
+      action.target
+    ) {
+      const targetNodeId = nodeIdForElement(action.target)
+      if (!nodeIds.includes(targetNodeId)) continue
+      edges.push({
+        id: `rule:${rule.id}:${action.id}`,
+        kind: 'visibility',
+        source: sourceNodeId,
+        target: targetNodeId,
+        label: conditionLabel,
+        ruleId: rule.id,
+      })
     }
   }
 

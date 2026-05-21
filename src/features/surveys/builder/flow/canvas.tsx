@@ -17,11 +17,20 @@ import {
 import '@xyflow/react/dist/style.css'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
+import { analyseSurvey } from '../../core/expression/parser'
 import { extractQuestionRefsFromWhen } from '../../core/logic/condition-serializer'
+import {
+  buildFlowGraph,
+  flowNodeDimensions,
+  layoutFlowGraphWithMeta,
+  START_ID,
+} from '../../core/logic/flow-graph'
+import { ruleMatchesSearch } from '../../core/logic/rule-meta'
+import { flattenQuestions } from '../../core/schema-defaults'
+import { getQuestionReferenceLabel } from '../../shared/question-numbering'
 import { useBuilderStore } from '../store'
 import type { SurveySchema, FlowGraphEdge } from '../types'
 import './canvas.css'
-import { useFlowContext } from './context'
 import { GraphNode, type NodeData } from './nodes'
 
 const nodeTypes = {
@@ -137,7 +146,10 @@ function FlowLegend() {
     <div className='pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2'>
       <div className='border-border/70 bg-background/90 text-muted-foreground flex items-center gap-3 rounded-full border px-3 py-1.5 shadow-sm backdrop-blur-sm'>
         {items.map((item) => (
-          <div key={item.label} className='flex items-center gap-1.5 text-[11px] leading-none'>
+          <div
+            key={item.label}
+            className='flex items-center gap-1.5 text-[11px] leading-none'
+          >
             <svg
               className='h-3 w-7 shrink-0'
               viewBox='0 0 28 12'
@@ -234,7 +246,7 @@ function buildLayoutSignature(
       id: r.id,
       enabled: r.enabled,
       when: r.when,
-      actions: r.actions,
+      action: r.action,
     })),
     titles: section?.elements
       .filter((e) => e.kind === 'question')
@@ -246,12 +258,7 @@ function nodeMatchesSearch(
   data: NodeData,
   query: string,
   questionTitles: Map<string, string>,
-  rules: SurveySchema['rules'],
-  ruleMatchesSearchFn: (
-    rule: any,
-    query: string,
-    questionTitles: Map<string, string>
-  ) => boolean
+  rules: SurveySchema['rules']
 ): boolean {
   if (!query.trim()) return true
   const needle = query.trim().toLowerCase()
@@ -263,19 +270,21 @@ function nodeMatchesSearch(
   if (data.elementId) {
     const related = rules.some(
       (r) =>
-        ruleMatchesSearchFn(r, query, questionTitles) &&
-        (r.when.includes(data.elementId!) ||
-          r.actions.some((a) => a.target === data.elementId))
+        ruleMatchesSearch(r, query, questionTitles) &&
+        (r.when.includes(data.elementId!) || r.action.target === data.elementId)
     )
     if (related) return true
   }
   return false
 }
 
-function ruleTouchesQuestion(rule: SurveySchema['rules'][number], questionId: string) {
+function ruleTouchesQuestion(
+  rule: SurveySchema['rules'][number],
+  questionId: string
+) {
   return (
     extractQuestionRefsFromWhen(rule.when).includes(questionId) ||
-    rule.actions.some((a) => a.target === questionId)
+    rule.action.target === questionId
   )
 }
 
@@ -286,9 +295,7 @@ function pickRuleForQuestion(
   const enabled = rules.filter((r) => r.enabled)
   const outgoing = enabled.find((r) => {
     if (!extractQuestionRefsFromWhen(r.when).includes(questionId)) return false
-    return r.actions.some(
-      (a) => a.type === 'jump_to_question' || a.type === 'end'
-    )
+    return r.action.type === 'jump_to_question' || r.action.type === 'end'
   })
   if (outgoing) return outgoing.id
 
@@ -297,9 +304,7 @@ function pickRuleForQuestion(
   )
   if (sourceRule) return sourceRule.id
 
-  const targetRule = enabled.find((r) =>
-    r.actions.some((a) => a.target === questionId)
-  )
+  const targetRule = enabled.find((r) => r.action.target === questionId)
   return targetRule?.id ?? null
 }
 
@@ -313,24 +318,11 @@ function CanvasInner() {
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
   const selectFlowRule = useBuilderStore((s) => s.selectFlowRule)
 
-  const {
-    analyseSurvey,
-    buildFlowGraph,
-    flowNodeDimensions,
-    layoutFlowGraphWithMeta,
-    START_ID,
-    ruleMatchesSearch: ruleMatchesSearchFn,
-    flattenQuestions,
-    getQuestionReferenceLabel,
-  } = useFlowContext()
-
   const initialFitDone = useRef(false)
 
   const layoutSig = useMemo(
     () =>
-      schema
-        ? buildLayoutSignature(schema, showJump, showVisibility)
-        : '',
+      schema ? buildLayoutSignature(schema, showJump, showVisibility) : '',
     [schema, showJump, showVisibility]
   )
 
@@ -341,7 +333,7 @@ function CanvasInner() {
       map.set(q.id, getQuestionReferenceLabel(q, schema))
     })
     return map
-  }, [schema, flattenQuestions, getQuestionReferenceLabel])
+  }, [schema])
 
   const { baseNodes, edges, layoutMeta } = useMemo(() => {
     if (!schema) {
@@ -361,7 +353,10 @@ function CanvasInner() {
       else if (!issuesMap.has(i.targetId)) issuesMap.set(i.targetId, 'warn')
     }
 
-    const nodeRects = new Map<string, { x: number; y: number; w: number; h: number }>()
+    const nodeRects = new Map<
+      string,
+      { x: number; y: number; w: number; h: number }
+    >()
     const rfNodes: Node[] = graph.nodes.map((n: any) => {
       const pos = positions.get(n.id) ?? { x: 0, y: 0 }
       const elIssue = n.elementId ? issuesMap.get(n.elementId) : undefined
@@ -466,15 +461,7 @@ function CanvasInner() {
       edges: rfEdges,
       layoutMeta: { columns, compact },
     }
-  }, [
-    schema,
-    showJump,
-    showVisibility,
-    buildFlowGraph,
-    layoutFlowGraphWithMeta,
-    analyseSurvey,
-    flowNodeDimensions,
-  ])
+  }, [schema, showJump, showVisibility])
 
   const hasSearch = searchQuery.trim().length > 0
   const selectedRule = useMemo(
@@ -490,8 +477,7 @@ function CanvasInner() {
           data,
           searchQuery,
           questionTitles,
-          schema?.rules ?? [],
-          ruleMatchesSearchFn
+          schema?.rules ?? []
         )
         return {
           ...n,
@@ -512,7 +498,6 @@ function CanvasInner() {
       schema?.rules,
       selectedRule,
       hasSearch,
-      ruleMatchesSearchFn,
     ]
   )
 
@@ -541,7 +526,11 @@ function CanvasInner() {
     )
     const anchor = startNode ?? firstQuestion ?? nodes[0]
     const width =
-      typeof anchor.width === 'number' ? anchor.width : layoutMeta.compact ? 176 : 220
+      typeof anchor.width === 'number'
+        ? anchor.width
+        : layoutMeta.compact
+          ? 176
+          : 220
     const zoom = layoutMeta.compact ? 1.12 : 0.95
     const offsetY = layoutMeta.compact ? 120 : 140
 
@@ -549,7 +538,7 @@ function CanvasInner() {
       zoom,
       duration: 0,
     })
-  }, [START_ID, nodes, setCenter, layoutMeta.compact])
+  }, [nodes, setCenter, layoutMeta.compact])
 
   // 仅在首次进入 / 结构变化时定位可读视口，不干扰用户手动缩放
   useEffect(() => {
@@ -609,7 +598,7 @@ function CanvasInner() {
       minZoom={0.2}
       maxZoom={1.75}
       proOptions={{ hideAttribution: true }}
-      >
+    >
       <Background gap={20} size={1} />
       <Controls showInteractive={false} position='bottom-left' />
       <MiniMap

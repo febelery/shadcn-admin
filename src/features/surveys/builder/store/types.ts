@@ -70,14 +70,13 @@ export interface BuilderState {
   selectFlowRule: (ruleId: string | null) => void
   startFlowNewRule: () => void
   addRule: () => string
-  addDisplayRule: (payload: {
+  addVisibilityRule: (payload: {
     targetQuestionId: string
     when: string
     action: 'show' | 'hide'
     name: string
   }) => string
-  addSkipRule: (payload: {
-    sourceQuestionId: string
+  addNavigationRule: (payload: {
     when: string
     action: 'jump_to_question' | 'end'
     targetQuestionId?: string

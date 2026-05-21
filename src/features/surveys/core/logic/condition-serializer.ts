@@ -1,7 +1,6 @@
-import type { ConditionOperator } from './operators'
-import { OPERATOR_TO_EXPR } from './operators'
+import { OPERATOR_TO_EXPR, type ConditionOperator } from './operators'
 
-export type ConditionSource = 'q' | 'var'
+export type ConditionSource = 'q'
 
 export interface Condition {
   source: ConditionSource

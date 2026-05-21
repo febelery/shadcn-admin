@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { useBuilderStatic, useBuilderStructure } from '../context'
+import { useBuilderStatic, useBuilderStructure } from '../../context'
 import { InspectorFormField, InspectorSection } from '../inspector/primitives'
 
 export function EndPagePanel() {

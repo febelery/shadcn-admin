@@ -21,7 +21,7 @@ import type {
   ConditionOperator,
   QuestionElement,
 } from '../../types'
-import { useBuilderStatic } from '../context'
+import { useBuilderStatic } from '../../context'
 import {
   useSurveyQuestions,
   useQuestionSelectOptions,

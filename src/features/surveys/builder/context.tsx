@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useMemo } from 'react'
-import type { ComponentType, ReactNode } from 'react'
+/* eslint-disable react-refresh/only-export-components -- Builder context intentionally exports provider plus scoped hooks. */
+import {
+  createContext,
+  useContext,
+  useMemo,
+  type ComponentType,
+  type ReactNode,
+} from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import {
   DEFAULT_OTHER_LABEL,
@@ -72,10 +78,6 @@ import {
 } from '../shared/question-numbering'
 import {
   getQuestionTypeLabel,
-  getQuestionManifest,
-  LAYOUT_MANIFESTS,
-  QUESTION_CATEGORIES,
-  QUESTION_MANIFESTS,
 } from '../shared/question-registry'
 import { QuestionRequiredMark } from '../shared/question-required-mark'
 import {
@@ -139,14 +141,13 @@ export interface BuilderStaticContextType {
 
   // 逻辑规则管理动作
   addRule: () => string
-  addDisplayRule: (payload: {
+  addVisibilityRule: (payload: {
     targetQuestionId: string
     when: string
     action: 'show' | 'hide'
     name: string
   }) => string
-  addSkipRule: (payload: {
-    sourceQuestionId: string
+  addNavigationRule: (payload: {
     when: string
     action: 'jump_to_question' | 'end'
     targetQuestionId?: string
@@ -247,8 +248,8 @@ export interface BuilderStaticContextType {
     meta: any
     theme: any
     className?: string
-    titleSlot?: React.ReactNode
-    descriptionSlot?: React.ReactNode
+    titleSlot?: ReactNode
+    descriptionSlot?: ReactNode
   }>
 
   // 逻辑与规则 (重定向自 core/logic)
@@ -266,10 +267,6 @@ export interface BuilderStaticContextType {
   getOperatorsForQuestionType: (type: any) => any[]
   supportsVisualCondition: (type: any) => boolean
   extractQuestionRefsFromWhen: (when: string) => string[]
-  getQuestionManifest: (type: QuestionType) => any
-  QUESTION_CATEGORIES: readonly string[]
-  QUESTION_MANIFESTS: any[]
-  LAYOUT_MANIFESTS: any[]
 }
 
 export interface BuilderStructureContextType {
@@ -323,7 +320,6 @@ export function useBuilderActiveState() {
   return context
 }
 
-
 export function BuilderContextProvider({ children }: { children: ReactNode }) {
   const {
     schema,
@@ -346,8 +342,8 @@ export function BuilderContextProvider({ children }: { children: ReactNode }) {
     setInspectorTab,
     setEditingRuleId,
     addRule,
-    addDisplayRule,
-    addSkipRule,
+    addVisibilityRule,
+    addNavigationRule,
     updateRule,
     removeRule,
     setBuilderMode,
@@ -372,8 +368,8 @@ export function BuilderContextProvider({ children }: { children: ReactNode }) {
       setInspectorTab: s.setInspectorTab,
       setEditingRuleId: s.setEditingRuleId,
       addRule: s.addRule,
-      addDisplayRule: s.addDisplayRule,
-      addSkipRule: s.addSkipRule,
+      addVisibilityRule: s.addVisibilityRule,
+      addNavigationRule: s.addNavigationRule,
       updateRule: s.updateRule,
       removeRule: s.removeRule,
       setBuilderMode: s.setBuilderMode,
@@ -384,40 +380,18 @@ export function BuilderContextProvider({ children }: { children: ReactNode }) {
     () => (schema ? getEditorSection(schema) : undefined),
     [schema]
   )
-  const elements = section?.elements ?? []
+  const elements = useMemo(() => section?.elements ?? [], [section])
   const sectionId = section?.id ?? selectedSectionId
 
-  // 计算一个结构骨架字符串，只有结构、类型、单个显隐设置以及全局题号配置变更时，骨架字符串才变
-  const skeleton = useBuilderStore((s) => {
-    if (!s.schema) return ''
-    const elementsStr = s.schema.sections
-      .map((sec) =>
-        sec.elements
-          .map((el) => {
-            if (el.kind === 'question') {
-              return `${el.id}-${el.type}-${el.numbering?.show ?? 'true'}`
-            }
-            return `${el.id}-${el.kind}`
-          })
-          .join(',')
-      )
-      .join(';')
-    const defaultNumbering = s.schema.meta.defaultQuestionNumbering ?? 'decimal'
-    const numberingMode = s.schema.meta.questionNumberingMode ?? 'global'
-    return `${elementsStr}|${defaultNumbering}|${numberingMode}`
-  })
-
-  // 仅在结构骨架变化时重算 numbering 映射表
   const numbering = useMemo(() => {
-    const currentSchema = useBuilderStore.getState().schema
-    if (!currentSchema) return null
+    if (!schema) return null
     return {
-      globalOrdinalMap: buildQuestionOrdinalMap(currentSchema),
-      displayOrdinalMap: buildQuestionDisplayOrdinalMap(currentSchema),
-      surveyDefaultNumbering: getSurveyDefaultNumberingStyle(currentSchema),
-      numberingMode: getQuestionNumberingMode(currentSchema),
+      globalOrdinalMap: buildQuestionOrdinalMap(schema),
+      displayOrdinalMap: buildQuestionDisplayOrdinalMap(schema),
+      surveyDefaultNumbering: getSurveyDefaultNumberingStyle(schema),
+      numberingMode: getQuestionNumberingMode(schema),
     }
-  }, [skeleton])
+  }, [schema])
 
   const staticContextValue = useMemo<BuilderStaticContextType>(() => {
     return {
@@ -435,8 +409,8 @@ export function BuilderContextProvider({ children }: { children: ReactNode }) {
       setInspectorTab,
       setEditingRuleId,
       addRule,
-      addDisplayRule,
-      addSkipRule,
+      addVisibilityRule,
+      addNavigationRule,
       updateRule,
       removeRule,
       setBuilderMode,
@@ -504,18 +478,27 @@ export function BuilderContextProvider({ children }: { children: ReactNode }) {
       getOperatorsForQuestionType,
       supportsVisualCondition,
       extractQuestionRefsFromWhen,
-      getQuestionManifest,
-      QUESTION_CATEGORIES,
-      QUESTION_MANIFESTS,
-      LAYOUT_MANIFESTS,
     }
   }, [
     // Zustand actions 引用天然稳定，可放入依赖数组
-    select, updateQuestion, updateQuestionConfig, updateHtmlBlock,
-    removeElement, duplicateElement, addQuestion, addLayout,
-    updateMeta, updateTheme, updateSubmission,
-    setInspectorTab, setEditingRuleId,
-    addRule, addDisplayRule, addSkipRule, updateRule, removeRule,
+    select,
+    updateQuestion,
+    updateQuestionConfig,
+    updateHtmlBlock,
+    removeElement,
+    duplicateElement,
+    addQuestion,
+    addLayout,
+    updateMeta,
+    updateTheme,
+    updateSubmission,
+    setInspectorTab,
+    setEditingRuleId,
+    addRule,
+    addVisibilityRule,
+    addNavigationRule,
+    updateRule,
+    removeRule,
     setBuilderMode,
   ]) // actions 稳定引用，实际上不会触发重算；显式声明防止未来添加非稳定值时的闭包 bug
 
@@ -536,17 +519,13 @@ export function BuilderContextProvider({ children }: { children: ReactNode }) {
     }
   }, [selectedElementId, inspectorTab, editingRuleId])
 
-  return React.createElement(
-    BuilderStaticContext.Provider,
-    { value: staticContextValue },
-    React.createElement(
-      BuilderStructureContext.Provider,
-      { value: structureContextValue },
-      React.createElement(
-        BuilderActiveStateContext.Provider,
-        { value: activeStateContextValue },
-        children
-      )
-    )
+  return (
+    <BuilderStaticContext value={staticContextValue}>
+      <BuilderStructureContext value={structureContextValue}>
+        <BuilderActiveStateContext value={activeStateContextValue}>
+          {children}
+        </BuilderActiveStateContext>
+      </BuilderStructureContext>
+    </BuilderStaticContext>
   )
 }

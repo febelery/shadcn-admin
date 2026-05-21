@@ -1,10 +1,50 @@
 import { z } from 'zod'
 import type { SurveySchema } from './types'
 
+const questionTypeValues = [
+  'single_choice',
+  'multiple_choice',
+  'dropdown',
+  'ranking',
+  'matrix_single',
+  'matrix_multiple',
+  'cascader',
+  'text',
+  'textarea',
+  'number',
+  'email',
+  'phone',
+  'url',
+  'date',
+  'date_range',
+  'fill_in',
+  'rating',
+  'slider',
+  'nps',
+  'likert',
+  'dynamic_panel',
+  'file_upload',
+  'signature',
+] as const
+
+const ruleActionTypeValues = [
+  'show',
+  'hide',
+  'jump_to_question',
+  'end',
+] as const
+
+const ruleActionSchema = z.object({
+  id: z.string(),
+  type: z.enum(ruleActionTypeValues),
+  target: z.string().optional(),
+  value: z.unknown().optional(),
+})
+
 const questionElementSchema = z.object({
   kind: z.literal('question'),
   id: z.string(),
-  type: z.string(),
+  type: z.enum(questionTypeValues),
   title: z.string(),
   description: z.string().optional(),
   required: z.boolean(),
@@ -16,23 +56,24 @@ const questionElementSchema = z.object({
   config: z.record(z.string(), z.unknown()),
 })
 
-const surveyElementSchema = z.discriminatedUnion('kind', [
-  questionElementSchema,
-  z.object({ kind: z.literal('divider'), id: z.string() }),
-  z.object({
-    kind: z.literal('html_block'),
-    id: z.string(),
-    html: z.string(),
-  }),
-  z.object({
-    kind: z.literal('panel'),
-    id: z.string(),
-    title: z.string().optional(),
-    collapsible: z.boolean().optional(),
-    // panel 嵌套在编辑器中未完整支持，暂用宽松校验
-    elements: z.array(z.unknown()),
-  }),
-])
+const surveyElementSchema: z.ZodType<unknown> = z.lazy(() =>
+  z.discriminatedUnion('kind', [
+    questionElementSchema,
+    z.object({ kind: z.literal('divider'), id: z.string() }),
+    z.object({
+      kind: z.literal('html_block'),
+      id: z.string(),
+      html: z.string(),
+    }),
+    z.object({
+      kind: z.literal('panel'),
+      id: z.string(),
+      title: z.string().optional(),
+      collapsible: z.boolean().optional(),
+      elements: z.array(surveyElementSchema),
+    }),
+  ])
+)
 
 const surveySchemaZod = z.object({
   id: z.string(),
@@ -95,14 +136,7 @@ const surveySchemaZod = z.object({
       enabled: z.boolean(),
       priority: z.number(),
       when: z.string(),
-      actions: z.array(
-        z.object({
-          id: z.string(),
-          type: z.string(),
-          target: z.string().optional(),
-          value: z.unknown().optional(),
-        })
-      ),
+      action: ruleActionSchema,
     })
   ),
   validators: z.array(

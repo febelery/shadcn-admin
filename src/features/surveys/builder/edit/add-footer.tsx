@@ -1,7 +1,7 @@
 import { useDroppable } from '@dnd-kit/core'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
-import { WORKSPACE_DROP } from '../shared/dnd-provider'
+import { WORKSPACE_DROP } from '../shared/dnd-types'
 
 type Props = {
   sectionId: string

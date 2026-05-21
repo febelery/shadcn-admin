@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { Checkbox } from '@/components/ui/checkbox'
 import { LABEL_LIMITS } from '../../store'
 import type { ChoiceOption, QuestionConfig, QuestionElement } from '../../types'
-import { useBuilderStatic } from '../context'
+import { useBuilderStatic } from '../../context'
 import { InlineEditable } from '../inline-editable'
 import { useChoiceOptions } from './use-choice-options'
 

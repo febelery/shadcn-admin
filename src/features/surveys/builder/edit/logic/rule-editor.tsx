@@ -17,13 +17,21 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { canUseQuestionAsRuleSource } from '../../../core/logic/rule-capabilities'
+import {
+  EDITABLE_RULE_ACTION_TYPES,
+  getAutoRuleName,
+  getAvailableRuleActionTypes,
+  getRuleSourceQuestionIds,
+  getRuleTargetQuestionIds,
+  normalizeRuleAction,
+  resolveRuleSourceId,
+} from '../../../core/logic/rule-constraints'
 import type { RuleAction, RuleActionType } from '../../types'
 import {
   useBuilderStatic,
   useBuilderStructure,
   useBuilderActiveState,
-} from '../context'
+} from '../../context'
 import { BuilderGuidance } from '../guidance'
 import { ActionBuilder } from './action-builder'
 import { ConditionBuilder } from './condition-builder'
@@ -35,26 +43,6 @@ const RULE_TYPE_OPTIONS: { value: RuleActionType; label: string }[] = [
   { value: 'jump_to_question', label: '跳转到题目' },
   { value: 'end', label: '结束问卷' },
 ]
-const EDITABLE_RULE_TYPES = RULE_TYPE_OPTIONS.map((o) => o.value)
-
-function isEditableRuleType(type: RuleActionType): boolean {
-  return EDITABLE_RULE_TYPES.includes(type)
-}
-
-function autoRuleName(type: RuleActionType, targetLabel?: string) {
-  switch (type) {
-    case 'show':
-      return `显示 ${targetLabel ?? '题目'}`
-    case 'hide':
-      return `隐藏 ${targetLabel ?? '题目'}`
-    case 'jump_to_question':
-      return `跳转到 ${targetLabel ?? '题目'}`
-    case 'end':
-      return '结束问卷'
-    default:
-      return '逻辑规则'
-  }
-}
 
 function AdvancedRuleSettings({
   ruleId,
@@ -144,7 +132,9 @@ function AdvancedRuleSettings({
                     只读
                   </span>
                 </div>
-                <pre className='bg-muted/30 text-muted-foreground border-border/60 max-w-full overflow-x-auto rounded-md border px-2.5 py-2 font-mono text-[11px] leading-relaxed whitespace-pre-wrap break-all'>{expression || '未设置条件'}</pre>
+                <pre className='bg-muted/30 text-muted-foreground border-border/60 max-w-full overflow-x-auto rounded-md border px-2.5 py-2 font-mono text-[11px] leading-relaxed break-all whitespace-pre-wrap'>
+                  {expression || '未设置条件'}
+                </pre>
               </div>
             </div>
           </div>
@@ -185,10 +175,8 @@ export function RuleEditorPanel({
   const questions = useSurveyQuestions()
 
   const rule = schema?.rules.find((r) => r.id === editingRuleId)
-  const action = rule?.actions[0] ?? createRuleAction('show')
-  const allowedSourceIds = questions
-    .filter(canUseQuestionAsRuleSource)
-    .map((q) => q.id)
+  const action = rule?.action ?? createRuleAction('show')
+  const allowedSourceIds = getRuleSourceQuestionIds(questions)
   const defaultSourceId = allowedSourceIds[0]
 
   const handleClose = () => {
@@ -218,107 +206,57 @@ export function RuleEditorPanel({
     )
   }
 
-  const sourceFromWhen = extractQuestionRefsFromWhen(rule.when)[0]
-  const sourceId =
-    sourceFromWhen && allowedSourceIds.includes(sourceFromWhen)
-      ? sourceFromWhen
-      : defaultSourceId
-  const editableActionTypes = (
-    allowedActionTypes ?? EDITABLE_RULE_TYPES
-  ).filter(isEditableRuleType)
-  const sourceIndex = (id?: string) =>
-    id ? questions.findIndex((q) => q.id === id) : -1
-  const questionIdsAfter = (id?: string) => {
-    const idx = sourceIndex(id)
-    return idx >= 0 ? questions.slice(idx + 1).map((q) => q.id) : []
-  }
-  const navigationLockFor = (when: string) => {
-    if (!schema) return null
-    const source = extractQuestionRefsFromWhen(when)[0]
-    if (!source) return null
-    const targetKeys = new Set<string>()
-
-    for (const item of schema.rules) {
-      if (item.id === rule.id || !item.enabled) continue
-      if (item.when.trim() !== when.trim()) continue
-      if (extractQuestionRefsFromWhen(item.when)[0] !== source) continue
-      const nav = item.actions.find(
-        (a) => a.type === 'jump_to_question' || a.type === 'end'
-      )
-      if (!nav) continue
-      targetKeys.add(nav.type === 'end' ? '__end__' : (nav.target ?? ''))
-    }
-
-    if (targetKeys.size !== 1) return null
-    const [target] = [...targetKeys]
-    return target === '__end__'
-      ? { type: 'end' as const }
-      : { type: 'question' as const, target }
-  }
+  const sourceId = resolveRuleSourceId(
+    rule.when,
+    allowedSourceIds,
+    defaultSourceId
+  )
+  const editableActionTypes = allowedActionTypes ?? EDITABLE_RULE_ACTION_TYPES
   const targetIdsFor = (
     type: RuleActionType,
     currentSourceId = sourceId,
     when = rule.when
-  ) => {
-    const laterIds = questionIdsAfter(currentSourceId)
-    if (type === 'show') return laterIds
-    if (type === 'hide') {
-      return laterIds.filter((id) => {
-        const q = questions.find((item) => item.id === id)
-        return q && !q.required
-      })
-    }
-    if (type === 'jump_to_question') {
-      const lock = navigationLockFor(when)
-      if (lock?.type === 'end') return []
-      if (lock?.type === 'question') {
-        return laterIds.includes(lock.target) ? [lock.target] : []
-      }
-      return laterIds
-    }
-    return []
-  }
-  const actionTypeAvailable = (
-    type: RuleActionType,
-    currentSourceId = sourceId,
-    when = rule.when
-  ) => {
-    if (!currentSourceId) return false
-    if (type === 'end') return navigationLockFor(when)?.type !== 'question'
-    return targetIdsFor(type, currentSourceId, when).length > 0
-  }
-  const availableActionTypes = (
-    editableActionTypes.length > 0 ? editableActionTypes : EDITABLE_RULE_TYPES
-  ).filter((type) => actionTypeAvailable(type))
+  ) =>
+    getRuleTargetQuestionIds({
+      type,
+      sourceId: currentSourceId,
+      questions,
+      rules: schema?.rules ?? [],
+      currentRuleId: rule.id,
+      when,
+    })
+  const availableActionTypes = getAvailableRuleActionTypes({
+    requestedTypes: editableActionTypes,
+    sourceId,
+    questions,
+    rules: schema?.rules ?? [],
+    currentRuleId: rule.id,
+    when: rule.when,
+  })
   const effectiveActionTypes: RuleActionType[] =
     availableActionTypes.length > 0 ? availableActionTypes : ['end']
   const getTargetLabel = (id?: string) => {
     const q = id ? questions.find((item) => item.id === id) : undefined
     return q && schema ? getQuestionReferenceLabel(q, schema) : undefined
   }
-  const normalizeAction = (
+  const normalizeActionForRule = (
     requestedType: RuleActionType,
     requestedTarget: string | undefined,
     currentSourceId: string | undefined,
     when: string,
     base: RuleAction = action
-  ): RuleAction => {
-    const available = (
-      editableActionTypes.length > 0 ? editableActionTypes : EDITABLE_RULE_TYPES
-    ).filter((type) => actionTypeAvailable(type, currentSourceId, when))
-    const type = available.includes(requestedType)
-      ? requestedType
-      : (available[0] ?? 'end')
-    const targetIds = targetIdsFor(type, currentSourceId, when)
-    const target =
-      type === 'end'
-        ? undefined
-        : requestedTarget && targetIds.includes(requestedTarget)
-          ? requestedTarget
-          : targetIds[0]
-
-    return { ...base, type, target }
-  }
+  ): RuleAction =>
+    normalizeRuleAction({
+      action: base,
+      requestedType,
+      requestedTarget,
+      fallbackTypes: editableActionTypes,
+      sourceId: currentSourceId,
+      questions,
+      rules: schema?.rules ?? [],
+      currentRuleId: rule.id,
+      when,
+    })
   const selectedRuleType = effectiveActionTypes.includes(action.type)
     ? action.type
     : effectiveActionTypes[0]
@@ -329,35 +267,40 @@ export function RuleEditorPanel({
       : action.target && targetQuestionIds.includes(action.target)
         ? action.target
         : targetQuestionIds[0]
-  const normalizedAction = normalizeAction(
+  const normalizedAction = normalizeActionForRule(
     selectedRuleType,
     actionTarget,
     sourceId,
     rule.when
   )
   const defaultTargetId = normalizedAction.target ?? targetQuestionIds[0]
-  const generatedRuleName = autoRuleName(
+  const generatedRuleName = getAutoRuleName(
     normalizedAction.type,
     getTargetLabel(normalizedAction.target)
   )
   const resolveRuleNameFor = (next: RuleAction) => {
     const currentName = rule.name.trim()
     if (!currentName || currentName === generatedRuleName) {
-      return autoRuleName(next.type, getTargetLabel(next.target))
+      return getAutoRuleName(next.type, getTargetLabel(next.target))
     }
     return rule.name
   }
 
   const handleTypeChange = (type: RuleActionType) => {
-    const next = normalizeAction(type, action.target, sourceId, rule.when)
+    const next = normalizeActionForRule(
+      type,
+      action.target,
+      sourceId,
+      rule.when
+    )
     updateRule(rule.id, {
       name: resolveRuleNameFor(next),
-      actions: [next],
+      action: next,
     })
   }
 
   const handleActionChange = (next: typeof action) => {
-    const normalized = normalizeAction(
+    const normalized = normalizeActionForRule(
       next.type,
       next.target,
       sourceId,
@@ -366,7 +309,7 @@ export function RuleEditorPanel({
     )
     updateRule(rule.id, {
       name: resolveRuleNameFor(normalized),
-      actions: [normalized],
+      action: normalized,
     })
   }
 
@@ -376,7 +319,7 @@ export function RuleEditorPanel({
       nextSourceFromWhen && allowedSourceIds.includes(nextSourceFromWhen)
         ? nextSourceFromWhen
         : defaultSourceId
-    const nextAction = normalizeAction(
+    const nextAction = normalizeActionForRule(
       selectedRuleType,
       normalizedAction.target,
       nextSourceId,
@@ -386,7 +329,7 @@ export function RuleEditorPanel({
     updateRule(rule.id, {
       when,
       name: resolveRuleNameFor(nextAction),
-      actions: [nextAction],
+      action: nextAction,
     })
   }
 
@@ -438,9 +381,7 @@ export function RuleEditorPanel({
                   effectiveActionTypes.includes(o.value)
                 ).map((o) => (
                   <SelectItem key={o.value} value={o.value}>
-                    <span className='block max-w-full truncate'>
-                      {o.label}
-                    </span>
+                    <span className='block max-w-full truncate'>{o.label}</span>
                   </SelectItem>
                 ))}
               </SelectContent>

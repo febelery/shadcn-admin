@@ -6,7 +6,7 @@ import type {
   QuestionNumberingMode,
   SurveyDefaultNumberingStyle,
 } from '../../types'
-import { useBuilderStatic } from '../context'
+import { useBuilderStatic } from '../../context'
 import { InlineEditable } from '../inline-editable'
 import { SurfaceQuestionNumberToggle } from './question-number-toggle'
 import { QuestionSurfaceBody } from './registry'

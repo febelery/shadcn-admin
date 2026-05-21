@@ -21,7 +21,7 @@ import {
 } from '../../shared/parse-option-lines'
 import { LABEL_LIMITS } from '../../store'
 import type { ChoiceOption } from '../../types'
-import { useBuilderStatic } from '../context'
+import { useBuilderStatic } from '../../context'
 
 type Props = {
   options: ChoiceOption[]

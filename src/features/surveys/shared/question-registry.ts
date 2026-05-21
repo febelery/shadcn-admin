@@ -1,4 +1,3 @@
-import type { LucideIcon } from 'lucide-react'
 import {
   AlignLeft,
   Calendar,
@@ -21,6 +20,7 @@ import {
   Table,
   TextCursorInput,
   Type,
+  type LucideIcon,
 } from 'lucide-react'
 import { createQuestionId } from '../core/schema-defaults'
 import type { QuestionElement, QuestionType } from '../core/types'

@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { MousePointerClick, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { analyseSurvey } from '../../../core/expression/parser'
 import { BuilderGuidance } from '../../edit/guidance'
 import { BuilderPanelHeader } from '../../shared/panel-header'
 import { useBuilderStore } from '../../store'
-import { useFlowContext } from '../context'
 import { groupIssuesByRule } from '../issues/issue-utils'
 import { RuleEditorSection } from '../rules/rule-editor'
 
@@ -20,14 +20,10 @@ type Props = {
  * - 未选中规则 → 空态引导
  */
 export function RightPanel({ className }: Props) {
-  const { analyseSurvey } = useFlowContext()
   const schema = useBuilderStore((s) => s.schema)
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
 
-  const issues = useMemo(
-    () => (schema ? analyseSurvey(schema) : []),
-    [schema, analyseSurvey]
-  )
+  const issues = useMemo(() => (schema ? analyseSurvey(schema) : []), [schema])
 
   const issuesByRule = useMemo(() => groupIssuesByRule(issues), [issues])
 

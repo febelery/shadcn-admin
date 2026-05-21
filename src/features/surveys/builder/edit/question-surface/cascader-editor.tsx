@@ -1,6 +1,6 @@
 import { Cascader } from '@/components/ui/cascader'
 import type { QuestionElement } from '../../types'
-import { useBuilderStatic } from '../context'
+import { useBuilderStatic } from '../../context'
 
 type Props = {
   question: QuestionElement

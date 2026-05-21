@@ -1,8 +1,8 @@
 import { memo } from 'react'
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { cn } from '@/lib/utils'
+import { getQuestionManifest } from '../../shared/question-registry'
 import type { FlowGraphNode, QuestionType } from '../types'
-import { useFlowContext } from './context'
 
 export type NodeData = FlowGraphNode & {
   compact?: boolean
@@ -23,7 +23,6 @@ export const GraphNode = memo(function GraphNode({
   data,
 }: NodeProps & { data: NodeData }) {
   const compact = data.compact ?? false
-  const { getQuestionManifest } = useFlowContext()
 
   if (data.kind === 'start') {
     return (
@@ -78,11 +77,7 @@ export const GraphNode = memo(function GraphNode({
   const manifest = data.questionType
     ? getQuestionManifest(data.questionType as QuestionType)
     : undefined
-  const statusText = data.hasError
-    ? '错误'
-    : data.hasWarn
-      ? '警告'
-      : null
+  const statusText = data.hasError ? '错误' : data.hasWarn ? '警告' : null
 
   return (
     <div
@@ -152,7 +147,7 @@ export const GraphNode = memo(function GraphNode({
           <div className='flex shrink-0 items-center gap-1'>
             {data.hasVisibilityRules ? (
               <span
-                className='bg-amber-500/10 text-amber-700 dark:text-amber-400 rounded px-1.5 py-0.5'
+                className='rounded bg-amber-500/10 px-1.5 py-0.5 text-amber-700 dark:text-amber-400'
                 title='含显隐逻辑'
               >
                 显隐

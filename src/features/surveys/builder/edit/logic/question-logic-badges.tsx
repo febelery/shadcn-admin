@@ -2,7 +2,7 @@ import { Eye, GitBranch } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { Rule } from '../../types'
-import { useBuilderStatic, useBuilderStructure } from '../context'
+import { useBuilderStatic, useBuilderStructure } from '../../context'
 
 type Props = {
   questionId: string
@@ -29,9 +29,8 @@ export function QuestionLogicBadges({ questionId, className }: Props) {
     return rulesList.some(
       (r) =>
         r.enabled &&
-        r.actions.some(
-          (a) => (a.type === 'show' || a.type === 'hide') && a.target === qId
-        )
+        (r.action.type === 'show' || r.action.type === 'hide') &&
+        r.action.target === qId
     )
   }
 

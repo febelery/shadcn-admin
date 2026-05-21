@@ -4,9 +4,9 @@ import { extractQuestionRefsFromWhen } from './condition-serializer'
 export type RuleCategory = 'visibility' | 'jump' | 'end' | 'other'
 
 export function getRuleCategory(rule: Rule): RuleCategory {
-  const t = rule.actions[0]?.type
+  const t = rule.action.type
   if (t === 'show' || t === 'hide') return 'visibility'
-  if (t === 'jump_to_question' || t === 'jump_to_section') return 'jump'
+  if (t === 'jump_to_question') return 'jump'
   if (t === 'end') return 'end'
   return 'other'
 }
@@ -18,12 +18,19 @@ export const RULE_CATEGORY_LABEL: Record<RuleCategory, string> = {
   other: '其他',
 }
 
-export function ruleMatchesFilter(rule: Rule, filter: RuleCategory | 'all'): boolean {
+export function ruleMatchesFilter(
+  rule: Rule,
+  filter: RuleCategory | 'all'
+): boolean {
   if (filter === 'all') return true
   return getRuleCategory(rule) === filter
 }
 
-export function ruleMatchesSearch(rule: Rule, q: string, questionTitles: Map<string, string>): boolean {
+export function ruleMatchesSearch(
+  rule: Rule,
+  q: string,
+  questionTitles: Map<string, string>
+): boolean {
   if (!q.trim()) return true
   const needle = q.trim().toLowerCase()
   if (rule.name.toLowerCase().includes(needle)) return true
@@ -32,9 +39,11 @@ export function ruleMatchesSearch(rule: Rule, q: string, questionTitles: Map<str
     const title = questionTitles.get(ref)
     if (title?.toLowerCase().includes(needle)) return true
   }
-  for (const a of rule.actions) {
-    if (a.target && questionTitles.get(a.target)?.toLowerCase().includes(needle)) return true
-  }
+  if (
+    rule.action.target &&
+    questionTitles.get(rule.action.target)?.toLowerCase().includes(needle)
+  )
+    return true
   return false
 }
 

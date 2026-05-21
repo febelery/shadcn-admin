@@ -1,15 +1,16 @@
 import { useMemo } from 'react'
 import { AlertCircle, AlertTriangle, Workflow } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { analyseSurvey } from '../../../core/expression/parser'
+import { getRuleCategory } from '../../../core/logic/rule-meta'
+import { flattenQuestions } from '../../../core/schema-defaults'
 import { BuilderPanelHeader } from '../../shared/panel-header'
 import { useBuilderStore } from '../../store'
 import { Canvas } from '../canvas'
-import { useFlowContext } from '../context'
 import { Toolbar } from '../toolbar'
 
 /** 中栏：工具栏 + 流程图画布 */
 export function CenterPanel() {
-  const { analyseSurvey, getRuleCategory, flattenQuestions } = useFlowContext()
   const schema = useBuilderStore((s) => s.schema)
   const rules = useBuilderStore((s) => s.schema?.rules ?? [])
 
@@ -24,12 +25,9 @@ export function CenterPanel() {
       end: rules.filter((r) => getRuleCategory(r) === 'end').length,
     }
     return `共 ${qCount} 题 · ${enabledRules} 条启用规则（显隐 ${byCat.visibility} · 跳题 ${byCat.jump} · 结束 ${byCat.end}）`
-  }, [schema, rules, getRuleCategory, flattenQuestions])
+  }, [schema, rules])
 
-  const issues = useMemo(
-    () => (schema ? analyseSurvey(schema) : []),
-    [schema, analyseSurvey]
-  )
+  const issues = useMemo(() => (schema ? analyseSurvey(schema) : []), [schema])
   const issueStats = useMemo(
     () => ({
       errors: issues.filter((i) => i.severity === 'error').length,

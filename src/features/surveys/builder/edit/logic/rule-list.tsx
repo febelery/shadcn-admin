@@ -2,10 +2,10 @@ import { Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { Rule } from '../../types'
-import { useBuilderStatic, useBuilderStructure } from '../context'
+import { useBuilderStatic, useBuilderStructure } from '../../context'
 import { useQuestionLabel } from './use-survey-questions'
 
-function RuleActionSummary({ action }: { action: Rule['actions'][0] }) {
+function RuleActionSummary({ action }: { action: Rule['action'] }) {
   const { summarizeRuleAction } = useBuilderStatic()
   const label = useQuestionLabel(action.target ?? '')
   return <>{summarizeRuleAction(action, action.target ? label : undefined)}</>
@@ -40,13 +40,9 @@ function RuleCard({ rule, onEdit }: { rule: Rule; onEdit: () => void }) {
           </p>
         </button>
       </div>
-      <ul className='text-muted-foreground text-xs leading-relaxed'>
-        {rule.actions.map((a) => (
-          <li key={a.id}>
-            → <RuleActionSummary action={a} />
-          </li>
-        ))}
-      </ul>
+      <p className='text-muted-foreground text-xs leading-relaxed'>
+        → <RuleActionSummary action={rule.action} />
+      </p>
       <div className='flex gap-2'>
         <Button type='button' variant='outline' size='sm' onClick={onEdit}>
           编辑

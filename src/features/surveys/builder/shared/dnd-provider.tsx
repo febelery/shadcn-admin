@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- Provider and DnD state hooks share one context. */
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import {
   DndContext,
@@ -14,34 +15,19 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
-import type { LucideIcon } from 'lucide-react'
-import { GripVertical } from 'lucide-react'
+import { GripVertical, type LucideIcon } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { useBuilderStatic } from '../context'
 import { useBuilderStore } from '../store'
 import type { QuestionType } from '../types'
-
-// ─── DnD 类型常量（原 builder/dnd.ts）─────────────────────────────────────────
-
-export const PALETTE_DRAG = 'palette-question'
-export const WORKSPACE_DROP = 'workspace-drop'
-
-export type PaletteDragData = {
-  type: typeof PALETTE_DRAG
-  questionType?: QuestionType
-  layoutType?: 'divider' | 'html_block'
-}
-
-/** 题目之间的插入投放位 */
-export const INSERT_DROP = 'workspace-insert'
-
-export type InsertDropData = {
-  type: typeof INSERT_DROP
-  sectionId: string
-  index: number
-}
+import { getQuestionManifest, LAYOUT_MANIFESTS } from '../../shared/question-registry'
+import {
+  INSERT_DROP,
+  PALETTE_DRAG,
+  type InsertDropData,
+  type PaletteDragData,
+} from './dnd-types'
 
 // ─── DnD Provider ─────────────────────────────────────────────────────────────
 
@@ -118,7 +104,6 @@ type Props = {
 }
 
 export function BuilderDndProvider({ sectionId, children }: Props) {
-  const { getQuestionManifest, LAYOUT_MANIFESTS } = useBuilderStatic()
   const [activeDrag, setActiveDrag] = useState<ActiveDrag>(null)
 
   const sensors = useSensors(

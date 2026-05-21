@@ -35,6 +35,19 @@ export function cloneElement(el: SurveyElement): SurveyElement {
   return cloned
 }
 
+export function collectQuestionIdsFromElement(el: SurveyElement): string[] {
+  if (el.kind === 'question') {
+    const nested = el.config.templateElements?.flatMap((item) =>
+      collectQuestionIdsFromElement(item)
+    )
+    return [el.id, ...(nested ?? [])]
+  }
+  if (el.kind === 'panel') {
+    return el.elements.flatMap((item) => collectQuestionIdsFromElement(item))
+  }
+  return []
+}
+
 export function insertAt<T>(arr: T[], item: T, index?: number) {
   if (index === undefined || index < 0 || index > arr.length) {
     arr.push(item)

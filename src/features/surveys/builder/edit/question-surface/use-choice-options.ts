@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react'
 import type { ChoiceOption } from '../../types'
-import { useBuilderStatic } from '../context'
+import { useBuilderStatic } from '../../context'
 import { focusInlineEditable } from '../inline-editable'
 
 type Options = {
@@ -27,8 +27,6 @@ export function useChoiceOptions({
   const resolvedOtherLabel = otherLabel ?? DEFAULT_OTHER_LABEL
 
   const rowRefs = useRef<Map<string, HTMLLIElement>>(new Map())
-  const optionsRef = useRef(options)
-  optionsRef.current = options
 
   const setRowRef = useCallback((id: string, el: HTMLLIElement | null) => {
     if (el) rowRefs.current.set(id, el)
@@ -46,18 +44,15 @@ export function useChoiceOptions({
 
   const updateOptionLabel = useCallback(
     (id: string, label: string) => {
-      onChange(
-        optionsRef.current.map((o) => (o.id === id ? { ...o, label } : o))
-      )
+      onChange(options.map((o) => (o.id === id ? { ...o, label } : o)))
     },
-    [onChange]
+    [onChange, options]
   )
 
   const removeOption = useCallback(
     (id: string) => {
-      const current = optionsRef.current
-      if (current.length <= 1) return
-      const next = current.filter((o) => o.id !== id)
+      if (options.length <= 1) return
+      const next = options.filter((o) => o.id !== id)
       onChange(
         syncOtherChoiceOption(
           partitionChoiceOptions(next).regular,
@@ -68,6 +63,7 @@ export function useChoiceOptions({
     },
     [
       onChange,
+      options,
       allowOther,
       resolvedOtherLabel,
       syncOtherChoiceOption,
@@ -77,8 +73,7 @@ export function useChoiceOptions({
 
   const insertOptionAfter = useCallback(
     (index: number, factory?: () => ChoiceOption) => {
-      const current = optionsRef.current
-      const { regular } = partitionChoiceOptions(current)
+      const { regular } = partitionChoiceOptions(options)
       const next: ChoiceOption = factory?.() ?? {
         id: createQuestionId(),
         label: '',
@@ -91,6 +86,7 @@ export function useChoiceOptions({
     },
     [
       onChange,
+      options,
       allowOther,
       resolvedOtherLabel,
       focusRow,
@@ -102,18 +98,18 @@ export function useChoiceOptions({
 
   const insertAfterLastRegular = useCallback(
     (factory?: () => ChoiceOption) => {
-      const { regular } = partitionChoiceOptions(optionsRef.current)
+      const { regular } = partitionChoiceOptions(options)
       return insertOptionAfter(regular.length - 1, factory)
     },
-    [insertOptionAfter, partitionChoiceOptions]
+    [insertOptionAfter, options, partitionChoiceOptions]
   )
 
   const focusPreviousOption = useCallback(
     (index: number) => {
-      const prev = optionsRef.current[index - 1]
+      const prev = options[index - 1]
       if (prev) focusRow(prev.id)
     },
-    [focusRow]
+    [focusRow, options]
   )
 
   return {
@@ -124,6 +120,6 @@ export function useChoiceOptions({
     insertOptionAfter,
     insertAfterLastRegular,
     focusPreviousOption,
-    partition: () => partitionChoiceOptions(optionsRef.current),
+    partition: () => partitionChoiceOptions(options),
   }
 }
