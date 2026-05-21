@@ -1,6 +1,5 @@
 import { memo } from 'react'
 import { Handle, Position, type NodeProps } from '@xyflow/react'
-import { Eye, GitBranch, Play, Flag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { FlowGraphNode, QuestionType } from '../types'
 import { useFlowContext } from './context'
@@ -16,6 +15,9 @@ export type NodeData = FlowGraphNode & {
 const handleClass =
   '!size-2 !border-2 !border-card !bg-muted-foreground/50 opacity-0'
 
+const sideHandleClass =
+  '!size-2 !border-2 !border-card !bg-muted-foreground/50 opacity-0'
+
 /** 流程节点 · 统一栏宽，内容居中，连线竖直对齐 */
 export const GraphNode = memo(function GraphNode({
   data,
@@ -26,21 +28,20 @@ export const GraphNode = memo(function GraphNode({
   if (data.kind === 'start') {
     return (
       <div className='flex h-full w-full flex-col items-center justify-center'>
-        <div className='bg-primary text-primary-foreground ring-primary/15 flex size-10 shrink-0 items-center justify-center rounded-full shadow-md ring-4'>
-          <Play className='size-4 fill-current' />
-        </div>
-        <span
-          className={cn(
-            'text-xs leading-none',
-            'text-primary mt-1.5 font-medium'
-          )}
-        >
+        <div className='border-border/70 bg-background text-muted-foreground rounded-full border px-3 py-1 text-xs leading-none font-medium shadow-xs'>
           开始
-        </span>
+        </div>
         <Handle
           type='source'
           position={Position.Bottom}
+          id='out-bottom'
           className={handleClass}
+        />
+        <Handle
+          type='source'
+          position={Position.Right}
+          id='out-right'
+          className={sideHandleClass}
         />
       </div>
     )
@@ -49,18 +50,27 @@ export const GraphNode = memo(function GraphNode({
   if (data.kind === 'end') {
     return (
       <div className='flex h-full w-full flex-col items-center justify-center'>
-        <Handle type='target' position={Position.Top} className={handleClass} />
-        <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 shadow-sm ring-4 ring-emerald-500/10 dark:text-emerald-400'>
-          <Flag className='size-4' />
-        </div>
-        <span
-          className={cn(
-            'text-xs leading-none',
-            'mt-1.5 max-w-full truncate px-2 text-center font-medium text-emerald-700 dark:text-emerald-400'
-          )}
-        >
+        <Handle
+          type='target'
+          position={Position.Top}
+          id='in-top'
+          className={handleClass}
+        />
+        <Handle
+          type='target'
+          position={Position.Left}
+          id='in-left'
+          className={sideHandleClass}
+        />
+        <Handle
+          type='target'
+          position={Position.Right}
+          id='in-right'
+          className={sideHandleClass}
+        />
+        <div className='border-border/70 bg-background text-muted-foreground max-w-full truncate rounded-full border px-3 py-1 text-xs leading-none font-medium shadow-xs'>
           {data.label}
-        </span>
+        </div>
       </div>
     )
   }
@@ -68,12 +78,16 @@ export const GraphNode = memo(function GraphNode({
   const manifest = data.questionType
     ? getQuestionManifest(data.questionType as QuestionType)
     : undefined
-  const TypeIcon = manifest?.icon
+  const statusText = data.hasError
+    ? '错误'
+    : data.hasWarn
+      ? '警告'
+      : null
 
   return (
     <div
       className={cn(
-        'bg-card flex h-full w-full flex-col rounded-xl border shadow-sm transition-all duration-150',
+        'bg-card flex h-full w-full flex-col rounded-md border shadow-sm transition-all duration-150',
         data.dimmed && 'opacity-35',
         data.selected
           ? 'border-primary ring-primary/20 shadow-md ring-2'
@@ -84,81 +98,108 @@ export const GraphNode = memo(function GraphNode({
           'border-amber-500 ring-2 ring-amber-500/20'
       )}
     >
-      <Handle type='target' position={Position.Top} className={handleClass} />
+      <Handle
+        type='target'
+        position={Position.Top}
+        id='in-top'
+        className={handleClass}
+      />
+      <Handle
+        type='target'
+        position={Position.Left}
+        id='in-left'
+        className={sideHandleClass}
+      />
+      <Handle
+        type='target'
+        position={Position.Right}
+        id='in-right'
+        className={sideHandleClass}
+      />
 
-      <div className={cn('flex flex-col gap-2', compact ? 'p-2.5' : 'p-3')}>
-        <div className='flex items-center gap-2'>
-          {TypeIcon ? (
-            <span className='bg-muted/60 border-border/50 flex size-6 shrink-0 items-center justify-center rounded-md border'>
-              <TypeIcon className='text-muted-foreground size-3.5' />
+      <div
+        className={cn(
+          'flex min-h-0 flex-1 flex-col justify-between',
+          compact ? 'gap-1.5 p-2' : 'gap-2 p-2.5'
+        )}
+      >
+        <p
+          className={cn(
+            'text-foreground min-w-0 font-medium tracking-normal',
+            compact
+              ? 'line-clamp-2 text-xs leading-[1.35]'
+              : 'line-clamp-2 text-sm leading-[1.35]'
+          )}
+          title={data.label}
+        >
+          {data.numberLabel ? (
+            <span
+              className={cn(
+                'text-muted-foreground mr-1.5 inline font-medium tabular-nums',
+                compact && 'mr-1'
+              )}
+            >
+              {data.numberLabel}
             </span>
           ) : null}
-          <span
-            className={cn(
-              'text-xs leading-none',
-              'text-muted-foreground min-w-0 flex-1 truncate'
-            )}
-          >
+          {data.label}
+        </p>
+
+        <div className='text-muted-foreground flex min-w-0 items-center gap-1.5 text-[11px] leading-none'>
+          <span className='min-w-0 flex-1 truncate'>
             {manifest?.label ?? '题目'}
           </span>
-          <div className='flex shrink-0 gap-0.5'>
+          <div className='flex shrink-0 items-center gap-1'>
             {data.hasVisibilityRules ? (
               <span
-                className='text-muted-foreground flex size-5 items-center justify-center'
+                className='bg-amber-500/10 text-amber-700 dark:text-amber-400 rounded px-1.5 py-0.5'
                 title='含显隐逻辑'
               >
-                <Eye className='size-3' />
+                显隐
               </span>
             ) : null}
             {data.hasBranchRules ? (
               <span
-                className='text-muted-foreground flex size-5 items-center justify-center'
+                className='bg-primary/10 text-primary rounded px-1.5 py-0.5'
                 title='含分支逻辑'
               >
-                <GitBranch className='size-3' />
+                分支
+              </span>
+            ) : null}
+            {statusText ? (
+              <span
+                className={cn(
+                  'rounded px-1.5 py-0.5',
+                  data.hasError
+                    ? 'bg-destructive/10 text-destructive'
+                    : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                )}
+              >
+                {statusText}
               </span>
             ) : null}
           </div>
         </div>
-
-        <p
-          className={cn(
-            'text-foreground text-base leading-snug font-semibold tracking-tight',
-            'flex min-w-0 items-start gap-1 leading-snug',
-            compact ? 'line-clamp-2 text-sm' : 'line-clamp-3'
-          )}
-        >
-          {data.numberLabel ? (
-            <span className='text-foreground shrink-0 text-sm leading-snug font-semibold'>
-              {data.numberLabel}
-            </span>
-          ) : null}
-          <span className='min-w-0 font-semibold'>{data.label}</span>
-        </p>
-
-        {(data.hasError || data.hasWarn) && !compact ? (
-          <p
-            className={cn(
-              'text-xs leading-none',
-              data.hasError
-                ? 'text-destructive'
-                : 'text-amber-600 dark:text-amber-400'
-            )}
-          >
-            {data.hasError ? '存在逻辑错误' : '请检查逻辑配置'}
-          </p>
-        ) : null}
       </div>
 
       <Handle
         type='source'
         position={Position.Bottom}
+        id='out-bottom'
         className={handleClass}
+      />
+      <Handle
+        type='source'
+        position={Position.Left}
+        id='out-left'
+        className={sideHandleClass}
+      />
+      <Handle
+        type='source'
+        position={Position.Right}
+        id='out-right'
+        className={sideHandleClass}
       />
     </div>
   )
 })
-
-export const nodeTypes = {
-  graphNode: GraphNode,
-}

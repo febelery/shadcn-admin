@@ -4,10 +4,9 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BuilderPanelHeader } from '../../shared/panel-header'
 import { useBuilderStore } from '../../store'
-import { useFlowContext, type RuleCategory } from '../context'
+import { useFlowContext } from '../context'
 import { groupIssuesByRule } from '../issues/issue-utils'
 import { RulesList } from '../rules/rule-list'
 
@@ -22,7 +21,6 @@ export function LeftPanel({ className, onNewRule }: Props) {
   const {
     analyseSurvey,
     ruleMatchesSearch,
-    getRuleCategory,
     flattenQuestions,
     getQuestionReferenceLabel,
   } = useFlowContext()
@@ -31,8 +29,6 @@ export function LeftPanel({ className, onNewRule }: Props) {
   const searchQuery = useBuilderStore((s) => s.flowRuleSearchQuery)
   const setFlowSearchQuery = useBuilderStore((s) => s.setFlowRuleSearchQuery)
   const startFlowNewRule = useBuilderStore((s) => s.startFlowNewRule)
-  const filter = useBuilderStore((s) => s.flowRuleFilter)
-  const setFlowRuleFilter = useBuilderStore((s) => s.setFlowRuleFilter)
   const rules = useBuilderStore((s) => s.schema?.rules ?? [])
 
   const issuesByRule = useMemo(() => {
@@ -49,23 +45,20 @@ export function LeftPanel({ className, onNewRule }: Props) {
     return map
   }, [schema, flattenQuestions, getQuestionReferenceLabel])
 
+  const questions = useMemo(
+    () => (schema ? flattenQuestions(schema) : []),
+    [schema, flattenQuestions]
+  )
+
   const filteredRules = useMemo(
     () =>
       [...rules]
         .sort((a, b) => a.priority - b.priority)
-        .filter((r) => filter === 'all' || getRuleCategory(r) === filter)
         .filter((r) => ruleMatchesSearch(r, searchQuery, questionTitles)),
-    [
-      rules,
-      filter,
-      searchQuery,
-      questionTitles,
-      getRuleCategory,
-      ruleMatchesSearch,
-    ]
+    [rules, searchQuery, questionTitles, ruleMatchesSearch]
   )
 
-  const handleNewRule = useCallback(() => {
+  const createDraftRule = useCallback(() => {
     startFlowNewRule()
     onNewRule?.()
   }, [startFlowNewRule, onNewRule])
@@ -97,37 +90,12 @@ export function LeftPanel({ className, onNewRule }: Props) {
             variant='outline'
             size='icon'
             className='size-8 shrink-0'
-            onClick={handleNewRule}
+            onClick={createDraftRule}
+            disabled={questions.length < 1}
             aria-label='新建规则'
           >
             <Plus className='size-4' />
           </Button>
-        </div>
-
-        <div className='border-border border-b px-3 py-2'>
-          <Tabs
-            value={filter}
-            onValueChange={(v) => setFlowRuleFilter(v as RuleCategory | 'all')}
-          >
-            <TabsList className='grid h-8 w-full grid-cols-4'>
-              {(
-                [
-                  { value: 'all', label: '全部' },
-                  { value: 'visibility', label: '显隐' },
-                  { value: 'jump', label: '跳题' },
-                  { value: 'end', label: '结束' },
-                ] as const
-              ).map((tab) => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className='text-xs leading-none'
-                >
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
         </div>
 
         <ScrollArea className='min-h-0 flex-1'>

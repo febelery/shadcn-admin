@@ -68,7 +68,6 @@ export interface BuilderState {
   setFlowShowJumpEdges: (show: boolean) => void
   setFlowShowVisibilityEdges: (show: boolean) => void
   selectFlowRule: (ruleId: string | null) => void
-  selectFlowQuestion: (questionId: string) => void
   startFlowNewRule: () => void
   addRule: () => string
   addDisplayRule: (payload: {

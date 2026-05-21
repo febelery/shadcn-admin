@@ -1,3 +1,4 @@
+import { graphlib, layout as dagreLayout } from '@dagrejs/dagre'
 import { flattenQuestions } from '../schema-defaults'
 import {
   buildQuestionDisplayOrdinalMap,
@@ -7,7 +8,10 @@ import {
   isQuestionNumberVisible,
 } from '../../shared/question-numbering'
 import type { QuestionElement, Rule, SurveySchema } from '../types'
-import { extractQuestionRefsFromWhen } from './condition-serializer'
+import {
+  extractQuestionRefsFromWhen,
+  tryParseSimpleCondition,
+} from './condition-serializer'
 
 export type FlowNodeKind = 'start' | 'end' | 'question'
 
@@ -52,6 +56,72 @@ function nodeIdForElement(elementId: string) {
   return `el:${elementId}`
 }
 
+function truncateLabel(text: string, max = 14) {
+  const cleaned = text.trim()
+  if (cleaned.length <= max) return cleaned
+  return `${cleaned.slice(0, max - 1)}…`
+}
+
+function operatorText(op: string) {
+  switch (op) {
+    case 'eq':
+      return '等于'
+    case 'neq':
+      return '不等于'
+    case 'gt':
+      return '大于'
+    case 'gte':
+      return '大于等于'
+    case 'lt':
+      return '小于'
+    case 'lte':
+      return '小于等于'
+    case 'contains':
+      return '包含'
+    case 'not_contains':
+      return '不包含'
+    case 'empty':
+      return '为空'
+    case 'not_empty':
+      return '不为空'
+    default:
+      return op
+  }
+}
+
+function optionLabelForValue(question: QuestionElement | undefined, value?: string) {
+  if (!question || !value) return truncateLabel(value ?? '')
+  const option = question.config.options?.find(
+    (opt) => opt.id === value || opt.label === value
+  )
+  return truncateLabel(option?.label ?? value)
+}
+
+function summarizeConditionExpression(
+  when: string,
+  sourceQuestion?: QuestionElement
+): string {
+  const trimmed = when.trim()
+  if (!trimmed) return '始终'
+
+  const parsed = tryParseSimpleCondition(trimmed)
+  if (!parsed) return '复杂条件'
+  if (parsed.items.length === 0) return '始终'
+
+  const parts = parsed.items.map((item) => {
+    const opLabel = operatorText(item.operator)
+    if (item.operator === 'empty' || item.operator === 'not_empty') {
+      return opLabel
+    }
+    const value = optionLabelForValue(sourceQuestion, item.value)
+    return `${opLabel} ${value}`.trim()
+  })
+
+  if (parts.length === 1) return parts[0]
+  const joiner = parsed.logic === 'and' ? ' 且 ' : ' 或 '
+  return truncateLabel(parts.join(joiner), 24)
+}
+
 /** 从 schema 构建流程图节点与边（仅题目，不含说明块/分割线等布局元素） */
 export function buildFlowGraph(schema: SurveySchema): FlowGraph {
   const nodes: FlowGraphNode[] = []
@@ -75,6 +145,7 @@ export function buildFlowGraph(schema: SurveySchema): FlowGraph {
   const flowQuestions = section.elements.filter(
     (el): el is QuestionElement => el.kind === 'question'
   )
+  const questionById = new Map(flowQuestions.map((q) => [q.id, q]))
 
   for (const el of flowQuestions) {
     const globalOrdinal = globalOrdinalMap.get(el.id) ?? 0
@@ -147,6 +218,11 @@ export function buildFlowGraph(schema: SurveySchema): FlowGraph {
     if (!sourceQId) continue
     const sourceNodeId = nodeIdForElement(sourceQId)
     if (!nodeIds.includes(sourceNodeId)) continue
+    const sourceQuestion = questionById.get(sourceQId)
+    const conditionLabel = summarizeConditionExpression(
+      rule.when,
+      sourceQuestion
+    )
 
     for (const action of rule.actions) {
       if (action.type === 'end') {
@@ -155,7 +231,7 @@ export function buildFlowGraph(schema: SurveySchema): FlowGraph {
           kind: 'end',
           source: sourceNodeId,
           target: END_ID,
-          label: rule.name,
+          label: conditionLabel,
           ruleId: rule.id,
         })
       } else if (action.type === 'jump_to_question' && action.target) {
@@ -166,7 +242,7 @@ export function buildFlowGraph(schema: SurveySchema): FlowGraph {
           kind: 'jump',
           source: sourceNodeId,
           target: targetNodeId,
-          label: rule.name,
+          label: conditionLabel,
           ruleId: rule.id,
         })
       } else if (
@@ -180,7 +256,7 @@ export function buildFlowGraph(schema: SurveySchema): FlowGraph {
           kind: 'visibility',
           source: sourceNodeId,
           target: targetNodeId,
-          label: action.type === 'show' ? '显示' : '隐藏',
+          label: conditionLabel,
           ruleId: rule.id,
         })
       }
@@ -246,15 +322,14 @@ export function getQuestionById(
 
 // ─── 流程图节点布局（画布坐标，与 builder/panel-layout 的 CSS shell 无关） ───
 
-const FLOW_LAYOUT_PADDING = 40
-const FLOW_LAYOUT_COL_GAP = 72
-const FLOW_LAYOUT_ROW_GAP = 28
-const FLOW_LAYOUT_ROW_GAP_COMPACT = 20
+const FLOW_LAYOUT_PADDING = 48
+const FLOW_LAYOUT_ROW_GAP = 34
+const FLOW_LAYOUT_ROW_GAP_COMPACT = 24
 
 /** 流程图节点统一栏宽 — 布局与渲染必须一致，保证连线竖直对齐 */
 export const FLOW_CARD_WIDTH = {
-  default: 260,
-  compact: 240,
+  default: 236,
+  compact: 196,
 } as const
 
 export interface FlowLayoutOptions {
@@ -281,30 +356,24 @@ export function flowNodeDimensions(
   switch (node.kind) {
     case 'start':
     case 'end':
-      return { w, h: compact ? 72 : 80 }
+      return { w, h: compact ? 56 : 62 }
     case 'question':
-      return { w, h: compact ? 104 : 124 }
+      return { w, h: compact ? 72 : 88 }
     default:
-      return { w, h: compact ? 96 : 108 }
+      return { w, h: compact ? 76 : 88 }
   }
 }
 
-function flowNodeSize(n: FlowGraphNode, compact: boolean): { w: number; h: number } {
+function flowNodeSize(
+  n: FlowGraphNode,
+  compact: boolean
+): { w: number; h: number } {
   return flowNodeDimensions(n, compact)
 }
 
-function flowColumnCount(nodeCount: number): number {
-  if (nodeCount <= 8) return 1
-  if (nodeCount <= 16) return 2
-  if (nodeCount <= 28) return 3
-  return 4
-}
-
-const FLOW_LAYOUT_COL_WIDTH = FLOW_CARD_WIDTH.default + 20
-
 /**
- * 自适应多列布局：主路径按问卷顺序「先下后右」排列。
- * 跳题 / 显隐边不参与布局，仅作为视觉 overlay。
+ * 稳定中轴布局：主路径保持严格垂直，规则线走节点侧边轨道。
+ * 重点是减少歪斜和折返，让用户先读顺序，再看条件分支。
  */
 export function layoutFlowGraphAdaptive(
   graph: FlowGraph,
@@ -312,32 +381,88 @@ export function layoutFlowGraphAdaptive(
   options?: Partial<FlowLayoutOptions>
 ): FlowLayoutResult {
   const nodeCount = options?.nodeCount ?? orderedNodeIds.length
-  const compact = nodeCount > 12
-  const columns = flowColumnCount(nodeCount)
-  const rowsPerCol = Math.ceil(orderedNodeIds.length / columns)
+  const compact = nodeCount > 14
+
+  if (graph.edges.some((e) => e.kind !== 'default')) {
+    return layoutFlowGraphDagre(graph, orderedNodeIds, compact)
+  }
+
+  const columns = 1
   const gapY = compact ? FLOW_LAYOUT_ROW_GAP_COMPACT : FLOW_LAYOUT_ROW_GAP
+  const laneWidth = flowLaneWidth(compact)
 
   const positions = new Map<string, { x: number; y: number }>()
-  const colHeights = new Array(columns).fill(FLOW_LAYOUT_PADDING)
+  let y = FLOW_LAYOUT_PADDING
 
   for (let i = 0; i < orderedNodeIds.length; i++) {
     const id = orderedNodeIds[i]
     const node = graph.nodes.find((n) => n.id === id)
     if (!node) continue
 
-    const col = Math.min(columns - 1, Math.floor(i / rowsPerCol))
     const { w, h } = flowNodeSize(node, compact)
-    const x =
-      FLOW_LAYOUT_PADDING +
-      col * (FLOW_LAYOUT_COL_WIDTH + FLOW_LAYOUT_COL_GAP) +
-      (FLOW_LAYOUT_COL_WIDTH - w) / 2
-    const y = colHeights[col]
+    const x = FLOW_LAYOUT_PADDING + (laneWidth - w) / 2
 
     positions.set(id, { x, y })
-    colHeights[col] += h + gapY
+    y += h + gapY
   }
 
   return { positions, columns, compact }
+}
+
+function layoutFlowGraphDagre(
+  graph: FlowGraph,
+  orderedNodeIds: string[],
+  compact: boolean
+): FlowLayoutResult {
+  const g = new graphlib.Graph()
+  g.setDefaultEdgeLabel(() => ({}))
+  g.setGraph({
+    rankdir: 'TB',
+    align: 'UL',
+    ranksep: compact ? 30 : 44,
+    nodesep: compact ? 42 : 68,
+    edgesep: compact ? 14 : 20,
+    marginx: FLOW_LAYOUT_PADDING,
+    marginy: FLOW_LAYOUT_PADDING,
+  })
+
+  for (const id of orderedNodeIds) {
+    const node = graph.nodes.find((n) => n.id === id)
+    if (!node) continue
+    const { w, h } = flowNodeSize(node, compact)
+    g.setNode(id, { width: w, height: h })
+  }
+
+  for (const edge of graph.edges) {
+    if (!g.hasNode(edge.source) || !g.hasNode(edge.target)) continue
+    const isDefault = edge.kind === 'default'
+    g.setEdge(edge.source, edge.target, {
+      weight: isDefault ? 10 : 1,
+      minlen: isDefault ? 1 : 2,
+    })
+  }
+
+  dagreLayout(g)
+
+  const positions = new Map<string, { x: number; y: number }>()
+  const lanes = new Set<number>()
+
+  for (const id of orderedNodeIds) {
+    const node = graph.nodes.find((n) => n.id === id)
+    const positioned = g.node(id)
+    if (!node || !positioned) continue
+    const { w, h } = flowNodeSize(node, compact)
+    const x = Math.max(FLOW_LAYOUT_PADDING, positioned.x - w / 2)
+    const y = Math.max(FLOW_LAYOUT_PADDING, positioned.y - h / 2)
+    lanes.add(Math.round(x / 24))
+    positions.set(id, { x, y })
+  }
+
+  return {
+    positions,
+    columns: Math.max(1, lanes.size),
+    compact,
+  }
 }
 
 export function getOrderedFlowNodeIds(

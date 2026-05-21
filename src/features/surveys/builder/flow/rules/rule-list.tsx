@@ -1,37 +1,12 @@
 import { Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
+import { extractQuestionRefsFromWhen } from '../../../core/logic/condition-serializer'
 import { useQuestionLabel } from '../../edit/logic/use-survey-questions'
 import { useBuilderStore } from '../../store'
 import type { StaticIssue, Rule } from '../../types'
 import { useFlowContext, RULE_CATEGORY_LABEL } from '../context'
 import { worstSeverity } from '../issues/issue-utils'
-
-function RuleStatusDot({ severity }: { severity: 'error' | 'warn' | null }) {
-  if (!severity) {
-    return (
-      <span
-        className='size-2 shrink-0 rounded-full bg-emerald-500/80'
-        title='配置正确'
-      />
-    )
-  }
-  if (severity === 'error') {
-    return (
-      <span
-        className='bg-destructive size-2 shrink-0 rounded-full'
-        title='需要修复'
-      />
-    )
-  }
-  return (
-    <span
-      className='size-2 shrink-0 rounded-full bg-amber-500'
-      title='有警告'
-    />
-  )
-}
 
 function RuleRow({
   rule,
@@ -46,89 +21,106 @@ function RuleRow({
 }) {
   const { getRuleCategory, summarizeRuleAction } = useFlowContext()
   const removeRule = useBuilderStore((s) => s.removeRule)
-  const updateRule = useBuilderStore((s) => s.updateRule)
   const category = getRuleCategory(rule)
   const action = rule.actions[0]
   const targetLabel = useQuestionLabel(action?.target ?? '')
+  const sourceId = extractQuestionRefsFromWhen(rule.when)[0]
+  const sourceLabel = useQuestionLabel(sourceId ?? '')
   const severity = ruleIssues?.length ? worstSeverity(ruleIssues) : null
+  const actionText = action
+    ? summarizeRuleAction(action, action.target ? targetLabel : undefined)
+    : '未配置动作'
+  const statusColor = severity
+    ? severity === 'error'
+      ? 'bg-destructive'
+      : 'bg-amber-500'
+    : 'bg-emerald-500'
 
   return (
     <div
       className={cn(
-        'group flex items-center gap-2 rounded-lg border px-2.5 py-2 transition-colors',
+        'group flex min-w-0 items-stretch rounded-md border bg-card transition-colors',
         selected
-          ? 'border-primary/50 bg-primary/5'
-          : 'hover:border-border/60 hover:bg-muted/40 border-transparent',
+          ? 'border-primary/50 bg-primary/7 shadow-xs'
+          : 'hover:border-border hover:bg-muted/30 border-border/60',
         !rule.enabled && 'opacity-50'
       )}
     >
       <button
         type='button'
-        className='flex min-w-0 flex-1 items-center gap-2 text-left'
+        className='min-w-0 flex-1 px-2.5 py-2.5 text-left'
         onClick={onSelect}
       >
-        <RuleStatusDot severity={severity} />
-        <div className='min-w-0 flex-1'>
-          <div className='flex items-center gap-1.5'>
+        <div className='flex min-w-0 flex-col gap-2'>
+          <div className='flex min-w-0 items-center gap-1.5'>
             <span
               className={cn(
-                'text-xs leading-none',
-                'shrink-0 rounded px-1 py-0.5',
+                'shrink-0 rounded px-1.5 py-0.5 text-[10px] leading-none font-medium',
                 category === 'visibility' &&
                   'bg-sky-500/10 text-sky-700 dark:text-sky-400',
                 category === 'jump' && 'bg-primary/10 text-primary',
-                category === 'end' && 'bg-destructive/10 text-destructive',
+                category === 'end' &&
+                  'bg-blue-500/10 text-blue-700 dark:text-blue-400',
                 category === 'other' && 'text-muted-foreground'
               )}
             >
               {RULE_CATEGORY_LABEL[category]}
             </span>
             <span
-              className={cn('text-xs leading-none', 'truncate font-medium')}
+              className={cn(
+                'min-w-0 flex-1 truncate text-[13px] leading-none font-medium'
+              )}
+              title={rule.name}
             >
               {rule.name}
             </span>
+            {!rule.enabled ? (
+              <span className='text-muted-foreground bg-muted shrink-0 rounded px-1.5 py-0.5 text-[10px] leading-none'>
+                停用
+              </span>
+            ) : null}
           </div>
-          {action ? (
-            <p
-              className={cn(
-                'text-muted-foreground text-xs leading-relaxed',
-                'mt-0.5 line-clamp-2'
-              )}
-            >
-              {summarizeRuleAction(
-                action,
-                action.target ? targetLabel : undefined
-              )}
-            </p>
-          ) : (
-            <p
-              className={cn(
-                'text-muted-foreground text-xs leading-relaxed',
-                'text-muted-foreground mt-0.5'
-              )}
-            >
-              未配置动作
-            </p>
-          )}
+          <div className='grid min-w-0 gap-1.5 text-[11px] leading-none'>
+            <div className='grid min-w-0 grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-1.5'>
+              <span className='text-muted-foreground/70 font-medium'>IF</span>
+              <span
+                className='text-muted-foreground min-w-0 truncate'
+                title={sourceLabel || '未设条件'}
+              >
+                {sourceLabel || '未设条件'}
+              </span>
+            </div>
+            <div className='grid min-w-0 grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-1.5'>
+              <span className='text-muted-foreground/70 font-medium'>THEN</span>
+              <span
+                className='text-muted-foreground min-w-0 truncate'
+                title={actionText}
+              >
+                {actionText}
+              </span>
+            </div>
+          </div>
         </div>
       </button>
-      <Switch
-        checked={rule.enabled}
-        onCheckedChange={(c) => updateRule(rule.id, { enabled: c })}
-        aria-label='启用规则'
-        className='shrink-0'
-      />
-      <Button
-        type='button'
-        variant='ghost'
-        size='icon'
-        className='text-muted-foreground hover:text-destructive size-7 shrink-0 opacity-0 group-hover:opacity-100'
-        onClick={() => removeRule(rule.id)}
-        aria-label='删除规则'
-      >
-        <Trash2 className='size-3.5' />
-      </Button>
+      <div className='flex w-9 shrink-0 flex-col items-center justify-between gap-2 px-1 py-2'>
+        <span
+          className={cn(
+            'size-1.5 rounded-full opacity-70',
+            statusColor
+          )}
+          title={severity ? ruleIssues?.[0]?.message : '配置正确'}
+        />
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          className='text-muted-foreground hover:text-destructive size-7 shrink-0'
+          onClick={() => removeRule(rule.id)}
+          aria-label='删除规则'
+        >
+          <Trash2 className='size-3.5' />
+        </Button>
+      </div>
     </div>
   )
 }
@@ -143,7 +135,7 @@ export function RulesList({ rules, issuesByRule }: Props) {
   const selectFlowRule = useBuilderStore((s) => s.selectFlowRule)
 
   return (
-    <div className='flex flex-col gap-0.5'>
+    <div className='flex flex-col gap-2'>
       {rules.length === 0 ? (
         <p
           className={cn(
@@ -154,7 +146,7 @@ export function RulesList({ rules, issuesByRule }: Props) {
           暂无规则
         </p>
       ) : (
-        <ul className='flex flex-col gap-0.5'>
+        <ul className='flex flex-col gap-2'>
           {rules.map((r) => (
             <li key={r.id}>
               <RuleRow

@@ -1,5 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
-import { useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { GitBranch, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -78,7 +77,7 @@ export function FlowWorkspace() {
 
   useEffect(() => {
     if (isMobile && editingRuleId) {
-      setEditorOpen(true)
+      queueMicrotask(() => setEditorOpen(true))
     }
   }, [isMobile, editingRuleId])
 
@@ -116,7 +115,7 @@ export function FlowWorkspace() {
       <div className='flex min-h-0 flex-1 overflow-hidden'>
         <aside
           className={cn(
-            'border-border bg-muted/35 flex min-h-0 w-72 min-w-0 shrink-0 flex-col overflow-hidden border-r',
+            'border-border bg-muted/35 flex min-h-0 w-80 min-w-0 shrink-0 flex-col overflow-hidden border-r 2xl:w-88',
             desktopOnly
           )}
         >
@@ -127,7 +126,7 @@ export function FlowWorkspace() {
         </main>
         <aside
           className={cn(
-            'border-border bg-muted/35 flex min-h-0 w-80 min-w-0 shrink-0 flex-col overflow-hidden border-l',
+            'border-border bg-muted/35 flex min-h-0 w-80 min-w-0 shrink-0 flex-col overflow-hidden border-l 2xl:w-88',
             desktopOnly
           )}
         >

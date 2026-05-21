@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { getEditorSectionId } from '../../core/editor-schema'
+import { canUseQuestionAsRuleSource } from '../../core/logic/rule-capabilities'
 import { createEmptyRule, createRuleAction } from '../../core/logic/rule-utils'
 import {
   migrateSurveySchema,
@@ -9,6 +10,7 @@ import {
 import {
   createQuestionId,
   DEFAULT_SUBMISSION,
+  flattenQuestions,
 } from '../../core/schema-defaults'
 import { getQuestionManifest } from '../../shared/question-registry'
 import type { SurveySchema, SurveyElement, Rule } from '../types'
@@ -241,16 +243,29 @@ export const useBuilderStore = create<BuilderState>()(
         s.selectedElementId = null
       }),
 
-    selectFlowQuestion: (questionId) =>
-      set((s) => {
-        s.selectedElementId = questionId
-        s.editingRuleId = null
-      }),
-
     startFlowNewRule: () =>
       set((s) => {
         if (!s.schema) return
         const rule = createEmptyRule(s.schema.rules.length)
+        const questions = flattenQuestions(s.schema)
+        const source = questions.find((q, index) => {
+          return (
+            canUseQuestionAsRuleSource(q) &&
+            questions.some((_, targetIndex) => targetIndex > index)
+          )
+        })
+        if (source) {
+          const sourceIndex = questions.findIndex((q) => q.id === source.id)
+          const target = questions[sourceIndex + 1]
+          rule.when = `{q.${source.id}} = ''`
+          if (target) {
+            rule.name = '按条件显示题目'
+            rule.actions = [createRuleAction('show', target.id)]
+          } else {
+            rule.name = '按条件结束问卷'
+            rule.actions = [createRuleAction('end')]
+          }
+        }
         s.schema.rules.push(rule)
         s.editingRuleId = rule.id
         s.selectedElementId = null

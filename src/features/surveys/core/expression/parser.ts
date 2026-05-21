@@ -1,5 +1,6 @@
 import { findReachableQuestionIds } from '../logic/flow-graph'
 import { extractQuestionRefsFromWhen } from '../logic/condition-serializer'
+import { canUseQuestionAsRuleSource } from '../logic/rule-capabilities'
 import type { SurveySchema } from '../types'
 import { flattenQuestions } from '../schema-defaults'
 
@@ -38,12 +39,17 @@ function questionOrderIndex(questions: { id: string }[], id: string): number {
 export function analyseSurvey(schema: SurveySchema): StaticIssue[] {
   const issues: StaticIssue[] = []
   const questions = flattenQuestions(schema)
+  const questionById = new Map(questions.map((q) => [q.id, q]))
   const qIds = new Set(questions.map((q) => q.id))
   const sectionIds = new Set(schema.sections.map((s) => s.id))
   const requiredIds = new Set(questions.filter((q) => q.required).map((q) => q.id))
 
   const showTargets = new Map<string, string[]>()
   const hideTargets = new Map<string, string[]>()
+  const navigationBySourceAndWhen = new Map<
+    string,
+    { ruleId: string; target: string; name: string }[]
+  >()
 
   for (const rule of schema.rules) {
     if (!rule.enabled) continue
@@ -58,6 +64,18 @@ export function analyseSurvey(schema: SurveySchema): StaticIssue[] {
     }
 
     const sourceQIds = extractQuestionRefsFromWhen(rule.when)
+    for (const sourceId of sourceQIds) {
+      const source = questionById.get(sourceId)
+      if (source && !canUseQuestionAsRuleSource(source)) {
+        issues.push({
+          code: 'unsupported_rule_source',
+          message: `规则「${rule.name}」使用了不支持作为条件的题型`,
+          targetId: sourceId,
+          ruleId: rule.id,
+          severity: 'error',
+        })
+      }
+    }
 
     for (const ref of extractExpressionRefs(rule.when)) {
       const [kind, id] = ref.split('.')
@@ -119,6 +137,16 @@ export function analyseSurvey(schema: SurveySchema): StaticIssue[] {
         }
       }
 
+      if (action.type === 'jump_to_question' || action.type === 'end') {
+        const sourceKey = sourceQIds[0] ?? '__unknown__'
+        const targetKey =
+          action.type === 'end' ? '__end__' : (action.target ?? '__missing__')
+        const key = `${sourceKey}\n${rule.when.trim()}`
+        const list = navigationBySourceAndWhen.get(key) ?? []
+        list.push({ ruleId: rule.id, target: targetKey, name: rule.name })
+        navigationBySourceAndWhen.set(key, list)
+      }
+
       if (
         (action.type === 'show' || action.type === 'hide') &&
         target &&
@@ -166,6 +194,20 @@ export function analyseSurvey(schema: SurveySchema): StaticIssue[] {
         targetId: qId,
         severity: 'warn',
       })
+    }
+  }
+
+  for (const list of navigationBySourceAndWhen.values()) {
+    const targets = new Set(list.map((i) => i.target))
+    if (list.length > 1 && targets.size > 1) {
+      for (const item of list) {
+        issues.push({
+          code: 'navigation_conflict',
+          message: `规则「${item.name}」与其他跳题/结束规则使用相同条件但目标不同，请合并或调整优先级`,
+          ruleId: item.ruleId,
+          severity: 'warn',
+        })
+      }
     }
   }
 

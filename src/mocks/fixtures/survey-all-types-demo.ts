@@ -2,11 +2,14 @@ import {
   createEmptySurvey,
   createQuestionId,
   createSection,
+  flattenQuestions,
 } from '@/features/surveys/core/schema-defaults'
+import { createRuleAction } from '@/features/surveys/core/logic/rule-utils'
 import type {
   CascaderNode,
   ChoiceOption,
   QuestionElement,
+  RuleActionType,
   QuestionType,
   SurveyElement,
   SurveySchema,
@@ -51,6 +54,12 @@ function q(
 
 function divider(): SurveyElement {
   return { kind: 'divider', id: createQuestionId() }
+}
+
+function valueExpr(value?: string | number) {
+  if (value === undefined) return ''
+  if (typeof value === 'number') return String(value)
+  return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
 }
 
 /** 生成「云岭精品酒店 · 住客体验调研」——覆盖全部题型，文案按真实业务场景编写 */
@@ -322,6 +331,166 @@ export function createAllTypesDemoSurvey(): SurveySchema {
       ],
     }),
   ]
+
+  const questions = flattenQuestions(survey)
+  const findQuestion = (text: string) => {
+    const item = questions.find((question) => question.title.includes(text))
+    if (!item) throw new Error(`Demo survey question not found: ${text}`)
+    return item
+  }
+  const optionId = (question: QuestionElement, text: string) => {
+    const item = question.config.options?.find((option) =>
+      option.label.includes(text)
+    )
+    if (!item) throw new Error(`Demo survey option not found: ${text}`)
+    return item.id
+  }
+  const addRule = ({
+    name,
+    source,
+    op,
+    value,
+    action,
+    target,
+  }: {
+    name: string
+    source: QuestionElement
+    op: string
+    value?: string | number
+    action: RuleActionType
+    target?: QuestionElement
+  }) => {
+    const rhs = valueExpr(value)
+    survey.rules.push({
+      id: createQuestionId(),
+      name,
+      enabled: true,
+      priority: survey.rules.length,
+      when: `{q.${source.id}} ${op}${rhs ? ` ${rhs}` : ''}`,
+      actions: [createRuleAction(action, target?.id)],
+    })
+  }
+
+  const booking = findQuestion('预订')
+  const nights = findQuestion('连住')
+  const facilities = findQuestion('设施')
+  const breakfast = findQuestion('早餐主菜')
+  const rating = findQuestion('入住体验的评分')
+  const slider = findQuestion('更个性化的服务')
+  const nps = findQuestion('推荐云岭精品酒店')
+  const guestName = findQuestion('如何称呼')
+  const email = findQuestion('邮箱')
+  const phone = findQuestion('手机号')
+  const url = findQuestion('社交平台')
+  const feedback = findQuestion('哪些细节希望')
+  const family = findQuestion('同行家人')
+
+  addRule({
+    name: 'OTA 预订跳到设施使用',
+    source: booking,
+    op: '=',
+    value: optionId(booking, 'OTA'),
+    action: 'jump_to_question',
+    target: facilities,
+  })
+  addRule({
+    name: '其他预订渠道收集详细反馈',
+    source: booking,
+    op: '=',
+    value: optionId(booking, '其他'),
+    action: 'show',
+    target: feedback,
+  })
+  addRule({
+    name: '长住客显示同行信息',
+    source: nights,
+    op: '>=',
+    value: 5,
+    action: 'show',
+    target: family,
+  })
+  addRule({
+    name: '使用 SPA 时收集改进建议',
+    source: facilities,
+    op: 'contains',
+    value: optionId(facilities, 'SPA'),
+    action: 'show',
+    target: feedback,
+  })
+  addRule({
+    name: '未使用设施跳到总体评分',
+    source: facilities,
+    op: 'contains',
+    value: optionId(facilities, '均未使用'),
+    action: 'jump_to_question',
+    target: rating,
+  })
+  addRule({
+    name: '喜欢米线时收集偏好',
+    source: breakfast,
+    op: '=',
+    value: optionId(breakfast, '米线'),
+    action: 'show',
+    target: feedback,
+  })
+  addRule({
+    name: '低评分显示改进建议',
+    source: rating,
+    op: '<=',
+    value: 2,
+    action: 'show',
+    target: feedback,
+  })
+  addRule({
+    name: '高服务溢价意愿显示手机号',
+    source: slider,
+    op: '>=',
+    value: 50,
+    action: 'show',
+    target: phone,
+  })
+  addRule({
+    name: '低 NPS 显示改进建议',
+    source: nps,
+    op: '<=',
+    value: 6,
+    action: 'show',
+    target: feedback,
+  })
+  addRule({
+    name: '已填写称呼显示邮箱',
+    source: guestName,
+    op: 'notEmpty',
+    action: 'show',
+    target: email,
+  })
+  addRule({
+    name: '已留邮箱显示手机号',
+    source: email,
+    op: 'notEmpty',
+    action: 'show',
+    target: phone,
+  })
+  addRule({
+    name: '已留手机号显示社交链接',
+    source: phone,
+    op: 'notEmpty',
+    action: 'show',
+    target: url,
+  })
+  addRule({
+    name: '未留手机号隐藏社交链接',
+    source: phone,
+    op: 'empty',
+    action: 'hide',
+    target: url,
+  })
+  addRule({
+    name: '未留邮箱提前结束',
+    source: email,
+    op: 'empty',
+    action: 'end',
+  })
 
   return survey
 }

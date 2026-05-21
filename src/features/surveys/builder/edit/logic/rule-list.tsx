@@ -1,7 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
 import type { Rule } from '../../types'
 import { useBuilderStatic, useBuilderStructure } from '../context'
 import { useQuestionLabel } from './use-survey-questions'
@@ -13,7 +12,7 @@ function RuleActionSummary({ action }: { action: Rule['actions'][0] }) {
 }
 
 function RuleCard({ rule, onEdit }: { rule: Rule; onEdit: () => void }) {
-  const { removeRule, updateRule } = useBuilderStatic()
+  const { removeRule } = useBuilderStatic()
 
   return (
     <div
@@ -40,11 +39,6 @@ function RuleCard({ rule, onEdit }: { rule: Rule; onEdit: () => void }) {
             {rule.when || '（无条件）'}
           </p>
         </button>
-        <Switch
-          checked={rule.enabled}
-          onCheckedChange={(c) => updateRule(rule.id, { enabled: c })}
-          aria-label='启用规则'
-        />
       </div>
       <ul className='text-muted-foreground text-xs leading-relaxed'>
         {rule.actions.map((a) => (

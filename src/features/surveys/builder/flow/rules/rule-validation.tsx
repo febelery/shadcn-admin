@@ -72,7 +72,7 @@ export function RuleValidation({ issues, compact }: Props) {
             )}
           >
             <span className='mt-1.5 size-1 shrink-0 rounded-full bg-current' />
-            <span>{i.message}</span>
+            <span className='min-w-0 break-words'>{i.message}</span>
           </li>
         ))}
       </ul>

@@ -1,4 +1,5 @@
 import type { QuestionType } from '../types'
+import { canUseQuestionTypeAsRuleSource } from './rule-capabilities'
 
 export type ConditionOperator =
   | 'eq'
@@ -57,13 +58,8 @@ export function getOperatorsForQuestionType(type: QuestionType): OperatorDef[] {
   switch (type) {
     case 'single_choice':
     case 'dropdown':
-    case 'likert':
-    case 'nps':
       return CHOICE_OPS
     case 'multiple_choice':
-    case 'ranking':
-    case 'matrix_single':
-    case 'matrix_multiple':
       return MULTI_OPS
     case 'text':
     case 'textarea':
@@ -75,20 +71,22 @@ export function getOperatorsForQuestionType(type: QuestionType): OperatorDef[] {
     case 'number':
     case 'rating':
     case 'slider':
+    case 'nps':
       return NUMBER_OPS
     case 'date':
-    case 'date_range':
       return NUMBER_OPS.filter((o) =>
-        ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'empty', 'not_empty'].includes(o.value)
+        ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'empty', 'not_empty'].includes(
+          o.value
+        )
       )
     default:
-      return TEXT_OPS
+      return []
   }
 }
 
 /** 是否支持可视化条件构建（MVP 题型） */
 export function supportsVisualCondition(type: QuestionType): boolean {
-  return getOperatorsForQuestionType(type).length > 0 && type !== 'cascader'
+  return canUseQuestionTypeAsRuleSource(type)
 }
 
 export const OPERATOR_TO_EXPR: Record<ConditionOperator, string> = {

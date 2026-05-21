@@ -21,6 +21,18 @@
   --xy-controls-box-shadow: 0 1px 3px color-mix(in oklch, var(--foreground) 8%, transparent);
   --xy-handle-background-color: var(--muted-foreground);
   --xy-handle-border-color: var(--card);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--muted) 34%, transparent) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--muted) 28%, transparent) 0 1px,
+      transparent 1px 100%
+    );
+  background-size: 64px 64px;
 }
 
 .survey-flow-canvas .react-flow__minimap {
@@ -45,10 +57,14 @@
 
 .survey-flow-canvas .react-flow__edge-textbg {
   fill: var(--card);
+  stroke: color-mix(in oklch, var(--border) 80%, transparent);
+  stroke-width: 1px;
 }
 
 .survey-flow-canvas .react-flow__edge-text {
   fill: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 600;
 }
 
 /* 节点以 React Flow 定位框为准，内容在框内居中 */

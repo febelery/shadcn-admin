@@ -1,17 +1,17 @@
-import { Maximize2, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useBuilderStore } from '../store'
 
 type Props = {
-  onFitView: () => void
   className?: string
 }
 
-export function Toolbar({ onFitView, className }: Props) {
+export function Toolbar({
+  className,
+}: Props) {
   const showJump = useBuilderStore((s) => s.flowShowJumpEdges)
   const showVisibility = useBuilderStore((s) => s.flowShowVisibilityEdges)
   const setShowJump = useBuilderStore((s) => s.setFlowShowJumpEdges)
@@ -66,16 +66,6 @@ export function Toolbar({ onFitView, className }: Props) {
         </div>
       </div>
 
-      <Button
-        type='button'
-        variant='outline'
-        size='sm'
-        className={cn('h-8 shrink-0 gap-1.5', 'text-xs leading-none')}
-        onClick={onFitView}
-      >
-        <Maximize2 className='size-3.5' />
-        全览
-      </Button>
       <span
         className={cn(
           'text-xs leading-none',
