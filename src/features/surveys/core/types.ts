@@ -299,6 +299,7 @@ export interface SurveyStats {
 export interface SurveyResponseItem {
   id: string
   surveyId: string
+  respondent?: string
   status: 'partial' | 'complete'
   answers: Record<string, unknown>
   startedAt: string

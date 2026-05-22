@@ -1,9 +1,9 @@
-import { Plus } from 'lucide-react'
 import { useRouter } from '@tanstack/react-router'
-import { PageLayout } from '@/components/layout/page-layout'
+import { Plus } from 'lucide-react'
+import { useTableState } from '@/hooks/use-table-state'
 import { Button } from '@/components/ui/button'
 import type { FilterConfig } from '@/components/filter-menu'
-import { useTableState } from '@/hooks/use-table-state'
+import { PageLayout } from '@/components/layout/page-layout'
 import { useSurveyList } from '../queries/hooks'
 import { SurveyTable } from './survey-table'
 
@@ -18,7 +18,6 @@ const filterConfigs: FilterConfig[] = [
     options: [
       { label: '草稿', value: 'draft' },
       { label: '已发布', value: 'published' },
-      { label: '已归档', value: 'archived' },
     ],
     allowedOperators: ['is', 'isNot'],
   },

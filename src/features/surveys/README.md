@@ -9,7 +9,7 @@ Design surveys, publish schemas, view analytics, export Excel.
   - `question-surface/` — 单题 WYSIWYG 作答区
   - `question-surface-registry.tsx` — 题型 → 作答区唯一注册点
   - `question-type-inspector.tsx` — 检查器题型唯一注册点
-- `list/` / `analytics/` — 列表与统计
+- `list/` / `records/` / `analytics/` — 列表、填写记录与统计
 
 **命名**：工作区 `workspace/*`（`Workspace*`）· 作答区 `question-surface/*`（`Surface*`）
 

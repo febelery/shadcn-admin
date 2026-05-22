@@ -26,16 +26,16 @@ export function SurveyTable({ data, total, isLoading, tableState }: Props) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const { mutate: deleteSurvey } = useDeleteSurvey()
   const { mutate: publishSurvey } = usePublishSurvey()
-  const { mutate: updateStatus } = useUpdateSurveyStatus()
+  const { mutate: updateSurveyStatus } = useUpdateSurveyStatus()
 
   const columns = useMemo(
     () =>
       createSurveyColumns({
         onDelete: deleteSurvey,
         onPublish: publishSurvey,
-        onArchive: (id) => updateStatus({ id, status: 'archived' }),
+        onPause: (id) => updateSurveyStatus({ id, status: 'draft' }),
       }),
-    [deleteSurvey, publishSurvey, updateStatus]
+    [deleteSurvey, publishSurvey, updateSurveyStatus]
   )
 
   const {
