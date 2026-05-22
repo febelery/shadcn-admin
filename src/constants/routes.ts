@@ -9,9 +9,9 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   FORBIDDEN: '/403',
   SERVER_ERROR: '/500',
-  SETTINGS: '/settings',
-  ACCOUNT: '/settings/account',
-  NOTIFICATIONS: '/settings/notifications',
+  SETTING: '/setting',
+  ACCOUNT: '/setting/account',
+  NOTIFICATION: '/setting/notification',
 } as const
 
 export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES]

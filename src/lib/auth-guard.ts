@@ -1,7 +1,7 @@
 import { redirect } from '@tanstack/react-router'
 import { ROUTES } from '@/constants'
 import { useAuthStore, getToken } from '@/stores/auth-store'
-import { hasPermission } from '@/lib/permissions'
+import { hasPermission } from '@/lib/permission'
 
 function redirectToSignIn(from: string): never {
   throw redirect({
@@ -13,7 +13,11 @@ function redirectToSignIn(from: string): never {
 /**
  * 核心鉴权卫士 — 可用于任何需要登录的路由 beforeLoad
  */
-export async function requireAuth({ location }: { location: { href: string } }) {
+export async function requireAuth({
+  location,
+}: {
+  location: { href: string }
+}) {
   const { auth } = useAuthStore.getState()
 
   // 1. 检查本地 Token

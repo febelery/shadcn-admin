@@ -1,10 +1,10 @@
+import { createRuleAction } from '@/features/survey/core/logic/rule-utils'
 import {
   createEmptySurvey,
   createQuestionId,
   createSection,
   flattenQuestions,
-} from '@/features/surveys/core/schema-defaults'
-import { createRuleAction } from '@/features/surveys/core/logic/rule-utils'
+} from '@/features/survey/core/schema-defaults'
 import type {
   CascaderNode,
   ChoiceOption,
@@ -13,8 +13,8 @@ import type {
   QuestionType,
   SurveyElement,
   SurveySchema,
-} from '@/features/surveys/core/types'
-import { getQuestionManifest } from '@/features/surveys/shared/question-registry'
+} from '@/features/survey/core/types'
+import { getQuestionManifest } from '@/features/survey/shared/question-registry'
 
 /** 列表中固定的演示问卷 ID，便于从列表点进编辑测试 */
 export const DEMO_SURVEY_ID = 'a1111111-1111-4111-8111-111111111111'

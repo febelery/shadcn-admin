@@ -1,0 +1,6 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { GeneralError } from '@/features/error/general-error'
+
+export const Route = createFileRoute('/(error)/500')({
+  component: GeneralError,
+})

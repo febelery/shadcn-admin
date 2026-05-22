@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { useCan } from '@/hooks/use-permissions'
+import { useCan } from '@/hooks/use-permission'
 
 /**
  * `<Can>` 权限守卫组件
@@ -12,12 +12,12 @@ import { useCan } from '@/hooks/use-permissions'
  * @example
  * ```tsx
  * // 隐藏模式
- * <Can permission="users:create">
+ * <Can permission="user:create">
  *   <Button>新增用户</Button>
  * </Can>
  *
  * // 禁用模式
- * <Can permission="users:delete" mode="disable">
+ * <Can permission="user:delete" mode="disable">
  *   <Button>删除用户</Button>
  * </Can>
  *
@@ -31,7 +31,7 @@ import { useCan } from '@/hooks/use-permissions'
 type CanMode = 'hide' | 'disable' | 'fallback'
 
 interface CanProps {
-  /** 需要的权限字符串，如 "users:access" */
+  /** 需要的权限字符串，如 "user:access" */
   permission: string
   /** 控制模式，默认 "hide" */
   mode?: CanMode

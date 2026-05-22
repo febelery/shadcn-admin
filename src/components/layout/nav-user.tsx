@@ -107,13 +107,13 @@ export function NavUser() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to={ROUTES.SETTINGS}>
+                  <Link to={ROUTES.SETTING}>
                     <CreditCard />
                     账单
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to={ROUTES.NOTIFICATIONS}>
+                  <Link to={ROUTES.NOTIFICATION}>
                     <Bell />
                     通知
                   </Link>
