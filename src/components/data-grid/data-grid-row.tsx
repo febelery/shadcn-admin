@@ -11,6 +11,7 @@ interface DataGridRowProps<TData> extends React.ComponentProps<'div'> {
   row: Row<TData>
   rowVirtualizer: Virtualizer<HTMLDivElement, Element>
   virtualRowIndex: number
+  virtualRowStart: number
   rowMapRef: React.RefObject<Map<number, HTMLDivElement>>
   rowHeight: RowHeightValue
   focusedCell: CellPosition | null
@@ -18,6 +19,22 @@ interface DataGridRowProps<TData> extends React.ComponentProps<'div'> {
 
 export const DataGridRow = React.memo(DataGridRowImpl, (prev, next) => {
   if (prev.row.id !== next.row.id) {
+    return false
+  }
+
+  if (prev.row.original !== next.row.original) {
+    return false
+  }
+
+  if (prev.virtualRowIndex !== next.virtualRowIndex) {
+    return false
+  }
+
+  if (prev.virtualRowStart !== next.virtualRowStart) {
+    return false
+  }
+
+  if (prev.rowHeight !== next.rowHeight) {
     return false
   }
 
@@ -49,6 +66,7 @@ export const DataGridRow = React.memo(DataGridRowImpl, (prev, next) => {
 function DataGridRowImpl<TData>({
   row,
   virtualRowIndex,
+  virtualRowStart,
   rowVirtualizer,
   rowMapRef,
   rowHeight,
@@ -57,21 +75,32 @@ function DataGridRowImpl<TData>({
   className,
   ...props
 }: DataGridRowProps<TData>) {
+  const rowElementRef = React.useRef<HTMLDivElement | null>(null)
+
   const onRowChange = React.useCallback(
     (node: HTMLDivElement | null) => {
       if (typeof virtualRowIndex === 'undefined') return
+      rowElementRef.current = node
 
       if (node) {
         rowVirtualizer.measureElement(node)
-        rowMapRef.current?.set(virtualRowIndex, node)
-      } else {
-        rowMapRef.current?.delete(virtualRowIndex)
       }
     },
-    [virtualRowIndex, rowVirtualizer, rowMapRef]
+    [virtualRowIndex, rowVirtualizer]
   )
 
   const rowRef = useComposedRefs(ref, onRowChange)
+
+  React.useEffect(() => {
+    const node = rowElementRef.current
+    if (!node) return
+    const currentMap = rowMapRef.current
+
+    currentMap?.set(virtualRowIndex, node)
+    return () => {
+      currentMap?.delete(virtualRowIndex)
+    }
+  }, [rowMapRef, virtualRowIndex])
 
   const isRowSelected = row.getIsSelected()
 
@@ -88,6 +117,7 @@ function DataGridRowImpl<TData>({
       className={cn('absolute flex w-full border-b', className)}
       style={{
         height: `${getRowHeightValue(rowHeight)}px`,
+        transform: `translateY(${virtualRowStart}px)`,
       }}
       {...props}
     >
@@ -107,11 +137,15 @@ function DataGridRowImpl<TData>({
             tabIndex={-1}
             className={cn({
               'border-r': cell.column.id !== 'select',
-              'bg-background/80 backdrop-blur-sm': isPinned,
+              'overflow-hidden': true,
+              'bg-background': isPinned,
             })}
             style={{
-              ...getCommonPinningStyles({ column: cell.column }),
-              width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+              ...getCommonPinningStyles({
+                column: cell.column,
+                zIndex: 5,
+              }),
+              width: `calc(var(--col-${cell.column.id}-size, ${cell.column.getSize()}) * 1px)`,
             }}
           >
             {typeof cell.column.columnDef.header === 'function' ? (

@@ -6,8 +6,10 @@ import type { Column } from '@tanstack/react-table'
  */
 export function getCommonPinningStyles<TData>({
   column,
+  zIndex,
 }: {
   column: Column<TData>
+  zIndex?: number
 }): React.CSSProperties {
   const isPinned = column.getIsPinned()
   const isLastLeftPinnedColumn =
@@ -19,7 +21,7 @@ export function getCommonPinningStyles<TData>({
     left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,
     right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
     position: isPinned ? 'sticky' : undefined,
-    zIndex: isPinned ? 1 : undefined,
+    zIndex: isPinned ? (zIndex ?? 1) : undefined,
     boxShadow: isLastLeftPinnedColumn
       ? '-4px 0 4px -4px rgba(0, 0, 0, 0.1) inset'
       : isFirstRightPinnedColumn

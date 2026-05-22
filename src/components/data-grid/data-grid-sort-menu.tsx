@@ -1,16 +1,13 @@
 import * as React from 'react'
 import type { ColumnSort, SortDirection, Table } from '@tanstack/react-table'
 import {
-  ArrowDown,
   ArrowDownUp,
-  ArrowUp,
   Check,
   ChevronsUpDown,
   GripVertical,
   Plus,
   RotateCcw,
   Trash2,
-  X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -225,14 +222,6 @@ export function DataGridSortMenu<TData>({
     [appliedSorting.length, resetSort]
   )
 
-  const removeAppliedSort = React.useCallback(
-    (sortId: string) => {
-      const next = appliedSorting.filter((s) => s.id !== sortId)
-      table.setSorting(next)
-    },
-    [appliedSorting, table]
-  )
-
   const hasApplied = appliedSorting.length > 0
 
   const contextValue: SortContextType<TData> = React.useMemo(
@@ -255,17 +244,17 @@ export function DataGridSortMenu<TData>({
         onValueChange={setEditingSorting}
         getItemValue={(item) => item.id}
       >
-        <div className='flex flex-wrap items-center gap-1.5'>
+        <div className='inline-flex shrink-0 items-center gap-1.5'>
           {/* 触发按钮 */}
           <Popover open={open} onOpenChange={handleOpenChange}>
             <PopoverTrigger asChild>
               <Button
-                variant={hasApplied ? 'secondary' : 'outline'}
+                variant='outline'
                 size='sm'
                 className={cn(
-                  'h-8 gap-1.5 font-normal transition-all',
+                  'h-8 shrink-0 gap-1.5 font-normal transition-all',
                   hasApplied &&
-                    'border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 border border-dashed'
+                    'border-primary/50 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
                 )}
                 onKeyDown={onTriggerKeyDown}
               >
@@ -302,17 +291,6 @@ export function DataGridSortMenu<TData>({
               />
             </PopoverContent>
           </Popover>
-
-          {/* 已应用排序的内联气泡标签 */}
-          {appliedSorting.map((sort) => (
-            <ActiveSortChip
-              key={sort.id}
-              label={columnMeta.columnLabels.get(sort.id) ?? sort.id}
-              desc={sort.desc}
-              onRemove={() => removeAppliedSort(sort.id)}
-              onClick={() => setOpen(true)}
-            />
-          ))}
         </div>
 
         <SortableOverlay>
@@ -325,60 +303,6 @@ export function DataGridSortMenu<TData>({
         </SortableOverlay>
       </Sortable>
     </SortContext>
-  )
-}
-
-function ActiveSortChip({
-  label,
-  desc,
-  onRemove,
-  onClick,
-}: {
-  label: string
-  desc: boolean
-  onRemove: () => void
-  onClick: () => void
-}) {
-  return (
-    <div
-      className={cn(
-        'group flex h-8 cursor-pointer items-center overflow-hidden rounded-md border',
-        'bg-background text-xs transition-colors',
-        'hover:border-primary/40 hover:bg-primary/5'
-      )}
-    >
-      <button
-        type='button'
-        onClick={onClick}
-        className='flex h-full items-center gap-1.5 px-2.5 text-left'
-      >
-        {desc ? (
-          <ArrowDown className='text-muted-foreground h-3 w-3 shrink-0' />
-        ) : (
-          <ArrowUp className='text-muted-foreground h-3 w-3 shrink-0' />
-        )}
-        <span className='text-foreground font-medium'>{label}</span>
-        <span className='text-muted-foreground/60'>·</span>
-        <span className='text-muted-foreground'>
-          {desc ? TEXT.DESC : TEXT.ASC}
-        </span>
-      </button>
-      <button
-        type='button'
-        onClick={(e) => {
-          e.stopPropagation()
-          onRemove()
-        }}
-        className={cn(
-          'flex h-full items-center border-l px-1.5',
-          'text-muted-foreground/50 transition-colors',
-          'hover:bg-destructive/10 hover:text-destructive'
-        )}
-        aria-label={`移除「${label}」排序`}
-      >
-        <X className='h-3 w-3' />
-      </button>
-    </div>
   )
 }
 
@@ -448,7 +372,7 @@ function SortPopoverContent({
       {/* 排序行列表 */}
       {hasItems && (
         <SortableContent asChild>
-          <ul className='flex max-h-[360px] flex-col overflow-y-auto px-3 py-2'>
+          <ul className='flex max-h-[360px] flex-col gap-1 overflow-y-auto px-3 py-2'>
             {editingSorting.map((sort, index) => (
               <SortItem
                 key={sort.id}

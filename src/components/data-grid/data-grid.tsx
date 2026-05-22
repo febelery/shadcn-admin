@@ -38,7 +38,7 @@ export function DataGrid<TData>({
 
   React.useEffect(() => {
     rowVirtualizer.measure()
-  }, [rows.length, rowVirtualizer])
+  }, [rows.length, rowHeight, rowVirtualizer])
 
   const onGridContextMenu = React.useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
@@ -121,12 +121,15 @@ export function DataGrid<TData>({
                     }
                     data-slot='grid-header-cell'
                     tabIndex={-1}
-                    className={cn('relative', {
+                    className={cn('bg-background relative overflow-hidden', {
                       'border-r': header.column.id !== 'select',
                     })}
                     style={{
-                      ...getCommonPinningStyles({ column: header.column }),
-                      width: `calc(var(--header-${header.id}-size) * 1px)`,
+                      ...getCommonPinningStyles({
+                        column: header.column,
+                        zIndex: 20,
+                      }),
+                      width: `calc(var(--header-${header.id}-size, ${header.getSize()}) * 1px)`,
                     }}
                   >
                     {header.isPlaceholder ? null : typeof header.column
@@ -154,7 +157,8 @@ export function DataGrid<TData>({
             height: `${rowVirtualizer.getTotalSize()}px`,
           }}
         >
-          {rowVirtualizer.getVirtualIndexes().map((virtualRowIndex) => {
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const virtualRowIndex = virtualRow.index
             const row = rows[virtualRowIndex]
             if (!row) return null
 
@@ -166,6 +170,7 @@ export function DataGrid<TData>({
                 virtualRowIndex={virtualRowIndex}
                 rowVirtualizer={rowVirtualizer}
                 rowHeight={rowHeight}
+                virtualRowStart={virtualRow.start}
                 focusedCell={focusedCell}
               />
             )

@@ -6,6 +6,7 @@ import {
   EqualIcon,
   MinusIcon,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -45,6 +46,7 @@ interface DataGridRowHeightMenuProps<TData> extends React.ComponentProps<
 
 export function DataGridRowHeightMenu<TData>({
   table,
+  className,
   ...props
 }: DataGridRowHeightMenuProps<TData>) {
   const rowHeight = table.options.meta?.rowHeight
@@ -62,17 +64,29 @@ export function DataGridRowHeightMenu<TData>({
 
   return (
     <Select value={rowHeight} onValueChange={onRowHeightChange}>
-      <SelectTrigger size='sm' className='[&_svg:nth-child(2)]:hidden'>
+      <SelectTrigger
+        size='sm'
+        className='h-8 w-[58px] shrink-0 justify-center gap-0 px-0 [&_[data-slot=select-value]]:flex-none [&_svg:nth-child(2)]:hidden'
+      >
         <SelectValue placeholder='行高'>
-          <selectedRowHeight.icon />
-          {selectedRowHeight.label}
+          <span className='flex items-center justify-center gap-1.5'>
+            <selectedRowHeight.icon className='size-4' />
+            <span>{selectedRowHeight.label}</span>
+          </span>
         </SelectValue>
       </SelectTrigger>
-      <SelectContent {...props}>
+      <SelectContent
+        className={cn('w-[96px] min-w-[96px]', className)}
+        {...props}
+      >
         {rowHeights.map((option) => {
           const OptionIcon = option.icon
           return (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              className='[&_span:last-child]:flex [&_span:last-child]:items-center [&_span:last-child]:gap-2'
+            >
               <OptionIcon className='size-4' />
               {option.label}
             </SelectItem>

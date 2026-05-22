@@ -5,7 +5,7 @@ import type {
   Table,
 } from '@tanstack/react-table'
 import type { FilterOperator, FilterValue, Option } from '@/types/data-grid'
-import { SlidersHorizontal, X } from 'lucide-react'
+import { SlidersHorizontal } from 'lucide-react'
 import { getDefaultOperator } from '@/lib/data-grid-filters'
 import { cn, formatDate } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -230,15 +230,6 @@ export function FilterMenu<TData>({
     })
   }, [mode, table, onFiltersChange])
 
-  const removeApplied = React.useCallback(
-    (filterId: string) => {
-      const next = appliedFilters.filter((f) => f.id !== filterId)
-      if (mode === 'local') table.setColumnFilters(next)
-      else onFiltersChange?.(next)
-    },
-    [appliedFilters, mode, table, onFiltersChange]
-  )
-
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen) {
       if (appliedFilters.length === 0) {
@@ -293,16 +284,16 @@ export function FilterMenu<TData>({
         onValueChange={setEditingFilters}
         getItemValue={(item) => item.id}
       >
-        <div className='flex flex-wrap items-center gap-1.5'>
+        <div className='inline-flex shrink-0 items-center gap-1.5'>
           <Popover open={open} onOpenChange={handleOpenChange}>
             <PopoverTrigger asChild>
               <Button
-                variant={hasApplied ? 'secondary' : 'outline'}
+                variant='outline'
                 size='sm'
                 className={cn(
-                  'h-8 gap-1.5 font-normal transition-all',
+                  'h-8 shrink-0 gap-1.5 font-normal transition-all',
                   hasApplied &&
-                    'border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 border border-dashed'
+                    'border-primary/50 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
                 )}
               >
                 <SlidersHorizontal className='h-3.5 w-3.5' />
@@ -336,18 +327,6 @@ export function FilterMenu<TData>({
               />
             </PopoverContent>
           </Popover>
-
-          {appliedFilters.map((filter) => (
-            <ActiveFilterChip
-              key={filter.id}
-              label={columnMeta.columnLabels.get(filter.id) ?? filter.id}
-              valueText={getFilterValueText(
-                filter.value as FilterValue | undefined
-              )}
-              onRemove={() => removeApplied(filter.id)}
-              onClick={() => setOpen(true)}
-            />
-          ))}
         </div>
 
         <SortableOverlay>
@@ -359,51 +338,5 @@ export function FilterMenu<TData>({
         </SortableOverlay>
       </Sortable>
     </FilterContext>
-  )
-}
-
-function ActiveFilterChip({
-  label,
-  valueText,
-  onRemove,
-  onClick,
-}: {
-  label: string
-  valueText: string
-  onRemove: () => void
-  onClick: () => void
-}) {
-  return (
-    <div
-      className={cn(
-        'group bg-background hover:border-primary/40 hover:bg-primary/5 flex h-8 cursor-pointer items-center overflow-hidden rounded-md border text-xs transition-colors'
-      )}
-    >
-      <button
-        type='button'
-        onClick={onClick}
-        className='flex h-full items-center gap-1 px-2.5 text-left'
-      >
-        <span className='text-foreground font-medium'>{label}</span>
-        {valueText && (
-          <>
-            <span className='text-muted-foreground/60'>·</span>
-            <span className='text-muted-foreground max-w-[120px] truncate'>
-              {valueText}
-            </span>
-          </>
-        )}
-      </button>
-      <button
-        type='button'
-        onClick={(e) => {
-          e.stopPropagation()
-          onRemove()
-        }}
-        className='text-muted-foreground/50 hover:bg-destructive/10 hover:text-destructive flex h-full items-center border-l px-1.5 transition-colors'
-      >
-        <X className='h-3 w-3' />
-      </button>
-    </div>
   )
 }

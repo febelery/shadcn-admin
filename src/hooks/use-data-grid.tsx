@@ -47,16 +47,6 @@ function useLazyRef<T>(fn: () => T): React.RefObject<T> {
   return ref as React.RefObject<T>
 }
 
-function useAsRef<T>(data: T) {
-  const ref = React.useRef<T>(data)
-
-  useIsomorphicLayoutEffect(() => {
-    ref.current = data
-  })
-
-  return ref
-}
-
 interface DataGridState {
   sorting: SortingState
   rowHeight: RowHeightValue
@@ -99,7 +89,7 @@ function useStore<T>(
 
 interface UseDataGridProps<TData> extends Omit<
   TableOptions<TData>,
-  'pageCount' | 'getCoreRowModel'
+  'getCoreRowModel'
 > {
   onDataChange?: (data: TData[]) => void
   onRowAdd?: (event?: React.MouseEvent<HTMLDivElement>) =>
@@ -147,7 +137,6 @@ function useDataGrid<TData>({
   const cellMapRef = React.useRef<Map<string, HTMLDivElement>>(new Map())
   const footerRef = React.useRef<HTMLDivElement>(null)
 
-  const dataGridPropsRef = useAsRef(dataGridProps)
   const listenersRef = useLazyRef(() => new Set<() => void>())
 
   const stateRef = useLazyRef<DataGridState>(() => {
@@ -1790,24 +1779,25 @@ function useDataGrid<TData>({
 
   const tableOptions = React.useMemo<TableOptions<TData>>(
     () => ({
-      ...dataGridPropsRef.current,
+      ...dataGridProps,
       data,
       columns,
       defaultColumn,
       initialState,
       state: {
-        ...dataGridPropsRef.current.state,
-        sorting,
-        rowSelection,
+        ...dataGridProps.state,
+        sorting: dataGridProps.state?.sorting ?? sorting,
+        rowSelection: dataGridProps.state?.rowSelection ?? rowSelection,
       },
-      onRowSelectionChange,
-      onSortingChange,
+      onRowSelectionChange:
+        dataGridProps.onRowSelectionChange ?? onRowSelectionChange,
+      onSortingChange: dataGridProps.onSortingChange ?? onSortingChange,
       columnResizeMode: 'onChange',
       getCoreRowModel: getCoreRowModel(),
       getFilteredRowModel: getFilteredRowModel(),
       getSortedRowModel: getSortedRowModel(),
       meta: {
-        ...dataGridPropsRef.current.meta,
+        ...dataGridProps.meta,
         dataGridRef,
         cellMapRef,
         focusedCell,
@@ -1842,7 +1832,7 @@ function useDataGrid<TData>({
       },
     }),
     [
-      dataGridPropsRef,
+      dataGridProps,
       data,
       columns,
       defaultColumn,
@@ -1886,11 +1876,9 @@ function useDataGrid<TData>({
 
   const table = useReactTable(tableOptions)
 
-  if (!tableRef.current) {
-    tableRef.current = table
-  }
+  tableRef.current = table
 
-  const columnSizeVars = React.useMemo(() => {
+  const columnSizeVars = (() => {
     const headers = table.getFlatHeaders()
     const colSizes: { [key: string]: number } = {}
     for (const header of headers) {
@@ -1898,7 +1886,7 @@ function useDataGrid<TData>({
       colSizes[`--col-${header.column.id}-size`] = header.column.getSize()
     }
     return colSizes
-  }, [table])
+  })()
 
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
@@ -1919,26 +1907,12 @@ function useDataGrid<TData>({
         store.setState('isScrolling', virtualizerIsScrolling)
       }
 
-      // Batch DOM updates in a single animation frame
-      const virtualItems = instance.getVirtualItems()
-      if (virtualItems.length === 0) return
-
-      requestAnimationFrame(() => {
-        for (let i = 0; i < virtualItems.length; i++) {
-          const virtualRow = virtualItems[i]
-          if (!virtualRow) continue
-          const rowRef = rowMapRef.current.get(virtualRow.index)
-          if (rowRef) {
-            rowRef.style.transform = `translateY(${virtualRow.start}px)`
-          }
-        }
-      })
+      // Row positioning is rendered declaratively by DataGridRow. Keeping it
+      // out of requestAnimationFrame avoids stale transforms after sort/filter.
     },
   })
 
-  if (!rowVirtualizerRef.current) {
-    rowVirtualizerRef.current = rowVirtualizer
-  }
+  rowVirtualizerRef.current = rowVirtualizer
 
   const onScrollToRow = React.useCallback(
     async (opts: Partial<CellPosition>) => {
