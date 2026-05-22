@@ -351,7 +351,7 @@ function RecursiveDropdownMenuItem({
 export function hasActiveChild(href: string, item: NavItem): boolean {
   if (!item.items) return false
   // 检查是否有子项激活，但排除自身激活
-  const isSelfActive = href === item.url || href.split('?')[0] === item.url
+  const isSelfActive = isActiveUrlMatch(href, item.url)
   if (isSelfActive) return false
   // 检查子项是否有激活的
   return item.items.some((child) => checkIsActive(href, child))
@@ -364,11 +364,37 @@ export function checkIsActive(
   mainNav = false
 ): boolean {
   return (
-    href === item.url || // /endpint?search=param
-    href.split('?')[0] === item.url || // endpoint
+    isActiveUrlMatch(href, item.url) ||
     !!item?.items?.filter((i) => checkIsActive(href, i)).length || // if child nav is active
     (mainNav &&
-      href.split('/')[1] !== '' &&
-      href.split('/')[1] === item?.url?.split('/')[1])
+      getPathname(href).split('/')[1] !== '' &&
+      getPathname(href).split('/')[1] === getPathname(item?.url).split('/')[1])
   )
+}
+
+function isActiveUrlMatch(href: string, itemUrl?: string): boolean {
+  if (!itemUrl) return false
+
+  const currentPath = getPathname(href)
+  const itemPath = getPathname(itemUrl)
+  const activePath = getActiveBasePath(itemPath)
+
+  if (activePath === '/') return currentPath === '/'
+
+  return currentPath === activePath || currentPath.startsWith(`${activePath}/`)
+}
+
+function getPathname(url?: string): string {
+  if (!url) return ''
+  const pathname = url.split(/[?#]/)[0] || '/'
+  return pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
+}
+
+function getActiveBasePath(pathname: string): string {
+  if (pathname.endsWith('/list')) {
+    const parentPath = pathname.slice(0, -'/list'.length)
+    return parentPath || '/'
+  }
+
+  return pathname
 }

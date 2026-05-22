@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { PageLayout } from '@/components/layout/page-layout'
 import { apps } from './data/apps'
 
-const route = getRouteApi('/_authenticated/apps/')
+const route = getRouteApi('/_authenticated/_app/apps/')
 
 type AppType = 'all' | 'connected' | 'notConnected'
 
