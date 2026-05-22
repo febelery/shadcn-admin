@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import {
+  BarChart3,
   ClipboardList,
   MoreHorizontal,
   Pause,
@@ -79,6 +80,25 @@ export function SurveyRowActions({
             variant='ghost'
             size='icon'
             className='size-8'
+            aria-label='数据分析'
+          >
+            <Link to='/survey/$id/analysis' params={{ id: survey.id }}>
+              <BarChart3 />
+            </Link>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side='top' className='text-xs'>
+          数据分析
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            asChild
+            variant='ghost'
+            size='icon'
+            className='size-8'
             aria-label='查看填写记录'
           >
             <Link to='/survey/$id/record' params={{ id: survey.id }}>
@@ -90,6 +110,7 @@ export function SurveyRowActions({
           填写记录
         </TooltipContent>
       </Tooltip>
+
 
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>

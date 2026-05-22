@@ -5,6 +5,11 @@ import type {
   SurveyRecordItem,
   SurveySchema,
 } from '@/features/survey/core/types'
+import type {
+  SurveyAnalysisResult,
+  QuestionAnalysis,
+  SurveySegmentAnalysisResult,
+} from '@/features/survey/core/analysis-types'
 
 /** 管理端 API 路径（单数资源名） */
 export const SURVEY_API = {
@@ -17,6 +22,9 @@ export const SURVEY_API = {
   publish: (id: string) => `/api/survey/${id}/publish`,
   record: (id: string) => `/api/survey/${id}/record`,
   export: (id: string) => `/api/survey/${id}/record/export`,
+  analysis: (id: string) => `/api/survey/${id}/analysis`,
+  questionAnalysis: (id: string, questionId: string) => `/api/survey/${id}/analysis/question/${questionId}`,
+  segmentAnalysis: (id: string) => `/api/survey/${id}/analysis/segment`,
 } as const
 
 export async function listSurvey(
@@ -75,5 +83,33 @@ export async function exportSurveyRecordExcel(id: string): Promise<Blob> {
     params: { format: 'xlsx' },
     responseType: 'blob',
   })
+  return data
+}
+
+/** 获取问卷数据统计分析概览结果 */
+export async function getSurveyAnalysis(
+  id: string,
+  params?: QueryParams
+): Promise<SurveyAnalysisResult> {
+  const { data } = await axios.get(SURVEY_API.analysis(id), { params })
+  return data
+}
+
+/** 获取问卷中单道题目的详细分析数据 */
+export async function getSurveyQuestionAnalysis(
+  id: string,
+  questionId: string,
+  params?: QueryParams
+): Promise<QuestionAnalysis> {
+  const { data } = await axios.get(SURVEY_API.questionAnalysis(id, questionId), { params })
+  return data
+}
+
+/** 获取问卷条件统计结果 */
+export async function getSurveySegmentAnalysis(
+  id: string,
+  params?: QueryParams
+): Promise<SurveySegmentAnalysisResult> {
+  const { data } = await axios.get(SURVEY_API.segmentAnalysis(id), { params })
   return data
 }

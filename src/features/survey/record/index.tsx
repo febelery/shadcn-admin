@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
-import { ArrowLeft, Download } from 'lucide-react'
+import { ArrowLeft, BarChart3, Download } from 'lucide-react'
 import { useDataGrid } from '@/hooks/use-data-grid'
 import { useTableState } from '@/hooks/use-table-state'
 import { useWindowSize } from '@/hooks/use-window-size'
@@ -120,6 +120,12 @@ export function SurveyRecordPage({ surveyId }: SurveyRecordPageProps) {
             <Link to='/survey'>
               <ArrowLeft className='h-4 w-4' />
               列表
+            </Link>
+          </Button>
+          <Button variant='outline' asChild>
+            <Link to='/survey/$id/analysis' params={{ id: surveyId }}>
+              <BarChart3 className='h-4 w-4' />
+              数据分析
             </Link>
           </Button>
           <Button
