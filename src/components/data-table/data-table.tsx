@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import {
   flexRender,
   type Row,
@@ -27,6 +27,7 @@ interface DataTableProps<TData extends object & { id: string }> {
     event: DragEndEvent & { activeIndex: number; overIndex: number }
   ) => void
   isLoading?: boolean
+  emptyState?: ReactNode
 }
 
 // 可拖拽行组件
@@ -67,6 +68,7 @@ export function DataTable<TData extends object & { id: string }>({
   table,
   onReorder,
   isLoading,
+  emptyState,
 }: DataTableProps<TData>) {
   // 生成可拖拽项的数据列表
   const rows = table.getFilteredRowModel().rows
@@ -74,7 +76,7 @@ export function DataTable<TData extends object & { id: string }>({
 
   const tableContent = (
     <Table>
-      <TableHeader className='bg-muted sticky top-0 z-10'>
+      <TableHeader className='bg-background/95 sticky top-0 z-10 backdrop-blur'>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id} className='group/row'>
             {headerGroup.headers.map((header) => {
@@ -106,7 +108,7 @@ export function DataTable<TData extends object & { id: string }>({
             <TableRow key={index}>
               {table.getVisibleFlatColumns().map((column) => (
                 <TableCell key={column.id}>
-                  <Skeleton className='h-6 w-full' />
+                  <Skeleton className='h-5 w-full' />
                 </TableCell>
               ))}
             </TableRow>
@@ -144,9 +146,9 @@ export function DataTable<TData extends object & { id: string }>({
           <TableRow>
             <TableCell
               colSpan={table.getAllColumns().length}
-              className='h-24 text-center'
+              className='text-muted-foreground h-28 text-center'
             >
-              没有数据
+              {emptyState ?? '没有数据'}
             </TableCell>
           </TableRow>
         )}
@@ -156,7 +158,7 @@ export function DataTable<TData extends object & { id: string }>({
 
   if (onReorder) {
     return (
-      <div className='overflow-hidden rounded-md border'>
+      <div className='overflow-hidden rounded-lg border'>
         <Sortable<TData>
           value={data}
           onMove={onReorder}
@@ -169,5 +171,5 @@ export function DataTable<TData extends object & { id: string }>({
     )
   }
 
-  return <div className='overflow-hidden rounded-md border'>{tableContent}</div>
+  return <div className='overflow-hidden rounded-lg border'>{tableContent}</div>
 }

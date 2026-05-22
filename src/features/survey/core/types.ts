@@ -282,21 +282,14 @@ export interface SurveyListItem {
   description: string
   status: SurveyStatus
   questionCount: number
-  responseCount: number
+  recordCount: number
   createdAt: string
   updatedAt: string
   slug?: string
 }
 
-export interface SurveyStats {
-  views: number
-  starts: number
-  completions: number
-  completionRate: number
-  avgDurationSec: number
-}
-
-export interface SurveyResponseItem {
+/** 答题/提交记录数据结构 */
+export interface SurveyRecordItem {
   id: string
   surveyId: string
   respondent?: string

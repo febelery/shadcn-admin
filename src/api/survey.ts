@@ -2,9 +2,8 @@ import axios from 'axios'
 import type { PaginatedResponse, QueryParams } from '@/types/api'
 import type {
   SurveyListItem,
-  SurveyResponseItem,
+  SurveyRecordItem,
   SurveySchema,
-  SurveyStats,
 } from '@/features/survey/core/types'
 
 /** 管理端 API 路径（单数资源名） */
@@ -16,9 +15,8 @@ export const SURVEY_API = {
   delete: (id: string) => `/api/survey/${id}`,
   status: (id: string) => `/api/survey/${id}/status`,
   publish: (id: string) => `/api/survey/${id}/publish`,
-  stats: (id: string) => `/api/survey/${id}/stats`,
-  response: (id: string) => `/api/survey/${id}/response`,
-  export: (id: string) => `/api/survey/${id}/response/export`,
+  record: (id: string) => `/api/survey/${id}/record`,
+  export: (id: string) => `/api/survey/${id}/record/export`,
 } as const
 
 export async function listSurvey(
@@ -62,20 +60,17 @@ export async function publishSurvey(id: string) {
   return data
 }
 
-export async function getSurveyStats(id: string): Promise<SurveyStats> {
-  const { data } = await axios.get(SURVEY_API.stats(id))
-  return data
-}
-
-export async function listSurveyResponse(
+/** 获取问卷答题/填写记录 */
+export async function listSurveyRecord(
   id: string,
   params?: QueryParams
-): Promise<PaginatedResponse<SurveyResponseItem>> {
-  const { data } = await axios.get(SURVEY_API.response(id), { params })
+): Promise<PaginatedResponse<SurveyRecordItem>> {
+  const { data } = await axios.get(SURVEY_API.record(id), { params })
   return data
 }
 
-export async function exportSurveyResponseExcel(id: string): Promise<Blob> {
+/** 导出问卷答题记录为 Excel */
+export async function exportSurveyRecordExcel(id: string): Promise<Blob> {
   const { data } = await axios.get(SURVEY_API.export(id), {
     params: { format: 'xlsx' },
     responseType: 'blob',

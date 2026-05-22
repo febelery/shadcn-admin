@@ -3,10 +3,9 @@ import type { QueryParams } from '@/types/api'
 import {
   createSurvey,
   deleteSurvey,
-  exportSurveyResponseExcel,
+  exportSurveyRecordExcel,
   getSurveyDetail,
-  getSurveyStats,
-  listSurveyResponse,
+  listSurveyRecord,
   listSurvey,
   publishSurvey,
   updateSurvey,
@@ -83,26 +82,20 @@ export function useUpdateSurvey() {
   })
 }
 
-export function useSurveyStats(surveyId: string) {
+/** 获取问卷填写记录的 query hook */
+export function useSurveyRecord(surveyId: string, params?: QueryParams) {
   return useQuery({
-    queryKey: surveyKeys.stats(surveyId),
-    queryFn: () => getSurveyStats(surveyId),
+    queryKey: surveyKeys.record(surveyId, params),
+    queryFn: () => listSurveyRecord(surveyId, params),
     enabled: !!surveyId,
   })
 }
 
-export function useSurveyResponse(surveyId: string, params?: QueryParams) {
-  return useQuery({
-    queryKey: surveyKeys.response(surveyId, params),
-    queryFn: () => listSurveyResponse(surveyId, params),
-    enabled: !!surveyId,
-  })
-}
-
-export function useExportSurveyExcel() {
+/** 导出问卷填写记录的 mutation hook */
+export function useExportSurveyRecordExcel() {
   return useMutation({
     mutationFn: async (surveyId: string) => {
-      const blob = await exportSurveyResponseExcel(surveyId)
+      const blob = await exportSurveyRecordExcel(surveyId)
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url

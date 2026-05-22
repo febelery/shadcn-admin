@@ -7,7 +7,6 @@ export const surveyKeys = {
   list: (params?: QueryParams) => [...surveyKeys.lists(), params] as const,
   details: () => [...surveyKeys.all, 'detail'] as const,
   detail: (id: string) => [...surveyKeys.details(), id] as const,
-  stats: (id: string) => [...surveyKeys.all, 'stats', id] as const,
-  response: (id: string, params?: QueryParams) =>
-    [...surveyKeys.all, 'response', id, params] as const,
+  record: (id: string, params?: QueryParams) =>
+    [...surveyKeys.all, 'record', id, params] as const,
 }

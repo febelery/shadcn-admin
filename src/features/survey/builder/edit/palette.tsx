@@ -275,7 +275,7 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
           className='flex min-h-0 flex-1 flex-col rounded-none bg-transparent'
         >
           <div className='border-border flex h-12 shrink-0 items-center gap-2 border-b px-3'>
-            <div className='relative'>
+            <div className='relative flex-1'>
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}

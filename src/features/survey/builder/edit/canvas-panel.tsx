@@ -117,7 +117,7 @@ export function BuilderWorkspacePanel() {
         className='min-h-0 flex-1 overflow-y-auto pb-[calc(3.25rem+env(safe-area-inset-bottom))] lg:pb-0'
         {...{ [BUILDER_WORKSPACE_SCROLL_ATTR]: '' }}
       >
-        <div className='mx-auto flex w-full max-w-3xl flex-col px-3 py-5 sm:px-5 sm:py-6 md:px-8 md:py-8'>
+        <div className='flex w-full flex-col px-4 py-6 @6xl/content:mx-auto @6xl/content:w-full @6xl/content:max-w-6xl'>
           <div className='bg-card text-card-foreground border-border/80 w-full overflow-hidden rounded-xl border shadow-md'>
             <WorkspaceSurveyCover />
 

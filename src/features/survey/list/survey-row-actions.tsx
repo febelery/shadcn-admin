@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router'
 import {
-  BarChart3,
   ClipboardList,
   MoreHorizontal,
   Pause,
@@ -12,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -49,7 +49,7 @@ export function SurveyRowActions({
             asChild
             variant='ghost'
             size='icon'
-            className='h-8 w-8'
+            className='size-8'
             aria-label='编辑问卷'
           >
             <Link
@@ -57,31 +57,12 @@ export function SurveyRowActions({
               params={{ id: survey.id }}
               {...editInNewTab}
             >
-              <Pencil className='h-4 w-4' />
+              <Pencil />
             </Link>
           </Button>
         </TooltipTrigger>
         <TooltipContent side='top' className='text-xs'>
           编辑
-        </TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            asChild
-            variant='ghost'
-            size='icon'
-            className='h-8 w-8'
-            aria-label='查看分析'
-          >
-            <Link to='/survey/$id/analytics' params={{ id: survey.id }}>
-              <BarChart3 className='h-4 w-4' />
-            </Link>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side='top' className='text-xs'>
-          分析
         </TooltipContent>
       </Tooltip>
 
@@ -97,11 +78,11 @@ export function SurveyRowActions({
             asChild
             variant='ghost'
             size='icon'
-            className='h-8 w-8'
+            className='size-8'
             aria-label='查看填写记录'
           >
             <Link to='/survey/$id/record' params={{ id: survey.id }}>
-              <ClipboardList className='h-4 w-4' />
+              <ClipboardList />
             </Link>
           </Button>
         </TooltipTrigger>
@@ -115,21 +96,23 @@ export function SurveyRowActions({
           <Button
             variant='ghost'
             size='icon'
-            className='h-8 w-8'
+            className='size-8'
             aria-label='更多操作'
             title='更多'
           >
-            <MoreHorizontal className='h-4 w-4' />
+            <MoreHorizontal />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' sideOffset={6}>
-          <DropdownMenuItem
-            variant='destructive'
-            onClick={() => onDelete(survey.id)}
-          >
-            <Trash2 className='mr-2 h-4 w-4' />
-            删除
-          </DropdownMenuItem>
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              variant='destructive'
+              onClick={() => onDelete(survey.id)}
+            >
+              <Trash2 />
+              删除
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -151,12 +134,12 @@ function SurveyStatusAction({
         type='button'
         variant='ghost'
         size='icon'
-        className='h-8 w-8'
+        className='size-8'
         aria-label='已归档'
         title='已归档'
         disabled
       >
-        <Pause className='h-4 w-4' />
+        <Pause />
       </Button>
     )
   }
@@ -175,11 +158,11 @@ function SurveyStatusAction({
           type='button'
           variant='ghost'
           size='icon'
-          className='h-8 w-8'
+          className='size-8'
           aria-label={label}
           onClick={onClick}
         >
-          <Icon className='h-4 w-4' />
+          <Icon />
         </Button>
       </TooltipTrigger>
       <TooltipContent side='top' className='text-xs'>

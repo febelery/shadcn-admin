@@ -18,16 +18,15 @@ import {
 import type {
   QuestionElement,
   SurveyListItem,
-  SurveyResponseItem,
+  SurveyRecordItem,
   SurveySchema,
-  SurveyStats,
 } from '@/features/survey/core/types'
 
 faker.seed(42)
 
 const detailMap = new Map<string, SurveySchema>()
 const listItems: SurveyListItem[] = []
-const responseMap = new Map<string, SurveyResponseItem[]>()
+const recordMap = new Map<string, SurveyRecordItem[]>()
 const pinnedSurveyIds = new Set<string>([DEMO_SURVEY_ID])
 
 function compareSurveyListItems(a: SurveyListItem, b: SurveyListItem) {
@@ -53,8 +52,8 @@ function syncListFromDetail(schema: SurveySchema) {
     description: schema.meta.description,
     status: schema.status,
     questionCount: countQuestions(schema),
-    responseCount:
-      responseMap.get(schema.id)?.length ??
+    recordCount:
+      recordMap.get(schema.id)?.length ??
       faker.number.int({ min: 0, max: 200 }),
     createdAt: listItems[idx]?.createdAt ?? new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -64,12 +63,12 @@ function syncListFromDetail(schema: SurveySchema) {
   else listItems.unshift(item)
 }
 
-function seedResponse(surveyId: string, schema: SurveySchema) {
-  if (responseMap.has(surveyId)) return
+function seedRecord(surveyId: string, schema: SurveySchema) {
+  if (recordMap.has(surveyId)) return
   const questions = flattenQuestions(schema)
-  const responseCount = surveyId === DEMO_SURVEY_ID ? 225 : 25
-  const rows: SurveyResponseItem[] = Array.from(
-    { length: responseCount },
+  const recordCount = surveyId === DEMO_SURVEY_ID ? 225 : 25
+  const rows: SurveyRecordItem[] = Array.from(
+    { length: recordCount },
     (_, index) => {
       const answers: Record<string, unknown> = {}
       for (const question of questions) {
@@ -90,7 +89,7 @@ function seedResponse(surveyId: string, schema: SurveySchema) {
       }
     }
   )
-  responseMap.set(surveyId, rows)
+  recordMap.set(surveyId, rows)
 }
 
 function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
@@ -98,18 +97,27 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
   const rows = question.config.rows ?? []
   const columns = question.config.columns ?? []
   const statements = question.config.statements ?? []
+  const pseudoAge = 18 + (seed % 48)
 
   switch (question.type) {
     case 'single_choice':
     case 'dropdown':
-      return options[seed % options.length]?.label ?? '已选择'
+      return (
+        options[(seed + question.title.length) % options.length]?.label ??
+        '已选择'
+      )
     case 'multiple_choice':
       return options
+        .filter((_, index) => (seed + index) % 2 === 0)
         .slice(0, Math.min(3, options.length))
         .map((option) => option.label)
     case 'ranking':
       return [...options]
-        .sort((a, b) => a.label.localeCompare(b.label))
+        .sort((a, b) =>
+          seed % 2 === 0
+            ? a.label.localeCompare(b.label)
+            : b.label.localeCompare(a.label)
+        )
         .map((option) => option.label)
     case 'matrix_single':
       return Object.fromEntries(
@@ -135,7 +143,13 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
     case 'textarea':
       return '这是一段较长的反馈，用来观察填写记录列表里的文本截断和换行。'
     case 'number':
-      return seed + 1
+      if (question.title.includes('年龄')) {
+        return pseudoAge
+      }
+      if (question.title.includes('连住')) {
+        return 1 + (seed % 6)
+      }
+      return 1 + (seed % 20)
     case 'email':
       return `guest${seed + 1}@example.com`
     case 'phone':
@@ -152,11 +166,11 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
     case 'fill_in':
       return '房号 1206，楼层 12'
     case 'rating':
-      return 4
+      return 3 + ((seed + (pseudoAge > 35 ? 1 : 0)) % 3)
     case 'slider':
-      return 70
+      return pseudoAge > 35 ? 60 + (seed % 20) : 30 + (seed % 20)
     case 'nps':
-      return 9
+      return pseudoAge > 35 ? 7 + (seed % 4) : 4 + (seed % 4)
     case 'likert':
       return Object.fromEntries(
         statements.map((statement, statementIndex) => [
@@ -193,7 +207,7 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
 // 置顶全题型演示问卷，便于从列表进入编辑页测试
 const demoSurvey = createAllTypesDemoSurvey()
 detailMap.set(DEMO_SURVEY_ID, demoSurvey)
-seedResponse(demoSurvey.id, demoSurvey)
+seedRecord(demoSurvey.id, demoSurvey)
 syncListFromDetail(demoSurvey)
 
 // seed list
@@ -205,31 +219,18 @@ for (let i = 0; i < 20; i++) {
     schema.publishedAt = faker.date.recent().toISOString()
   }
   detailMap.set(schema.id, schema)
-  seedResponse(schema.id, schema)
+  seedRecord(schema.id, schema)
   syncListFromDetail(schema)
 }
 
-function buildStats(surveyId: string): SurveyStats {
-  const responses = responseMap.get(surveyId) ?? []
-  const completions = responses.filter((r) => r.status === 'complete').length
-  const starts = responses.length
-  return {
-    views: Math.round(starts * 1.4),
-    starts,
-    completions,
-    completionRate: starts ? completions / starts : 0,
-    avgDurationSec: 95,
-  }
-}
-
-function sortResponses(
-  responses: SurveyResponseItem[],
+function sortRecords(
+  records: SurveyRecordItem[],
   sortBy: string,
   sortOrder: string
 ) {
-  return [...responses].sort((a, b) => {
-    const aVal = a[sortBy as keyof SurveyResponseItem]
-    const bVal = b[sortBy as keyof SurveyResponseItem]
+  return [...records].sort((a, b) => {
+    const aVal = a[sortBy as keyof SurveyRecordItem]
+    const bVal = b[sortBy as keyof SurveyRecordItem]
     if (aVal == null && bVal == null) return 0
     if (aVal == null) return sortOrder === 'asc' ? -1 : 1
     if (bVal == null) return sortOrder === 'asc' ? 1 : -1
@@ -294,7 +295,7 @@ export const surveyHandlers = [
     const body = (await request.json()) as { title?: string }
     const schema = createEmptySurvey(body.title || '未命名问卷')
     detailMap.set(schema.id, schema)
-    responseMap.set(schema.id, [])
+    recordMap.set(schema.id, [])
     syncListFromDetail(schema)
     return HttpResponse.json({ id: schema.id })
   }),
@@ -309,7 +310,7 @@ export const surveyHandlers = [
       schema.id = id
       detailMap.set(id, schema)
       syncListFromDetail(schema)
-      seedResponse(id, schema)
+      seedRecord(id, schema)
     }
     return HttpResponse.json(schema)
   }),
@@ -327,7 +328,7 @@ export const surveyHandlers = [
   http.delete('/api/survey/:id', async ({ params }) => {
     const id = params.id as string
     detailMap.delete(id)
-    responseMap.delete(id)
+    recordMap.delete(id)
     const idx = listItems.findIndex((s) => s.id === id)
     if (idx >= 0) listItems.splice(idx, 1)
     return new HttpResponse(null, { status: 204 })
@@ -362,13 +363,7 @@ export const surveyHandlers = [
     })
   }),
 
-  http.get('/api/survey/:id/stats', async ({ params }) => {
-    await sleep(150)
-    const id = params.id as string
-    return HttpResponse.json(buildStats(id))
-  }),
-
-  http.get('/api/survey/:id/response', async ({ params, request }) => {
+  http.get('/api/survey/:id/record', async ({ params, request }) => {
     await sleep(150)
     const id = params.id as string
     const url = new URL(request.url)
@@ -376,7 +371,7 @@ export const surveyHandlers = [
     const pageSize = Number(url.searchParams.get('pageSize') || 10)
     const sortBy = url.searchParams.get('sortBy') || 'startedAt'
     const sortOrder = url.searchParams.get('sortOrder') || 'desc'
-    const all = sortResponses(responseMap.get(id) ?? [], sortBy, sortOrder)
+    const all = sortRecords(recordMap.get(id) ?? [], sortBy, sortOrder)
     const start = (page - 1) * pageSize
     const data = all.slice(start, start + pageSize)
     return HttpResponse.json({
@@ -390,18 +385,18 @@ export const surveyHandlers = [
     })
   }),
 
-  http.get('/api/survey/:id/response/export', async ({ params }) => {
+  http.get('/api/survey/:id/record/export', async ({ params }) => {
     const id = params.id as string
     const schema = detailMap.get(id)
-    const responses = responseMap.get(id) ?? []
+    const records = recordMap.get(id) ?? []
     const questions = schema ? flattenQuestions(schema) : []
     const headers = [
-      'response_id',
+      'record_id',
       'status',
       'started_at',
       ...questions.map((q) => q.title),
     ]
-    const rows = responses.map((r) => [
+    const rows = records.map((r) => [
       r.id,
       r.status,
       r.startedAt,
@@ -413,7 +408,7 @@ export const surveyHandlers = [
     ])
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Responses')
+    XLSX.utils.book_append_sheet(wb, ws, 'Records')
     const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' })
     return new HttpResponse(buf, {
       headers: {

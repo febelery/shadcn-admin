@@ -33,7 +33,7 @@ export function EditWorkspace() {
         >
           <QuestionPalette />
         </aside>
-        <main className='from-background via-muted/25 to-muted/40 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-linear-to-b'>
+        <main className='from-background via-muted/25 to-muted/40 @container/content flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-linear-to-b'>
           <BuilderWorkspacePanel />
         </main>
         <aside

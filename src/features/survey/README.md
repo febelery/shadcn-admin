@@ -1,6 +1,6 @@
 # Survey module (Admin)
 
-Design survey, publish schemas, view analytics, export Excel.
+Design survey, publish schemas, export Excel.
 
 - `query/` — React Query hooks 与 key 工厂（HTTP 客户端见 `src/api/survey.ts`）
 - `core/` — Schema types、`migrateSurveySchema`、`validators`
@@ -9,7 +9,7 @@ Design survey, publish schemas, view analytics, export Excel.
   - `question-surface/` — 单题 WYSIWYG 作答区
   - `question-surface-registry.tsx` — 题型 → 作答区唯一注册点
   - `question-type-inspector.tsx` — 检查器题型唯一注册点
-- `list/` / `record/` / `analytics/` — 列表、填写记录与统计
+- `list/` / `record/` — 列表与填写记录
 
 **命名**：工作区 `workspace/*`（`Workspace*`）· 作答区 `question-surface/*`（`Surface*`）
 

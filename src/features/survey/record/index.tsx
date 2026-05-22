@@ -14,9 +14,9 @@ import { FilterMenu, type FilterConfig } from '@/components/filter-menu'
 import { PageLayout } from '@/components/layout/page-layout'
 import { flattenQuestions } from '../core/schema-defaults'
 import {
-  useExportSurveyExcel,
+  useExportSurveyRecordExcel,
   useSurveyDetail,
-  useSurveyResponse,
+  useSurveyRecord,
 } from '../query/hooks'
 import { createRecordGridColumns } from './columns'
 
@@ -68,8 +68,9 @@ export function SurveyRecordPage({ surveyId }: SurveyRecordPageProps) {
   }
 
   const { data: schema } = useSurveyDetail(surveyId)
-  const { data } = useSurveyResponse(surveyId, params)
-  const { mutate: exportExcel, isPending: exporting } = useExportSurveyExcel()
+  const { data } = useSurveyRecord(surveyId, params)
+  const { mutate: exportExcel, isPending: exporting } =
+    useExportSurveyRecordExcel()
 
   const questions = useMemo(
     () => (schema ? flattenQuestions(schema) : []),

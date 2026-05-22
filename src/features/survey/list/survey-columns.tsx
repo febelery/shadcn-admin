@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
+import { DataTableColumnHeader } from '@/components/data-table'
 import type { SurveyListItem } from '../core/types'
 import { SurveyRowActions } from './survey-row-actions'
 
@@ -25,6 +26,25 @@ const statusLabel: Record<SurveyListItem['status'], string> = {
   archived: '已归档',
 }
 
+const dateTimeFormatter = new Intl.DateTimeFormat('zh-CN', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+function stripHtml(value: string) {
+  return value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function formatDateTime(value: string) {
+  return dateTimeFormatter.format(new Date(value))
+}
+
 export function createSurveyColumns(handlers: {
   onDelete: (id: string) => void
   onPublish: (id: string) => void
@@ -33,49 +53,115 @@ export function createSurveyColumns(handlers: {
   return [
     {
       accessorKey: 'title',
-      header: '标题',
-      cell: ({ row }) => (
-        <Link
-          to='/survey/$id/edit'
-          params={{ id: row.original.id }}
-          className='font-medium hover:underline'
-          {...editInNewTab}
-        >
-          {row.original.title}
-        </Link>
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='标题' />
       ),
+      cell: ({ row }) => {
+        const description = stripHtml(row.original.description)
+
+        return (
+          <div className='flex min-w-0 flex-col gap-1 py-1'>
+            <Link
+              to='/survey/$id/edit'
+              params={{ id: row.original.id }}
+              className='truncate font-medium underline-offset-4 hover:underline'
+              {...editInNewTab}
+            >
+              {row.original.title}
+            </Link>
+            {description && (
+              <p className='text-muted-foreground line-clamp-1 max-w-xl text-xs'>
+                {description}
+              </p>
+            )}
+          </div>
+        )
+      },
+      meta: {
+        className: 'min-w-[280px]',
+        tdClassName: 'align-middle',
+      },
     },
     {
       accessorKey: 'status',
-      header: '状态',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='状态' />
+      ),
       cell: ({ row }) => (
-        <Badge variant={statusVariant[row.original.status]}>
+        <Badge
+          variant={statusVariant[row.original.status]}
+          className='rounded-md px-2'
+        >
           {statusLabel[row.original.status]}
         </Badge>
       ),
+      meta: {
+        className: 'w-[120px]',
+      },
     },
-    { accessorKey: 'questionCount', header: '题目数' },
     {
-      accessorKey: 'responseCount',
-      header: '回收数',
+      accessorKey: 'questionCount',
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title='题目'
+          className='justify-end'
+        />
+      ),
+      cell: ({ row }) => (
+        <div className='text-right font-medium tabular-nums'>
+          {row.original.questionCount}
+        </div>
+      ),
+      meta: {
+        className: 'w-[96px]',
+        tdClassName: 'text-right',
+      },
+    },
+    {
+      accessorKey: 'recordCount',
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title='回收'
+          className='justify-end'
+        />
+      ),
       cell: ({ row }) => (
         <Link
           to='/survey/$id/record'
           params={{ id: row.original.id }}
-          className='font-medium hover:underline'
+          className='inline-flex w-full justify-end font-medium underline-offset-4 hover:underline'
         >
-          {row.original.responseCount}
+          <span className='tabular-nums'>{row.original.recordCount}</span>
         </Link>
       ),
+      meta: {
+        className: 'w-[96px]',
+        tdClassName: 'text-right',
+      },
     },
+
     {
       accessorKey: 'updatedAt',
-      header: '更新时间',
-      cell: ({ row }) =>
-        new Date(row.original.updatedAt).toLocaleString('zh-CN'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='更新时间' />
+      ),
+      cell: ({ row }) => (
+        <div
+          className='text-muted-foreground text-sm whitespace-nowrap'
+          title={formatDateTime(row.original.updatedAt)}
+        >
+          {formatDateTime(row.original.updatedAt)}
+        </div>
+      ),
+      meta: {
+        className: 'w-[180px]',
+      },
     },
     {
       id: 'actions',
+      header: () => <div className='text-right'>操作</div>,
       cell: ({ row }) => (
         <SurveyRowActions
           survey={row.original}
@@ -85,8 +171,10 @@ export function createSurveyColumns(handlers: {
         />
       ),
       meta: {
-        className: 'w-[204px]',
+        className: 'w-[184px]',
       },
+      enableSorting: false,
+      enableHiding: false,
     },
   ]
 }

@@ -1,8 +1,8 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { getFilterFn } from '@/lib/data-grid-filters'
-import type { QuestionElement, SurveyResponseItem } from '../core/types'
+import type { QuestionElement, SurveyRecordItem } from '../core/types'
 
-export type SurveyRecordGridRow = SurveyResponseItem
+export type SurveyRecordGridRow = SurveyRecordItem
 
 const statusOptions = [
   { label: '已完成', value: 'complete' },

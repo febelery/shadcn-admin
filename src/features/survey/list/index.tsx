@@ -18,6 +18,7 @@ const filterConfigs: FilterConfig[] = [
     options: [
       { label: '草稿', value: 'draft' },
       { label: '已发布', value: 'published' },
+      { label: '已归档', value: 'archived' },
     ],
     allowedOperators: ['is', 'isNot'],
   },
@@ -44,18 +45,19 @@ export function SurveyListPage() {
       title='问卷管理'
       description='设计问卷、发布 Schema、查看回收数据。'
       actions={
-        <Button onClick={handleCreate} className='gap-2'>
-          <Plus className='h-4 w-4' />
+        <Button onClick={handleCreate}>
+          <Plus data-icon='inline-start' />
           新建问卷
         </Button>
       }
-      className='flex flex-1 flex-col gap-4'
+      className='flex flex-1 flex-col gap-4 sm:gap-6'
     >
       <SurveyTable
         data={data?.data ?? []}
         total={data?.meta?.total ?? 0}
         isLoading={isFetching}
         tableState={tableState}
+        onCreate={handleCreate}
       />
     </PageLayout>
   )
