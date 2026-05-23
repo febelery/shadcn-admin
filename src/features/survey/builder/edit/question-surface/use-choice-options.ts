@@ -1,5 +1,10 @@
 import { useRef, useCallback } from 'react'
-import { useBuilderStatic } from '../../context'
+import {
+  DEFAULT_OTHER_LABEL,
+  partitionChoiceOptions,
+  syncOtherChoiceOption,
+} from '@/features/survey/core/choice-other-option'
+import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import type { ChoiceOption } from '../../types'
 import { focusInlineEditable } from '../inline-editable'
 
@@ -17,13 +22,6 @@ export function useChoiceOptions({
   allowOther = false,
   otherLabel,
 }: Options) {
-  const {
-    DEFAULT_OTHER_LABEL,
-    partitionChoiceOptions,
-    syncOtherChoiceOption,
-    createQuestionId,
-  } = useBuilderStatic()
-
   const resolvedOtherLabel = otherLabel ?? DEFAULT_OTHER_LABEL
 
   const rowRefs = useRef<Map<string, HTMLLIElement>>(new Map())
@@ -61,14 +59,7 @@ export function useChoiceOptions({
         )
       )
     },
-    [
-      onChange,
-      options,
-      allowOther,
-      resolvedOtherLabel,
-      syncOtherChoiceOption,
-      partitionChoiceOptions,
-    ]
+    [onChange, options, allowOther, resolvedOtherLabel]
   )
 
   const insertOptionAfter = useCallback(
@@ -84,16 +75,7 @@ export function useChoiceOptions({
       focusRow(next.id)
       return next
     },
-    [
-      onChange,
-      options,
-      allowOther,
-      resolvedOtherLabel,
-      focusRow,
-      createQuestionId,
-      syncOtherChoiceOption,
-      partitionChoiceOptions,
-    ]
+    [onChange, options, allowOther, resolvedOtherLabel, focusRow]
   )
 
   const insertAfterLastRegular = useCallback(
@@ -101,7 +83,7 @@ export function useChoiceOptions({
       const { regular } = partitionChoiceOptions(options)
       return insertOptionAfter(regular.length - 1, factory)
     },
-    [insertOptionAfter, options, partitionChoiceOptions]
+    [insertOptionAfter, options]
   )
 
   const focusPreviousOption = useCallback(

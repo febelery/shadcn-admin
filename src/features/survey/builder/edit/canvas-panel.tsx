@@ -2,6 +2,7 @@ import { Fragment } from 'react'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { LayoutGrid, LayoutTemplate } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SurveyCoverHeader } from '@/features/survey/shared/survey-cover-header'
 import {
   useBuilderStatic,
   useBuilderStructure,
@@ -23,7 +24,7 @@ import {
 
 function WorkspaceSurveyCover() {
   const { schema } = useBuilderStructure()
-  const { updateMeta, SurveyCoverHeader } = useBuilderStatic()
+  const { updateMeta } = useBuilderStatic()
   if (!schema) return null
   const { meta, theme } = schema
 

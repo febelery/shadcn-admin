@@ -1,7 +1,7 @@
 import { Circle, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { useBuilderStatic } from '../../context'
+import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import { LABEL_LIMITS } from '../../store'
 import type { LikertStatement, QuestionElement } from '../../types'
 import { InlineEditable } from '../inline-editable'
@@ -23,7 +23,6 @@ function buildScalePoints(min: number, max: number): number[] {
 }
 
 export function SurfaceLikertEditor({ question, onConfigChange }: Props) {
-  const { createQuestionId } = useBuilderStatic()
   const statements = question.config.statements ?? []
   const scaleMin = question.config.scaleMin ?? 1
   const scaleMax = question.config.scaleMax ?? 5

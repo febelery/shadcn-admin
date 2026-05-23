@@ -23,11 +23,16 @@ import {
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
+  getQuestionTypeHint,
+  hasQuestionTypePreview,
+  matchesPaletteSearch,
+} from '@/features/survey/shared/question-type-hints'
+import { QuestionTypePreview } from '@/features/survey/shared/question-type-preview'
+import {
   LAYOUT_MANIFESTS,
   QUESTION_CATEGORIES,
   QUESTION_MANIFESTS,
 } from '../../shared/question-registry'
-import { useBuilderStatic } from '../context'
 import { PALETTE_DRAG } from '../shared/dnd-types'
 import { BuilderPanelHeader } from '../shared/panel-header'
 import { useBuilderStore } from '../store'
@@ -35,7 +40,7 @@ import type { QuestionType, QuestionManifest, PaletteTypeId } from '../types'
 
 type PaletteItem =
   | QuestionManifest
-  | { type: string; label: string; icon: LucideIcon; category: string }
+  | { type: PaletteTypeId; label: string; icon: LucideIcon; category: string }
 
 type PaletteRowItem = {
   type: PaletteTypeId
@@ -65,8 +70,6 @@ function PaletteItemHelpContent({
   label: string
   type: PaletteTypeId
 }) {
-  const { getQuestionTypeHint, hasQuestionTypePreview, QuestionTypePreview } =
-    useBuilderStatic()
   const hint = getQuestionTypeHint(type)
   const showPreview = hasQuestionTypePreview(type)
 
@@ -92,7 +95,6 @@ function PaletteItemRow({
   disabled?: boolean
   onAdd: () => void
 }) {
-  const { hasQuestionTypePreview } = useBuilderStatic()
   const isLayout = item.type === 'divider' || item.type === 'html_block'
   const id = `palette-${isLayout ? 'l' : 'q'}-${item.type}`
   const Icon = item.icon
@@ -213,8 +215,6 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
   const sectionId = useBuilderStore((s) => s.selectedSectionId)
   const disabled = !sectionId
 
-  const { matchesPaletteSearch } = useBuilderStatic()
-
   const filtered = useMemo(() => {
     const questionManifests = QUESTION_MANIFESTS.filter(isCreatableQuestion)
     const match = (item: PaletteItem) => matchesPaletteSearch(item, query)
@@ -234,7 +234,7 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
       total: questionManifests.filter(match).length + layout.length,
       searching: Boolean(query.trim()),
     }
-  }, [query, matchesPaletteSearch])
+  }, [query])
 
   const addItem = (item: PaletteItem) => {
     if (!sectionId) return

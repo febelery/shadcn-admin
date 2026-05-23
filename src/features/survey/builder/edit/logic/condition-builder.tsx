@@ -15,7 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useBuilderStatic } from '../../context'
+import {
+  tryParseSimpleCondition,
+  serializeConditionGroup,
+} from '@/features/survey/core/logic/condition-serializer'
+import {
+  getOperatorsForQuestionType,
+  supportsVisualCondition,
+} from '@/features/survey/core/logic/operators'
 import type {
   Condition,
   ConditionGroup,
@@ -57,8 +64,7 @@ function ConditionRow({
   allowedSourceIds?: string[]
   defaultSourceId?: string
 }) {
-  const { getOperatorsForQuestionType, supportsVisualCondition } =
-    useBuilderStatic()
+  // 使用静态导入的关系操作符与条件判断方法
   const questions = useSurveyQuestions()
   const sourceOptions = useQuestionSelectOptions(allowedSourceIds)
 
@@ -193,8 +199,7 @@ export function ConditionBuilder({
   allowedSourceIds,
   defaultSourceId,
 }: Props) {
-  const { tryParseSimpleCondition, serializeConditionGroup } =
-    useBuilderStatic()
+  // 使用静态导入的条件解析与序列化方法
   const parsed = tryParseSimpleCondition(when)
   const group: ConditionGroup = parsed ?? {
     logic: 'and',

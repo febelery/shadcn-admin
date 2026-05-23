@@ -2,7 +2,13 @@ import type { KeyboardEvent } from 'react'
 import { Circle, GripVertical, Square, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useBuilderStatic } from '../../context'
+import {
+  DEFAULT_OTHER_LABEL,
+  isOtherOption,
+  partitionChoiceOptions,
+  syncOtherChoiceOption,
+} from '@/features/survey/core/choice-other-option'
+import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import { LABEL_LIMITS } from '../../store'
 import type { ChoiceOption, QuestionConfig, QuestionElement } from '../../types'
 import { InlineEditable } from '../inline-editable'
@@ -26,13 +32,6 @@ export function SurfaceChoiceList({
   onConfigChange,
   showAllowOther = false,
 }: Props) {
-  const {
-    DEFAULT_OTHER_LABEL,
-    isOtherOption,
-    partitionChoiceOptions,
-    syncOtherChoiceOption,
-  } = useBuilderStatic()
-
   const {
     allowOther = false,
     otherLabel = DEFAULT_OTHER_LABEL,
@@ -155,7 +154,6 @@ export function SurfaceRankingList({
   options: ChoiceOption[]
   onChange: (options: ChoiceOption[]) => void
 }) {
-  const { createQuestionId } = useBuilderStatic()
   const { updateOptionLabel, insertOptionAfter } = useChoiceOptions({
     options,
     onChange,

@@ -17,6 +17,10 @@ import type {
   SegmentConditionOperator,
   SegmentDefinition,
 } from '@/features/survey/core/analysis-types'
+import type {
+  SurveySchema,
+  QuestionElement,
+} from '@/features/survey/core/types'
 import { useSurveySegmentAnalysis } from '../../query/hooks'
 import { SegmentResults } from './results'
 import { SegmentRow } from './row'
@@ -34,8 +38,8 @@ import { getConditionIssues, type ValidationIssue } from './validator'
 
 export interface SegmentAnalysisProps {
   surveyId: string
-  schema: any
-  questions: any[]
+  schema: SurveySchema
+  questions: QuestionElement[]
 }
 
 export function SegmentAnalysis({
@@ -50,7 +54,9 @@ export function SegmentAnalysis({
 
   const questionMap = React.useMemo(
     () =>
-      new Map(supportedQuestions.map((question) => [question.id, question])),
+      new Map<string, QuestionElement>(
+        supportedQuestions.map((question) => [question.id, question])
+      ),
     [supportedQuestions]
   )
 
@@ -152,7 +158,7 @@ export function SegmentAnalysis({
   )
 
   const handleQuestionChange = React.useCallback(
-    (segmentId: string, conditionIndex: number, question: any) => {
+    (segmentId: string, conditionIndex: number, question: QuestionElement) => {
       const operator = getDefaultOperator(question)
       setDraftSegments((prev) =>
         prev.map((segment) => {
@@ -180,7 +186,7 @@ export function SegmentAnalysis({
     (
       segmentId: string,
       conditionIndex: number,
-      question: any,
+      question: QuestionElement,
       operator: SegmentConditionOperator
     ) => {
       setDraftSegments((prev) =>
@@ -279,7 +285,7 @@ export function SegmentAnalysis({
     <div className='space-y-4'>
       <div className='border-muted bg-background overflow-hidden rounded-xl border shadow-sm'>
         {/* 顶部标题与操作栏 */}
-        <div className='border-muted flex flex-col gap-3 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between bg-muted/10'>
+        <div className='border-muted bg-muted/10 flex flex-col gap-3 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between'>
           <div className='flex min-w-0 items-center gap-3'>
             <div className='bg-primary text-primary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-lg shadow-sm'>
               <Filter className='h-3.5 w-3.5' />
@@ -303,7 +309,7 @@ export function SegmentAnalysis({
             {errorCount > 0 ? (
               <Badge
                 variant='destructive'
-                className='flex shrink-0 items-center gap-1 px-2 py-0.5 text-[10px] font-normal rounded'
+                className='flex shrink-0 items-center gap-1 rounded px-2 py-0.5 text-[10px] font-normal'
               >
                 <AlertTriangle className='h-3 w-3' />
                 {errorCount} 个问题
@@ -311,7 +317,7 @@ export function SegmentAnalysis({
             ) : hasPendingChanges ? (
               <Badge
                 variant='outline'
-                className='flex shrink-0 items-center gap-1 border-amber-500/30 bg-amber-500/5 px-2 py-0.5 text-[10px] font-medium text-amber-600 rounded'
+                className='flex shrink-0 items-center gap-1 rounded border-amber-500/30 bg-amber-500/5 px-2 py-0.5 text-[10px] font-medium text-amber-600'
               >
                 <span className='relative flex h-1.5 w-1.5'>
                   <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75'></span>
@@ -322,7 +328,7 @@ export function SegmentAnalysis({
             ) : appliedSegments.length > 0 ? (
               <Badge
                 variant='secondary'
-                className='flex shrink-0 items-center gap-1 border-emerald-500/20 bg-emerald-500/5 px-2 py-0.5 text-[10px] font-medium text-emerald-600 rounded'
+                className='flex shrink-0 items-center gap-1 rounded border-emerald-500/20 bg-emerald-500/5 px-2 py-0.5 text-[10px] font-medium text-emerald-600'
               >
                 <span className='h-1.5 w-1.5 rounded-full bg-emerald-500' />
                 已生效 {appliedSegments.length} 组
@@ -330,20 +336,20 @@ export function SegmentAnalysis({
             ) : (
               <Badge
                 variant='secondary'
-                className='shrink-0 px-2 py-0.5 text-[10px] font-normal rounded'
+                className='shrink-0 rounded px-2 py-0.5 text-[10px] font-normal'
               >
                 已应用
               </Badge>
             )}
 
-            <div className='bg-muted/60 mx-1 hidden h-5 w-[1px] sm:block' />
+            <div className='bg-muted/60 mx-1 hidden h-5 w-px sm:block' />
 
             {/* 操作按钮 */}
             <Button
               variant='outline'
               size='sm'
               className={cn(
-                'h-8 shrink-0 px-2.5 text-xs transition-all duration-200 border-muted/80 shadow-none',
+                'border-muted/80 h-8 shrink-0 px-2.5 text-xs shadow-none transition-all duration-200',
                 showClearConfirm
                   ? 'bg-destructive/10 text-destructive border-destructive/35 hover:bg-destructive/20 hover:text-destructive'
                   : 'text-muted-foreground'
@@ -357,7 +363,7 @@ export function SegmentAnalysis({
             <Button
               variant='outline'
               size='sm'
-              className='h-8 shrink-0 text-xs border-muted/80 shadow-none bg-background/50 hover:bg-background'
+              className='border-muted/80 bg-background/50 hover:bg-background h-8 shrink-0 text-xs shadow-none'
               onClick={addSegment}
             >
               <Plus className='mr-1.5 h-3.5 w-3.5' />
@@ -369,7 +375,9 @@ export function SegmentAnalysis({
               size='sm'
               className={cn(
                 'h-8 shrink-0 text-xs shadow-sm transition-all duration-300',
-                canApply && hasPendingChanges && 'ring-2 ring-primary/20 bg-primary shadow-md hover:bg-primary/95'
+                canApply &&
+                  hasPendingChanges &&
+                  'ring-primary/20 bg-primary hover:bg-primary/95 shadow-md ring-2'
               )}
               onClick={applyFilters}
               disabled={!canApply || !hasPendingChanges}
@@ -401,13 +409,13 @@ export function SegmentAnalysis({
 
                 return (
                   <React.Fragment key={segment.id}>
-                    <section className='bg-background overflow-hidden rounded-lg border border-border shadow-none'>
+                    <section className='bg-background border-border overflow-hidden rounded-lg border shadow-none'>
                       {/* 对比组头部栏 */}
                       <div className='border-muted/50 bg-muted/5 flex items-center justify-between border-b px-3 py-2'>
                         <div className='flex min-w-0 flex-1 items-center gap-2.5'>
                           <Badge
                             variant='secondary'
-                            className='flex h-5 w-5 shrink-0 items-center justify-center rounded p-0 text-[10px] font-bold border border-muted bg-muted/50 text-foreground/80'
+                            className='border-muted bg-muted/50 text-foreground/80 flex h-5 w-5 shrink-0 items-center justify-center rounded border p-0 text-[10px] font-bold'
                           >
                             {segmentIndex + 1}
                           </Badge>
@@ -418,10 +426,10 @@ export function SegmentAnalysis({
                             value={segment.label}
                             onChange={(event) =>
                               updateSegment(segment.id, {
-                                  label: event.target.value,
+                                label: event.target.value,
                               })
                             }
-                            className='border-0 focus-visible:ring-1 focus-visible:ring-ring bg-transparent hover:bg-muted/15 focus:bg-background h-7 max-w-[180px] px-2 py-0.5 text-xs font-semibold text-foreground/80 rounded transition-all shadow-none'
+                            className='focus-visible:ring-ring hover:bg-muted/15 focus:bg-background text-foreground/80 h-7 max-w-[180px] rounded border-0 bg-transparent px-2 py-0.5 text-xs font-semibold shadow-none transition-all focus-visible:ring-1'
                             placeholder={`对比组 ${segmentIndex + 1}`}
                           />
                         </div>
@@ -431,7 +439,7 @@ export function SegmentAnalysis({
                           <Button
                             variant='ghost'
                             size='sm'
-                            className='hover:bg-muted/80 h-7 text-xs px-2 text-muted-foreground hover:text-foreground rounded'
+                            className='hover:bg-muted/80 text-muted-foreground hover:text-foreground h-7 rounded px-2 text-xs'
                             onClick={() => addCondition(segment.id)}
                           >
                             <Plus className='mr-1 h-3.5 w-3.5' />
@@ -440,10 +448,10 @@ export function SegmentAnalysis({
                           <Button
                             variant='ghost'
                             size='icon'
-                            className='text-muted-foreground hover:text-destructive h-7 w-7 rounded hover:bg-muted/80'
+                            className='text-muted-foreground hover:text-destructive hover:bg-muted/80 h-7 w-7 rounded'
                             onClick={() => removeSegment(segment.id)}
                             disabled={draftSegments.length === 1}
-                            title="删除整个对比组"
+                            title='删除整个对比组'
                           >
                             <Trash2 className='h-3.5 w-3.5' />
                           </Button>
@@ -451,7 +459,7 @@ export function SegmentAnalysis({
                       </div>
 
                       {/* 条件行列表 */}
-                      <div className='divide-y divide-muted/40'>
+                      <div className='divide-muted/40 divide-y'>
                         {segment.conditions.map((condition, conditionIndex) => {
                           const issue = segmentIssues.find(
                             (item) => item.conditionIndex === conditionIndex
@@ -500,7 +508,7 @@ export function SegmentAnalysis({
                     {segmentIndex < draftSegments.length - 1 && (
                       <div className='relative my-4 flex items-center justify-center'>
                         <div className='border-muted absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-dashed' />
-                        <span className='bg-background text-muted-foreground/45 border border-muted/80 relative flex h-6 w-11 items-center justify-center rounded-full font-mono text-[9px] font-extrabold tracking-widest shadow-sm uppercase'>
+                        <span className='bg-background text-muted-foreground/45 border-muted/80 relative flex h-6 w-11 items-center justify-center rounded-full border font-mono text-[9px] font-extrabold tracking-widest uppercase shadow-sm'>
                           VS
                         </span>
                       </div>

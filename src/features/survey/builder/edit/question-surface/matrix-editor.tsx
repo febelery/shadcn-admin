@@ -1,7 +1,7 @@
 import { Circle, Square, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { useBuilderStatic } from '../../context'
+import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import { LABEL_LIMITS } from '../../store'
 import type { MatrixColumn, MatrixRow, QuestionElement } from '../../types'
 import { InlineEditable } from '../inline-editable'
@@ -12,7 +12,6 @@ type Props = {
 }
 
 export function SurfaceMatrixEditor({ question, onConfigChange }: Props) {
-  const { createQuestionId } = useBuilderStatic()
   const rows = question.config.rows ?? []
   const cols = question.config.columns ?? []
   const isSingle = question.type === 'matrix_single'

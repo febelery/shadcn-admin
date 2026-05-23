@@ -2,8 +2,8 @@ import type {
   SegmentCondition,
   SegmentDefinition,
 } from '@/features/survey/core/analysis-types'
+import type { QuestionElement } from '@/features/survey/core/types'
 import {
-  getFieldKind,
   getOperators,
   operatorNeedsValue,
   operatorNeedsSecondValue,
@@ -21,14 +21,14 @@ export interface ValidationIssue {
 
 export function getConditionIssues(
   segments: SegmentDefinition[],
-  questionMap: Map<string, any>
+  questionMap: Map<string, QuestionElement>
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = []
 
   segments.forEach((segment) => {
     const questionBuckets = new Map<
       string,
-      { question: any; items: { condition: SegmentCondition; index: number }[] }
+      { question: QuestionElement; items: { condition: SegmentCondition; index: number }[] }
     >()
 
     segment.conditions.forEach((condition, index) => {
@@ -125,10 +125,9 @@ export function getConditionIssues(
 }
 
 export function detectQuestionConflict(
-  question: any,
+  question: QuestionElement,
   items: { condition: SegmentCondition }[]
 ): string | null {
-  const kind = getFieldKind(question)
   const conditions = items.map((item) => item.condition)
 
   const hasEmpty = conditions.some(
@@ -144,7 +143,13 @@ export function detectQuestionConflict(
     return '“为空”和“不为空”互相冲突'
   }
 
-  if (kind === 'number') {
+  const isNumberKind =
+    question.type === 'number' ||
+    question.type === 'rating' ||
+    question.type === 'slider' ||
+    question.type === 'nps'
+
+  if (isNumberKind) {
     return detectNumberConflict(conditions)
   }
 

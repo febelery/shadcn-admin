@@ -18,7 +18,6 @@ import type {
   TextAnalysis,
   ChoiceAnalysis,
   SurveySegmentAnalysisResult,
-  SegmentCondition,
   SegmentDefinition,
 } from '@/features/survey/core/analysis-types'
 import {
@@ -32,6 +31,7 @@ import type {
   SurveyRecordItem,
   SurveySchema,
 } from '@/features/survey/core/types'
+import { evaluateCondition } from '@/features/survey/core/logic/eval'
 
 /**
  * 核心统计计算逻辑：根据指定问题的类型及其对应的配置，针对筛选后的答卷数据进行单题层面的指标统计
@@ -507,95 +507,6 @@ function parseSegmentDefinitions(value: string | null): SegmentDefinition[] {
   }
 }
 
-function isEmptyAnswer(value: unknown) {
-  if (value === undefined || value === null || value === '') return true
-  if (Array.isArray(value)) return value.length === 0
-  return false
-}
-
-function normalizeAnswerValue(question: QuestionElement, value: unknown) {
-  if (value === undefined || value === null) return value
-  if (Array.isArray(value)) return value.map(String)
-  if (
-    question.type === 'number' ||
-    question.type === 'rating' ||
-    question.type === 'slider' ||
-    question.type === 'nps'
-  ) {
-    const num = Number(value)
-    return Number.isFinite(num) ? num : value
-  }
-  return String(value)
-}
-
-function compareSegmentCondition(
-  answer: unknown,
-  question: QuestionElement,
-  condition: SegmentCondition
-) {
-  const operator = condition.operator
-  if (operator === 'empty') return isEmptyAnswer(answer)
-  if (operator === 'not_empty') return !isEmptyAnswer(answer)
-  if (isEmptyAnswer(answer)) return false
-
-  const normalizedAnswer = normalizeAnswerValue(question, answer)
-  const value = condition.value
-  const value2 = condition.value2
-
-  if (Array.isArray(normalizedAnswer)) {
-    const list = normalizedAnswer.map(String)
-    const expected = String(value ?? '')
-    if (operator === 'contains') return list.includes(expected)
-    if (operator === 'not_contains') return !list.includes(expected)
-    if (operator === 'eq') return list.length === 1 && list[0] === expected
-    if (operator === 'neq') return !(list.length === 1 && list[0] === expected)
-    return false
-  }
-
-  if (typeof normalizedAnswer === 'number') {
-    const expected = Number(value)
-    const expected2 = Number(value2)
-    if (!Number.isFinite(expected)) return false
-    switch (operator) {
-      case 'eq':
-        return normalizedAnswer === expected
-      case 'neq':
-        return normalizedAnswer !== expected
-      case 'gt':
-        return normalizedAnswer > expected
-      case 'gte':
-        return normalizedAnswer >= expected
-      case 'lt':
-        return normalizedAnswer < expected
-      case 'lte':
-        return normalizedAnswer <= expected
-      case 'between':
-        return (
-          Number.isFinite(expected2) &&
-          normalizedAnswer >= expected &&
-          normalizedAnswer <= expected2
-        )
-      default:
-        return false
-    }
-  }
-
-  const actual = String(normalizedAnswer)
-  const expected = String(value ?? '')
-  switch (operator) {
-    case 'eq':
-      return actual === expected
-    case 'neq':
-      return actual !== expected
-    case 'contains':
-      return actual.includes(expected)
-    case 'not_contains':
-      return !actual.includes(expected)
-    default:
-      return false
-  }
-}
-
 function recordMatchesSegment(
   record: SurveyRecordItem,
   segment: SegmentDefinition,
@@ -605,10 +516,12 @@ function recordMatchesSegment(
   return segment.conditions.every((condition) => {
     const question = questionMap.get(condition.questionId)
     if (!question) return false
-    return compareSegmentCondition(
+    return evaluateCondition(
       record.answers[condition.questionId],
       question,
-      condition
+      condition.operator,
+      condition.value,
+      condition.value2
     )
   })
 }

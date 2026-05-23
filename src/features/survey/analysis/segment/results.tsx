@@ -16,6 +16,10 @@ import type {
   SegmentDefinition,
   SurveySegmentAnalysisResult,
 } from '@/features/survey/core/analysis-types'
+import type {
+  SurveySchema,
+  QuestionElement,
+} from '@/features/survey/core/types'
 import { formatPercent, getSegmentPreview } from './utils'
 
 interface SegmentResultsProps {
@@ -25,9 +29,9 @@ interface SegmentResultsProps {
   appliedSegments: SegmentDefinition[]
   appliedConditionCount: number
   hasPendingChanges: boolean
-  questionMap: Map<string, any>
-  schema: any
-  questions: any[]
+  questionMap: Map<string, QuestionElement>
+  schema: SurveySchema
+  questions: QuestionElement[]
   isFetching?: boolean
   refetch?: () => void
 }
@@ -93,7 +97,9 @@ export function SegmentResults({
 
       <div className='flex flex-wrap items-center justify-between gap-3'>
         <div>
-          <div className='text-foreground text-xs font-semibold'>分析视图结果</div>
+          <div className='text-foreground text-xs font-semibold'>
+            分析视图结果
+          </div>
           <div className='text-muted-foreground mt-0.5 text-[11px]'>
             {appliedSegments.length > 0
               ? `已应用 ${appliedSegments.length} 个对比样本分群`
@@ -104,7 +110,7 @@ export function SegmentResults({
           {hasPendingChanges && appliedSegments.length > 0 && (
             <Badge
               variant='outline'
-              className='border-amber-500/30 bg-amber-500/5 text-[10px] font-normal text-amber-600 rounded'
+              className='rounded border-amber-500/30 bg-amber-500/5 text-[10px] font-normal text-amber-600'
             >
               草稿未应用
             </Badge>
@@ -113,7 +119,7 @@ export function SegmentResults({
             <Button
               variant='outline'
               size='sm'
-              className='text-muted-foreground border-muted-foreground/30 hover:bg-muted/10 flex h-7 items-center gap-1.5 px-2.5 text-xs rounded shadow-none bg-background'
+              className='text-muted-foreground border-muted-foreground/30 hover:bg-muted/10 bg-background flex h-7 items-center gap-1.5 rounded px-2.5 text-xs shadow-none'
               onClick={() => refetch()}
               disabled={isFetching}
             >
@@ -147,8 +153,13 @@ export function SegmentResults({
                   key={segment.id}
                   className='flex flex-wrap items-center gap-1.5 leading-relaxed'
                 >
-                  <span className='flex items-center gap-1 bg-background border border-muted-foreground/20 rounded px-1.5 py-0.5 text-[10px] font-semibold text-foreground/80'>
-                    <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', chartBg)} />
+                  <span className='bg-background border-muted-foreground/20 text-foreground/80 flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold'>
+                    <span
+                      className={cn(
+                        'h-1.5 w-1.5 shrink-0 rounded-full',
+                        chartBg
+                      )}
+                    />
                     {segment.label || `对比组 ${idx + 1}`}
                   </span>
                   <span className='text-muted-foreground text-[10px] font-normal'>
@@ -157,12 +168,12 @@ export function SegmentResults({
                   {condTexts.map((text, cIdx) => (
                     <React.Fragment key={cIdx}>
                       {cIdx > 0 && (
-                        <span className='text-muted-foreground font-mono text-[9px] font-bold px-0.5'>
+                        <span className='text-muted-foreground px-0.5 font-mono text-[9px] font-bold'>
                           AND
                         </span>
                       )}
                       <span
-                        className='bg-background border border-muted/80 text-muted-foreground max-w-[280px] truncate rounded px-1.5 py-0.5 text-[10px]'
+                        className='bg-background border-muted/80 text-muted-foreground max-w-[280px] truncate rounded border px-1.5 py-0.5 text-[10px]'
                         title={text}
                       >
                         {text}
@@ -189,7 +200,9 @@ export function SegmentResults({
             <h4 className='text-foreground text-xs font-semibold'>
               无法加载分析数据
             </h4>
-            <p className='text-muted-foreground text-[11px]'>请检查网络并重试。</p>
+            <p className='text-muted-foreground text-[11px]'>
+              请检查网络并重试。
+            </p>
           </div>
         </div>
       ) : appliedSegments.length === 0 ? (
@@ -200,74 +213,89 @@ export function SegmentResults({
       ) : data ? (
         <div className='space-y-4'>
           {/* 三维核心指标卡片 */}
-          <div className={cn(
-            'grid grid-cols-1 gap-3',
-            data.total !== undefined ? 'sm:grid-cols-3' : 'sm:grid-cols-2'
-          )}>
+          <div
+            className={cn(
+              'grid grid-cols-1 gap-3',
+              data.total !== undefined ? 'sm:grid-cols-3' : 'sm:grid-cols-2'
+            )}
+          >
             {data.total !== undefined && (
-              <div className='border border-muted rounded-lg bg-card p-3 shadow-none flex flex-col justify-between'>
-                <span className='text-[10px] text-muted-foreground font-semibold tracking-wider uppercase'>
+              <div className='border-muted bg-card flex flex-col justify-between rounded-lg border p-3 shadow-none'>
+                <span className='text-muted-foreground text-[10px] font-semibold tracking-wider uppercase'>
                   有效样本总数 (基线)
                 </span>
-                <div className='text-lg font-bold font-mono tracking-tight mt-1 flex items-baseline gap-1 text-foreground/90'>
+                <div className='text-foreground/90 mt-1 flex items-baseline gap-1 font-mono text-lg font-bold tracking-tight'>
                   {data.total.toLocaleString()}
-                  <span className='text-muted-foreground font-sans text-[10px] font-normal'>人</span>
+                  <span className='text-muted-foreground font-sans text-[10px] font-normal'>
+                    人
+                  </span>
                 </div>
               </div>
             )}
-            <div className='border border-muted rounded-lg bg-card p-3 shadow-none flex flex-col justify-between'>
-              <span className='text-[10px] text-muted-foreground font-semibold tracking-wider uppercase'>
+            <div className='border-muted bg-card flex flex-col justify-between rounded-lg border p-3 shadow-none'>
+              <span className='text-muted-foreground text-[10px] font-semibold tracking-wider uppercase'>
                 已生效对比组
               </span>
-              <div className='text-lg font-bold font-mono tracking-tight mt-1 flex items-baseline gap-1 text-foreground/90'>
+              <div className='text-foreground/90 mt-1 flex items-baseline gap-1 font-mono text-lg font-bold tracking-tight'>
                 {appliedSegments.length}
-                <span className='text-muted-foreground font-sans text-[10px] font-normal'>组</span>
+                <span className='text-muted-foreground font-sans text-[10px] font-normal'>
+                  组
+                </span>
               </div>
             </div>
-            <div className='border border-muted rounded-lg bg-card p-3 shadow-none flex flex-col justify-between'>
-              <span className='text-[10px] text-muted-foreground font-semibold tracking-wider uppercase'>
+            <div className='border-muted bg-card flex flex-col justify-between rounded-lg border p-3 shadow-none'>
+              <span className='text-muted-foreground text-[10px] font-semibold tracking-wider uppercase'>
                 符合人数最多组
               </span>
               {largestSegment ? (
-                <div className='text-lg font-bold font-mono tracking-tight mt-1 flex items-baseline gap-1 truncate text-foreground/90'>
-                  <span className='text-foreground text-xs font-semibold truncate max-w-[100px]' title={largestSegment.label}>
+                <div className='text-foreground/90 mt-1 flex items-baseline gap-1 truncate font-mono text-lg font-bold tracking-tight'>
+                  <span
+                    className='text-foreground max-w-[100px] truncate text-xs font-semibold'
+                    title={largestSegment.label}
+                  >
                     {largestSegment.label}
                   </span>
                   <span>
                     {largestSegment.count.toLocaleString()}
-                    <span className='text-muted-foreground font-sans text-[10px] font-normal ml-0.5'>人</span>
+                    <span className='text-muted-foreground ml-0.5 font-sans text-[10px] font-normal'>
+                      人
+                    </span>
                   </span>
                   <span className='text-muted-foreground font-sans text-[10px] font-normal'>
                     ({formatPercent(largestSegment.percentage)})
                   </span>
                 </div>
               ) : (
-                <div className='text-muted-foreground text-xs mt-1'>-</div>
+                <div className='text-muted-foreground mt-1 text-xs'>-</div>
               )}
             </div>
           </div>
 
           {/* 可视化百分比渗透对比条 */}
           {Array.isArray(data.segments) && data.segments.length > 0 && (
-            <div className='border border-muted rounded-lg bg-card p-4 shadow-none space-y-3'>
+            <div className='border-muted bg-card space-y-3 rounded-lg border p-4 shadow-none'>
               <div className='flex items-center justify-between'>
-                <span className='text-xs font-semibold text-foreground/80'>样本分群分布对比</span>
-                <span className='text-[10px] text-muted-foreground'>百分比为该组在全体答卷中的占比</span>
+                <span className='text-foreground/80 text-xs font-semibold'>
+                  样本分群分布对比
+                </span>
+                <span className='text-muted-foreground text-[10px]'>
+                  百分比为该组在全体答卷中的占比
+                </span>
               </div>
               <div className='space-y-3.5 pt-1'>
                 {/* 全量基线行 */}
                 {data.total !== undefined && (
                   <div className='flex items-center gap-3 text-xs'>
-                    <span className='font-semibold text-muted-foreground shrink-0 w-24 truncate'>
+                    <span className='text-muted-foreground w-24 shrink-0 truncate font-semibold'>
                       全体样本 (基线)
                     </span>
-                    <div className='flex-1 h-2 rounded bg-muted/40 overflow-hidden relative'>
-                      <div className='absolute top-0 bottom-0 left-0 bg-muted-foreground/30 rounded w-full' />
+                    <div className='bg-muted/40 relative h-2 flex-1 overflow-hidden rounded'>
+                      <div className='bg-muted-foreground/30 absolute top-0 bottom-0 left-0 w-full rounded' />
                     </div>
-                    <span className='font-mono font-medium text-muted-foreground shrink-0 w-10 text-right'>
+                    <span className='text-muted-foreground w-10 shrink-0 text-right font-mono font-medium'>
                       100%
                     </span>
-                    <span className='font-mono text-[10px] text-muted-foreground shrink-0 w-14 text-right'>
+                    <span className='text-muted-foreground w-14 shrink-0 text-right font-mono text-[10px]'>
                       {data.total.toLocaleString()} 人
                     </span>
                   </div>
@@ -277,23 +305,31 @@ export function SegmentResults({
                 {data.segments.map((segment, idx) => {
                   const chartColor = CHART_COLORS[idx % CHART_COLORS.length]
                   return (
-                    <div key={segment.id} className='flex items-center gap-3 text-xs'>
-                      <span className='font-semibold text-foreground/75 shrink-0 w-24 truncate' title={segment.label}>
+                    <div
+                      key={segment.id}
+                      className='flex items-center gap-3 text-xs'
+                    >
+                      <span
+                        className='text-foreground/75 w-24 shrink-0 truncate font-semibold'
+                        title={segment.label}
+                      >
                         {segment.label}
                       </span>
-                      <div className='flex-1 h-2 rounded bg-muted/30 overflow-hidden relative border border-muted-foreground/5'>
+                      <div className='bg-muted/30 border-muted-foreground/5 relative h-2 flex-1 overflow-hidden rounded border'>
                         <div
                           className={cn(
                             'absolute top-0 bottom-0 left-0 rounded transition-all duration-700 ease-out',
                             chartColor
                           )}
-                          style={{ width: `${Math.min(100, segment.percentage * 100)}%` }}
+                          style={{
+                            width: `${Math.min(100, segment.percentage * 100)}%`,
+                          }}
                         />
                       </div>
-                      <span className='font-mono font-bold text-foreground shrink-0 w-10 text-right'>
+                      <span className='text-foreground w-10 shrink-0 text-right font-mono font-bold'>
                         {formatPercent(segment.percentage)}
                       </span>
-                      <span className='font-mono text-[10px] text-muted-foreground shrink-0 w-14 text-right'>
+                      <span className='text-muted-foreground w-14 shrink-0 text-right font-mono text-[10px]'>
                         {segment.count} 人
                       </span>
                     </div>
@@ -305,23 +341,23 @@ export function SegmentResults({
 
           {/* 表格详细清单 */}
           {Array.isArray(data.segments) && (
-            <div className='border border-muted bg-background overflow-hidden rounded-lg shadow-none'>
+            <div className='border-muted bg-background overflow-hidden rounded-lg border shadow-none'>
               <Table>
                 <TableHeader className='bg-muted/10'>
-                  <TableRow className='hover:bg-transparent border-b border-muted'>
-                    <TableHead className='text-foreground/80 px-4 text-xs font-semibold h-9'>
+                  <TableRow className='border-muted border-b hover:bg-transparent'>
+                    <TableHead className='text-foreground/80 h-9 px-4 text-xs font-semibold'>
                       对比组名称
                     </TableHead>
-                    <TableHead className='text-foreground/80 text-xs font-semibold h-9'>
+                    <TableHead className='text-foreground/80 h-9 text-xs font-semibold'>
                       条件数
                     </TableHead>
-                    <TableHead className='text-foreground/80 text-xs font-semibold h-9'>
+                    <TableHead className='text-foreground/80 h-9 text-xs font-semibold'>
                       符合样本数
                     </TableHead>
-                    <TableHead className='text-foreground/80 text-xs font-semibold h-9'>
+                    <TableHead className='text-foreground/80 h-9 text-xs font-semibold'>
                       样本占比
                     </TableHead>
-                    <TableHead className='text-foreground/80 w-[200px] px-4 text-xs font-semibold h-9'>
+                    <TableHead className='text-foreground/80 h-9 w-[200px] px-4 text-xs font-semibold'>
                       快速可视化
                     </TableHead>
                   </TableRow>
@@ -330,19 +366,19 @@ export function SegmentResults({
                   {data.segments.map((segment, idx) => (
                     <TableRow
                       key={segment.id}
-                      className='hover:bg-muted/5 transition-colors border-b border-muted last:border-0'
+                      className='hover:bg-muted/5 border-muted border-b transition-colors last:border-0'
                     >
                       <TableCell className='px-4 py-2.5'>
                         <div className='text-foreground/90 max-w-[320px] truncate text-xs font-semibold'>
                           {segment.label}
                         </div>
                       </TableCell>
-                      <TableCell className='text-muted-foreground py-2.5 text-xs font-mono'>
+                      <TableCell className='text-muted-foreground py-2.5 font-mono text-xs'>
                         {segment.conditions.length}
                       </TableCell>
                       <TableCell className='text-foreground/90 py-2.5 font-mono text-sm font-bold'>
                         {segment.count.toLocaleString()}
-                        <span className='text-muted-foreground font-sans text-[10px] font-normal ml-0.5'>
+                        <span className='text-muted-foreground ml-0.5 font-sans text-[10px] font-normal'>
                           人
                         </span>
                       </TableCell>
@@ -350,7 +386,7 @@ export function SegmentResults({
                         {formatPercent(segment.percentage)}
                       </TableCell>
                       <TableCell className='px-4 py-2.5'>
-                        <div className='bg-muted/40 h-1.5 rounded-full overflow-hidden w-[160px] relative border border-muted/50'>
+                        <div className='bg-muted/40 border-muted/50 relative h-1.5 w-[160px] overflow-hidden rounded-full border'>
                           <div
                             className={cn(
                               'absolute top-0 bottom-0 left-0 rounded-full transition-all duration-500',

@@ -13,7 +13,7 @@ import {
   SortableOverlay,
 } from '@/components/ui/sortable'
 import { Textarea } from '@/components/ui/textarea'
-import { useBuilderStatic } from '../../context'
+import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import {
   OPTION_LINE_PRESETS,
   optionsToLines,
@@ -39,7 +39,6 @@ export function OptionEditor({
   labelMaxLength = LABEL_LIMITS.choiceOption,
   enableBatch = true,
 }: Props) {
-  const { createQuestionId } = useBuilderStatic()
   const [batchOpen, setBatchOpen] = useState(false)
   const [batchText, setBatchText] = useState('')
   /** 打开批量区时的快照，用于「追加」只解析新增行 */

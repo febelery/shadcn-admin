@@ -1,7 +1,11 @@
 import { Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { FileUpload } from '@/components/file-upload'
-import { useBuilderStatic } from '../../context'
+import { partitionChoiceOptions } from '@/features/survey/core/choice-other-option'
+import {
+  isMatrixQuestionType,
+  isTextInputQuestionType,
+} from '@/features/survey/core/question-capabilities'
 import { LABEL_LIMITS } from '../../store'
 import type { QuestionElement, QuestionConfig } from '../../types'
 import { InlineEditable } from '../inline-editable'
@@ -22,11 +26,6 @@ export function QuestionSurfaceBody({
   question,
   onConfigChange,
 }: QuestionSurfaceBodyProps) {
-  const {
-    partitionChoiceOptions,
-    isMatrixQuestionType,
-    isTextInputQuestionType,
-  } = useBuilderStatic()
   const q = question
   const opts = q.config.options ?? []
   const { regular, other } = partitionChoiceOptions(opts)

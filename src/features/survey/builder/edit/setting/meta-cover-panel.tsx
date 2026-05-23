@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { FileUpload } from '@/components/file-upload'
+import { DEFAULT_META } from '@/features/survey/core/schema-defaults'
 import { useBuilderStructure, useBuilderStatic } from '../../context'
 import {
   InspectorColorField,
@@ -191,7 +192,7 @@ function MediaUrlField({
 
 export function MetaCoverPanel() {
   const { schema } = useBuilderStructure()
-  const { updateMeta, DEFAULT_META } = useBuilderStatic()
+  const { updateMeta } = useBuilderStatic()
   const meta = schema!.meta
 
   return (

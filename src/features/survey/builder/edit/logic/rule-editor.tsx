@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { extractQuestionRefsFromWhen } from '@/features/survey/core/logic/condition-serializer'
 import {
   EDITABLE_RULE_ACTION_TYPES,
   getAutoRuleName,
@@ -25,7 +26,9 @@ import {
   getRuleTargetQuestionIds,
   normalizeRuleAction,
   resolveRuleSourceId,
-} from '../../../core/logic/rule-constraints'
+} from '@/features/survey/core/logic/rule-constraints'
+import { createRuleAction } from '@/features/survey/core/logic/rule-utils'
+import { getQuestionReferenceLabel } from '@/features/survey/shared/question-numbering'
 import {
   useBuilderStatic,
   useBuilderStructure,
@@ -164,13 +167,7 @@ export function RuleEditorPanel({
 }: Props) {
   const { editingRuleId } = useBuilderActiveState()
   const { schema } = useBuilderStructure()
-  const {
-    setEditingRuleId,
-    updateRule,
-    extractQuestionRefsFromWhen,
-    createRuleAction,
-    getQuestionReferenceLabel,
-  } = useBuilderStatic()
+  const { setEditingRuleId, updateRule } = useBuilderStatic()
 
   const questions = useSurveyQuestions()
 
@@ -358,7 +355,7 @@ export function RuleEditorPanel({
           </Button>
         </div>
       ) : null}
-      <ScrollArea className='min-h-0 min-w-0 flex-1 overflow-x-hidden [&_[data-slot=scroll-area-viewport]]:overflow-x-hidden'>
+      <ScrollArea className='min-h-0 min-w-0 flex-1 overflow-x-hidden **:data-[slot=scroll-area-viewport]:overflow-x-hidden'>
         <div
           className={cn(
             'flex max-w-full min-w-0 flex-col gap-2.5 overflow-x-hidden',

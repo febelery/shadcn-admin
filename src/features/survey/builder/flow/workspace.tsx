@@ -9,9 +9,9 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { useBuilderStore } from '../store'
-import { CenterPanel } from './panels/center'
-import { LeftPanel } from './panels/left'
-import { RightPanel } from './panels/right'
+import { CenterPanel } from './center-panel'
+import { LeftPanel } from './left-panel'
+import { RightPanel } from './right-panel'
 
 const desktopOnly = 'hidden lg:flex'
 

@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useBuilderStatic } from '../../context'
+import { partitionChoiceOptions } from '@/features/survey/core/choice-other-option'
 import { LABEL_LIMITS } from '../../store'
 import type { ChoiceOption, QuestionElement } from '../../types'
 import { InlineEditable } from '../inline-editable'
@@ -22,7 +22,6 @@ type Props = {
 
 /** 下拉题画布：Select 预览 + 无单选图标的选项列表 */
 export function SurfaceDropdownEditor({ question, options, onChange }: Props) {
-  const { partitionChoiceOptions } = useBuilderStatic()
   const placeholder = question.config.placeholder ?? '请选择'
   const regular = partitionChoiceOptions(options).regular
 
@@ -57,7 +56,7 @@ export function SurfaceDropdownEditor({ question, options, onChange }: Props) {
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {regular.map((opt) => (
+          {regular.map((opt: ChoiceOption) => (
             <SelectItem key={opt.id} value={opt.id}>
               {opt.label}
             </SelectItem>
@@ -66,7 +65,7 @@ export function SurfaceDropdownEditor({ question, options, onChange }: Props) {
       </Select>
 
       <ul className='flex flex-col gap-2'>
-        {regular.map((opt, index) => (
+        {regular.map((opt: ChoiceOption, index: number) => (
           <li
             key={opt.id}
             ref={(el) => setRowRef(opt.id, el)}

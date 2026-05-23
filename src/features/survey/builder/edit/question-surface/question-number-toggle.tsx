@@ -4,7 +4,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { useBuilderStatic } from '../../context'
+import { questionNumberColumn } from '@/features/survey/shared/question-layout'
+import {
+  isQuestionNumberVisible,
+  getQuestionNumberLabel,
+  getQuestionNumberTextClass,
+} from '@/features/survey/shared/question-numbering'
 import type {
   QuestionElement,
   QuestionNumberingMode,
@@ -34,14 +39,6 @@ export function SurfaceQuestionNumberToggle({
   surveyDefaultNumbering,
   onToggle,
 }: Props) {
-  const {
-    isQuestionNumberVisible,
-    getQuestionNumberLabel,
-    getQuestionNumberTextClass,
-    layout,
-  } = useBuilderStatic()
-  const { questionNumberColumn } = layout
-
   const visible = isQuestionNumberVisible(question, surveyDefaultNumbering)
   const showGlobalReference =
     !visible && numberingMode === 'continuous' && displayOrdinal == null

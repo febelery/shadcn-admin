@@ -1,12 +1,12 @@
 import { useMemo } from 'react'
 import { MousePointerClick, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { analyseSurvey } from '../../../core/expression/parser'
-import { BuilderGuidance } from '../../edit/guidance'
-import { BuilderPanelHeader } from '../../shared/panel-header'
-import { useBuilderStore } from '../../store'
-import { groupIssuesByRule } from '../issues/issue-utils'
-import { RuleEditorSection } from '../rules/rule-editor'
+import { analyseSurvey } from '@/features/survey/core/expression/parser'
+import { BuilderGuidance } from '../edit/guidance'
+import { BuilderPanelHeader } from '../shared/panel-header'
+import { useBuilderStore } from '../store'
+import { groupIssuesByRule } from './issues/issue-utils'
+import { RuleEditorSection } from './rule-editor'
 
 type Props = {
   className?: string

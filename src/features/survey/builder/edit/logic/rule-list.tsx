@@ -1,12 +1,15 @@
 import { Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import {
+  summarizeRuleAction,
+  getRulesForQuestion,
+} from '@/features/survey/core/logic/rule-utils'
 import { useBuilderStatic, useBuilderStructure } from '../../context'
 import type { Rule } from '../../types'
 import { useQuestionLabel } from './use-survey-questions'
 
 function RuleActionSummary({ action }: { action: Rule['action'] }) {
-  const { summarizeRuleAction } = useBuilderStatic()
   const label = useQuestionLabel(action.target ?? '')
   return <>{summarizeRuleAction(action, action.target ? label : undefined)}</>
 }
@@ -68,7 +71,7 @@ type Props = {
 
 export function RuleList({ questionId, onEditRule }: Props) {
   const { schema } = useBuilderStructure()
-  const { addRule, getRulesForQuestion } = useBuilderStatic()
+  const { addRule } = useBuilderStatic()
   const rules = schema?.rules ?? []
 
   const filtered = questionId ? getRulesForQuestion(rules, questionId) : rules
@@ -85,7 +88,7 @@ export function RuleList({ questionId, onEditRule }: Props) {
           {questionId ? '本题暂无相关逻辑规则' : '全卷暂无逻辑规则'}
         </p>
       ) : (
-        filtered.map((r) => (
+        filtered.map((r: Rule) => (
           <RuleCard key={r.id} rule={r} onEdit={() => onEditRule(r.id)} />
         ))
       )}

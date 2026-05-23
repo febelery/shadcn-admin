@@ -1,4 +1,5 @@
 import { Input } from '@/components/ui/input'
+import { DEFAULT_SUBMISSION } from '@/features/survey/core/schema-defaults'
 import { useBuilderStructure, useBuilderStatic } from '../../context'
 import type {
   SubmissionConfig,
@@ -14,7 +15,7 @@ import {
 
 export function SubmissionPanel() {
   const { schema } = useBuilderStructure()
-  const { updateSubmission, DEFAULT_SUBMISSION } = useBuilderStatic()
+  const { updateSubmission } = useBuilderStatic()
   const submission = schema!.submission
 
   const sub: SubmissionConfig = {

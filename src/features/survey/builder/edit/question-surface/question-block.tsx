@@ -1,6 +1,21 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
-import { useBuilderStatic } from '../../context'
+import {
+  questionBlockStack,
+  questionBlockGridRequiredOnly,
+  questionBlockContentCol,
+  questionHeaderLineHeight,
+  questionOptionsWrap,
+  questionBlockGrid,
+  questionPrefixCluster,
+  questionNumberColumn,
+  questionTitleText,
+} from '@/features/survey/shared/question-layout'
+import {
+  isSurveyNumberingEnabled,
+  isQuestionNumberVisible,
+} from '@/features/survey/shared/question-numbering'
+import { QuestionRequiredMark } from '@/features/survey/shared/question-required-mark'
 import { LABEL_LIMITS } from '../../store'
 import type {
   QuestionElement,
@@ -33,14 +48,6 @@ export function SurfaceQuestionBlock({
   onPatch,
   onConfigChange,
 }: Props) {
-  const {
-    QuestionRequiredMark,
-    isSurveyNumberingEnabled,
-    isQuestionNumberVisible,
-    layout,
-  } = useBuilderStatic()
-  const { questionTitleText } = layout
-
   const showDescription = Boolean(question.description || selected)
   const reserveNumberColumn = isSurveyNumberingEnabled(surveyDefaultNumbering)
 
@@ -130,17 +137,7 @@ function QuestionBlockLayout({
   children,
   className,
 }: LayoutProps) {
-  const { QuestionRequiredMark, layout } = useBuilderStatic()
-  const {
-    questionBlockStack,
-    questionBlockGridRequiredOnly,
-    questionBlockContentCol,
-    questionHeaderLineHeight,
-    questionOptionsWrap,
-    questionBlockGrid,
-    questionPrefixCluster,
-    questionNumberColumn,
-  } = layout
+  // 使用静态导入的布局排版样式常数
 
   const useNumberGrid = reserveNumberColumn || numberSlot != null
   const mark = requiredMark ?? <QuestionRequiredMark required={required} />

@@ -9,6 +9,22 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import {
+  hasInspectorConfigSection,
+  getInspectorSectionTitle,
+  inspectorSectionDefaultOpen,
+} from '@/features/survey/core/question-capabilities'
+import {
+  isSurveyNumberingEnabled,
+  isQuestionNumberVisible,
+  SURVEY_NUMBERING_OPTIONS,
+} from '@/features/survey/shared/question-numbering'
+import { getQuestionTypeLabel } from '@/features/survey/shared/question-registry'
+import {
+  getQuestionTypeHint,
+  hasQuestionTypePreview,
+} from '@/features/survey/shared/question-type-hints'
+import { QuestionTypePreview } from '@/features/survey/shared/question-type-preview'
+import {
   useBuilderStatic,
   useBuilderStructure,
   useBuilderActiveState,
@@ -38,21 +54,8 @@ function QuestionInspector({
   el: QuestionElement
 }) {
   const { numbering } = useBuilderStructure()
-  const {
-    updateQuestion,
-    updateQuestionConfig,
-    isSurveyNumberingEnabled,
-    isQuestionNumberVisible,
-    SURVEY_NUMBERING_OPTIONS,
-    getQuestionTypeLabel,
-    getQuestionTypeHint,
-    hasQuestionTypePreview,
-    QuestionTypePreview,
-    hasInspectorConfigSection,
-    getInspectorSectionTitle,
-    inspectorSectionDefaultOpen,
-    removeElement,
-  } = useBuilderStatic()
+  const { updateQuestion, updateQuestionConfig, removeElement } =
+    useBuilderStatic()
 
   const surveyStyle = numbering?.surveyDefaultNumbering ?? 'decimal'
 

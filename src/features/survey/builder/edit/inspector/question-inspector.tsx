@@ -12,7 +12,23 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { useBuilderStatic } from '../../context'
+import {
+  DEFAULT_OTHER_LABEL,
+  DEFAULT_OTHER_PLACEHOLDER,
+  partitionChoiceOptions,
+  syncOtherChoiceOption,
+} from '@/features/survey/core/choice-other-option'
+import {
+  isChoiceQuestionType,
+  isMatrixQuestionType,
+  isTextInputQuestionType,
+} from '@/features/survey/core/question-capabilities'
+import {
+  createCascaderNode,
+  addCascaderChild,
+  removeCascaderNode,
+  updateCascaderNode,
+} from '@/features/survey/shared/cascader-adapters'
 import { LABEL_LIMITS } from '../../store'
 import type {
   QuestionConfig,
@@ -38,13 +54,7 @@ function CascaderTreeNodeRow({
   onChange,
   allNodes,
 }: NodeRowProps) {
-  // 仅订阅静态 Context，避免因任意结构变化触发重渲染
-  const {
-    createCascaderNode,
-    addCascaderChild,
-    removeCascaderNode,
-    updateCascaderNode,
-  } = useBuilderStatic()
+  // 仅使用静态导入的 Cascader 工具方法，无需从 Context 解构
 
   const childCount = node.children?.length ?? 0
   const canDelete = depth > 0 || rootCount > 1
@@ -126,7 +136,7 @@ function CascaderTreeEditor({
   nodes: CascaderNode[]
   onChange: (nodes: CascaderNode[]) => void
 }) {
-  const { createCascaderNode } = useBuilderStatic()
+  // 已使用静态导入的 createCascaderNode
 
   const handleAddRoot = () => {
     onChange([...nodes, createCascaderNode(`一级 ${nodes.length + 1}`)])
@@ -180,12 +190,7 @@ export function ChoiceInspectorFields({
   config: QuestionConfig
   patchConfig: PatchConfig
 }) {
-  const {
-    DEFAULT_OTHER_LABEL,
-    DEFAULT_OTHER_PLACEHOLDER,
-    partitionChoiceOptions,
-    syncOtherChoiceOption,
-  } = useBuilderStatic()
+  // 已使用静态导入的 Choice 工具方法和常量
 
   const allowOther = config.allowOther ?? false
   const otherLabel = config.otherLabel ?? DEFAULT_OTHER_LABEL
@@ -334,9 +339,7 @@ export function ChoiceInspectorFields({
           </div>
         )}
 
-        {['single_choice', 'multiple_choice', 'dropdown', 'ranking'].includes(
-          type
-        ) && (
+        {isChoiceQuestionType(type) && (
           <div className='flex items-center gap-2'>
             <Checkbox
               id='randomize'
@@ -767,11 +770,7 @@ export function QuestionTypeInspectorFields({
   el,
   patchConfig,
 }: QuestionInspectorConfigProps) {
-  const {
-    isChoiceQuestionType,
-    isMatrixQuestionType,
-    isTextInputQuestionType,
-  } = useBuilderStatic()
+  // 已使用静态导入的题型判断函数
 
   if (isChoiceQuestionType(type)) {
     return (

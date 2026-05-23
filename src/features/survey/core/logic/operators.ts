@@ -12,12 +12,15 @@ export type ConditionOperator =
   | 'not_contains'
   | 'empty'
   | 'not_empty'
+  | 'between'
 
 export interface OperatorDef {
   value: ConditionOperator
   label: string
   /** 是否需要填写比较值 */
   needsValue: boolean
+  /** 是否需要区间上限值 */
+  needsSecondValue?: boolean
 }
 
 const CHOICE_OPS: OperatorDef[] = [
@@ -49,6 +52,7 @@ const NUMBER_OPS: OperatorDef[] = [
   { value: 'gte', label: '大于等于', needsValue: true },
   { value: 'lt', label: '小于', needsValue: true },
   { value: 'lte', label: '小于等于', needsValue: true },
+  { value: 'between', label: '介于', needsValue: true, needsSecondValue: true },
   { value: 'empty', label: '为空', needsValue: false },
   { value: 'not_empty', label: '不为空', needsValue: false },
 ]
@@ -75,9 +79,17 @@ export function getOperatorsForQuestionType(type: QuestionType): OperatorDef[] {
       return NUMBER_OPS
     case 'date':
       return NUMBER_OPS.filter((o) =>
-        ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'empty', 'not_empty'].includes(
-          o.value
-        )
+        [
+          'eq',
+          'neq',
+          'gt',
+          'gte',
+          'lt',
+          'lte',
+          'between',
+          'empty',
+          'not_empty',
+        ].includes(o.value)
       )
     default:
       return []
@@ -100,4 +112,5 @@ export const OPERATOR_TO_EXPR: Record<ConditionOperator, string> = {
   not_contains: 'not contains',
   empty: 'empty',
   not_empty: 'notEmpty',
+  between: 'between',
 }

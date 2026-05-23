@@ -3,6 +3,7 @@ import {
   formatLocalDateTime,
   parseLocalDateTime,
 } from '@/components/date-picker'
+import { DEFAULT_SUBMISSION } from '@/features/survey/core/schema-defaults'
 import { useBuilderStructure, useBuilderStatic } from '../../context'
 import type { SubmissionTimeWindow } from '../../types'
 import {
@@ -13,7 +14,7 @@ import {
 
 export function TimeWindowPanel() {
   const { schema } = useBuilderStructure()
-  const { updateSubmission, DEFAULT_SUBMISSION } = useBuilderStatic()
+  const { updateSubmission } = useBuilderStatic()
   const timeWindow = schema!.submission.timeWindow
 
   const tw: SubmissionTimeWindow = {

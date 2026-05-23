@@ -5,6 +5,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  isSurveyNumberingEnabled,
+  SURVEY_NUMBERING_MODE_OPTIONS,
+} from '@/features/survey/shared/question-numbering'
 import { useBuilderStructure, useBuilderStatic } from '../../context'
 import type { QuestionNumberingMode } from '../../types'
 import {
@@ -16,12 +20,7 @@ import {
 
 export function ThemePanel() {
   const { schema } = useBuilderStructure()
-  const {
-    updateMeta,
-    updateTheme,
-    isSurveyNumberingEnabled,
-    SURVEY_NUMBERING_MODE_OPTIONS,
-  } = useBuilderStatic()
+  const { updateMeta, updateTheme } = useBuilderStatic()
 
   const meta = schema!.meta
   const primaryColor = schema!.theme.primaryColor

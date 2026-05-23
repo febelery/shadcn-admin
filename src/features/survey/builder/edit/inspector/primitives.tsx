@@ -35,7 +35,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { useBuilderStatic } from '../../context'
+import { SURVEY_NUMBERING_OPTIONS } from '@/features/survey/shared/question-numbering'
 import type { SurveyDefaultNumberingStyle } from '../../types'
 
 export function InspectorFormField({
@@ -234,7 +234,6 @@ export function NumberingStyleSelect({
   value: SurveyDefaultNumberingStyle
   onValueChange: (value: SurveyDefaultNumberingStyle) => void
 }) {
-  const { SURVEY_NUMBERING_OPTIONS } = useBuilderStatic()
   const selected = SURVEY_NUMBERING_OPTIONS.find((o) => o.value === value)
 
   return (

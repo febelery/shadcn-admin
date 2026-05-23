@@ -364,11 +364,13 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
             </TabsContent>
 
             <TabsContent value='segment' className='mt-0 space-y-4'>
-              <SegmentAnalysis
-                surveyId={surveyId}
-                schema={schema}
-                questions={questions}
-              />
+              {schema && (
+                <SegmentAnalysis
+                  surveyId={surveyId}
+                  schema={schema}
+                  questions={questions}
+                />
+              )}
             </TabsContent>
           </Tabs>
         </>

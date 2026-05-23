@@ -72,8 +72,8 @@ export function SurveyBuilderPage(props: Props) {
   }, [isCreate, init])
 
   useEffect(() => {
-    if (!isCreate && data) init(data)
-  }, [isCreate, data, init])
+    if (!isCreate && data && !isDirty) init(data)
+  }, [isCreate, data, init, isDirty])
 
   if (!isCreate && isLoading) {
     return (

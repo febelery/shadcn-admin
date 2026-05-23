@@ -1,16 +1,16 @@
 import { Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { extractQuestionRefsFromWhen } from '../../../core/logic/condition-serializer'
+import { extractQuestionRefsFromWhen } from '@/features/survey/core/logic/condition-serializer'
 import {
   getRuleCategory,
   RULE_CATEGORY_LABEL,
-} from '../../../core/logic/rule-meta'
-import { summarizeRuleAction } from '../../../core/logic/rule-utils'
-import { useQuestionLabel } from '../../edit/logic/use-survey-questions'
-import { useBuilderStore } from '../../store'
-import type { StaticIssue, Rule } from '../../types'
-import { worstSeverity } from '../issues/issue-utils'
+} from '@/features/survey/core/logic/rule-meta'
+import { summarizeRuleAction } from '@/features/survey/core/logic/rule-utils'
+import { useQuestionLabel } from '../edit/logic/use-survey-questions'
+import { useBuilderStore } from '../store'
+import type { StaticIssue, Rule } from '../types'
+import { worstSeverity } from './issues/issue-utils'
 
 function RuleRow({
   rule,

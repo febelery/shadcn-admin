@@ -1,6 +1,10 @@
 import { Eye, GitBranch } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import {
+  getRulesForQuestion,
+  ruleReferencesQuestionAsSource,
+} from '@/features/survey/core/logic/rule-utils'
 import { useBuilderStatic, useBuilderStructure } from '../../context'
 import type { Rule } from '../../types'
 
@@ -12,13 +16,7 @@ type Props = {
 export function QuestionLogicBadges({ questionId, className }: Props) {
   const { schema, sectionId } = useBuilderStructure()
 
-  const {
-    select,
-    setEditingRuleId,
-    setBuilderMode,
-    getRulesForQuestion,
-    ruleReferencesQuestionAsSource,
-  } = useBuilderStatic()
+  const { select, setEditingRuleId, setBuilderMode } = useBuilderStatic()
 
   const rules = schema?.rules ?? []
 
