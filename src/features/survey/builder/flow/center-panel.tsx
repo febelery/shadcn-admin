@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { AlertCircle, AlertTriangle, Workflow } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { analyseSurvey } from '@/features/survey/core/expression/parser'
+import { analyseSurvey } from '@/features/survey/core/expression/analyzer'
 import { getRuleCategory } from '@/features/survey/core/logic/rule-meta'
 import { flattenQuestions } from '@/features/survey/core/schema-defaults'
 import { BuilderPanelHeader } from '../shared/panel-header'

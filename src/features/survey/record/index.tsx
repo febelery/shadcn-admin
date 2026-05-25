@@ -76,7 +76,7 @@ export function SurveyRecordPage({ surveyId }: SurveyRecordPageProps) {
     () => (schema ? flattenQuestions(schema) : []),
     [schema]
   )
-  const columns = useMemo(() => createRecordGridColumns(questions), [questions])
+  const columns = useMemo(() => createRecordGridColumns(questions, schema), [questions, schema])
 
   const { table, ...dataGridProps } = useDataGrid({
     data: data?.data ?? [],

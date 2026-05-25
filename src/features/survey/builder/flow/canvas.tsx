@@ -17,7 +17,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
-import { analyseSurvey } from '../../core/expression/parser'
+import { analyseSurvey } from '../../core/expression/analyzer'
 import { extractQuestionRefsFromWhen } from '../../core/logic/condition-serializer'
 import {
   buildFlowGraph,
@@ -107,7 +107,7 @@ function FlowRuleEdge({
                   edgeData?.kind === 'default' && 'bg-muted-foreground'
                 )}
               />
-              <span className='max-w-[11rem] truncate text-[10px] leading-none font-medium'>
+              <span className='max-w-44 truncate text-[10px] leading-none font-medium'>
                 {label}
               </span>
             </div>

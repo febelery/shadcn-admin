@@ -5,7 +5,7 @@ import {
   summarizeRuleAction,
   getRulesForQuestion,
 } from '@/features/survey/core/logic/rule-utils'
-import { useBuilderStatic, useBuilderStructure } from '../../context'
+import { useBuilderStore } from '../../store'
 import type { Rule } from '../../types'
 import { useQuestionLabel } from './use-survey-questions'
 
@@ -15,7 +15,7 @@ function RuleActionSummary({ action }: { action: Rule['action'] }) {
 }
 
 function RuleCard({ rule, onEdit }: { rule: Rule; onEdit: () => void }) {
-  const { removeRule } = useBuilderStatic()
+  const removeRule = useBuilderStore((s) => s.removeRule)
 
   return (
     <div
@@ -70,8 +70,8 @@ type Props = {
 }
 
 export function RuleList({ questionId, onEditRule }: Props) {
-  const { schema } = useBuilderStructure()
-  const { addRule } = useBuilderStatic()
+  const schema = useBuilderStore((s) => s.schema)
+  const addRule = useBuilderStore((s) => s.addRule)
   const rules = schema?.rules ?? []
 
   const filtered = questionId ? getRulesForQuestion(rules, questionId) : rules

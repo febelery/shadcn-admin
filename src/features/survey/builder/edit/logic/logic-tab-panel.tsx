@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { serializeCondition } from '@/features/survey/core/logic/condition-serializer'
 import { canUseQuestionAsRuleSource } from '@/features/survey/core/logic/rule-capabilities'
-import { useBuilderStatic } from '../../context'
+import { useBuilderStore } from '../../store'
 import { BuilderGuidance } from '../guidance'
 import { RuleList } from './rule-list'
 import { useSurveyQuestions } from './use-survey-questions'
@@ -12,7 +12,8 @@ type Props = {
 }
 
 export function LogicTabPanel({ selectedQuestionId, onEditRule }: Props) {
-  const { addVisibilityRule, addNavigationRule } = useBuilderStatic()
+  const addVisibilityRule = useBuilderStore((s) => s.addVisibilityRule)
+  const addNavigationRule = useBuilderStore((s) => s.addNavigationRule)
   const questions = useSurveyQuestions()
 
   const selectedQ = selectedQuestionId

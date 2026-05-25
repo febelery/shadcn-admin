@@ -28,19 +28,15 @@ export function getConditionIssues(
   segments.forEach((segment) => {
     const questionBuckets = new Map<
       string,
-      { question: QuestionElement; items: { condition: SegmentCondition; index: number }[] }
+      {
+        question: QuestionElement
+        items: { condition: SegmentCondition; index: number }[]
+      }
     >()
 
     segment.conditions.forEach((condition, index) => {
       const question = questionMap.get(condition.questionId)
       if (!condition.questionId) {
-        issues.push({
-          id: `${segment.id}-${index}-question`,
-          segmentId: segment.id,
-          conditionIndex: index,
-          severity: 'error',
-          message: '请选择题目',
-        })
         return
       }
 

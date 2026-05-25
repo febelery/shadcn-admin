@@ -3,11 +3,8 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { LayoutGrid, LayoutTemplate } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SurveyCoverHeader } from '@/features/survey/shared/survey-cover-header'
-import {
-  useBuilderStatic,
-  useBuilderStructure,
-  useBuilderActiveState,
-} from '../context'
+import { getEditorSection } from '../../core/editor-schema'
+import { useBuilderStore } from '../store'
 import { useIsPaletteDragging } from '../shared/dnd-provider'
 import { BuilderPanelHeader } from '../shared/panel-header'
 import { LABEL_LIMITS } from '../store'
@@ -23,8 +20,8 @@ import {
 } from './workspace-scroll'
 
 function WorkspaceSurveyCover() {
-  const { schema } = useBuilderStructure()
-  const { updateMeta } = useBuilderStatic()
+  const schema = useBuilderStore((s) => s.schema)
+  const updateMeta = useBuilderStore((s) => s.updateMeta)
   if (!schema) return null
   const { meta, theme } = schema
 
@@ -70,8 +67,13 @@ function WorkspaceSurveyCover() {
 }
 
 export function BuilderWorkspacePanel() {
-  const { schema, elements, sectionId, numbering } = useBuilderStructure()
-  const { selectedElementId } = useBuilderActiveState()
+  const schema = useBuilderStore((s) => s.schema)
+  const selectedSectionId = useBuilderStore((s) => s.selectedSectionId)
+  const selectedElementId = useBuilderStore((s) => s.selectedElementId)
+
+  const section = schema ? getEditorSection(schema) : undefined
+  const sectionId = section?.id ?? selectedSectionId
+  const elements = section?.elements ?? []
   const isPaletteDragging = useIsPaletteDragging()
 
   useScrollSelectedIntoWorkspace({ selectedElementId })
@@ -90,22 +92,11 @@ export function BuilderWorkspacePanel() {
   }
 
   const renderElementCard = (el: SurveyElement) => {
-    const numberingProps =
-      el.kind === 'question' && numbering
-        ? {
-            globalOrdinal: numbering.globalOrdinalMap.get(el.id) ?? 1,
-            displayOrdinal: numbering.displayOrdinalMap.get(el.id) ?? null,
-            numberingMode: numbering.numberingMode,
-            surveyDefaultNumbering: numbering.surveyDefaultNumbering,
-          }
-        : {}
-
     return (
       <WorkspaceElementCard
         sectionId={sectionId}
         element={el}
         selected={selectedElementId === el.id}
-        {...numberingProps}
       />
     )
   }

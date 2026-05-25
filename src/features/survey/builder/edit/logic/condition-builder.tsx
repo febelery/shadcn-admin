@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -199,8 +199,19 @@ export function ConditionBuilder({
   allowedSourceIds,
   defaultSourceId,
 }: Props) {
-  // 使用静态导入的条件解析与序列化方法
   const parsed = tryParseSimpleCondition(when)
+  const isComplex = parsed === null
+  const [isAdvanced, setIsAdvanced] = useState(isComplex)
+
+  // 同步外部 when 改变（如切换规则）时的模式
+  const [lastWhen, setLastWhen] = useState(when)
+  if (when !== lastWhen) {
+    setLastWhen(when)
+    if (isComplex) {
+      setIsAdvanced(true)
+    }
+  }
+
   const group: ConditionGroup = parsed ?? {
     logic: 'and',
     items: [
@@ -243,13 +254,54 @@ export function ConditionBuilder({
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className='overflow-hidden'>
-          <div className='border-t px-2.5 py-2.5'>
-            <ConditionRow
-              condition={item}
-              onChange={(c) => applyGroup({ ...group, items: [c] })}
-              allowedSourceIds={allowedSourceIds}
-              defaultSourceId={defaultSourceId}
-            />
+          <div className='border-t px-2.5 py-2.5 space-y-3.5'>
+            {isAdvanced ? (
+              <div className='space-y-2'>
+                <Label className='text-muted-foreground text-[10px] leading-none font-semibold'>
+                  高级逻辑表达式（支持手写条件）
+                </Label>
+                <textarea
+                  className='flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 font-mono leading-relaxed'
+                  value={when}
+                  onChange={(e) => onWhenChange(e.target.value)}
+                  placeholder="例如: {q.questionId} eq 'value'"
+                />
+                {!isComplex ? (
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    className='h-7 text-[10px] px-2'
+                    onClick={() => setIsAdvanced(false)}
+                  >
+                    切换为可视化配置
+                  </Button>
+                ) : (
+                  <p className='text-[10px] text-muted-foreground leading-normal'>
+                    当前表达式包含复杂复合逻辑，仅支持在高级表达式模式下编辑。
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className='space-y-2'>
+                <ConditionRow
+                  condition={item}
+                  onChange={(c) => applyGroup({ ...group, items: [c] })}
+                  allowedSourceIds={allowedSourceIds}
+                  defaultSourceId={defaultSourceId}
+                />
+                <div className='flex justify-end'>
+                  <Button
+                    type='button'
+                    variant='link'
+                    className='h-auto p-0 text-[10px] text-muted-foreground hover:text-foreground hover:no-underline'
+                    onClick={() => setIsAdvanced(true)}
+                  >
+                    切换到高级模式
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </CollapsibleContent>
       </section>

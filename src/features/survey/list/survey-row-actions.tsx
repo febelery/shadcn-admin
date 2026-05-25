@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   BarChart3,
@@ -9,6 +10,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +44,8 @@ export function SurveyRowActions({
   onPublish,
   onPause,
 }: SurveyRowActionsProps) {
+  const [showConfirm, setShowConfirm] = useState(false)
+
   return (
     <div className='flex items-center justify-end gap-1'>
       <Tooltip>
@@ -128,7 +132,10 @@ export function SurveyRowActions({
           <DropdownMenuGroup>
             <DropdownMenuItem
               variant='destructive'
-              onClick={() => onDelete(survey.id)}
+              onSelect={(e) => {
+                e.preventDefault()
+                setShowConfirm(true)
+              }}
             >
               <Trash2 />
               删除
@@ -136,6 +143,20 @@ export function SurveyRowActions({
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        title='确认删除问卷？'
+        desc='删除问卷将同时清空该问卷下的所有答卷数据且无法恢复。您确定要删除吗？'
+        confirmText='确认删除'
+        cancelBtnText='取消'
+        destructive
+        handleConfirm={() => {
+          onDelete(survey.id)
+          setShowConfirm(false)
+        }}
+      />
     </div>
   )
 }

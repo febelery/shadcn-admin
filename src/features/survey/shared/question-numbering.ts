@@ -118,12 +118,21 @@ export function isQuestionNumberVisible(
   return true
 }
 
+const displayOrdinalCache = new WeakMap<SurveySchema, Map<string, number | null>>()
+const ordinalCache = new WeakMap<SurveySchema, Map<string, number>>()
+const referenceLabelCache = new WeakMap<SurveySchema, Map<string, string>>()
+const numberPrefixCache = new WeakMap<SurveySchema, Map<string, string | null>>()
+
 /** 卷内全局序号（每题均有，用于连续模式下编辑器对照） */
 export function buildQuestionOrdinalMap(
   schema: SurveySchema
 ): Map<string, number> {
+  let cached = ordinalCache.get(schema)
+  if (cached) return cached
+
   const map = new Map<string, number>()
   flattenQuestions(schema).forEach((q, i) => map.set(q.id, i + 1))
+  ordinalCache.set(schema, map)
   return map
 }
 
@@ -134,12 +143,16 @@ export function buildQuestionOrdinalMap(
 export function buildQuestionDisplayOrdinalMap(
   schema: SurveySchema
 ): Map<string, number | null> {
+  let cached = displayOrdinalCache.get(schema)
+  if (cached) return cached
+
   const style = getSurveyDefaultNumberingStyle(schema)
   const mode = getQuestionNumberingMode(schema)
   const map = new Map<string, number | null>()
 
   if (mode === 'global') {
     flattenQuestions(schema).forEach((q, i) => map.set(q.id, i + 1))
+    displayOrdinalCache.set(schema, map)
     return map
   }
 
@@ -152,6 +165,7 @@ export function buildQuestionDisplayOrdinalMap(
       map.set(q.id, null)
     }
   }
+  displayOrdinalCache.set(schema, map)
   return map
 }
 
@@ -170,11 +184,29 @@ export function getQuestionNumberPrefix(
   question: QuestionElement,
   schema: SurveySchema
 ): string | null {
-  const style = getSurveyDefaultNumberingStyle(schema)
-  if (!isQuestionNumberVisible(question, style)) return null
-  const displayOrdinal = buildQuestionDisplayOrdinalMap(schema).get(question.id)
-  if (displayOrdinal == null) return null
-  return getQuestionNumberLabel(displayOrdinal, style)
+  let cached = numberPrefixCache.get(schema)
+  if (!cached) {
+    cached = new Map<string, string | null>()
+    const style = getSurveyDefaultNumberingStyle(schema)
+    const displayOrdinalMap = buildQuestionDisplayOrdinalMap(schema)
+    const questions = flattenQuestions(schema)
+
+    questions.forEach((q) => {
+      if (!isQuestionNumberVisible(q, style)) {
+        cached!.set(q.id, null)
+        return
+      }
+      const displayOrdinal = displayOrdinalMap.get(q.id)
+      if (displayOrdinal == null) {
+        cached!.set(q.id, null)
+        return
+      }
+      cached!.set(q.id, getQuestionNumberLabel(displayOrdinal, style))
+    })
+    numberPrefixCache.set(schema, cached)
+  }
+
+  return cached.get(question.id) ?? null
 }
 
 /** 编辑器/流程图用：带题号的题目引用文案 */
@@ -182,23 +214,37 @@ export function getQuestionReferenceLabel(
   question: QuestionElement,
   schema: SurveySchema
 ): string {
-  const globalOrdinal =
-    buildQuestionOrdinalMap(schema).get(question.id) ??
-    flattenQuestions(schema).findIndex((q) => q.id === question.id) + 1
-  const displayOrdinal =
-    buildQuestionDisplayOrdinalMap(schema).get(question.id) ?? null
-  const style = getSurveyDefaultNumberingStyle(schema)
-  const title = question.title?.trim()
+  let cached = referenceLabelCache.get(schema)
+  if (!cached) {
+    cached = new Map<string, string>()
+    const questions = flattenQuestions(schema)
+    const displayOrdinalMap = buildQuestionDisplayOrdinalMap(schema)
+    const globalOrdinalMap = buildQuestionOrdinalMap(schema)
+    const style = getSurveyDefaultNumberingStyle(schema)
 
-  if (!isQuestionNumberVisible(question, style)) {
-    return title || `题目 ${globalOrdinal}`
+    questions.forEach((q, index) => {
+      const globalOrdinal = globalOrdinalMap.get(q.id) ?? (index + 1)
+      const displayOrdinal = displayOrdinalMap.get(q.id) ?? null
+      const title = q.title?.trim()
+
+      if (!isQuestionNumberVisible(q, style)) {
+        cached!.set(q.id, title || `题目 ${globalOrdinal}`)
+        return
+      }
+
+      const ordinal = displayOrdinal ?? globalOrdinal
+      const num = getQuestionNumberLabel(ordinal, style)
+      if (!num) {
+        cached!.set(q.id, title || `题目 ${globalOrdinal}`)
+        return
+      }
+
+      cached!.set(q.id, title ? `${num} ${title}` : num)
+    })
+    referenceLabelCache.set(schema, cached)
   }
 
-  const ordinal = displayOrdinal ?? globalOrdinal
-  const num = getQuestionNumberLabel(ordinal, style)
-  if (!num) return title || `题目 ${globalOrdinal}`
-
-  return title ? `${num} ${title}` : num
+  return cached.get(question.id) ?? question.title ?? ''
 }
 
 export function getQuestionNumberTextClass(

@@ -2,9 +2,9 @@ import { useMemo, useCallback } from 'react'
 import { GitBranch, Plus, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { analyseSurvey } from '@/features/survey/core/expression/parser'
+import { analyseSurvey } from '@/features/survey/core/expression/analyzer'
 import { ruleMatchesSearch } from '@/features/survey/core/logic/rule-meta'
 import { flattenQuestions } from '@/features/survey/core/schema-defaults'
 import { getQuestionReferenceLabel } from '@/features/survey/shared/question-numbering'
@@ -69,18 +69,17 @@ export function LeftPanel({ className, onNewRule }: Props) {
       <BuilderPanelHeader icon={GitBranch} title='规则' density='compact' />
       <div className='bg-background text-foreground flex min-h-0 min-w-0 flex-1 flex-col'>
         <div className='border-border flex h-12 shrink-0 items-center gap-2 border-b px-3'>
-          <div className='relative min-w-0 flex-1'>
-            <Search className='text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2' />
-            <Input
-              className={cn(
-                'border-input bg-background focus-visible:border-ring focus-visible:ring-ring/30 h-8 pe-9 text-xs leading-none shadow-xs focus-visible:ring-2',
-                'h-8 ps-8'
-              )}
+          <InputGroup className='h-8 flex-1'>
+            <InputGroupAddon align='inline-start'>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
               placeholder='搜索规则…'
               value={searchQuery}
+              className='text-xs leading-none'
               onChange={(e) => setFlowSearchQuery(e.target.value)}
             />
-          </div>
+          </InputGroup>
           <Button
             type='button'
             variant='outline'

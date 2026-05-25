@@ -20,7 +20,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from '@/components/ui/hover-card'
-import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   getQuestionTypeHint,
@@ -275,18 +275,17 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
           className='flex min-h-0 flex-1 flex-col rounded-none bg-transparent'
         >
           <div className='border-border flex h-12 shrink-0 items-center gap-2 border-b px-3'>
-            <div className='relative flex-1'>
-              <Input
+            <InputGroup className='h-8 flex-1'>
+              <InputGroupInput
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder='搜索题型'
-                className='border-input bg-background focus-visible:border-ring focus-visible:ring-ring/30 h-8 pe-9 text-xs leading-none shadow-xs focus-visible:ring-2'
+                className='text-xs leading-none'
               />
-              <Search
-                className='text-muted-foreground pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2'
-                aria-hidden
-              />
-            </div>
+              <InputGroupAddon align='inline-end'>
+                <Search />
+              </InputGroupAddon>
+            </InputGroup>
           </div>
 
           <ScrollArea className='min-h-0 flex-1'>

@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import type { QuestionAnalysis } from '@/features/survey/core/analysis-types'
 import { getQuestionNumberPrefix } from '@/features/survey/shared/question-numbering'
 import { getQuestionTypeLabel } from '@/features/survey/shared/question-registry'
+import { useSurveyQuestionAnalysis } from '../query/hooks'
 import { ChoiceChart } from './charts/choice-chart'
 import { LikertChart } from './charts/likert-chart'
 import { MatrixChart } from './charts/matrix-chart'
@@ -163,16 +164,50 @@ function QuestionChartSkeleton({ type }: { type: string }) {
   }
 }
 
+interface QuestionChartProps {
+  question: any
+  index: number
+  schema: any
+  surveyId: string
+  params?: any
+}
+
 export function QuestionChart({
   question,
-  analysis,
-  isLoading = false,
-  error = null,
   index,
   schema,
   surveyId,
   params,
 }: QuestionChartProps) {
+  const [isVisible, setIsVisible] = React.useState(false)
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
+
+  React.useEffect(() => {
+    const node = containerRef.current
+    if (!node || typeof IntersectionObserver === 'undefined') {
+      setIsVisible(true)
+      return
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true)
+        observer.disconnect()
+      }
+    }, {
+      rootMargin: '100px',
+      threshold: 0.01,
+    })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  const { data: analysis, isLoading, error } = useSurveyQuestionAnalysis(
+    surveyId,
+    question.id,
+    params,
+    { enabled: isVisible }
+  )
+
   const typeLabel = getQuestionTypeLabel(question.type) || '未知题型'
 
   // 利用系统内置的题号前缀逻辑进行题号匹配
@@ -190,6 +225,9 @@ export function QuestionChart({
   }, [prefixText, index])
 
   const renderChart = () => {
+    if (!isVisible) {
+      return <QuestionChartSkeleton type={question.type} />
+    }
     if (error) {
       return (
         <div className='flex items-start gap-3 rounded-lg border border-dashed p-4'>
@@ -197,7 +235,7 @@ export function QuestionChart({
           <div className='space-y-1'>
             <div className='text-sm font-medium'>题目分析加载失败</div>
             <div className='text-muted-foreground text-xs'>
-              当前题目的数据请求未完成，请点击右上角刷新重试。
+              {error instanceof Error ? error.message : '当前题目的数据请求异常，请刷新重试。'}
             </div>
           </div>
         </div>
@@ -245,28 +283,30 @@ export function QuestionChart({
   }
 
   return (
-    <Card className='border-muted/80 overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-md'>
-      <CardHeader className='bg-muted/5 border-muted/50 space-y-3 border-b pb-4'>
-        <div className='flex flex-wrap items-start justify-between gap-3'>
-          <div className='flex min-w-[200px] flex-1 items-start gap-2.5'>
-            <span className='bg-primary/10 text-primary flex h-6 min-w-6 shrink-0 items-center justify-center rounded-lg px-1.5 font-mono text-xs font-bold'>
-              {prefixDisplay}
-            </span>
-            <span className='text-foreground leading-relaxed font-semibold wrap-break-word'>
-              {question.title || '（未命名题目）'}
-            </span>
+    <div ref={containerRef}>
+      <Card className='border-muted/80 overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-md'>
+        <CardHeader className='bg-muted/5 border-muted/50 space-y-3 border-b pb-4'>
+          <div className='flex flex-wrap items-start justify-between gap-3'>
+            <div className='flex min-w-[200px] flex-1 items-start gap-2.5'>
+              <span className='bg-primary/10 text-primary flex h-6 min-w-6 shrink-0 items-center justify-center rounded-lg px-1.5 font-mono text-xs font-bold'>
+                {prefixDisplay}
+              </span>
+              <span className='text-foreground leading-relaxed font-semibold wrap-break-word'>
+                {question.title || '（未命名题目）'}
+              </span>
+            </div>
+            <div className='flex shrink-0 items-center gap-2'>
+              <Badge
+                variant='secondary'
+                className='px-2 py-0.5 text-[10px] font-normal'
+              >
+                {typeLabel}
+              </Badge>
+            </div>
           </div>
-          <div className='flex shrink-0 items-center gap-2'>
-            <Badge
-              variant='secondary'
-              className='px-2 py-0.5 text-[10px] font-normal'
-            >
-              {typeLabel}
-            </Badge>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className='p-6'>{renderChart()}</CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent className='p-6'>{renderChart()}</CardContent>
+      </Card>
+    </div>
   )
 }

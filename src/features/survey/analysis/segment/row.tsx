@@ -1,8 +1,23 @@
-import { AlertCircle, X } from 'lucide-react'
+import React from 'react'
+import { AlertCircle, X, ChevronDown, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useDebouncedCallback } from '@/hooks/use-debounced-callback'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandList,
+  CommandItem,
+} from '@/components/ui/command'
 import { Input } from '@/components/ui/input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -15,65 +30,99 @@ import type {
   SegmentConditionOperator,
 } from '@/features/survey/core/analysis-types'
 import { isChoiceQuestionType } from '@/features/survey/core/question-capabilities'
-import type {
-  QuestionElement,
-  SurveySchema,
-} from '@/features/survey/core/types'
+import type { QuestionElement } from '@/features/survey/core/types'
 import {
   getOperators,
   operatorNeedsValue,
   operatorNeedsSecondValue,
   getSelectionDescription,
-  getQuestionLabel,
   OPERATOR_LABELS,
 } from './utils'
 import type { ValidationIssue } from './validator'
 
-function QuestionLabel({
-  question,
-  schema,
-  questions,
-}: {
-  question: QuestionElement
-  schema: SurveySchema
-  questions: QuestionElement[]
-}) {
-  const label = getQuestionLabel(question, schema, questions)
-  return (
-    <span className='text-foreground truncate text-xs font-medium'>
-      {label}
-    </span>
-  )
+interface DebouncedInputProps extends Omit<
+  React.ComponentPropsWithoutRef<typeof Input>,
+  'value' | 'onChange'
+> {
+  value: string
+  onChange: (value: string) => void
 }
 
+const DebouncedInput = React.memo(function DebouncedInput({
+  value,
+  onChange,
+  ...props
+}: DebouncedInputProps) {
+  const [localValue, setLocalValue] = React.useState(value)
+
+  React.useEffect(() => {
+    setLocalValue(value)
+  }, [value])
+
+  const debouncedOnChange = useDebouncedCallback(onChange, 150)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setLocalValue(val)
+    debouncedOnChange(val)
+  }
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    onChange(e.target.value)
+    if (props.onBlur) {
+      props.onBlur(e)
+    }
+  }
+
+  return (
+    <Input
+      {...props}
+      value={localValue}
+      onChange={handleChange}
+      onBlur={handleBlur}
+    />
+  )
+})
+
 interface SegmentRowProps {
+  segmentId: string
   condition: SegmentCondition
   conditionIndex: number
   questions: QuestionElement[]
-  schema: SurveySchema
-  allQuestions: QuestionElement[]
+  questionOptions: { id: string; label: string }[]
   issue?: ValidationIssue
-  onQuestionChange: (question: QuestionElement) => void
-  onOperatorChange: (
-    operator: SegmentConditionOperator,
+  onQuestionChange: (
+    segmentId: string,
+    conditionIndex: number,
     question: QuestionElement
   ) => void
-  onValueChange: (patch: Partial<SegmentCondition>) => void
-  onRemove: () => void
+  onOperatorChange: (
+    segmentId: string,
+    conditionIndex: number,
+    question: QuestionElement,
+    operator: SegmentConditionOperator
+  ) => void
+  onValueChange: (
+    segmentId: string,
+    conditionIndex: number,
+    patch: Partial<SegmentCondition>
+  ) => void
+  onRemove: (segmentId: string, conditionIndex: number) => void
 }
 
-export function SegmentRow({
+export const SegmentRow = React.memo(function SegmentRow({
+  segmentId,
   condition,
   conditionIndex,
   questions,
-  schema,
-  allQuestions,
+  questionOptions,
   issue,
   onQuestionChange,
   onOperatorChange,
   onValueChange,
   onRemove,
 }: SegmentRowProps) {
+  const [open, setOpen] = React.useState(false)
   const question = questions.find((item) => item.id === condition.questionId)
   const operators = question ? getOperators(question) : []
 
@@ -100,6 +149,10 @@ export function SegmentRow({
     issue && (issue.id.endsWith('-value') || issue.id.endsWith('-value2'))
   const isConflictError = issue && issue.id.endsWith('-conflict')
 
+  const selectedOption = questionOptions.find(
+    (opt) => opt.id === condition.questionId
+  )
+
   return (
     <div
       className={cn(
@@ -122,36 +175,63 @@ export function SegmentRow({
         </Badge>
       </div>
       <div className='min-w-0 pr-8 lg:pr-0'>
-        <Select
-          value={condition.questionId}
-          onValueChange={(questionId) => {
-            const nextQuestion = questions.find(
-              (item) => item.id === questionId
-            )
-            if (nextQuestion) onQuestionChange(nextQuestion)
-          }}
-        >
-          <SelectTrigger
-            className={cn(
-              'border-muted/80 hover:border-muted-foreground/30 focus:ring-ring h-8 text-xs shadow-none transition-colors duration-200 focus:ring-1',
-              (isQuestionError || isConflictError) &&
-                'border-destructive/60 text-destructive focus:ring-destructive focus-visible:ring-destructive/30'
-            )}
-          >
-            <SelectValue placeholder='选择题目' />
-          </SelectTrigger>
-          <SelectContent>
-            {questions.map((item) => (
-              <SelectItem key={item.id} value={item.id}>
-                <QuestionLabel
-                  question={item}
-                  schema={schema}
-                  questions={allQuestions}
-                />
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant='outline'
+              role='combobox'
+              aria-expanded={open}
+              className={cn(
+                'border-muted/80 hover:border-muted-foreground/30 focus-visible:ring-ring bg-background h-8 w-full justify-between px-3 text-left text-xs font-normal shadow-none transition-colors duration-200 focus-visible:ring-1',
+                !condition.questionId && 'text-muted-foreground',
+                (isQuestionError || isConflictError) &&
+                  'border-destructive/60 text-destructive focus-visible:ring-destructive'
+              )}
+            >
+              <span className='mr-2 truncate'>
+                {selectedOption ? selectedOption.label : '选择题目'}
+              </span>
+              <ChevronDown className='h-4 w-4 shrink-0 opacity-50' />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className='w-[350px] p-0' align='start'>
+            <Command>
+              <CommandInput placeholder='搜索题目...' className='h-8 text-xs' />
+              <CommandEmpty className='text-muted-foreground py-4 text-center text-xs'>
+                未找到相关题目
+              </CommandEmpty>
+              <CommandList className='max-h-[260px] overflow-y-auto p-1'>
+                <CommandGroup>
+                  {questionOptions.map((option) => (
+                    <CommandItem
+                      key={option.id}
+                      value={option.label}
+                      onSelect={() => {
+                        const nextQuestion = questions.find(
+                          (item) => item.id === option.id
+                        )
+                        if (nextQuestion) {
+                          onQuestionChange(
+                            segmentId,
+                            conditionIndex,
+                            nextQuestion
+                          )
+                        }
+                        setOpen(false)
+                      }}
+                      className='flex cursor-pointer items-center justify-between px-2 py-1.5 text-xs'
+                    >
+                      <span className='truncate pr-4'>{option.label}</span>
+                      {condition.questionId === option.id && (
+                        <Check className='text-primary h-3.5 w-3.5 shrink-0' />
+                      )}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <Select
@@ -159,7 +239,12 @@ export function SegmentRow({
         disabled={!question}
         onValueChange={(value) => {
           if (question)
-            onOperatorChange(value as SegmentConditionOperator, question)
+            onOperatorChange(
+              segmentId,
+              conditionIndex,
+              question,
+              value as SegmentConditionOperator
+            )
         }}
       >
         <SelectTrigger
@@ -185,11 +270,11 @@ export function SegmentRow({
           operatorNeedsValue(condition.operator) ? (
             operatorNeedsSecondValue(condition.operator) ? (
               <div className='flex items-center gap-1.5'>
-                <Input
+                <DebouncedInput
                   type={kind === 'number' ? 'number' : 'text'}
-                  value={condition.value ?? ''}
-                  onChange={(event) =>
-                    onValueChange({ value: event.target.value })
+                  value={String(condition.value ?? '')}
+                  onChange={(val) =>
+                    onValueChange(segmentId, conditionIndex, { value: val })
                   }
                   className={cn(
                     'border-muted/80 focus-visible:ring-ring h-8 w-24 text-xs shadow-none transition-colors duration-200 focus-visible:ring-1',
@@ -201,11 +286,11 @@ export function SegmentRow({
                 <span className='text-muted-foreground shrink-0 text-[10px]'>
                   至
                 </span>
-                <Input
+                <DebouncedInput
                   type={kind === 'number' ? 'number' : 'text'}
-                  value={condition.value2 ?? ''}
-                  onChange={(event) =>
-                    onValueChange({ value2: event.target.value })
+                  value={String(condition.value2 ?? '')}
+                  onChange={(val) =>
+                    onValueChange(segmentId, conditionIndex, { value2: val })
                   }
                   className={cn(
                     'border-muted/80 focus-visible:ring-ring h-8 w-24 text-xs shadow-none transition-colors duration-200 focus-visible:ring-1',
@@ -218,7 +303,9 @@ export function SegmentRow({
             ) : kind === 'choice' || kind === 'multi' ? (
               <Select
                 value={String(condition.value ?? '')}
-                onValueChange={(value) => onValueChange({ value })}
+                onValueChange={(value) =>
+                  onValueChange(segmentId, conditionIndex, { value })
+                }
               >
                 <SelectTrigger
                   className={cn(
@@ -241,11 +328,11 @@ export function SegmentRow({
                 </SelectContent>
               </Select>
             ) : (
-              <Input
+              <DebouncedInput
                 type={kind === 'number' ? 'number' : 'text'}
-                value={condition.value ?? ''}
-                onChange={(event) =>
-                  onValueChange({ value: event.target.value })
+                value={String(condition.value ?? '')}
+                onChange={(val) =>
+                  onValueChange(segmentId, conditionIndex, { value: val })
                 }
                 className={cn(
                   'border-muted/80 focus-visible:ring-ring h-8 text-xs shadow-none transition-colors duration-200 focus-visible:ring-1',
@@ -277,11 +364,11 @@ export function SegmentRow({
           variant='ghost'
           size='icon'
           className='text-muted-foreground hover:text-destructive hover:bg-muted/80 h-7 w-7 rounded'
-          onClick={onRemove}
+          onClick={() => onRemove(segmentId, conditionIndex)}
         >
           <X className='h-3.5 w-3.5' />
         </Button>
       </div>
     </div>
   )
-}
+})

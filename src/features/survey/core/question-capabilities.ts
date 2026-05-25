@@ -63,26 +63,6 @@ export function getInspectorSectionTitle(type: QuestionType): string {
   return INSPECTOR_SECTION_TITLES[type] ?? '题型配置'
 }
 
-export function hasInspectorConfigSection(type: QuestionType): boolean {
-  return (
-    isChoiceQuestionType(type) ||
-    isMatrixQuestionType(type) ||
-    isTextInputQuestionType(type) ||
-    type === 'cascader' ||
-    type === 'likert' ||
-    type === 'rating' ||
-    type === 'slider' ||
-    type === 'nps' ||
-    type === 'dynamic_panel' ||
-    type === 'number' ||
-    type === 'date' ||
-    type === 'date_range' ||
-    type === 'fill_in' ||
-    type === 'file_upload' ||
-    type === 'signature'
-  )
-}
-
 export function inspectorSectionDefaultOpen(type: QuestionType): boolean {
   return isChoiceQuestionType(type) || isMatrixQuestionType(type)
 }

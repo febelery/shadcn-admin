@@ -1,4 +1,5 @@
 import React from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
   ArrowLeft,
@@ -8,62 +9,23 @@ import {
   Filter,
   RefreshCw,
 } from 'lucide-react'
-import { getSurveyQuestionAnalysis } from '@/api/survey'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageLayout } from '@/components/layout/page-layout'
 import { flattenQuestions } from '../core/schema-defaults'
 import { useSurveyDetail, useSurveyAnalysis } from '../query/hooks'
+import { surveyKeys } from '../query/keys'
 import { OverviewCards } from './overview-cards'
 import { QuestionChart } from './question-chart'
 import { SegmentAnalysis } from './segment'
-
-const QUESTION_ANALYSIS_DELAY_MS = 200
 
 interface SurveyAnalysisPageProps {
   surveyId: string
 }
 
-function QuestionViewportObserver({
-  questionId,
-  onVisibleChange,
-  children,
-}: {
-  questionId: string
-  onVisibleChange: (questionId: string, isVisible: boolean) => void
-  children: React.ReactNode
-}) {
-  const ref = React.useRef<HTMLDivElement | null>(null)
-  const onVisibleChangeRef = React.useRef(onVisibleChange)
-
-  React.useEffect(() => {
-    onVisibleChangeRef.current = onVisibleChange
-  }, [onVisibleChange])
-
-  React.useEffect(() => {
-    const node = ref.current
-    if (!node || typeof IntersectionObserver === 'undefined') return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        onVisibleChangeRef.current(questionId, entry.isIntersecting)
-      },
-      {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.01,
-      }
-    )
-
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [questionId])
-
-  return <div ref={ref}>{children}</div>
-}
-
 export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
+  const queryClient = useQueryClient()
   const { data: schema, isLoading: loadingSchema } = useSurveyDetail(surveyId)
 
   const questions = React.useMemo(() => {
@@ -74,144 +36,15 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
     data: analysis,
     isLoading: loadingAnalysis,
     isRefetching,
-    refetch,
   } = useSurveyAnalysis(surveyId)
 
-  const [questionAnalyses, setQuestionAnalyses] = React.useState<
-    Record<string, any>
-  >({})
-  const [questionErrors, setQuestionErrors] = React.useState<
-    Record<string, string>
-  >({})
-  const [seenQuestionIds, setSeenQuestionIds] = React.useState<Set<string>>(
-    () => new Set()
-  )
-  const [loadingQuestionId, setLoadingQuestionId] = React.useState<
-    string | null
-  >(null)
-  const [cooldownTick, setCooldownTick] = React.useState(0)
-  const loadVersionRef = React.useRef(0)
-  const cooldownTimerRef = React.useRef<number | null>(null)
+  const [activeTab, setActiveTab] = React.useState('questions')
 
-  const scheduleNextAttempt = React.useCallback((delayMs: number) => {
-    if (cooldownTimerRef.current !== null) {
-      window.clearTimeout(cooldownTimerRef.current)
-      cooldownTimerRef.current = null
-    }
-
-    cooldownTimerRef.current = window.setTimeout(() => {
-      cooldownTimerRef.current = null
-      setCooldownTick((prev) => prev + 1)
-    }, delayMs)
-  }, [])
-
-  React.useEffect(() => {
-    loadVersionRef.current += 1
-
-    if (cooldownTimerRef.current !== null) {
-      window.clearTimeout(cooldownTimerRef.current)
-      cooldownTimerRef.current = null
-    }
-
-    let cancelled = false
-    queueMicrotask(() => {
-      if (cancelled) return
-      setQuestionAnalyses({})
-      setQuestionErrors({})
-      setSeenQuestionIds(new Set())
-      setLoadingQuestionId(null)
+  const handleRefresh = React.useCallback(async () => {
+    await queryClient.invalidateQueries({
+      queryKey: surveyKeys.analysis(surveyId),
     })
-
-    return () => {
-      cancelled = true
-    }
-  }, [surveyId, questions, analysis])
-
-  React.useEffect(() => {
-    if (
-      !analysis ||
-      analysis.overview.totalRecords === 0 ||
-      !questions.length
-    ) {
-      return
-    }
-    if (loadingQuestionId !== null) {
-      return
-    }
-    if (cooldownTimerRef.current !== null) {
-      return
-    }
-
-    const currentVersion = loadVersionRef.current
-    const isQuestionDone = (questionId: string) =>
-      Object.prototype.hasOwnProperty.call(questionAnalyses, questionId) ||
-      Object.prototype.hasOwnProperty.call(questionErrors, questionId)
-
-    const nextQuestion = questions.find((question, index) => {
-      if (!seenQuestionIds.has(question.id)) return false
-      if (isQuestionDone(question.id)) return false
-      for (let i = 0; i < index; i += 1) {
-        if (!isQuestionDone(questions[i].id)) return false
-      }
-      return true
-    })
-
-    if (!nextQuestion) return
-
-    queueMicrotask(() => {
-      if (currentVersion !== loadVersionRef.current) return
-      setLoadingQuestionId(nextQuestion.id)
-
-      getSurveyQuestionAnalysis(surveyId, nextQuestion.id)
-        .then((result) => {
-          if (currentVersion !== loadVersionRef.current) return
-          setQuestionAnalyses((prev) => ({
-            ...prev,
-            [nextQuestion.id]: result,
-          }))
-        })
-        .catch((err) => {
-          if (currentVersion !== loadVersionRef.current) return
-          console.error(
-            `Failed to load analysis for question ${nextQuestion.id}`,
-            err
-          )
-          setQuestionErrors((prev) => ({
-            ...prev,
-            [nextQuestion.id]:
-              err instanceof Error ? err.message : '题目分析加载失败',
-          }))
-        })
-        .finally(() => {
-          if (currentVersion !== loadVersionRef.current) return
-          setLoadingQuestionId(null)
-          scheduleNextAttempt(QUESTION_ANALYSIS_DELAY_MS)
-        })
-    })
-  }, [
-    analysis,
-    cooldownTick,
-    loadingQuestionId,
-    questionAnalyses,
-    questionErrors,
-    questions,
-    scheduleNextAttempt,
-    seenQuestionIds,
-    surveyId,
-  ])
-
-  const handleQuestionVisibleChange = React.useCallback(
-    (questionId: string, isVisible: boolean) => {
-      if (!isVisible) return
-      setSeenQuestionIds((prev) => {
-        if (prev.has(questionId)) return prev
-        const next = new Set(prev)
-        next.add(questionId)
-        return next
-      })
-    },
-    []
-  )
+  }, [queryClient, surveyId])
 
   const isLoading = loadingSchema || loadingAnalysis
 
@@ -236,7 +69,7 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
           </Button>
           <Button
             variant='outline'
-            onClick={() => refetch()}
+            onClick={handleRefresh}
             disabled={isLoading}
           >
             <RefreshCw
@@ -285,7 +118,11 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
         <>
           <OverviewCards overview={analysis.overview} />
 
-          <Tabs defaultValue='questions' className='space-y-4'>
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className='space-y-4'
+          >
             <div className='border-muted/70 bg-card/70 overflow-hidden rounded-2xl border shadow-sm'>
               <div className='border-muted/60 flex flex-col gap-4 border-b px-4 py-4 sm:flex-row sm:items-end sm:justify-between'>
                 <div className='min-w-0 space-y-1.5'>
@@ -320,51 +157,38 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
             </div>
 
             <TabsContent value='questions' className='mt-0 space-y-4'>
-              {analysis.overview.totalRecords === 0 ? (
-                <div className='bg-muted/5 space-y-3 rounded-xl border border-dashed p-12 text-center'>
-                  <div className='bg-muted text-muted-foreground mx-auto flex h-10 w-10 items-center justify-center rounded-lg'>
-                    <AlertCircle className='h-5 w-5' />
+              {activeTab === 'questions' &&
+                (analysis.overview.totalRecords === 0 ? (
+                  <div className='bg-muted/5 space-y-3 rounded-xl border border-dashed p-12 text-center'>
+                    <div className='bg-muted text-muted-foreground mx-auto flex h-10 w-10 items-center justify-center rounded-lg'>
+                      <AlertCircle className='h-5 w-5' />
+                    </div>
+                    <div className='space-y-1'>
+                      <h4 className='text-foreground text-sm font-semibold'>
+                        无匹配的数据记录
+                      </h4>
+                      <p className='text-muted-foreground mx-auto max-w-xs text-xs'>
+                        当前没有可用于逐题统计的回收答卷。
+                      </p>
+                    </div>
                   </div>
-                  <div className='space-y-1'>
-                    <h4 className='text-foreground text-sm font-semibold'>
-                      无匹配的数据记录
-                    </h4>
-                    <p className='text-muted-foreground mx-auto max-w-xs text-xs'>
-                      当前没有可用于逐题统计的回收答卷。
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className='flex flex-col gap-6'>
-                  {questions.map((q, idx) => {
-                    const qAnalysis = questionAnalyses[q.id]
-                    const qError = questionErrors[q.id]
-                    return (
-                      <QuestionViewportObserver
+                ) : (
+                  <div className='flex flex-col gap-6'>
+                    {questions.map((q, idx) => (
+                      <QuestionChart
                         key={q.id}
-                        questionId={q.id}
-                        onVisibleChange={handleQuestionVisibleChange}
-                      >
-                        <QuestionChart
-                          question={q}
-                          index={idx + 1}
-                          analysis={qAnalysis}
-                          error={qError}
-                          isLoading={
-                            loadingQuestionId === q.id && !qAnalysis && !qError
-                          }
-                          schema={schema}
-                          surveyId={surveyId}
-                        />
-                      </QuestionViewportObserver>
-                    )
-                  })}
-                </div>
-              )}
+                        question={q}
+                        index={idx + 1}
+                        schema={schema}
+                        surveyId={surveyId}
+                      />
+                    ))}
+                  </div>
+                ))}
             </TabsContent>
 
             <TabsContent value='segment' className='mt-0 space-y-4'>
-              {schema && (
+              {activeTab === 'segment' && schema && (
                 <SegmentAnalysis
                   surveyId={surveyId}
                   schema={schema}
@@ -385,7 +209,7 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
               无法获取该问卷的数据统计分析，请刷新重试。
             </p>
           </div>
-          <Button variant='outline' size='sm' onClick={() => refetch()}>
+          <Button variant='outline' size='sm' onClick={handleRefresh}>
             重新加载
           </Button>
         </div>

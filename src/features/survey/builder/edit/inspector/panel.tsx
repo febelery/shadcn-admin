@@ -1,4 +1,5 @@
-import { Settings2 } from 'lucide-react'
+import { type ReactNode } from 'react'
+import { Settings2, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Editor } from '@/components/ui/editor'
@@ -8,8 +9,21 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import {
-  hasInspectorConfigSection,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
+import {
   getInspectorSectionTitle,
   inspectorSectionDefaultOpen,
 } from '@/features/survey/core/question-capabilities'
@@ -24,11 +38,9 @@ import {
   hasQuestionTypePreview,
 } from '@/features/survey/shared/question-type-hints'
 import { QuestionTypePreview } from '@/features/survey/shared/question-type-preview'
-import {
-  useBuilderStatic,
-  useBuilderStructure,
-  useBuilderActiveState,
-} from '../../context'
+import { getEditorSection } from '../../../core/editor-schema'
+import { getSurveyDefaultNumberingStyle } from '@/features/survey/shared/question-numbering'
+import { useBuilderStore } from '../../store'
 import { BuilderPanelHeader } from '../../shared/panel-header'
 import type { SurveyElement, QuestionElement } from '../../types'
 import { BuilderGuidance } from '../guidance'
@@ -38,11 +50,6 @@ import { PublishInfoCard } from '../setting/publish-info-card'
 import { SubmissionPanel } from '../setting/submission-panel'
 import { ThemePanel } from '../setting/theme-panel'
 import { TimeWindowPanel } from '../setting/time-window-panel'
-import {
-  InspectorFormField,
-  InspectorSection,
-  InspectorSwitchField,
-} from './primitives'
 import { QuestionTypeInspectorFields } from './question-inspector'
 
 // 题目属性配置面板组件
@@ -53,11 +60,10 @@ function QuestionInspector({
   sectionId: string
   el: QuestionElement
 }) {
-  const { numbering } = useBuilderStructure()
-  const { updateQuestion, updateQuestionConfig, removeElement } =
-    useBuilderStatic()
-
-  const surveyStyle = numbering?.surveyDefaultNumbering ?? 'decimal'
+  const surveyStyle = useBuilderStore((s) => s.schema ? getSurveyDefaultNumberingStyle(s.schema) : 'decimal')
+  const updateQuestion = useBuilderStore((s) => s.updateQuestion)
+  const updateQuestionConfig = useBuilderStore((s) => s.updateQuestionConfig)
+  const removeElement = useBuilderStore((s) => s.removeElement)
 
   const patch = (p: Partial<QuestionElement>) =>
     updateQuestion(sectionId, el.id, p)
@@ -83,15 +89,17 @@ function QuestionInspector({
       </InspectorSection>
 
       <InspectorSection title='基础信息' description='与画布内联编辑同步'>
-        <InspectorFormField label='题目标题' htmlFor='q-title'>
+        <Field className='gap-1.5'>
+          <FieldLabel htmlFor='q-title' className='text-muted-foreground text-xs font-medium'>题目标题</FieldLabel>
           <Input
             id='q-title'
             className='h-9'
             value={el.title}
             onChange={(e) => patch({ title: e.target.value })}
           />
-        </InspectorFormField>
-        <InspectorFormField label='题目说明' htmlFor='q-desc'>
+        </Field>
+        <Field className='gap-1.5'>
+          <FieldLabel htmlFor='q-desc' className='text-muted-foreground text-xs font-medium'>题目说明</FieldLabel>
           <Textarea
             id='q-desc'
             rows={2}
@@ -100,7 +108,7 @@ function QuestionInspector({
             placeholder='选填，显示在标题下方'
             onChange={(e) => patch({ description: e.target.value })}
           />
-        </InspectorFormField>
+        </Field>
         <p className='text-muted-foreground text-xs leading-relaxed'>
           标题、选项、必/选与题号也可在画布上直接点击编辑。
         </p>
@@ -113,36 +121,48 @@ function QuestionInspector({
             ）。可在画布点击题号区域切换单题显隐。
           </p>
         ) : (
-          <InspectorSwitchField
-            id={`show-number-${el.id}`}
-            label='显示本题题号'
-            description={`全卷样式：${surveyStyleLabel}，在「问卷设置」中修改`}
-            checked={numberVisible}
-            onCheckedChange={(c) => patch({ numbering: { show: !!c } })}
-          />
+          <Field orientation='horizontal' className='items-start justify-between gap-3'>
+            <div className='flex min-w-0 flex-col gap-0.5'>
+              <FieldLabel htmlFor={`show-number-${el.id}`} className='text-sm font-normal leading-relaxed'>显示本题题号</FieldLabel>
+              <FieldDescription className='text-muted-foreground text-xs leading-relaxed'>
+                {`全卷样式：${surveyStyleLabel}，在「问卷设置」中修改`}
+              </FieldDescription>
+            </div>
+            <Switch
+              id={`show-number-${el.id}`}
+              checked={numberVisible}
+              onCheckedChange={(c) => patch({ numbering: { show: !!c } })}
+              className='mt-0.5 shrink-0'
+            />
+          </Field>
         )}
-        <InspectorSwitchField
-          id={`required-${el.id}`}
-          label='必填'
-          description='画布左侧「必/选」徽章可快速切换'
-          checked={el.required}
-          onCheckedChange={(c) => patch({ required: !!c })}
-        />
+        <Field orientation='horizontal' className='items-start justify-between gap-3'>
+          <div className='flex min-w-0 flex-col gap-0.5'>
+            <FieldLabel htmlFor={`required-${el.id}`} className='text-sm font-normal leading-relaxed'>必填</FieldLabel>
+            <FieldDescription className='text-muted-foreground text-xs leading-relaxed'>
+              画布左侧「必/选」徽章可快速切换
+            </FieldDescription>
+          </div>
+          <Switch
+            id={`required-${el.id}`}
+            checked={el.required}
+            onCheckedChange={(c) => patch({ required: !!c })}
+            className='mt-0.5 shrink-0'
+          />
+        </Field>
       </InspectorSection>
 
-      {hasInspectorConfigSection(el.type) ? (
-        <InspectorSection
-          title={getInspectorSectionTitle(el.type)}
-          description='本题专属配置'
-          defaultOpen={inspectorSectionDefaultOpen(el.type)}
-        >
-          <QuestionTypeInspectorFields
-            type={el.type}
-            el={el}
-            patchConfig={patchConfig}
-          />
-        </InspectorSection>
-      ) : null}
+      <InspectorSection
+        title={getInspectorSectionTitle(el.type)}
+        description='本题专属配置'
+        defaultOpen={inspectorSectionDefaultOpen(el.type)}
+      >
+        <QuestionTypeInspectorFields
+          type={el.type}
+          el={el}
+          patchConfig={patchConfig}
+        />
+      </InspectorSection>
 
       <Separator />
 
@@ -166,7 +186,8 @@ function LayoutInspector({
   sectionId: string
   el: SurveyElement
 }) {
-  const { removeElement, updateHtmlBlock } = useBuilderStatic()
+  const removeElement = useBuilderStore((s) => s.removeElement)
+  const updateHtmlBlock = useBuilderStore((s) => s.updateHtmlBlock)
 
   if (el.kind === 'divider') {
     return (
@@ -221,11 +242,17 @@ type Props = {
 
 // 右侧属性面板，直接从 EditContext 中读取状态，不再直接依赖全局 Store
 export function InspectorPanel({ className }: Props = {}) {
-  const { schema, elements, sectionId } = useBuilderStructure()
-  const { selectedElementId, inspectorTab } = useBuilderActiveState()
-  const { setInspectorTab } = useBuilderStatic()
+  const schema = useBuilderStore((s) => s.schema)
+  const inspectorTab = useBuilderStore((s) => s.inspectorTab)
+  const setInspectorTab = useBuilderStore((s) => s.setInspectorTab)
 
-  const selectedEl = elements.find((e) => e.id === selectedElementId)
+  const sectionId = useBuilderStore((s) => s.schema ? getEditorSection(s.schema)?.id ?? s.selectedSectionId : s.selectedSectionId)
+  
+  const selectedEl = useBuilderStore((s) => {
+    if (!s.schema || !s.selectedElementId) return undefined
+    const section = getEditorSection(s.schema)
+    return section?.elements.find((e) => e.id === s.selectedElementId)
+  })
   const hasSchema = !!schema
 
   if (!hasSchema || !sectionId) {
@@ -315,5 +342,55 @@ export function InspectorPanel({ className }: Props = {}) {
         </div>
       </Tabs>
     </div>
+  )
+}
+
+export function InspectorSection({
+  title,
+  description,
+  defaultOpen = true,
+  children,
+}: {
+  title: string
+  description?: string
+  defaultOpen?: boolean
+  children: ReactNode
+}) {
+  return (
+    <Collapsible defaultOpen={defaultOpen} className='group/panel'>
+      <Card className='border-border/60 gap-0 overflow-hidden py-0 shadow-sm'>
+        <CardHeader className='block p-0'>
+          <CollapsibleTrigger asChild>
+            <Button
+              type='button'
+              variant='ghost'
+              className='hover:bg-muted/50 h-auto min-h-12 w-full justify-between rounded-none px-4 py-3'
+            >
+              <div className='flex min-w-0 flex-col items-start gap-1 text-start'>
+                <CardTitle className='text-sm leading-none font-semibold tracking-tight'>
+                  {title}
+                </CardTitle>
+                {description ? (
+                  <CardDescription className='text-muted-foreground text-xs leading-relaxed'>
+                    {description}
+                  </CardDescription>
+                ) : null}
+              </div>
+              <ChevronDown className='text-muted-foreground size-4 shrink-0 transition-transform group-data-[state=open]/panel:rotate-180' />
+            </Button>
+          </CollapsibleTrigger>
+        </CardHeader>
+        <CollapsibleContent className='overflow-hidden'>
+          <CardContent
+            className={cn(
+              'flex min-w-0 flex-col overflow-x-hidden px-4 pt-0 pb-4',
+              'gap-4'
+            )}
+          >
+            {children}
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   )
 }

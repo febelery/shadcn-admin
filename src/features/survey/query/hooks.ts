@@ -102,10 +102,14 @@ async function listAllSurveyRecords(surveyId: string) {
   }
 
   const records = [...firstPage.data]
+  const pagesToFetch = []
   for (let page = 2; page <= firstPage.meta.totalPages; page += 1) {
-    const pageResult = await listSurveyRecord(surveyId, { page, pageSize })
-    records.push(...pageResult.data)
+    pagesToFetch.push(listSurveyRecord(surveyId, { page, pageSize }))
   }
+  const pageResults = await Promise.all(pagesToFetch)
+  pageResults.forEach((pageResult) => {
+    records.push(...pageResult.data)
+  })
 
   return {
     data: records,

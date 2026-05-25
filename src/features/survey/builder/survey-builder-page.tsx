@@ -1,12 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
-import { ArrowLeft, Loader2, Save, Send } from 'lucide-react'
+import { ArrowLeft, Save, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { analyseSurvey } from '../core/expression/parser'
+import { Spinner } from '@/components/ui/spinner'
+import { analyseSurvey } from '../core/expression/analyzer'
 import { createEmptySurvey } from '../core/schema-defaults'
 import type { BuilderMode, SurveySchema } from '../core/types'
 import { validateSurveySchema } from '../core/validators'
@@ -16,7 +17,6 @@ import {
   useSurveyDetail,
   useUpdateSurvey,
 } from '../query/hooks'
-import { BuilderContextProvider } from './context'
 import { EditWorkspace } from './edit/workspace'
 import { FlowWorkspace } from './flow/workspace'
 import { useBuilderStore } from './store'
@@ -67,18 +67,27 @@ export function SurveyBuilderPage(props: Props) {
   const setBuilderMode = useBuilderStore((s) => s.setBuilderMode)
   const updateMeta = useBuilderStore((s) => s.updateMeta)
 
-  useEffect(() => {
-    if (isCreate) init(createEmptySurvey())
-  }, [isCreate, init])
+  const lastInitializedIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!isCreate && data && !isDirty) init(data)
-  }, [isCreate, data, init, isDirty])
+    if (isCreate) {
+      if (lastInitializedIdRef.current !== 'create') {
+        init(createEmptySurvey())
+        lastInitializedIdRef.current = 'create'
+      }
+      return
+    }
+
+    if (data && lastInitializedIdRef.current !== surveyId) {
+      init(data)
+      lastInitializedIdRef.current = surveyId ?? null
+    }
+  }, [isCreate, surveyId, data, init])
 
   if (!isCreate && isLoading) {
     return (
       <div className='text-muted-foreground flex h-[50vh] items-center justify-center gap-2'>
-        <Loader2 className='h-5 w-5 animate-spin' />
+        <Spinner className='h-5 w-5' />
         加载问卷中…
       </div>
     )
@@ -184,7 +193,7 @@ export function SurveyBuilderPage(props: Props) {
             disabled={saveDisabled}
           >
             {saving || creating ? (
-              <Loader2 className='size-4 animate-spin' />
+              <Spinner className='size-4' />
             ) : (
               <Save className='size-4' />
             )}
@@ -197,7 +206,7 @@ export function SurveyBuilderPage(props: Props) {
             disabled={publishing || isCreate}
           >
             {publishing ? (
-              <Loader2 className='size-4 animate-spin' />
+              <Spinner className='size-4' />
             ) : (
               <Send className='size-4' />
             )}
@@ -210,7 +219,7 @@ export function SurveyBuilderPage(props: Props) {
             disabled={saveDisabled}
           >
             {saving || creating ? (
-              <Loader2 className='mr-2 size-4 animate-spin' />
+              <Spinner className='mr-2 size-4' />
             ) : (
               <Save className='mr-2 size-4' />
             )}
@@ -222,7 +231,7 @@ export function SurveyBuilderPage(props: Props) {
             disabled={publishing || isCreate}
           >
             {publishing ? (
-              <Loader2 className='mr-2 size-4 animate-spin' />
+              <Spinner className='mr-2 size-4' />
             ) : (
               <Send className='mr-2 size-4' />
             )}
@@ -231,10 +240,8 @@ export function SurveyBuilderPage(props: Props) {
         </div>
       </header>
 
-      <BuilderContextProvider>
-        {builderMode === 'edit' && <EditWorkspace />}
-        {builderMode === 'flow' && <FlowWorkspace />}
-      </BuilderContextProvider>
+      {builderMode === 'edit' && <EditWorkspace />}
+      {builderMode === 'flow' && <FlowWorkspace />}
     </div>
   )
 }

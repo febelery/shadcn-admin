@@ -8,18 +8,29 @@ import {
 } from '@/lib/files'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { FileUpload } from '@/components/file-upload'
-import { DEFAULT_META } from '@/features/survey/core/schema-defaults'
-import { useBuilderStructure, useBuilderStatic } from '../../context'
+import { Button } from '@/components/ui/button'
 import {
-  InspectorColorField,
-  InspectorFormField,
-  InspectorSection,
-} from '../inspector/primitives'
+  ColorPicker,
+  ColorPickerAlphaSlider,
+  ColorPickerArea,
+  ColorPickerContent,
+  ColorPickerEyeDropper,
+  ColorPickerFormatSelect,
+  ColorPickerHueSlider,
+  ColorPickerInput,
+  ColorPickerSwatch,
+  ColorPickerTrigger,
+} from '@/components/ui/color-picker'
+import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
+import { DEFAULT_META } from '@/features/survey/core/schema-defaults'
+import { useBuilderStore } from '../../store'
+import { InspectorSection } from '../inspector/panel'
 
 function validateMediaUrl(input: string): string | null {
   const trimmed = input.trim()
@@ -119,15 +130,13 @@ function MediaUrlEditorPanel({
         >
           {getMediaUrlFieldLabel(mediaKind)}
         </Label>
-        <div className='relative'>
-          <Link2 className='text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2' />
-          <Input
+        <InputGroup className={cn(urlError && 'border-destructive')}>
+          <InputGroupAddon align='inline-start'>
+            <Link2 />
+          </InputGroupAddon>
+          <InputGroupInput
             id={inputId}
-            className={cn(
-              'h-9 pl-8',
-              'text-xs leading-none',
-              urlError && 'border-destructive'
-            )}
+            className='text-xs leading-none'
             value={currentUrlDraft}
             placeholder={urlPlaceholder ?? getMediaUrlPlaceholder(mediaKind)}
             aria-invalid={Boolean(urlError)}
@@ -143,7 +152,7 @@ function MediaUrlEditorPanel({
               }
             }}
           />
-        </div>
+        </InputGroup>
         {urlError ? (
           <p className='text-destructive text-xs leading-relaxed' role='alert'>
             {urlError}
@@ -190,14 +199,64 @@ function MediaUrlField({
   )
 }
 
+function CoverColorPicker({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <ColorPicker
+      value={value}
+      onValueChange={onChange}
+      defaultFormat='hex'
+      className='w-full'
+    >
+      <ColorPickerTrigger asChild>
+        <Button
+          type='button'
+          variant='outline'
+          className='h-9 w-full justify-start gap-2 px-2 font-normal'
+        >
+          <ColorPickerSwatch className='size-5 shrink-0 rounded-sm' />
+          <span
+            className={cn(
+              'text-muted-foreground font-mono text-xs leading-none tabular-nums',
+              'min-w-0 flex-1 truncate text-left'
+            )}
+          >
+            {value}
+          </span>
+        </Button>
+      </ColorPickerTrigger>
+      <ColorPickerContent align='start' className='w-auto'>
+        <ColorPickerArea />
+        <div className='flex flex-col gap-2'>
+          <ColorPickerHueSlider />
+          <ColorPickerAlphaSlider />
+        </div>
+        <div className='flex items-center gap-2'>
+          <ColorPickerEyeDropper />
+          <ColorPickerFormatSelect className='w-20 shrink-0' />
+          <ColorPickerInput withoutAlpha className='min-w-0 flex-1' />
+        </div>
+      </ColorPickerContent>
+    </ColorPicker>
+  )
+}
+
 export function MetaCoverPanel() {
-  const { schema } = useBuilderStructure()
-  const { updateMeta } = useBuilderStatic()
+  const schema = useBuilderStore((s) => s.schema)
+  const updateMeta = useBuilderStore((s) => s.updateMeta)
   const meta = schema!.meta
 
   return (
     <InspectorSection title='头图与展示' description='封面、说明与提交按钮'>
-      <InspectorFormField label='头图样式'>
+      <Field className='gap-1.5'>
+        <FieldLabel className='text-muted-foreground text-xs font-medium'>
+          头图样式
+        </FieldLabel>
         <Tabs
           value={meta.coverType}
           onValueChange={(v) =>
@@ -227,48 +286,60 @@ export function MetaCoverPanel() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
-      </InspectorFormField>
+      </Field>
 
       {meta.coverType === 'color' ? (
-        <InspectorFormField label='头图背景色'>
-          <InspectorColorField
+        <Field className='gap-1.5'>
+          <FieldLabel className='text-muted-foreground text-xs font-medium'>
+            头图背景色
+          </FieldLabel>
+          <CoverColorPicker
             value={meta.coverColor ?? DEFAULT_META.coverColor ?? '#ffffff'}
-            onValueChange={(coverColor) => updateMeta({ coverColor })}
+            onChange={(coverColor) => updateMeta({ coverColor })}
           />
-        </InspectorFormField>
+        </Field>
       ) : null}
 
       {meta.coverType === 'image' ? (
-        <InspectorFormField
-          label='头图图片'
-          hint='上传或粘贴图片链接，保存前会校验地址'
-        >
+        <Field className='gap-1.5'>
+          <FieldLabel className='text-muted-foreground text-xs font-medium'>
+            头图图片
+          </FieldLabel>
           <MediaUrlField
             value={meta.cover ?? ''}
             onChange={(cover) => updateMeta({ cover })}
             crop
             aspect={2}
           />
-        </InspectorFormField>
+          <FieldDescription className='text-muted-foreground text-xs leading-relaxed'>
+            上传或粘贴图片链接，保存前会校验地址
+          </FieldDescription>
+        </Field>
       ) : null}
 
-      <InspectorFormField label='问卷说明' htmlFor='survey-desc'>
+      <Field className='gap-1.5'>
+        <FieldLabel htmlFor='survey-desc' className='text-muted-foreground text-xs font-medium'>
+          问卷说明
+        </FieldLabel>
         <Textarea
           id='survey-desc'
           rows={3}
           value={meta.description}
           onChange={(e) => updateMeta({ description: e.target.value })}
         />
-      </InspectorFormField>
+      </Field>
 
-      <InspectorFormField label='提交按钮文案' htmlFor='submit-label'>
+      <Field className='gap-1.5'>
+        <FieldLabel htmlFor='submit-label' className='text-muted-foreground text-xs font-medium'>
+          提交按钮文案
+        </FieldLabel>
         <Input
           id='submit-label'
           className='h-9'
           value={meta.submitLabel}
           onChange={(e) => updateMeta({ submitLabel: e.target.value })}
         />
-      </InspectorFormField>
+      </Field>
     </InspectorSection>
   )
 }

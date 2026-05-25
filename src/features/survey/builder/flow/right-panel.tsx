@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { MousePointerClick, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { analyseSurvey } from '@/features/survey/core/expression/parser'
+import { analyseSurvey } from '@/features/survey/core/expression/analyzer'
 import { BuilderGuidance } from '../edit/guidance'
 import { BuilderPanelHeader } from '../shared/panel-header'
 import { useBuilderStore } from '../store'

@@ -1,9 +1,10 @@
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useBuilderStructure } from '../../context'
+import { Item, ItemGroup, ItemTitle, ItemActions } from '@/components/ui/item'
+import { useBuilderStore } from '../../store'
 
 export function PublishInfoCard() {
-  const { schema } = useBuilderStructure()
+  const schema = useBuilderStore((s) => s.schema)
 
   if (!schema?.slug) return null
 
@@ -14,38 +15,39 @@ export function PublishInfoCard() {
           发布信息
         </CardTitle>
       </CardHeader>
-      <CardContent
-        className={cn(
-          'flex flex-col gap-2 px-4 pt-0 pb-4',
-          'text-sm leading-relaxed'
-        )}
-      >
-        <div className='flex items-center justify-between gap-2'>
-          <span className='text-muted-foreground text-xs leading-relaxed'>
-            标识
-          </span>
-          <code
-            className={cn(
-              'text-muted-foreground font-mono text-xs leading-none tabular-nums',
-              'bg-muted rounded px-1.5 py-0.5'
-            )}
-          >
-            {schema.slug}
-          </code>
-        </div>
-        <div className='flex items-center justify-between gap-2'>
-          <span className='text-muted-foreground text-xs leading-relaxed'>
-            版本
-          </span>
-          <code
-            className={cn(
-              'text-muted-foreground font-mono text-xs leading-none tabular-nums',
-              'bg-muted rounded px-1.5 py-0.5'
-            )}
-          >
-            v{schema.version}
-          </code>
-        </div>
+      <CardContent className='px-4 pt-0 pb-4'>
+        <ItemGroup>
+          <Item size='sm' className='justify-between px-0 py-1.5 border-b border-border/45 rounded-none'>
+            <ItemTitle className='text-muted-foreground text-xs font-normal'>
+              标识
+            </ItemTitle>
+            <ItemActions>
+              <code
+                className={cn(
+                  'text-muted-foreground font-mono text-xs leading-none tabular-nums',
+                  'bg-muted rounded px-1.5 py-0.5'
+                )}
+              >
+                {schema.slug}
+              </code>
+            </ItemActions>
+          </Item>
+          <Item size='sm' className='justify-between px-0 py-1.5 rounded-none'>
+            <ItemTitle className='text-muted-foreground text-xs font-normal'>
+              版本
+            </ItemTitle>
+            <ItemActions>
+              <code
+                className={cn(
+                  'text-muted-foreground font-mono text-xs leading-none tabular-nums',
+                  'bg-muted rounded px-1.5 py-0.5'
+                )}
+              >
+                v{schema.version}
+              </code>
+            </ItemActions>
+          </Item>
+        </ItemGroup>
       </CardContent>
     </Card>
   )

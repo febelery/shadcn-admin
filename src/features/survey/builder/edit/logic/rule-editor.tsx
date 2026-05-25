@@ -29,11 +29,7 @@ import {
 } from '@/features/survey/core/logic/rule-constraints'
 import { createRuleAction } from '@/features/survey/core/logic/rule-utils'
 import { getQuestionReferenceLabel } from '@/features/survey/shared/question-numbering'
-import {
-  useBuilderStatic,
-  useBuilderStructure,
-  useBuilderActiveState,
-} from '../../context'
+import { useBuilderStore } from '../../store'
 import type { RuleAction, RuleActionType } from '../../types'
 import { BuilderGuidance } from '../guidance'
 import { ActionBuilder } from './action-builder'
@@ -165,9 +161,10 @@ export function RuleEditorPanel({
   allowedActionTypes,
   hideFooterNote,
 }: Props) {
-  const { editingRuleId } = useBuilderActiveState()
-  const { schema } = useBuilderStructure()
-  const { setEditingRuleId, updateRule } = useBuilderStatic()
+  const editingRuleId = useBuilderStore((s) => s.editingRuleId)
+  const schema = useBuilderStore((s) => s.schema)
+  const setEditingRuleId = useBuilderStore((s) => s.setEditingRuleId)
+  const updateRule = useBuilderStore((s) => s.updateRule)
 
   const questions = useSurveyQuestions()
 

@@ -5,7 +5,8 @@ import {
   getRulesForQuestion,
   ruleReferencesQuestionAsSource,
 } from '@/features/survey/core/logic/rule-utils'
-import { useBuilderStatic, useBuilderStructure } from '../../context'
+import { getEditorSection } from '../../../core/editor-schema'
+import { useBuilderStore } from '../../store'
 import type { Rule } from '../../types'
 
 type Props = {
@@ -14,9 +15,13 @@ type Props = {
 }
 
 export function QuestionLogicBadges({ questionId, className }: Props) {
-  const { schema, sectionId } = useBuilderStructure()
+  const schema = useBuilderStore((s) => s.schema)
+  const selectedSectionId = useBuilderStore((s) => s.selectedSectionId)
+  const select = useBuilderStore((s) => s.select)
+  const setEditingRuleId = useBuilderStore((s) => s.setEditingRuleId)
+  const setBuilderMode = useBuilderStore((s) => s.setBuilderMode)
 
-  const { select, setEditingRuleId, setBuilderMode } = useBuilderStatic()
+  const sectionId = schema ? getEditorSection(schema)?.id ?? selectedSectionId : selectedSectionId
 
   const rules = schema?.rules ?? []
 

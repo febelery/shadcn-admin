@@ -42,7 +42,7 @@ export type {
   FlowEdgeKind,
 } from '../core/logic/flow-graph'
 
-export type { StaticIssue } from '../core/expression/parser'
+export type { StaticIssue } from '../core/expression/analyzer'
 
 export type { QuestionManifest } from '../shared/question-registry'
 export type PaletteTypeId = QuestionType | 'divider' | 'html_block'

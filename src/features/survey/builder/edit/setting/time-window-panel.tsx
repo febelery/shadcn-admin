@@ -3,18 +3,16 @@ import {
   formatLocalDateTime,
   parseLocalDateTime,
 } from '@/components/date-picker'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { Switch } from '@/components/ui/switch'
 import { DEFAULT_SUBMISSION } from '@/features/survey/core/schema-defaults'
-import { useBuilderStructure, useBuilderStatic } from '../../context'
+import { useBuilderStore } from '../../store'
 import type { SubmissionTimeWindow } from '../../types'
-import {
-  InspectorFormField,
-  InspectorSection,
-  InspectorSwitchField,
-} from '../inspector/primitives'
+import { InspectorSection } from '../inspector/panel'
 
 export function TimeWindowPanel() {
-  const { schema } = useBuilderStructure()
-  const { updateSubmission } = useBuilderStatic()
+  const schema = useBuilderStore((s) => s.schema)
+  const updateSubmission = useBuilderStore((s) => s.updateSubmission)
   const timeWindow = schema!.submission.timeWindow
 
   const tw: SubmissionTimeWindow = {
@@ -24,19 +22,26 @@ export function TimeWindowPanel() {
 
   return (
     <InspectorSection title='投放时间' description='控制问卷可填写的时间窗口'>
-      <InspectorSwitchField
-        id='time-enabled'
-        label='限制开放时间'
-        checked={tw.enabled}
-        onCheckedChange={(c) =>
-          updateSubmission({
-            timeWindow: { ...tw, enabled: !!c },
-          })
-        }
-      />
+      <Field orientation='horizontal' className='items-center justify-between gap-3'>
+        <FieldLabel htmlFor='time-enabled' className='text-sm font-normal leading-relaxed cursor-pointer'>
+          限制开放时间
+        </FieldLabel>
+        <Switch
+          id='time-enabled'
+          checked={tw.enabled}
+          onCheckedChange={(c) =>
+            updateSubmission({
+              timeWindow: { ...tw, enabled: !!c },
+            })
+          }
+        />
+      </Field>
       {tw.enabled ? (
         <div className='flex flex-col gap-3'>
-          <InspectorFormField label='开始时间'>
+          <Field className='gap-1.5'>
+            <FieldLabel className='text-muted-foreground text-xs font-medium'>
+              开始时间
+            </FieldLabel>
             <DatePicker
               includeTime
               value={parseLocalDateTime(tw.startAt)}
@@ -50,8 +55,11 @@ export function TimeWindowPanel() {
                 })
               }
             />
-          </InspectorFormField>
-          <InspectorFormField label='结束时间'>
+          </Field>
+          <Field className='gap-1.5'>
+            <FieldLabel className='text-muted-foreground text-xs font-medium'>
+              结束时间
+            </FieldLabel>
             <DatePicker
               includeTime
               value={parseLocalDateTime(tw.endAt)}
@@ -65,7 +73,7 @@ export function TimeWindowPanel() {
                 })
               }
             />
-          </InspectorFormField>
+          </Field>
           <p className='text-muted-foreground text-xs leading-relaxed'>
             未填开始或结束表示该端不限制
           </p>

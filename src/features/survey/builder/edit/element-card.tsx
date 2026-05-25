@@ -4,13 +4,15 @@ import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
 import { Editor } from '@/components/ui/editor'
 import { Separator } from '@/components/ui/separator'
+import {
+  buildQuestionOrdinalMap,
+  buildQuestionDisplayOrdinalMap,
+  getQuestionNumberingMode,
+  getSurveyDefaultNumberingStyle,
+} from '../../shared/question-numbering'
 import { useIsPaletteDragging } from '../shared/dnd-provider'
 import { useBuilderStore } from '../store'
-import type {
-  QuestionNumberingMode,
-  SurveyDefaultNumberingStyle,
-  SurveyElement,
-} from '../types'
+import type { SurveyElement } from '../types'
 import { QuestionLogicBadges } from './logic/question-logic-badges'
 import {
   WorkspaceQuestionActions,
@@ -26,11 +28,6 @@ type Props = {
   sectionId: string
   element: SurveyElement
   selected: boolean
-  /** 以下仅 kind=question 时使用 */
-  globalOrdinal?: number
-  displayOrdinal?: number | null
-  numberingMode?: QuestionNumberingMode
-  surveyDefaultNumbering?: SurveyDefaultNumberingStyle
 }
 
 function QuestionBlock({
@@ -87,109 +84,50 @@ function QuestionBlock({
   )
 }
 
-export const WorkspaceElementCard = memo(
-  function WorkspaceElementCard({
-    sectionId,
-    element,
-    selected,
-    globalOrdinal = 1,
-    displayOrdinal = null,
-    numberingMode = 'global',
-    surveyDefaultNumbering = 'decimal',
-  }: Props) {
-    const {
-      attributes,
-      listeners,
-      setNodeRef,
-      setActivatorNodeRef,
-      transform,
-      transition,
-      isDragging,
-    } = useSortable({ id: element.id })
+export const WorkspaceElementCard = memo(function WorkspaceElementCard({
+  sectionId,
+  element,
+  selected,
+}: Props) {
+  const globalOrdinal = useBuilderStore((s) =>
+    s.schema ? (buildQuestionOrdinalMap(s.schema).get(element.id) ?? 1) : 1
+  )
+  const displayOrdinal = useBuilderStore((s) =>
+    s.schema
+      ? (buildQuestionDisplayOrdinalMap(s.schema).get(element.id) ?? null)
+      : null
+  )
+  const numberingMode = useBuilderStore((s) =>
+    s.schema ? getQuestionNumberingMode(s.schema) : 'global'
+  )
+  const surveyDefaultNumbering = useBuilderStore((s) =>
+    s.schema ? getSurveyDefaultNumberingStyle(s.schema) : 'decimal'
+  )
 
-    const dimmed = useIsPaletteDragging()
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: element.id })
 
-    const style: CSSProperties = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-    }
+  const dimmed = useIsPaletteDragging()
 
-    const drag: QuestionDragHandleProps = {
-      setActivatorNodeRef,
-      attributes,
-      listeners,
-    }
+  const style: CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
 
-    if (element.kind === 'divider') {
-      return (
-        <QuestionBlock
-          sectionId={sectionId}
-          element={element}
-          selected={selected}
-          dimmed={dimmed}
-          dragging={isDragging}
-          setNodeRef={setNodeRef}
-          style={style}
-          drag={drag}
-        >
-          <Separator className='my-1' />
-        </QuestionBlock>
-      )
-    }
+  const drag: QuestionDragHandleProps = {
+    setActivatorNodeRef,
+    attributes,
+    listeners,
+  }
 
-    if (element.kind === 'html_block') {
-      return (
-        <QuestionBlock
-          sectionId={sectionId}
-          element={element}
-          selected={selected}
-          dimmed={dimmed}
-          dragging={isDragging}
-          setNodeRef={setNodeRef}
-          style={style}
-          drag={drag}
-        >
-          <div data-surface-chrome className='min-w-0'>
-            <Editor
-              variant='plain'
-              value={element.html}
-              onChange={(html) =>
-                useBuilderStore
-                  .getState()
-                  .updateHtmlBlock(sectionId, element.id, { html })
-              }
-              placeholder='输入说明内容…'
-              className='border-none shadow-none focus-within:ring-0 focus-within:ring-offset-0'
-            />
-          </div>
-        </QuestionBlock>
-      )
-    }
-
-    if (element.kind === 'panel') {
-      return (
-        <QuestionBlock
-          sectionId={sectionId}
-          element={element}
-          selected={selected}
-          dimmed={dimmed}
-          dragging={isDragging}
-          setNodeRef={setNodeRef}
-          style={style}
-          drag={drag}
-        >
-          <p className='text-muted-foreground text-sm leading-relaxed'>
-            {element.title?.trim() || '题目分组'}
-            <span className='text-muted-foreground ml-1.5 text-xs leading-relaxed opacity-70'>
-              （{element.elements.length} 项）
-            </span>
-          </p>
-        </QuestionBlock>
-      )
-    }
-
-    if (element.kind !== 'question') return null
-
+  if (element.kind === 'divider') {
     return (
       <QuestionBlock
         sectionId={sectionId}
@@ -201,34 +139,94 @@ export const WorkspaceElementCard = memo(
         style={style}
         drag={drag}
       >
-        <QuestionLogicBadges questionId={element.id} className='mb-2' />
-        <SurfaceQuestionBlock
-          question={element}
-          displayOrdinal={displayOrdinal}
-          globalOrdinal={globalOrdinal}
-          numberingMode={numberingMode}
-          surveyDefaultNumbering={surveyDefaultNumbering}
-          selected={selected}
-          onPatch={(patch) =>
-            useBuilderStore
-              .getState()
-              .updateQuestion(sectionId, element.id, patch)
-          }
-          onConfigChange={(patch) =>
-            useBuilderStore
-              .getState()
-              .updateQuestionConfig(sectionId, element.id, patch)
-          }
-        />
+        <Separator className='my-1' />
       </QuestionBlock>
     )
-  },
-  (prev, next) =>
-    prev.sectionId === next.sectionId &&
-    prev.element === next.element &&
-    prev.selected === next.selected &&
-    prev.globalOrdinal === next.globalOrdinal &&
-    prev.displayOrdinal === next.displayOrdinal &&
-    prev.numberingMode === next.numberingMode &&
-    prev.surveyDefaultNumbering === next.surveyDefaultNumbering
-)
+  }
+
+  if (element.kind === 'html_block') {
+    return (
+      <QuestionBlock
+        sectionId={sectionId}
+        element={element}
+        selected={selected}
+        dimmed={dimmed}
+        dragging={isDragging}
+        setNodeRef={setNodeRef}
+        style={style}
+        drag={drag}
+      >
+        <div data-surface-chrome className='min-w-0'>
+          <Editor
+            variant='plain'
+            value={element.html}
+            onChange={(html) =>
+              useBuilderStore
+                .getState()
+                .updateHtmlBlock(sectionId, element.id, { html })
+            }
+            placeholder='输入说明内容…'
+            className='border-none shadow-none focus-within:ring-0 focus-within:ring-offset-0'
+          />
+        </div>
+      </QuestionBlock>
+    )
+  }
+
+  if (element.kind === 'panel') {
+    return (
+      <QuestionBlock
+        sectionId={sectionId}
+        element={element}
+        selected={selected}
+        dimmed={dimmed}
+        dragging={isDragging}
+        setNodeRef={setNodeRef}
+        style={style}
+        drag={drag}
+      >
+        <p className='text-muted-foreground text-sm leading-relaxed'>
+          {element.title?.trim() || '题目分组'}
+          <span className='text-muted-foreground ml-1.5 text-xs leading-relaxed opacity-70'>
+            （{element.elements.length} 项）
+          </span>
+        </p>
+      </QuestionBlock>
+    )
+  }
+
+  if (element.kind !== 'question') return null
+
+  return (
+    <QuestionBlock
+      sectionId={sectionId}
+      element={element}
+      selected={selected}
+      dimmed={dimmed}
+      dragging={isDragging}
+      setNodeRef={setNodeRef}
+      style={style}
+      drag={drag}
+    >
+      <QuestionLogicBadges questionId={element.id} className='mb-2' />
+      <SurfaceQuestionBlock
+        question={element}
+        displayOrdinal={displayOrdinal}
+        globalOrdinal={globalOrdinal}
+        numberingMode={numberingMode}
+        surveyDefaultNumbering={surveyDefaultNumbering}
+        selected={selected}
+        onPatch={(patch) =>
+          useBuilderStore
+            .getState()
+            .updateQuestion(sectionId, element.id, patch)
+        }
+        onConfigChange={(patch) =>
+          useBuilderStore
+            .getState()
+            .updateQuestionConfig(sectionId, element.id, patch)
+        }
+      />
+    </QuestionBlock>
+  )
+})
