@@ -15,9 +15,6 @@ export { useFileUploadContext } from './context'
 // Hook（供需要自定义渲染树的场景使用）
 export { useFileUpload } from './use-file-upload'
 
-// Qiniu
-export { useQiniuUpload } from './use-qiniu-upload'
-
 // Types
 export type {
   FileItem,
@@ -25,7 +22,6 @@ export type {
   FileView,
   CardSize,
   FileValidation,
-  QiniuConfig,
   UploadFn,
   FileUploadProps,
 } from './types'

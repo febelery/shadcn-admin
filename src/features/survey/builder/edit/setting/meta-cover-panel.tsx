@@ -1,11 +1,6 @@
 import { useId, useState } from 'react'
 import { Link2 } from 'lucide-react'
-import {
-  getMediaUploadValidation,
-  getMediaUrlFieldLabel,
-  getMediaUrlPlaceholder,
-  type MediaKind,
-} from '@/lib/files'
+import { type MediaKind, mbToBytes } from '@/lib/files'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
@@ -31,6 +26,39 @@ import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
 import { DEFAULT_META } from '@/features/survey/core/schema-defaults'
 import { useBuilderStore } from '../../store'
 import { InspectorSection } from '../inspector/panel'
+
+const MEDIA_META = {
+  image: {
+    label: '图片',
+    urlPlaceholder: 'https://example.com/image.jpg',
+    urlFieldLabel: '图片地址',
+    validation: {
+      accept: 'image/*',
+      maxFiles: 1,
+      maxSize: mbToBytes(5),
+    },
+  },
+  video: {
+    label: '视频',
+    urlPlaceholder: 'https://example.com/video.mp4',
+    urlFieldLabel: '视频地址',
+    validation: {
+      accept: 'video/*',
+      maxFiles: 1,
+      maxSize: mbToBytes(50),
+    },
+  },
+  audio: {
+    label: '音频',
+    urlPlaceholder: 'https://example.com/audio.mp3',
+    urlFieldLabel: '音频地址',
+    validation: {
+      accept: 'audio/*',
+      maxFiles: 1,
+      maxSize: mbToBytes(15),
+    },
+  },
+} as const
 
 function validateMediaUrl(input: string): string | null {
   const trimmed = input.trim()
@@ -69,7 +97,7 @@ function MediaUrlEditorPanel({
   const inputId = useId()
   const [urlDraft, setUrlDraft] = useState<string | null>(null)
   const [urlError, setUrlError] = useState<string | null>(null)
-  const validation = getMediaUploadValidation(mediaKind)
+  const validation = MEDIA_META[mediaKind].validation
   const enableCrop = crop && mediaKind === 'image'
   const currentUrlDraft = urlDraft ?? value
 
@@ -128,7 +156,7 @@ function MediaUrlEditorPanel({
           htmlFor={inputId}
           className='text-muted-foreground text-xs font-medium'
         >
-          {getMediaUrlFieldLabel(mediaKind)}
+          {MEDIA_META[mediaKind].urlFieldLabel}
         </Label>
         <InputGroup className={cn(urlError && 'border-destructive')}>
           <InputGroupAddon align='inline-start'>
@@ -138,7 +166,7 @@ function MediaUrlEditorPanel({
             id={inputId}
             className='text-xs leading-none'
             value={currentUrlDraft}
-            placeholder={urlPlaceholder ?? getMediaUrlPlaceholder(mediaKind)}
+            placeholder={urlPlaceholder ?? MEDIA_META[mediaKind].urlPlaceholder}
             aria-invalid={Boolean(urlError)}
             onChange={(e) => {
               setUrlDraft(e.target.value)

@@ -2,7 +2,7 @@ import * as React from 'react'
 import { z } from 'zod'
 import { useForm } from '@tanstack/react-form'
 import { toast } from 'sonner'
-import { getQiniuUptoken } from '@/api/qiniu'
+import { defaultUpload } from '@/config/upload'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -21,7 +21,6 @@ import {
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useQiniuUpload } from '@/components/file-upload'
 
 // 表单 Schema
 const formSchema = z.object({
@@ -132,18 +131,13 @@ export default function EditorDemo() {
   const [disabled, setDisabled] = React.useState(false)
   const [variant, setVariant] = React.useState<EditorVariant>('standard')
 
-  const { uploadFile } = useQiniuUpload()
-
   const handleUpload = React.useCallback(
     async (file: File) => {
-      // QiniuConfig 直接内联构造
-      const url = await uploadFile(file, {
-        getToken: getQiniuUptoken,
-        region: 'z2',
-      })
+      // 直接使用项目统一上传函数，无需内联配置
+      const url = await defaultUpload(file, {})
       return { src: url }
     },
-    [uploadFile]
+    []
   )
 
   return (

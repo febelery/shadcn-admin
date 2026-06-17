@@ -1,12 +1,9 @@
 /**
  * 文件上传组件 — 类型定义
  */
-import type { UploadStrategy } from './upload-strategy'
 
 export type FileStatus = 'idle' | 'uploading' | 'success' | 'error'
-
 export type FileView = 'list' | 'card'
-
 export type CardSize = 'sm' | 'lg' | 'full'
 export type FileVariant = 'default' | 'minimal' | 'button'
 
@@ -48,11 +45,6 @@ export interface FileValidation {
   validate?: (file: File) => string | null
 }
 
-export interface QiniuConfig {
-  getToken: (file: File) => Promise<string>
-  region?: string
-  uploadUrl?: string
-}
 
 export type UploadFn = (
   file: File,
@@ -71,8 +63,8 @@ export interface FileUploadProps {
   cardSize?: CardSize
   /** 上传区域变体风格 */
   variant?: FileVariant
-  /** 上传策略（默认七牛云） */
-  strategy?: UploadStrategy
+  /** 上传函数，不传则只做本地预览（不触发上传） */
+  upload?: UploadFn
   /** 是否开启图片裁剪（必须是 image/* 类型） */
   crop?: boolean
   /** 裁剪比例，不传则初始为自由比例 */

@@ -5,7 +5,6 @@ import type {
   FileItem,
   FileValidation,
   FileUploadProps,
-  UploadFn,
   CropSource,
 } from './types'
 
@@ -19,9 +18,7 @@ function urlToItem(url: string): FileItem {
   }
 }
 
-export function useFileUpload(
-  props: Omit<FileUploadProps, 'upload'> & { upload?: UploadFn }
-) {
+export function useFileUpload(props: FileUploadProps) {
   const {
     value,
     defaultValue,
@@ -221,8 +218,6 @@ export function useFileUpload(
     [disabled, validation, onFileAccept, onFileReject]
   )
 
-  const [isPending, startTransition] = React.useTransition()
-
   const [cropSource, setCropSource] = React.useState<CropSource | null>(null)
   const [cropQueue, setCropQueue] = React.useState<CropSource[]>([])
 
@@ -238,14 +233,11 @@ export function useFileUpload(
         status: 'idle' as const,
       }))
 
-      // UI 更新标记为 transition（可中断，不阻塞用户交互）
-      startTransition(() => {
-        if (isSingle) {
-          setItems(newItems.slice(0, 1))
-        } else {
-          setItems((prev) => [...prev, ...newItems])
-        }
-      })
+      if (isSingle) {
+        setItems(newItems.slice(0, 1))
+      } else {
+        setItems((prev) => [...prev, ...newItems])
+      }
 
       // 上传在 transition 外触发，保证立即启动，不被 React 延迟
       if (upload) {
@@ -342,7 +334,6 @@ export function useFileUpload(
     addFiles,
     removeFile,
     clearFiles,
-    isPending,
     /** 外部 disabled 或已达最大数量时为 true */
     isDisabled: disabled || isAtMax,
     isAtMax,

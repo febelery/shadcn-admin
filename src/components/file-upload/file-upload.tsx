@@ -1,14 +1,12 @@
 /**
  * 文件上传根组件
  */
-import * as React from 'react'
-import { getQiniuUptoken } from '@/api/qiniu'
+import { defaultUpload } from '@/config/upload'
 import { cn } from '@/lib/utils'
 import { ImageCropper } from '../image-cropper'
 import { FileUploadProvider } from './context'
 import { FileUploadDropzone } from './dropzone'
 import { FilePreviewDialog } from './preview'
-import { createQiniuStrategy } from './upload-strategy'
 import type { FileUploadProps } from './types'
 import { useFileUpload } from './use-file-upload'
 
@@ -20,10 +18,7 @@ export function FileUpload({
   view = 'list',
   cardSize = 'lg',
   variant = 'default',
-  strategy = createQiniuStrategy({
-    getToken: getQiniuUptoken,
-    region: 'z2',
-  }),
+  upload = defaultUpload,
   disabled = false,
   className,
   onFileAccept,
@@ -37,21 +32,12 @@ export function FileUpload({
   aspect,
   ...props
 }: FileUploadProps & Omit<React.ComponentProps<'div'>, 'onChange'>) {
-  // 直接使用 strategy.upload 作为上传函数
-  const uploadFn = React.useCallback(
-    async (file: File, options?: any) => {
-      const res = await strategy.upload(file, options)
-      return res.url
-    },
-    [strategy]
-  )
-
   const state = useFileUpload({
     value,
     defaultValue,
     onChange,
     validation,
-    upload: uploadFn,
+    upload,
     disabled,
     onFileAccept,
     onFileReject,
