@@ -1,8 +1,9 @@
 'use client'
 
+import { useEffect, useMemo } from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@tanstack/react-form'
+import { useSelector } from '@tanstack/react-store'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,13 +15,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  Field,
+  FieldError,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
 import { SelectDropdown } from '@/components/select-dropdown'
@@ -32,7 +30,7 @@ const formSchema = z
     firstName: z.string().min(1, '名字是必填项。'),
     lastName: z.string().min(1, '姓氏是必填项。'),
     username: z.string().min(1, '用户名是必填项。'),
-    phoneNumber: z.string().min(1, '电话号码是必填项。'),
+    phoneNumber: z.string().min(10, '电话号码是必填项。'),
     email: z.email({
       error: (iss) => (iss.input === '' ? '邮箱是必填项。' : undefined),
     }),
@@ -91,6 +89,7 @@ const formSchema = z
       path: ['confirmPassword'],
     }
   )
+
 type UserForm = z.infer<typeof formSchema>
 
 type UserActionDialogProps = {
@@ -105,35 +104,45 @@ export function UserActionDialog({
   onOpenChange,
 }: UserActionDialogProps) {
   const isEdit = !!currentRow
-  const form = useForm<UserForm>({
-    resolver: zodResolver(formSchema),
-    defaultValues: isEdit
-      ? {
-          ...currentRow,
-          password: '',
-          confirmPassword: '',
-          isEdit,
-        }
-      : {
-          firstName: '',
-          lastName: '',
-          username: '',
-          email: '',
-          role: '',
-          phoneNumber: '',
-          password: '',
-          confirmPassword: '',
-          isEdit,
-        },
+
+  // 编辑时从 currentRow 展开已有字段，新建时使用空值
+  const initialValues = useMemo<UserForm>(
+    () =>
+      isEdit
+        ? { ...currentRow, password: '', confirmPassword: '', isEdit }
+        : {
+            firstName: '',
+            lastName: '',
+            username: '',
+            email: '',
+            role: '',
+            phoneNumber: '',
+            password: '',
+            confirmPassword: '',
+            isEdit,
+          },
+    [currentRow, isEdit]
+  )
+
+  const form = useForm({
+    defaultValues: initialValues,
+    validators: {
+      onChange: formSchema,
+    },
+    onSubmit: async ({ value }) => {
+      form.reset()
+      showSubmittedData(value)
+      onOpenChange(false)
+    },
   })
 
-  const onSubmit = (values: UserForm) => {
-    form.reset()
-    showSubmittedData(values)
-    onOpenChange(false)
-  }
+  // 弹窗打开或当前行变化时，将表单重置为最新默认值
+  useEffect(() => {
+    if (open) form.reset()
+  }, [open, initialValues])
 
-  const isPasswordTouched = !!form.formState.dirtyFields.password
+  // 密码字段是否已被用户修改过（用于控制确认密码是否可编辑）
+  const isPasswordDirty = useSelector(form.store, (state: any) => !!state.fieldMeta.password?.isDirty)
 
   return (
     <Dialog
@@ -152,112 +161,194 @@ export function UserActionDialog({
           </DialogDescription>
         </DialogHeader>
         <div className='h-105 w-[calc(100%+0.75rem)] overflow-y-auto py-1 pe-3'>
-          <Form {...form}>
-            <form
-              id='user-form'
-              onSubmit={form.handleSubmit(onSubmit)}
-              className='space-y-4 px-0.5'
-            >
-              <FormField
-                control={form.control}
-                name='firstName'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>名字</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='John'
-                        className='col-span-4'
-                        autoComplete='off'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='lastName'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>姓氏</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='Doe'
-                        className='col-span-4'
-                        autoComplete='off'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='username'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
+          <form
+            id='user-form'
+            onSubmit={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              form.handleSubmit()
+            }}
+            className='space-y-4 px-0.5'
+          >
+            {/* 名字 */}
+            <form.Field
+              name='firstName'
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field
+                    orientation='horizontal'
+                    data-invalid={isInvalid}
+                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                  >
+                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                      名字
+                    </FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      placeholder='John'
+                      className='col-span-4'
+                      autoComplete='off'
+                      value={field.state.value || ''}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                    )}
+                  </Field>
+                )
+              }}
+            />
+
+            {/* 姓氏 */}
+            <form.Field
+              name='lastName'
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field
+                    orientation='horizontal'
+                    data-invalid={isInvalid}
+                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                  >
+                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                      姓氏
+                    </FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      placeholder='Doe'
+                      className='col-span-4'
+                      autoComplete='off'
+                      value={field.state.value || ''}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                    )}
+                  </Field>
+                )
+              }}
+            />
+
+            {/* 用户名 */}
+            <form.Field
+              name='username'
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field
+                    orientation='horizontal'
+                    data-invalid={isInvalid}
+                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                  >
+                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
                       用户名
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='john_doe'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='email'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>邮箱</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='john.doe@gmail.com'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='phoneNumber'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
+                    </FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      placeholder='john_doe'
+                      className='col-span-4'
+                      value={field.state.value || ''}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                    )}
+                  </Field>
+                )
+              }}
+            />
+
+            {/* 邮箱 */}
+            <form.Field
+              name='email'
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field
+                    orientation='horizontal'
+                    data-invalid={isInvalid}
+                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                  >
+                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                      邮箱
+                    </FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      placeholder='john.doe@gmail.com'
+                      className='col-span-4'
+                      value={field.state.value || ''}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                    )}
+                  </Field>
+                )
+              }}
+            />
+
+            {/* 电话号码 */}
+            <form.Field
+              name='phoneNumber'
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field
+                    orientation='horizontal'
+                    data-invalid={isInvalid}
+                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                  >
+                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
                       电话号码
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='+123456789'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='role'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>角色</FormLabel>
+                    </FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      placeholder='+123456789'
+                      className='col-span-4'
+                      value={field.state.value || ''}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                    )}
+                  </Field>
+                )
+              }}
+            />
+
+            {/* 角色 */}
+            <form.Field
+              name='role'
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field
+                    orientation='horizontal'
+                    data-invalid={isInvalid}
+                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                  >
+                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                      角色
+                    </FieldLabel>
                     <SelectDropdown
-                      defaultValue={field.value}
-                      onValueChange={field.onChange}
+                      defaultValue={field.state.value}
+                      onValueChange={field.handleChange}
                       placeholder='选择角色'
                       className='col-span-4'
                       items={roles.map(({ label, value }) => ({
@@ -265,49 +356,79 @@ export function UserActionDialog({
                         value,
                       }))}
                     />
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='password'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>密码</FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        placeholder='e.g., S3cur3P@ssw0rd'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='confirmPassword'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                    )}
+                  </Field>
+                )
+              }}
+            />
+
+            {/* 密码 */}
+            <form.Field
+              name='password'
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field
+                    orientation='horizontal'
+                    data-invalid={isInvalid}
+                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                  >
+                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                      密码
+                    </FieldLabel>
+                    <PasswordInput
+                      id={field.name}
+                      name={field.name}
+                      placeholder='e.g., S3cur3P@ssw0rd'
+                      className='col-span-4'
+                      value={field.state.value || ''}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                    )}
+                  </Field>
+                )
+              }}
+            />
+
+            {/* 确认密码 */}
+            <form.Field
+              name='confirmPassword'
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field
+                    orientation='horizontal'
+                    data-invalid={isInvalid}
+                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                  >
+                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
                       确认密码
-                    </FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        disabled={!isPasswordTouched}
-                        placeholder='e.g., S3cur3P@ssw0rd'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-            </form>
-          </Form>
+                    </FieldLabel>
+                    <PasswordInput
+                      id={field.name}
+                      name={field.name}
+                      disabled={!isPasswordDirty}
+                      placeholder='e.g., S3cur3P@ssw0rd'
+                      className='col-span-4'
+                      value={field.state.value || ''}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                    )}
+                  </Field>
+                )
+              }}
+            />
+          </form>
         </div>
         <DialogFooter>
           <Button type='submit' form='user-form'>

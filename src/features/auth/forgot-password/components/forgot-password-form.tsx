@@ -1,20 +1,16 @@
 import { useState } from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@tanstack/react-form'
 import { useNavigate } from '@tanstack/react-router'
 import { ArrowRight, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { sleep, cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  Field,
+  FieldError,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 
 const formSchema = z.object({
@@ -30,53 +26,65 @@ export function ForgotPasswordForm({
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { email: '' },
+  const form = useForm({
+    defaultValues: {
+      email: '',
+    },
+    validators: {
+      onChange: formSchema,
+    },
+    onSubmit: async ({ value }) => {
+      setIsLoading(true)
+      console.log(value)
+
+      toast.promise(sleep(2000), {
+        loading: '正在发送邮件...',
+        success: () => {
+          setIsLoading(false)
+          form.reset()
+          navigate({ to: '/otp' })
+          return `邮件已发送至 ${value.email}`
+        },
+        error: '错误',
+      })
+    },
   })
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    setIsLoading(true)
-
-    console.log(data)
-
-    toast.promise(sleep(2000), {
-      loading: '正在发送邮件...',
-      success: () => {
-        setIsLoading(false)
-        form.reset()
-        navigate({ to: '/otp' })
-        return `邮件已发送至 ${data.email}`
-      },
-      error: '错误',
-    })
-  }
-
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className={cn('grid gap-2', className)}
-        {...props}
-      >
-        <FormField
-          control={form.control}
-          name='email'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>邮箱</FormLabel>
-              <FormControl>
-                <Input placeholder='name@example.com' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button className='mt-2' disabled={isLoading}>
-          继续
-          {isLoading ? <Loader2 className='animate-spin' /> : <ArrowRight />}
-        </Button>
-      </form>
-    </Form>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        form.handleSubmit()
+      }}
+      className={cn('grid gap-2', className)}
+      {...props}
+    >
+      <form.Field
+        name='email'
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <Field data-invalid={isInvalid}>
+              <FieldLabel htmlFor={field.name}>邮箱</FieldLabel>
+              <Input
+                id={field.name}
+                name={field.name}
+                value={field.state.value || ''}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder='name@example.com'
+                aria-invalid={isInvalid}
+              />
+              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+            </Field>
+          )
+        }}
+      />
+      <Button className='mt-2' disabled={isLoading}>
+        继续
+        {isLoading ? <Loader2 className='animate-spin' /> : <ArrowRight />}
+      </Button>
+    </form>
   )
 }

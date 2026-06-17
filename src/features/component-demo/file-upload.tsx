@@ -3,8 +3,8 @@
  */
 import * as React from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@tanstack/react-form'
+import { useSelector } from '@tanstack/react-store'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,14 +15,11 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -322,7 +319,7 @@ export function FileUploadDemo() {
         <Card className='lg:col-span-2'>
           <CardHeader>
             <CardTitle>组件预览（含表单验证）</CardTitle>
-            <CardDescription>使用 React Hook Form + Zod</CardDescription>
+            <CardDescription>使用 TanStack Form + Zod</CardDescription>
           </CardHeader>
           <CardContent>
             <FileUploadFormExample
@@ -368,73 +365,82 @@ function FileUploadFormExample({
     [maxFiles]
   )
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { files: [] },
+  const form = useForm({
+    defaultValues: {
+      files: [] as string[],
+    } as FormValues,
+    validators: {
+      onChange: formSchema,
+    },
+    onSubmit: async ({ value }) => {
+      alert(
+        `表单验证通过！已上传 ${value.files.length} 个文件\n\n${value.files.join('\n')}`
+      )
+    },
   })
 
-  const formValues = form.watch('files')
-
-  const onSubmit = (values: FormValues) => {
-    alert(
-      `表单验证通过！已上传 ${values.files.length} 个文件\n\n${values.files.join('\n')}`
-    )
-  }
+  // 实时订阅 files 值，用于渲染已选文件列表
+  const formValues = useSelector(form.store, (state: any) => state.values.files || [])
 
   return (
     <div className='space-y-6'>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-          <FormField
-            control={form.control}
-            name='files'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>上传文件</FormLabel>
-                <FormControl>
-                  <FileUpload
-                    value={field.value}
-                    onChange={(val) => {
-                      field.onChange(
-                        Array.isArray(val) ? val : val ? [val] : []
-                      )
-                    }}
-                    view={view}
-                    cardSize={cardSize}
-                    validation={validation}
-                    crop={crop}
-                    aspect={aspect}
-                    onFileAccept={(f) => console.log('接受:', f.name)}
-                    onFileReject={(f, r) => console.warn('拒绝:', f.name, r)}
-                    onUploadSuccess={(f, url) =>
-                      console.log('成功:', f.name, url)
-                    }
-                    onUploadError={(f, err) =>
-                      console.error('失败:', f.name, err)
-                    }
-                  />
-                </FormControl>
-                <FormDescription>支持拖拽、点击、粘贴上传</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          form.handleSubmit()
+        }}
+        className='space-y-4'
+      >
+        <form.Field
+          name='files'
+          children={(field) => {
+            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>上传文件</FieldLabel>
+                <FileUpload
+                  value={field.state.value}
+                  onChange={(val) => {
+                    field.handleChange(
+                      Array.isArray(val) ? val : val ? [val] : []
+                    )
+                  }}
+                  view={view}
+                  cardSize={cardSize}
+                  validation={validation}
+                  crop={crop}
+                  aspect={aspect}
+                  onFileAccept={(f) => console.log('接受:', f.name)}
+                  onFileReject={(f, r) => console.warn('拒绝:', f.name, r)}
+                  onUploadSuccess={(f, url) =>
+                    console.log('成功:', f.name, url)
+                  }
+                  onUploadError={(f, err) =>
+                    console.error('失败:', f.name, err)
+                  }
+                />
+                <FieldDescription>支持拖拽、点击、粘贴上传</FieldDescription>
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            )
+          }}
+        />
 
-          <div className='flex items-center gap-2'>
-            <Button type='submit' size='sm'>
-              提交表单
-            </Button>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              onClick={() => form.reset()}
-            >
-              重置
-            </Button>
-          </div>
-        </form>
-      </Form>
+        <div className='flex items-center gap-2'>
+          <Button type='submit' size='sm'>
+            提交表单
+          </Button>
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
+            onClick={() => form.reset()}
+          >
+            重置
+          </Button>
+        </div>
+      </form>
 
       {/* 回显测试 */}
       <div className='space-y-2'>
@@ -445,7 +451,7 @@ function FileUploadFormExample({
             variant='outline'
             size='sm'
             onClick={() => {
-              form.setValue('files', [
+              form.setFieldValue('files', [
                 'https://fastly.picsum.photos/id/85/1200/600.jpg?hmac=W2QBqi3MH6WgJqDvRPJwDLhr_pin-ZEoiSQFez6egWE',
                 'https://wximg.chuanbaoguancha.cn/mkt/trim63426fb5c5cb49768048dd605a869da8-a165eec3-gs.MOV',
                 'https://www.w3schools.com/html/horse.mp3',
@@ -458,7 +464,7 @@ function FileUploadFormExample({
             type='button'
             variant='outline'
             size='sm'
-            onClick={() => form.setValue('files', [])}
+            onClick={() => form.setFieldValue('files', [])}
           >
             清空
           </Button>
@@ -473,7 +479,7 @@ function FileUploadFormExample({
         <div className='space-y-1.5'>
           <Label className='text-muted-foreground text-xs'>当前 URL 值</Label>
           <ul className='bg-muted/50 space-y-1 rounded-lg p-3 font-mono text-xs break-all'>
-            {formValues.map((url, i) => (
+            {formValues.map((url: string, i: number) => (
               <li key={i} className='text-muted-foreground'>
                 <span className='text-foreground font-medium'>{i + 1}.</span>{' '}
                 {url}

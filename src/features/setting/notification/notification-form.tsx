@@ -1,28 +1,24 @@
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@tanstack/react-form'
 import { Link } from '@tanstack/react-router'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from '@/components/ui/field'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Switch } from '@/components/ui/switch'
 
 const notificationFormSchema = z.object({
   type: z.enum(['all', 'mentions', 'none'], {
-    error: (iss) =>
-      iss.input === undefined
-        ? 'Please select a notification type.'
-        : undefined,
+    message: 'Please select a notification type.',
   }),
   mobile: z.boolean().default(false).optional(),
   communication_emails: z.boolean().default(false).optional(),
@@ -33,173 +29,226 @@ const notificationFormSchema = z.object({
 
 type NotificationFormValues = z.infer<typeof notificationFormSchema>
 
-// This can come from your database or API.
-const defaultValues: Partial<NotificationFormValues> = {
-  communication_emails: false,
-  marketing_emails: false,
-  social_emails: true,
-  security_emails: true,
-}
-
 export function NotificationForm() {
-  const form = useForm<NotificationFormValues>({
-    resolver: zodResolver(notificationFormSchema),
-    defaultValues,
+  const form = useForm({
+    defaultValues: {
+      type: 'all' as const,
+      mobile: false,
+      communication_emails: false,
+      marketing_emails: false,
+      social_emails: true,
+      security_emails: true,
+    } as NotificationFormValues,
+    validators: {
+      onChange: notificationFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      showSubmittedData(value)
+    },
   })
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit((data) => showSubmittedData(data))}
-        className='space-y-8'
-      >
-        <FormField
-          control={form.control}
-          name='type'
-          render={({ field }) => (
-            <FormItem className='relative space-y-3'>
-              <FormLabel>Notify me about...</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className='flex flex-col gap-2'
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        form.handleSubmit()
+      }}
+      className='space-y-8'
+    >
+      {/* 通知频次 */}
+      <form.Field
+        name='type'
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <FieldSet>
+              <FieldLegend variant='label'>Notify me about...</FieldLegend>
+              <RadioGroup
+                name={field.name}
+                value={field.state.value}
+                onValueChange={(val) => field.handleChange(val as any)}
+                className='flex flex-col gap-2'
+              >
+                <Field orientation='horizontal' data-invalid={isInvalid}>
+                  <RadioGroupItem value='all' id={`${field.name}-all`} />
+                  <FieldLabel htmlFor={`${field.name}-all`} className='font-normal cursor-pointer'>
+                    All new messages
+                  </FieldLabel>
+                </Field>
+                <Field orientation='horizontal' data-invalid={isInvalid}>
+                  <RadioGroupItem value='mentions' id={`${field.name}-mentions`} />
+                  <FieldLabel htmlFor={`${field.name}-mentions`} className='font-normal cursor-pointer'>
+                    Direct messages and mentions
+                  </FieldLabel>
+                </Field>
+                <Field orientation='horizontal' data-invalid={isInvalid}>
+                  <RadioGroupItem value='none' id={`${field.name}-none`} />
+                  <FieldLabel htmlFor={`${field.name}-none`} className='font-normal cursor-pointer'>
+                    Nothing
+                  </FieldLabel>
+                </Field>
+              </RadioGroup>
+              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+            </FieldSet>
+          )
+        }}
+      />
+
+      {/* 邮件通知开关组 */}
+      <div className='relative'>
+        <h3 className='mb-4 text-lg font-medium'>Email Notifications</h3>
+        <div className='space-y-4'>
+          {/* 通讯邮件 */}
+          <form.Field
+            name='communication_emails'
+            children={(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              return (
+                <Field
+                  orientation='horizontal'
+                  data-invalid={isInvalid}
+                  className='justify-between rounded-lg border p-4'
                 >
-                  <FormItem className='flex items-center'>
-                    <FormControl>
-                      <RadioGroupItem value='all' />
-                    </FormControl>
-                    <FormLabel className='font-normal'>
-                      All new messages
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className='flex items-center'>
-                    <FormControl>
-                      <RadioGroupItem value='mentions' />
-                    </FormControl>
-                    <FormLabel className='font-normal'>
-                      Direct messages and mentions
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className='flex items-center'>
-                    <FormControl>
-                      <RadioGroupItem value='none' />
-                    </FormControl>
-                    <FormLabel className='font-normal'>Nothing</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className='relative'>
-          <h3 className='mb-4 text-lg font-medium'>Email Notifications</h3>
-          <div className='space-y-4'>
-            <FormField
-              control={form.control}
-              name='communication_emails'
-              render={({ field }) => (
-                <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
-                  <div className='space-y-0.5'>
-                    <FormLabel className='text-base'>
+                  <FieldContent>
+                    <FieldLabel htmlFor={field.name} className='text-base font-medium'>
                       Communication emails
-                    </FormLabel>
-                    <FormDescription>
+                    </FieldLabel>
+                    <FieldDescription>
                       Receive emails about your account activity.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='marketing_emails'
-              render={({ field }) => (
-                <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
-                  <div className='space-y-0.5'>
-                    <FormLabel className='text-base'>
+                    </FieldDescription>
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </FieldContent>
+                  <Switch
+                    id={field.name}
+                    name={field.name}
+                    checked={field.state.value}
+                    onCheckedChange={(checked) => field.handleChange(checked)}
+                    aria-invalid={isInvalid}
+                  />
+                </Field>
+              )
+            }}
+          />
+
+          {/* 推广邮件 */}
+          <form.Field
+            name='marketing_emails'
+            children={(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              return (
+                <Field
+                  orientation='horizontal'
+                  data-invalid={isInvalid}
+                  className='justify-between rounded-lg border p-4'
+                >
+                  <FieldContent>
+                    <FieldLabel htmlFor={field.name} className='text-base font-medium'>
                       Marketing emails
-                    </FormLabel>
-                    <FormDescription>
+                    </FieldLabel>
+                    <FieldDescription>
                       Receive emails about new products, features, and more.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='social_emails'
-              render={({ field }) => (
-                <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
-                  <div className='space-y-0.5'>
-                    <FormLabel className='text-base'>Social emails</FormLabel>
-                    <FormDescription>
+                    </FieldDescription>
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </FieldContent>
+                  <Switch
+                    id={field.name}
+                    name={field.name}
+                    checked={field.state.value}
+                    onCheckedChange={(checked) => field.handleChange(checked)}
+                    aria-invalid={isInvalid}
+                  />
+                </Field>
+              )
+            }}
+          />
+
+          {/* 社交邮件 */}
+          <form.Field
+            name='social_emails'
+            children={(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              return (
+                <Field
+                  orientation='horizontal'
+                  data-invalid={isInvalid}
+                  className='justify-between rounded-lg border p-4'
+                >
+                  <FieldContent>
+                    <FieldLabel htmlFor={field.name} className='text-base font-medium'>
+                      Social emails
+                    </FieldLabel>
+                    <FieldDescription>
                       Receive emails for friend requests, follows, and more.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='security_emails'
-              render={({ field }) => (
-                <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
-                  <div className='space-y-0.5'>
-                    <FormLabel className='text-base'>Security emails</FormLabel>
-                    <FormDescription>
+                    </FieldDescription>
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </FieldContent>
+                  <Switch
+                    id={field.name}
+                    name={field.name}
+                    checked={field.state.value}
+                    onCheckedChange={(checked) => field.handleChange(checked)}
+                    aria-invalid={isInvalid}
+                  />
+                </Field>
+              )
+            }}
+          />
+
+          {/* 安全邮件 */}
+          <form.Field
+            name='security_emails'
+            children={(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              return (
+                <Field
+                  orientation='horizontal'
+                  data-invalid={isInvalid}
+                  className='justify-between rounded-lg border p-4'
+                >
+                  <FieldContent>
+                    <FieldLabel htmlFor={field.name} className='text-base font-medium'>
+                      Security emails
+                    </FieldLabel>
+                    <FieldDescription>
                       Receive emails about your account activity and security.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled
-                      aria-readonly
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
+                    </FieldDescription>
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </FieldContent>
+                  <Switch
+                    id={field.name}
+                    name={field.name}
+                    checked={field.state.value}
+                    onCheckedChange={(checked) => field.handleChange(checked)}
+                    aria-invalid={isInvalid}
+                    disabled
+                  />
+                </Field>
+              )
+            }}
+          />
         </div>
-        <FormField
-          control={form.control}
-          name='mobile'
-          render={({ field }) => (
-            <FormItem className='relative flex flex-row items-start'>
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className='space-y-1 leading-none'>
-                <FormLabel>
+      </div>
+
+      {/* 移动端独立设置 */}
+      <form.Field
+        name='mobile'
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <Field orientation='horizontal' data-invalid={isInvalid} className='items-start'>
+              <Checkbox
+                id={field.name}
+                checked={field.state.value}
+                onCheckedChange={(checked) => field.handleChange(checked === true)}
+                aria-invalid={isInvalid}
+                className='mt-1'
+              />
+              <FieldContent className='gap-1'>
+                <FieldLabel htmlFor={field.name} className='font-normal cursor-pointer'>
                   Use different settings for my mobile devices
-                </FormLabel>
-                <FormDescription>
+                </FieldLabel>
+                <FieldDescription>
                   You can manage your mobile notifications in the{' '}
                   <Link
                     to='/setting'
@@ -208,13 +257,14 @@ export function NotificationForm() {
                     mobile settings
                   </Link>{' '}
                   page.
-                </FormDescription>
-              </div>
-            </FormItem>
-          )}
-        />
-        <Button type='submit'>Update notifications</Button>
-      </form>
-    </Form>
+                </FieldDescription>
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </FieldContent>
+            </Field>
+          )
+        }}
+      />
+      <Button type='submit'>Update notifications</Button>
+    </form>
   )
 }

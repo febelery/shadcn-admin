@@ -1,16 +1,15 @@
+import { useEffect, useMemo } from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  Field,
+  FieldError,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
@@ -37,6 +36,7 @@ const formSchema = z.object({
   label: z.string().min(1, '请选择标签。'),
   priority: z.string().min(1, '请选择优先级。'),
 })
+
 type TaskForm = z.infer<typeof formSchema>
 
 export function TaskMutateDrawer({
@@ -46,22 +46,32 @@ export function TaskMutateDrawer({
 }: TaskMutateDrawerProps) {
   const isUpdate = !!currentRow
 
-  const form = useForm<TaskForm>({
-    resolver: zodResolver(formSchema),
-    defaultValues: currentRow ?? {
+  // 动态构建默认值
+  const initialValues = useMemo(() => {
+    return currentRow ?? {
       title: '',
       status: '',
       label: '',
       priority: '',
+    }
+  }, [currentRow])
+
+  const form = useForm({
+    defaultValues: initialValues as TaskForm,
+    validators: {
+      onChange: formSchema,
+    },
+    onSubmit: async ({ value }) => {
+      onOpenChange(false)
+      form.reset()
+      showSubmittedData(value)
     },
   })
 
-  const onSubmit = (data: TaskForm) => {
-    // 处理表单数据
-    onOpenChange(false)
-    form.reset()
-    showSubmittedData(data)
-  }
+  // 弹窗打开或当前行变化时，重置表单为最新默认值
+  useEffect(() => {
+    if (open) form.reset()
+  }, [open, initialValues])
 
   return (
     <Sheet
@@ -81,34 +91,50 @@ export function TaskMutateDrawer({
             完成后点击保存。
           </SheetDescription>
         </SheetHeader>
-        <Form {...form}>
-          <form
-            id='task-form'
-            onSubmit={form.handleSubmit(onSubmit)}
-            className='flex-1 space-y-6 overflow-y-auto px-4'
-          >
-            <FormField
-              control={form.control}
-              name='title'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>标题</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder='输入标题' />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='status'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>状态</FormLabel>
+        
+        <form
+          id='task-form'
+          onSubmit={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            form.handleSubmit()
+          }}
+          className='flex-1 space-y-6 overflow-y-auto px-4'
+        >
+          {/* 标题 */}
+          <form.Field
+            name='title'
+            children={(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor={field.name}>标题</FieldLabel>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value || ''}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder='输入标题'
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              )
+            }}
+          />
+
+          {/* 状态 */}
+          <form.Field
+            name='status'
+            children={(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              return (
+                <Field data-invalid={isInvalid}>
+                  <FieldLabel htmlFor={field.name}>状态</FieldLabel>
                   <SelectDropdown
-                    defaultValue={field.value}
-                    onValueChange={field.onChange}
+                    defaultValue={field.state.value}
+                    onValueChange={(val) => field.handleChange(val)}
                     placeholder='选择状态'
                     items={[
                       { label: '进行中', value: 'in progress' },
@@ -118,84 +144,91 @@ export function TaskMutateDrawer({
                       { label: '已完成', value: 'done' },
                     ]}
                   />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='label'
-              render={({ field }) => (
-                <FormItem className='relative'>
-                  <FormLabel>标签</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className='flex flex-col space-y-1'
-                    >
-                      <FormItem className='flex items-center'>
-                        <FormControl>
-                          <RadioGroupItem value='documentation' />
-                        </FormControl>
-                        <FormLabel className='font-normal'>文档</FormLabel>
-                      </FormItem>
-                      <FormItem className='flex items-center'>
-                        <FormControl>
-                          <RadioGroupItem value='feature' />
-                        </FormControl>
-                        <FormLabel className='font-normal'>功能</FormLabel>
-                      </FormItem>
-                      <FormItem className='flex items-center'>
-                        <FormControl>
-                          <RadioGroupItem value='bug' />
-                        </FormControl>
-                        <FormLabel className='font-normal'>错误</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='priority'
-              render={({ field }) => (
-                <FormItem className='relative'>
-                  <FormLabel>优先级</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className='flex flex-col space-y-1'
-                    >
-                      <FormItem className='flex items-center'>
-                        <FormControl>
-                          <RadioGroupItem value='high' />
-                        </FormControl>
-                        <FormLabel className='font-normal'>高</FormLabel>
-                      </FormItem>
-                      <FormItem className='flex items-center'>
-                        <FormControl>
-                          <RadioGroupItem value='medium' />
-                        </FormControl>
-                        <FormLabel className='font-normal'>中</FormLabel>
-                      </FormItem>
-                      <FormItem className='flex items-center'>
-                        <FormControl>
-                          <RadioGroupItem value='low' />
-                        </FormControl>
-                        <FormLabel className='font-normal'>低</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              )
+            }}
+          />
+
+          {/* 标签 */}
+          <form.Field
+            name='label'
+            children={(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              return (
+                <FieldSet>
+                  <FieldLegend variant='label'>标签</FieldLegend>
+                  <RadioGroup
+                    name={field.name}
+                    value={field.state.value}
+                    onValueChange={(val) => field.handleChange(val as any)}
+                    className='flex flex-col space-y-1'
+                  >
+                    <Field orientation='horizontal' data-invalid={isInvalid}>
+                      <RadioGroupItem value='documentation' id={`${field.name}-documentation`} />
+                      <FieldLabel htmlFor={`${field.name}-documentation`} className='font-normal cursor-pointer'>
+                        文档
+                      </FieldLabel>
+                    </Field>
+                    <Field orientation='horizontal' data-invalid={isInvalid}>
+                      <RadioGroupItem value='feature' id={`${field.name}-feature`} />
+                      <FieldLabel htmlFor={`${field.name}-feature`} className='font-normal cursor-pointer'>
+                        功能
+                      </FieldLabel>
+                    </Field>
+                    <Field orientation='horizontal' data-invalid={isInvalid}>
+                      <RadioGroupItem value='bug' id={`${field.name}-bug`} />
+                      <FieldLabel htmlFor={`${field.name}-bug`} className='font-normal cursor-pointer'>
+                        错误
+                      </FieldLabel>
+                    </Field>
+                  </RadioGroup>
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </FieldSet>
+              )
+            }}
+          />
+
+          {/* 优先级 */}
+          <form.Field
+            name='priority'
+            children={(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              return (
+                <FieldSet>
+                  <FieldLegend variant='label'>优先级</FieldLegend>
+                  <RadioGroup
+                    name={field.name}
+                    value={field.state.value}
+                    onValueChange={(val) => field.handleChange(val as any)}
+                    className='flex flex-col space-y-1'
+                  >
+                    <Field orientation='horizontal' data-invalid={isInvalid}>
+                      <RadioGroupItem value='high' id={`${field.name}-high`} />
+                      <FieldLabel htmlFor={`${field.name}-high`} className='font-normal cursor-pointer'>
+                        高
+                      </FieldLabel>
+                    </Field>
+                    <Field orientation='horizontal' data-invalid={isInvalid}>
+                      <RadioGroupItem value='medium' id={`${field.name}-medium`} />
+                      <FieldLabel htmlFor={`${field.name}-medium`} className='font-normal cursor-pointer'>
+                        中
+                      </FieldLabel>
+                    </Field>
+                    <Field orientation='horizontal' data-invalid={isInvalid}>
+                      <RadioGroupItem value='low' id={`${field.name}-low`} />
+                      <FieldLabel htmlFor={`${field.name}-low`} className='font-normal cursor-pointer'>
+                        低
+                      </FieldLabel>
+                    </Field>
+                  </RadioGroup>
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </FieldSet>
+              )
+            }}
+          />
+        </form>
+
         <SheetFooter className='gap-2'>
           <SheetClose asChild>
             <Button variant='outline'>关闭</Button>

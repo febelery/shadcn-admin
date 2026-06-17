@@ -1,18 +1,17 @@
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from '@/components/ui/field'
 
 const items = [
   {
@@ -49,73 +48,79 @@ const displayFormSchema = z.object({
 
 type DisplayFormValues = z.infer<typeof displayFormSchema>
 
-// This can come from your database or API.
-const defaultValues: Partial<DisplayFormValues> = {
-  items: ['recents', 'home'],
-}
-
 export function DisplayForm() {
-  const form = useForm<DisplayFormValues>({
-    resolver: zodResolver(displayFormSchema),
-    defaultValues,
+  const form = useForm({
+    defaultValues: {
+      items: ['recents', 'home'],
+    } as DisplayFormValues,
+    validators: {
+      onChange: displayFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      showSubmittedData(value)
+    },
   })
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit((data) => showSubmittedData(data))}
-        className='space-y-8'
-      >
-        <FormField
-          control={form.control}
-          name='items'
-          render={() => (
-            <FormItem>
-              <div className='mb-4'>
-                <FormLabel className='text-base'>Sidebar</FormLabel>
-                <FormDescription>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        form.handleSubmit()
+      }}
+      className='space-y-8'
+    >
+      <form.Field
+        name='items'
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <FieldSet>
+              <div>
+                <FieldLegend variant='label'>Sidebar</FieldLegend>
+                <FieldDescription>
                   Select the items you want to display in the sidebar.
-                </FormDescription>
+                </FieldDescription>
               </div>
-              {items.map((item) => (
-                <FormField
-                  key={item.id}
-                  control={form.control}
-                  name='items'
-                  render={({ field }) => {
-                    return (
-                      <FormItem
-                        key={item.id}
-                        className='flex flex-row items-start'
-                      >
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value?.includes(item.id)}
-                            onCheckedChange={(checked) => {
-                              return checked
-                                ? field.onChange([...field.value, item.id])
-                                : field.onChange(
-                                    field.value?.filter(
-                                      (value) => value !== item.id
-                                    )
-                                  )
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className='font-normal'>
-                          {item.label}
-                        </FormLabel>
-                      </FormItem>
-                    )
-                  }}
-                />
-              ))}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type='submit'>Update display</Button>
-      </form>
-    </Form>
+              
+              <FieldGroup data-slot='checkbox-group'>
+                {items.map((item) => (
+                  <Field
+                    key={item.id}
+                    orientation='horizontal'
+                    data-invalid={isInvalid}
+                  >
+                    <Checkbox
+                      id={`display-item-${item.id}`}
+                      checked={field.state.value?.includes(item.id)}
+                      onCheckedChange={(checked) => {
+                        const currentValues = field.state.value || []
+                        if (checked) {
+                          field.handleChange([...currentValues, item.id])
+                        } else {
+                          field.handleChange(
+                            currentValues.filter((val) => val !== item.id)
+                          )
+                        }
+                      }}
+                    />
+                    <FieldLabel
+                      htmlFor={`display-item-${item.id}`}
+                      className='font-normal cursor-pointer'
+                    >
+                      {item.label}
+                    </FieldLabel>
+                  </Field>
+                ))}
+              </FieldGroup>
+              
+              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+            </FieldSet>
+          )
+        }}
+      />
+      
+      <Button type='submit'>Update display</Button>
+    </form>
   )
 }

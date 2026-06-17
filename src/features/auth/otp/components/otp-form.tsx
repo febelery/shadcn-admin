@@ -1,19 +1,12 @@
 import { useState } from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@tanstack/react-form'
+import { useSelector } from '@tanstack/react-store'
 import { useNavigate } from '@tanstack/react-router'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import {
   InputOTP,
   InputOTPGroup,
@@ -31,66 +24,75 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { otp: '' },
+  const form = useForm({
+    defaultValues: {
+      otp: '',
+    },
+    validators: {
+      onChange: formSchema,
+    },
+    onSubmit: async ({ value }) => {
+      setIsLoading(true)
+      showSubmittedData(value)
+
+      setTimeout(() => {
+        setIsLoading(false)
+        navigate({ to: '/' })
+      }, 1000)
+    },
   })
 
-  const otp = form.watch('otp')
-
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    setIsLoading(true)
-    showSubmittedData(data)
-
-    setTimeout(() => {
-      setIsLoading(false)
-      navigate({ to: '/' })
-    }, 1000)
-  }
+  // 实时订阅 otp 值，用于控制按钮禁用状态
+  const otp = useSelector(form.store, (state: any) => state.values.otp)
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className={cn('grid gap-2', className)}
-        {...props}
-      >
-        <FormField
-          control={form.control}
-          name='otp'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className='sr-only'>一次性密码</FormLabel>
-              <FormControl>
-                <InputOTP
-                  maxLength={6}
-                  {...field}
-                  containerClassName='justify-between sm:[&>[data-slot="input-otp-group"]>div]:w-12'
-                >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                  </InputOTPGroup>
-                  <InputOTPSeparator />
-                  <InputOTPGroup>
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
-                  </InputOTPGroup>
-                  <InputOTPSeparator />
-                  <InputOTPGroup>
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button className='mt-2' disabled={otp.length < 6 || isLoading}>
-          验证
-        </Button>
-      </form>
-    </Form>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        form.handleSubmit()
+      }}
+      className={cn('grid gap-2', className)}
+      {...props}
+    >
+      <form.Field
+        name='otp'
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <Field data-invalid={isInvalid}>
+              <FieldLabel className='sr-only'>一次性密码</FieldLabel>
+              <InputOTP
+                maxLength={6}
+                value={field.state.value || ''}
+                onBlur={field.handleBlur}
+                onChange={(val) => field.handleChange(val)}
+                aria-invalid={isInvalid}
+                containerClassName='justify-between sm:[&>[data-slot="input-otp-group"]>div]:w-12'
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                </InputOTPGroup>
+                <InputOTPSeparator />
+                <InputOTPGroup>
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                </InputOTPGroup>
+                <InputOTPSeparator />
+                <InputOTPGroup>
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+            </Field>
+          )
+        }}
+      />
+      <Button className='mt-2' disabled={otp.length < 6 || isLoading}>
+        验证
+      </Button>
+    </form>
   )
 }

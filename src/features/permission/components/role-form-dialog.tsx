@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { z } from 'zod'
-import { useForm, useWatch } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@tanstack/react-form'
+import { useSelector } from '@tanstack/react-store'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Shield, Info } from 'lucide-react'
 import { toast } from 'sonner'
@@ -17,13 +17,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  Field,
+  FieldError,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -80,49 +77,63 @@ export function RoleFormDialog({
     return groups
   }, [availablePermissions])
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm({
     defaultValues: {
       name: '',
       label: '',
       description: '',
       permissions: [],
       isAllPermissions: false,
+    } as FormValues,
+    validators: {
+      onChange: formSchema,
+    },
+    onSubmit: async ({ value }) => {
+      const permissions = value.isAllPermissions ? ['*'] : value.permissions
+
+      if (isEditing && role) {
+        updateMutation.mutate({
+          id: role.id,
+          payload: {
+            label: value.label,
+            description: value.description,
+            permissions,
+          },
+        })
+      } else {
+        createMutation.mutate({
+          name: value.name,
+          label: value.label,
+          description: value.description || '',
+          permissions,
+        })
+      }
     },
   })
 
-  // 当 role 变化时重置表单
+  // 弹窗打开或 role 变化时，将表单重置为对应状态
   useEffect(() => {
-    if (open) {
-      if (role) {
-        form.reset({
-          name: role.name,
-          label: role.label,
-          description: role.description,
-          permissions: role.permissions.filter((p) => p !== '*'),
-          isAllPermissions: role.permissions.includes('*'),
-        })
-      } else {
-        form.reset({
-          name: '',
-          label: '',
-          description: '',
-          permissions: [],
-          isAllPermissions: false,
-        })
-      }
-    }
-  }, [open, role, form])
+    if (!open) return
+    form.reset(
+      role
+        ? {
+            ...role,
+            permissions: role.permissions.filter((p) => p !== '*'),
+            isAllPermissions: role.permissions.includes('*'),
+          }
+        : {
+            name: '',
+            label: '',
+            description: '',
+            permissions: [],
+            isAllPermissions: false,
+          }
+    )
+  }, [open, role])
 
-  const isAllPermissions = useWatch({
-    control: form.control,
-    name: 'isAllPermissions',
-  })
-  const selectedPermissions = useWatch({
-    control: form.control,
-    name: 'permissions',
-    defaultValue: [],
-  })
+  // 响应式订阅 isAllPermissions 和 permissions 状态
+  const isAllPermissions = useSelector(form.store, (state: any) => state.values.isAllPermissions)
+  const selectedPermissions = useSelector(form.store, (state: any) => state.values.permissions ?? [])
 
   const createMutation = useMutation({
     mutationFn: createRole,
@@ -145,54 +156,32 @@ export function RoleFormDialog({
 
   const isPending = createMutation.isPending || updateMutation.isPending
 
-  function onSubmit(values: FormValues) {
-    const permissions = values.isAllPermissions ? ['*'] : values.permissions
-
-    if (isEditing && role) {
-      updateMutation.mutate({
-        id: role.id,
-        payload: {
-          label: values.label,
-          description: values.description,
-          permissions,
-        },
-      })
-    } else {
-      createMutation.mutate({
-        name: values.name,
-        label: values.label,
-        description: values.description || '',
-        permissions,
-      })
-    }
-  }
-
+  // 辅助函数：切换单个权限
   function togglePermission(key: string) {
-    const current = form.getValues('permissions')
+    const current = form.state.values.permissions || []
     if (current.includes(key)) {
-      form.setValue(
+      form.setFieldValue(
         'permissions',
-        current.filter((p) => p !== key),
-        { shouldValidate: true }
+        current.filter((p) => p !== key)
       )
     } else {
-      form.setValue('permissions', [...current, key], { shouldValidate: true })
+      form.setFieldValue('permissions', [...current, key])
     }
   }
 
+  // 辅助函数：全选/反选分组下的权限
   function toggleGroup(groupPerms: string[]) {
-    const current = form.getValues('permissions')
+    const current = form.state.values.permissions || []
     const allSelected = groupPerms.every((p) => current.includes(p))
 
     if (allSelected) {
-      form.setValue(
+      form.setFieldValue(
         'permissions',
-        current.filter((p) => !groupPerms.includes(p)),
-        { shouldValidate: true }
+        current.filter((p) => !groupPerms.includes(p))
       )
     } else {
       const merged = [...new Set([...current, ...groupPerms])]
-      form.setValue('permissions', merged, { shouldValidate: true })
+      form.setFieldValue('permissions', merged)
     }
   }
 
@@ -209,205 +198,233 @@ export function RoleFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className='flex min-h-0 flex-1 flex-col overflow-hidden'
-          >
-            <ScrollArea className='min-h-0 flex-1'>
-              <div className='space-y-6 px-6 pb-6'>
-                <Separator className='my-2' />
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            form.handleSubmit()
+          }}
+          className='flex min-h-0 flex-1 flex-col overflow-hidden'
+        >
+          <ScrollArea className='min-h-0 flex-1'>
+            <div className='space-y-6 px-6 pb-6'>
+              <Separator className='my-2' />
 
-                {/* 基本信息 */}
-                <div className='grid gap-4 sm:grid-cols-2'>
-                  <FormField
-                    control={form.control}
-                    name='name'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>角色标识</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder='如: editor'
-                            disabled={isEditing}
-                            {...field}
-                            className='font-mono text-sm'
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name='label'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>角色名称</FormLabel>
-                        <FormControl>
-                          <Input placeholder='如: 编辑员' {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name='description'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>功能描述</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder='详细说明该角色的业务范围...'
-                          rows={2}
-                          {...field}
-                          className='resize-none'
+              {/* 基本信息 */}
+              <div className='grid gap-4 sm:grid-cols-2'>
+                {/* 角色标识 */}
+                <form.Field
+                  name='name'
+                  children={(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={field.name}>角色标识</FieldLabel>
+                        <Input
+                          id={field.name}
+                          name={field.name}
+                          placeholder='如: editor'
+                          disabled={isEditing}
+                          value={field.state.value || ''}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          className='font-mono text-sm'
+                          aria-invalid={isInvalid}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    )
+                  }}
                 />
 
-                <Separator />
-
-                {/* 权限项 */}
-                <div>
-                  <div className='mb-4 flex items-center justify-between'>
-                    <div className='space-y-0.5'>
-                      <h4 className='text-sm font-semibold'>权限清单</h4>
-                      <p className='text-muted-foreground text-xs'>
-                        控制角色在系统中的菜单可见性和操作权限
-                      </p>
-                    </div>
-                    <div className='bg-muted/50 flex items-center gap-2 rounded-full px-3 py-1.5'>
-                      <span className='text-xs font-medium'>超级权限</span>
-                      <FormField
-                        control={form.control}
-                        name='isAllPermissions'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {isAllPermissions ? (
-                    <div className='rounded-md border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900/50 dark:bg-amber-950/20'>
-                      <div className='mb-1 flex items-center gap-2 text-amber-800 dark:text-amber-400'>
-                        <Info className='size-4' />
-                        <span className='text-sm font-semibold'>
-                          超级管理员模式已激活
-                        </span>
-                      </div>
-                      <p className='text-xs leading-relaxed text-amber-700/80 dark:text-amber-500/80'>
-                        该角色将自动获得系统目前及未来所有的功能权限。底层权限标识将返回为通用通配符{' '}
-                        <code>[*]</code>。
-                      </p>
-                    </div>
-                  ) : (
-                    <div className='space-y-4'>
-                      {Array.from(groupedPermissions.entries()).map(
-                        ([group, perms]) => {
-                          const permKeys = perms.map((p) => p.key)
-                          const allChecked = permKeys.every((k) =>
-                            selectedPermissions.includes(k)
-                          )
-                          const someChecked =
-                            !allChecked &&
-                            permKeys.some((k) =>
-                              selectedPermissions.includes(k)
-                            )
-
-                          return (
-                            <div
-                              key={group}
-                              className='border-muted rounded border'
-                            >
-                              <div className='bg-muted/30 flex items-center gap-2 px-3 py-2'>
-                                <Checkbox
-                                  checked={
-                                    allChecked
-                                      ? true
-                                      : someChecked
-                                        ? 'indeterminate'
-                                        : false
-                                  }
-                                  onCheckedChange={() => toggleGroup(permKeys)}
-                                />
-                                <span className='text-muted-foreground/80 text-xs font-bold tracking-wider uppercase'>
-                                  {group}
-                                </span>
-                                <Badge
-                                  variant='secondary'
-                                  className='ml-auto h-5 px-1.5 text-[10px]'
-                                >
-                                  {
-                                    permKeys.filter((k) =>
-                                      selectedPermissions.includes(k)
-                                    ).length
-                                  }
-                                  /{permKeys.length}
-                                </Badge>
-                              </div>
-                              <div className='grid gap-x-4 gap-y-1 p-3 sm:grid-cols-2'>
-                                {perms.map((perm) => (
-                                  <label
-                                    key={perm.key}
-                                    className='hover:bg-muted/50 flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1.5 text-sm transition-colors'
-                                  >
-                                    <Checkbox
-                                      checked={selectedPermissions.includes(
-                                        perm.key
-                                      )}
-                                      onCheckedChange={() =>
-                                        togglePermission(perm.key)
-                                      }
-                                    />
-                                    <span className='font-medium'>
-                                      {perm.label}
-                                    </span>
-                                    <span className='text-muted-foreground/60 ml-auto font-mono text-[10px]'>
-                                      {perm.key.split(':')[1]}
-                                    </span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                          )
-                        }
-                      )}
-                    </div>
-                  )}
-                </div>
+                {/* 角色名称 */}
+                <form.Field
+                  name='label'
+                  children={(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={field.name}>角色名称</FieldLabel>
+                        <Input
+                          id={field.name}
+                          name={field.name}
+                          placeholder='如: 编辑员'
+                          value={field.state.value || ''}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          aria-invalid={isInvalid}
+                        />
+                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      </Field>
+                    )
+                  }}
+                />
               </div>
-            </ScrollArea>
 
-            <DialogFooter className='bg-muted/5 border-t p-6 pt-4'>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => onOpenChange(false)}
-              >
-                取消
-              </Button>
-              <Button type='submit' disabled={isPending}>
-                {isPending && <Loader2 className='mr-2 size-4 animate-spin' />}
-                {isEditing ? '更新角色配置' : '确定创建角色'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+              {/* 功能描述 */}
+              <form.Field
+                name='description'
+                children={(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={field.name}>功能描述</FieldLabel>
+                      <Textarea
+                        id={field.name}
+                        name={field.name}
+                        placeholder='详细说明该角色的业务范围...'
+                        rows={2}
+                        value={field.state.value || ''}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        className='resize-none'
+                        aria-invalid={isInvalid}
+                      />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  )
+                }}
+              />
+
+              <Separator />
+
+              {/* 权限项 */}
+              <div>
+                <div className='mb-4 flex items-center justify-between'>
+                  <div className='space-y-0.5'>
+                    <h4 className='text-sm font-semibold'>权限清单</h4>
+                    <p className='text-muted-foreground text-xs'>
+                      控制角色在系统中的菜单可见性和操作权限
+                    </p>
+                  </div>
+                  <div className='bg-muted/50 flex items-center gap-2 rounded-full px-3 py-1.5'>
+                    <span className='text-xs font-medium'>超级权限</span>
+                    <form.Field
+                      name='isAllPermissions'
+                      children={(field) => (
+                        <Switch
+                          checked={field.state.value || false}
+                          onCheckedChange={(checked) => field.handleChange(checked)}
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {isAllPermissions ? (
+                  <div className='rounded-md border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900/50 dark:bg-amber-950/20'>
+                    <div className='mb-1 flex items-center gap-2 text-amber-800 dark:text-amber-400'>
+                      <Info className='size-4' />
+                      <span className='text-sm font-semibold'>
+                        超级管理员模式已激活
+                      </span>
+                    </div>
+                    <p className='text-xs leading-relaxed text-amber-700/80 dark:text-amber-500/80'>
+                      该角色将自动获得系统目前及未来所有的功能权限。底层权限标识将返回为通用通配符{' '}
+                      <code>[*]</code>。
+                    </p>
+                  </div>
+                ) : (
+                  <form.Field
+                    name='permissions'
+                    children={(field) => {
+                      const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                      return (
+                        <div className='space-y-4'>
+                          {Array.from(groupedPermissions.entries()).map(
+                            ([group, perms]) => {
+                              const permKeys = perms.map((p) => p.key)
+                              const allChecked = permKeys.every((k) =>
+                                selectedPermissions.includes(k)
+                              )
+                              const someChecked =
+                                !allChecked &&
+                                permKeys.some((k) =>
+                                  selectedPermissions.includes(k)
+                                )
+
+                              return (
+                                <div
+                                  key={group}
+                                  className='border-muted rounded border'
+                                >
+                                  <div className='bg-muted/30 flex items-center gap-2 px-3 py-2'>
+                                    <Checkbox
+                                      checked={
+                                        allChecked
+                                          ? true
+                                          : someChecked
+                                            ? 'indeterminate'
+                                            : false
+                                      }
+                                      onCheckedChange={() => toggleGroup(permKeys)}
+                                    />
+                                    <span className='text-muted-foreground/80 text-xs font-bold tracking-wider uppercase'>
+                                      {group}
+                                    </span>
+                                    <Badge
+                                      variant='secondary'
+                                      className='ml-auto h-5 px-1.5 text-[10px]'
+                                    >
+                                      {
+                                        permKeys.filter((k) =>
+                                          selectedPermissions.includes(k)
+                                        ).length
+                                      }
+                                      /{permKeys.length}
+                                    </Badge>
+                                  </div>
+                                  <div className='grid gap-x-4 gap-y-1 p-3 sm:grid-cols-2'>
+                                    {perms.map((perm) => (
+                                      <label
+                                        key={perm.key}
+                                        className='hover:bg-muted/50 flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1.5 text-sm transition-colors'
+                                      >
+                                        <Checkbox
+                                          checked={selectedPermissions.includes(
+                                            perm.key
+                                          )}
+                                          onCheckedChange={() =>
+                                            togglePermission(perm.key)
+                                          }
+                                        />
+                                        <span className='font-medium'>
+                                          {perm.label}
+                                        </span>
+                                        <span className='text-muted-foreground/60 ml-auto font-mono text-[10px]'>
+                                          {perm.key.split(':')[1]}
+                                        </span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              )
+                            }
+                          )}
+                          {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                        </div>
+                      )
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          </ScrollArea>
+
+          <DialogFooter className='bg-muted/5 border-t p-6 pt-4'>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => onOpenChange(false)}
+            >
+              取消
+            </Button>
+            <Button type='submit' disabled={isPending}>
+              {isPending && <Loader2 className='mr-2 size-4 animate-spin' />}
+              {isEditing ? '更新角色配置' : '确定创建角色'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

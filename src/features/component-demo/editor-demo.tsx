@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@tanstack/react-form'
 import { toast } from 'sonner'
 import { getQiniuUptoken } from '@/api/qiniu'
 import { Button } from '@/components/ui/button'
@@ -14,14 +13,11 @@ import {
 } from '@/components/ui/card'
 import { Editor, type EditorVariant } from '@/components/ui/editor'
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -49,77 +45,86 @@ function EditorFormExample({
   handleUpload: (file: File) => Promise<{ src: string }>
   variant: EditorVariant
 }) {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { content: '' },
+  const form = useForm({
+    defaultValues: {
+      content: '',
+    } as FormValues,
+    validators: {
+      onChange: formSchema,
+    },
+    onSubmit: async ({ value }) => {
+      toast.success('验证通过', {
+        description: (
+          <div className='mt-2 w-[340px] rounded-md bg-slate-950 p-4'>
+            <p className='text-white'>提交长度: {value.content.length}</p>
+          </div>
+        ),
+      })
+      console.log(value)
+    },
   })
 
-  function onSubmit(data: FormValues) {
-    toast.success('验证通过', {
-      description: (
-        <div className='mt-2 w-[340px] rounded-md bg-slate-950 p-4'>
-          <p className='text-white'>提交长度: {data.content.length}</p>
-        </div>
-      ),
-    })
-    console.log(data)
-  }
-
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-        <FormField
-          control={form.control}
-          name='content'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>文章内容</FormLabel>
-              <FormControl>
-                <Editor
-                  variant={variant}
-                  placeholder='请输入至少 10 个字符的文章内容...'
-                  disabled={disabled}
-                  className='min-h-[300px]'
-                  onUpload={handleUpload}
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              </FormControl>
-              <FormDescription>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        form.handleSubmit()
+      }}
+      className='space-y-6'
+    >
+      <form.Field
+        name='content'
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <Field data-invalid={isInvalid}>
+              <FieldLabel htmlFor={field.name}>文章内容</FieldLabel>
+              <Editor
+                variant={variant}
+                placeholder='请输入至少 10 个字符的文章内容...'
+                disabled={disabled}
+                className='min-h-[300px]'
+                onUpload={handleUpload}
+                value={field.state.value || ''}
+                onChange={field.handleChange}
+              />
+              <FieldDescription>
                 请输入文章的正文内容，支持富文本格式。
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className='flex justify-end gap-2'>
-          <Button
-            type='button'
-            variant='outline'
-            disabled={disabled}
-            onClick={() =>
-              form.setValue(
-                'content',
-                '<p>这是一段<b>默认设置</b>的回显内容，用于测试表单重置和初始化功能。</p>'
-              )
-            }
-          >
-            设置回显
-          </Button>
-          <Button
-            type='button'
-            variant='outline'
-            disabled={disabled}
-            onClick={() => form.reset()}
-          >
-            重置表单
-          </Button>
-          <Button type='submit' disabled={disabled}>
-            提交表单
-          </Button>
-        </div>
-      </form>
-    </Form>
+              </FieldDescription>
+              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+            </Field>
+          )
+        }}
+      />
+      
+      <div className='flex justify-end gap-2'>
+        <Button
+          type='button'
+          variant='outline'
+          disabled={disabled}
+          onClick={() =>
+            form.setFieldValue(
+              'content',
+              '<p>这是一段<b>默认设置</b>的回显内容，用于测试表单重置和初始化功能。</p>'
+            )
+          }
+        >
+          设置回显
+        </Button>
+        <Button
+          type='button'
+          variant='outline'
+          disabled={disabled}
+          onClick={() => form.reset()}
+        >
+          重置表单
+        </Button>
+        <Button type='submit' disabled={disabled}>
+          提交表单
+        </Button>
+      </div>
+    </form>
   )
 }
 
@@ -131,7 +136,7 @@ export default function EditorDemo() {
 
   const handleUpload = React.useCallback(
     async (file: File) => {
-      // QiniuConfig 直接内联构造，不再需要 createDefaultQiniuConfig
+      // QiniuConfig 直接内联构造
       const url = await uploadFile(file, {
         getToken: getQiniuUptoken,
         region: 'z2',
@@ -179,7 +184,7 @@ export default function EditorDemo() {
         <CardHeader>
           <CardTitle>表单验证集成</CardTitle>
           <CardDescription>
-            结合 React Hook Form 和 Zod 进行表单验证。
+            结合 TanStack Form 和 Zod 进行表单验证。
           </CardDescription>
         </CardHeader>
         <CardContent>

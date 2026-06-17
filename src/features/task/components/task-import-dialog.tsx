@@ -1,6 +1,6 @@
+import { useEffect } from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,15 +13,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  Field,
+  FieldError,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 
+// 校验 FileList 实例是否非空且为 CSV 格式
 const formSchema = z.object({
   file: z
     .instanceof(FileList)
@@ -43,26 +41,33 @@ export function TaskImportDialog({
   open,
   onOpenChange,
 }: TaskImportDialogProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { file: undefined },
+  const form = useForm({
+    defaultValues: {
+      file: undefined as unknown as FileList,
+    },
+    validators: {
+      onChange: formSchema,
+    },
+    onSubmit: async ({ value }) => {
+      const file = value.file
+      if (file && file[0]) {
+        const fileDetails = {
+          name: file[0].name,
+          size: file[0].size,
+          type: file[0].type,
+        }
+        showSubmittedData(fileDetails, 'You have imported the following file:')
+      }
+      onOpenChange(false)
+    },
   })
 
-  const fileRef = form.register('file')
-
-  const onSubmit = () => {
-    const file = form.getValues('file')
-
-    if (file && file[0]) {
-      const fileDetails = {
-        name: file[0].name,
-        size: file[0].size,
-        type: file[0].type,
-      }
-      showSubmittedData(fileDetails, 'You have imported the following file:')
+  // 当弹窗状态改变时重置表单
+  useEffect(() => {
+    if (open) {
+      form.reset()
     }
-    onOpenChange(false)
-  }
+  }, [open, form])
 
   return (
     <Dialog
@@ -77,23 +82,40 @@ export function TaskImportDialog({
           <DialogTitle>导入任务</DialogTitle>
           <DialogDescription>从 CSV 文件快速导入任务。</DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form id='task-import-form' onSubmit={form.handleSubmit(onSubmit)}>
-            <FormField
-              control={form.control}
-              name='file'
-              render={() => (
-                <FormItem className='my-2'>
-                  <FormLabel>文件</FormLabel>
-                  <FormControl>
-                    <Input type='file' {...fileRef} className='h-8 py-0' />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
+        <form
+          id='task-import-form'
+          onSubmit={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            form.handleSubmit()
+          }}
+        >
+          <form.Field
+            name='file'
+            children={(field) => {
+              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              return (
+                <Field data-invalid={isInvalid} className='my-2'>
+                  <FieldLabel htmlFor={field.name}>文件</FieldLabel>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    type='file'
+                    className='h-8 py-0'
+                    onBlur={field.handleBlur}
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        field.handleChange(e.target.files)
+                      }
+                    }}
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              )
+            }}
+          />
+        </form>
         <DialogFooter className='gap-2'>
           <DialogClose asChild>
             <Button variant='outline'>关闭</Button>
