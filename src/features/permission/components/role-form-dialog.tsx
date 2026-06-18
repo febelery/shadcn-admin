@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { z } from 'zod'
 import { useForm } from '@tanstack/react-form'
-import { useSelector } from '@tanstack/react-store'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Shield, Info } from 'lucide-react'
 import { toast } from 'sonner'
@@ -131,9 +130,7 @@ export function RoleFormDialog({
     )
   }, [open, role])
 
-  // 响应式订阅 isAllPermissions 和 permissions 状态
-  const isAllPermissions = useSelector(form.store, (state: any) => state.values.isAllPermissions)
-  const selectedPermissions = useSelector(form.store, (state: any) => state.values.permissions ?? [])
+
 
   const createMutation = useMutation({
     mutationFn: createRole,
@@ -311,102 +308,110 @@ export function RoleFormDialog({
                   </div>
                 </div>
 
-                {isAllPermissions ? (
-                  <div className='rounded-md border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900/50 dark:bg-amber-950/20'>
-                    <div className='mb-1 flex items-center gap-2 text-amber-800 dark:text-amber-400'>
-                      <Info className='size-4' />
-                      <span className='text-sm font-semibold'>
-                        超级管理员模式已激活
-                      </span>
-                    </div>
-                    <p className='text-xs leading-relaxed text-amber-700/80 dark:text-amber-500/80'>
-                      该角色将自动获得系统目前及未来所有的功能权限。底层权限标识将返回为通用通配符{' '}
-                      <code>[*]</code>。
-                    </p>
-                  </div>
-                ) : (
-                  <form.Field
-                    name='permissions'
-                    children={(field) => {
-                      const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-                      return (
-                        <div className='space-y-4'>
-                          {Array.from(groupedPermissions.entries()).map(
-                            ([group, perms]) => {
-                              const permKeys = perms.map((p) => p.key)
-                              const allChecked = permKeys.every((k) =>
-                                selectedPermissions.includes(k)
-                              )
-                              const someChecked =
-                                !allChecked &&
-                                permKeys.some((k) =>
-                                  selectedPermissions.includes(k)
-                                )
+                <form.Subscribe
+                  selector={(state) => [state.values.isAllPermissions, state.values.permissions ?? []]}
+                  children={([isAll, selected]) => {
+                    const isAllPermissions = !!isAll
+                    const selectedPermissions = selected as string[]
 
-                              return (
-                                <div
-                                  key={group}
-                                  className='border-muted rounded border'
-                                >
-                                  <div className='bg-muted/30 flex items-center gap-2 px-3 py-2'>
-                                    <Checkbox
-                                      checked={
-                                        allChecked
-                                          ? true
-                                          : someChecked
-                                            ? 'indeterminate'
-                                            : false
-                                      }
-                                      onCheckedChange={() => toggleGroup(permKeys)}
-                                    />
-                                    <span className='text-muted-foreground/80 text-xs font-bold tracking-wider uppercase'>
-                                      {group}
-                                    </span>
-                                    <Badge
-                                      variant='secondary'
-                                      className='ml-auto h-5 px-1.5 text-[10px]'
-                                    >
-                                      {
-                                        permKeys.filter((k) =>
-                                          selectedPermissions.includes(k)
-                                        ).length
-                                      }
-                                      /{permKeys.length}
-                                    </Badge>
-                                  </div>
-                                  <div className='grid gap-x-4 gap-y-1 p-3 sm:grid-cols-2'>
-                                    {perms.map((perm) => (
-                                      <label
-                                        key={perm.key}
-                                        className='hover:bg-muted/50 flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1.5 text-sm transition-colors'
-                                      >
-                                        <Checkbox
-                                          checked={selectedPermissions.includes(
-                                            perm.key
-                                          )}
-                                          onCheckedChange={() =>
-                                            togglePermission(perm.key)
-                                          }
-                                        />
-                                        <span className='font-medium'>
-                                          {perm.label}
-                                        </span>
-                                        <span className='text-muted-foreground/60 ml-auto font-mono text-[10px]'>
-                                          {perm.key.split(':')[1]}
-                                        </span>
-                                      </label>
-                                    ))}
-                                  </div>
-                                </div>
-                              )
-                            }
-                          )}
-                          {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    return isAllPermissions ? (
+                      <div className='rounded-md border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900/50 dark:bg-amber-950/20'>
+                        <div className='mb-1 flex items-center gap-2 text-amber-800 dark:text-amber-400'>
+                          <Info className='size-4' />
+                          <span className='text-sm font-semibold'>
+                            超级管理员模式已激活
+                          </span>
                         </div>
-                      )
-                    }}
-                  />
-                )}
+                        <p className='text-xs leading-relaxed text-amber-700/80 dark:text-amber-500/80'>
+                          该角色将自动获得系统目前及未来所有的功能权限。底层权限标识将返回为通用通配符{' '}
+                          <code>[*]</code>。
+                        </p>
+                      </div>
+                    ) : (
+                      <form.Field
+                        name='permissions'
+                        children={(field) => {
+                          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                          return (
+                            <div className='space-y-4'>
+                              {Array.from(groupedPermissions.entries()).map(
+                                ([group, perms]) => {
+                                  const permKeys = perms.map((p) => p.key)
+                                  const allChecked = permKeys.every((k) =>
+                                    selectedPermissions.includes(k)
+                                  )
+                                  const someChecked =
+                                    !allChecked &&
+                                    permKeys.some((k) =>
+                                      selectedPermissions.includes(k)
+                                    )
+
+                                  return (
+                                    <div
+                                      key={group}
+                                      className='border-muted rounded border'
+                                    >
+                                      <div className='bg-muted/30 flex items-center gap-2 px-3 py-2'>
+                                        <Checkbox
+                                          checked={
+                                            allChecked
+                                              ? true
+                                              : someChecked
+                                                ? 'indeterminate'
+                                                : false
+                                          }
+                                          onCheckedChange={() => toggleGroup(permKeys)}
+                                        />
+                                        <span className='text-muted-foreground/80 text-xs font-bold tracking-wider uppercase'>
+                                          {group}
+                                        </span>
+                                        <Badge
+                                          variant='secondary'
+                                          className='ml-auto h-5 px-1.5 text-[10px]'
+                                        >
+                                          {
+                                            permKeys.filter((k) =>
+                                              selectedPermissions.includes(k)
+                                            ).length
+                                          }
+                                          /{permKeys.length}
+                                        </Badge>
+                                      </div>
+                                      <div className='grid gap-x-4 gap-y-1 p-3 sm:grid-cols-2'>
+                                        {perms.map((perm) => (
+                                          <label
+                                            key={perm.key}
+                                            className='hover:bg-muted/50 flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1.5 text-sm transition-colors'
+                                          >
+                                            <Checkbox
+                                              checked={selectedPermissions.includes(
+                                                perm.key
+                                              )}
+                                              onCheckedChange={() =>
+                                                togglePermission(perm.key)
+                                              }
+                                            />
+                                            <span className='font-medium'>
+                                              {perm.label}
+                                            </span>
+                                            <span className='text-muted-foreground/60 ml-auto font-mono text-[10px]'>
+                                              {perm.key.split(':')[1]}
+                                            </span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )
+                                }
+                              )}
+                              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                            </div>
+                          )
+                        }}
+                      />
+                    )
+                  }}
+                />
               </div>
             </div>
           </ScrollArea>

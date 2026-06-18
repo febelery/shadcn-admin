@@ -3,7 +3,6 @@
 import { useEffect, useMemo } from 'react'
 import { z } from 'zod'
 import { useForm } from '@tanstack/react-form'
-import { useSelector } from '@tanstack/react-store'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import {
@@ -141,8 +140,7 @@ export function UserActionDialog({
     if (open) form.reset()
   }, [open, initialValues])
 
-  // 密码字段是否已被用户修改过（用于控制确认密码是否可编辑）
-  const isPasswordDirty = useSelector(form.store, (state: any) => !!state.fieldMeta.password?.isDirty)
+
 
   return (
     <Dialog
@@ -410,16 +408,21 @@ export function UserActionDialog({
                     <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
                       确认密码
                     </FieldLabel>
-                    <PasswordInput
-                      id={field.name}
-                      name={field.name}
-                      disabled={!isPasswordDirty}
-                      placeholder='e.g., S3cur3P@ssw0rd'
-                      className='col-span-4'
-                      value={field.state.value || ''}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
+                    <form.Subscribe
+                      selector={(state) => !!state.fieldMeta.password?.isDirty}
+                      children={(isPasswordDirty) => (
+                        <PasswordInput
+                          id={field.name}
+                          name={field.name}
+                          disabled={!isPasswordDirty}
+                          placeholder='e.g., S3cur3P@ssw0rd'
+                          className='col-span-4'
+                          value={field.state.value || ''}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          aria-invalid={isInvalid}
+                        />
+                      )}
                     />
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />

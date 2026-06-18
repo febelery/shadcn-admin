@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
-import { useSelector } from '@tanstack/react-store'
 import { useNavigate } from '@tanstack/react-router'
+import { useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -42,9 +41,6 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
     },
   })
 
-  // 实时订阅 otp 值，用于控制按钮禁用状态
-  const otp = useSelector(form.store, (state: any) => state.values.otp)
-
   return (
     <form
       onSubmit={(e) => {
@@ -58,7 +54,8 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
       <form.Field
         name='otp'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel className='sr-only'>一次性密码</FieldLabel>
@@ -90,9 +87,14 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
           )
         }}
       />
-      <Button className='mt-2' disabled={otp.length < 6 || isLoading}>
-        验证
-      </Button>
+      <form.Subscribe
+        selector={(state) => state.values.otp}
+        children={(otp) => (
+          <Button className='mt-2' disabled={(otp || '').length < 6 || isLoading}>
+            验证
+          </Button>
+        )}
+      />
     </form>
   )
 }

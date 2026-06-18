@@ -4,7 +4,7 @@ import {
 } from '@/mocks/fixtures/survey-all-types-demo'
 import { faker } from '@faker-js/faker'
 import { http, HttpResponse } from 'msw'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 import {
   matchFilterValue,
   parseQueryFilterParam,
@@ -1341,11 +1341,14 @@ export const surveyHandlers = [
         return typeof v === 'object' ? JSON.stringify(v) : String(v)
       }),
     ])
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Records')
-    const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' })
-    return new HttpResponse(buf, {
+    
+    // 使用 exceljs 重构数据表写入 Buffer 逻辑
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Records')
+    worksheet.addRow(headers)
+    rows.forEach((row) => worksheet.addRow(row))
+    const buf = await workbook.xlsx.writeBuffer()
+    return new HttpResponse(buf as ArrayBuffer, {
       headers: {
         'Content-Type':
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

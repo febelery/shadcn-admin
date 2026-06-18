@@ -4,7 +4,6 @@
 import * as React from 'react'
 import { z } from 'zod'
 import { useForm } from '@tanstack/react-form'
-import { useSelector } from '@tanstack/react-store'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -379,8 +378,7 @@ function FileUploadFormExample({
     },
   })
 
-  // 实时订阅 files 值，用于渲染已选文件列表
-  const formValues = useSelector(form.store, (state: any) => state.values.files || [])
+
 
   return (
     <div className='space-y-6'>
@@ -475,19 +473,24 @@ function FileUploadFormExample({
       </div>
 
       {/* 当前值 */}
-      {formValues.length > 0 && (
-        <div className='space-y-1.5'>
-          <Label className='text-muted-foreground text-xs'>当前 URL 值</Label>
-          <ul className='bg-muted/50 space-y-1 rounded-lg p-3 font-mono text-xs break-all'>
-            {formValues.map((url: string, i: number) => (
-              <li key={i} className='text-muted-foreground'>
-                <span className='text-foreground font-medium'>{i + 1}.</span>{' '}
-                {url}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <form.Subscribe
+        selector={(state) => state.values.files || []}
+        children={(files) =>
+          files.length > 0 ? (
+            <div className='space-y-1.5'>
+              <Label className='text-muted-foreground text-xs'>当前 URL 值</Label>
+              <ul className='bg-muted/50 space-y-1 rounded-lg p-3 font-mono text-xs break-all'>
+                {files.map((url: string, i: number) => (
+                  <li key={i} className='text-muted-foreground'>
+                    <span className='text-foreground font-medium'>{i + 1}.</span>{' '}
+                    {url}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null
+        }
+      />
     </div>
   )
 }
