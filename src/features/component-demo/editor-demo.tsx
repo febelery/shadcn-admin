@@ -2,7 +2,6 @@ import * as React from 'react'
 import { z } from 'zod'
 import { useForm } from '@tanstack/react-form'
 import { toast } from 'sonner'
-import { defaultUpload } from '@/config/upload'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -11,7 +10,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card'
-import { Editor, type EditorVariant } from '@/components/ui/editor'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Field,
   FieldDescription,
@@ -20,29 +19,21 @@ import {
 } from '@/components/ui/field'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-// 表单 Schema
+// 表单 Schema，修改验证逻辑，取消富文本 HTML 标签的过滤
 const formSchema = z.object({
   content: z
     .string()
     .min(1, '内容不能为空')
-    .refine(
-      (val) => val.replace(/<[^>]*>/g, '').trim().length >= 10,
-      '内容至少需要 10 个字符（不包含 HTML 标签）'
-    ),
+    .min(10, '内容至少需要 10 个字符'),
 })
 
 type FormValues = z.infer<typeof formSchema>
 
 function EditorFormExample({
   disabled,
-  handleUpload,
-  variant,
 }: {
   disabled: boolean
-  handleUpload: (file: File) => Promise<{ src: string }>
-  variant: EditorVariant
 }) {
   const form = useForm({
     defaultValues: {
@@ -79,17 +70,16 @@ function EditorFormExample({
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>文章内容</FieldLabel>
-              <Editor
-                variant={variant}
+              {/* 将原本的 Editor 富文本编辑器改为普通的 Textarea 组件 */}
+              <Textarea
                 placeholder='请输入至少 10 个字符的文章内容...'
                 disabled={disabled}
                 className='min-h-[300px]'
-                onUpload={handleUpload}
                 value={field.state.value || ''}
-                onChange={field.handleChange}
+                onChange={(e) => field.handleChange(e.target.value)}
               />
               <FieldDescription>
-                请输入文章的正文内容，支持富文本格式。
+                请输入文章的正文内容。
               </FieldDescription>
               {isInvalid && <FieldError errors={field.state.meta.errors} />}
             </Field>
@@ -105,7 +95,7 @@ function EditorFormExample({
           onClick={() =>
             form.setFieldValue(
               'content',
-              '<p>这是一段<b>默认设置</b>的回显内容，用于测试表单重置和初始化功能。</p>'
+              '这是一段默认设置的回显内容，用于测试表单重置和初始化功能。'
             )
           }
         >
@@ -129,40 +119,17 @@ function EditorFormExample({
 
 export default function EditorDemo() {
   const [disabled, setDisabled] = React.useState(false)
-  const [variant, setVariant] = React.useState<EditorVariant>('standard')
-
-  const handleUpload = React.useCallback(
-    async (file: File) => {
-      // 直接使用项目统一上传函数，无需内联配置
-      const url = await defaultUpload(file, {})
-      return { src: url }
-    },
-    []
-  )
 
   return (
     <div className='space-y-6 p-6'>
       <div className='flex items-center justify-between'>
         <div>
-          <h2 className='text-2xl font-bold tracking-tight'>Editor</h2>
+          <h2 className='text-2xl font-bold tracking-tight'>Textarea</h2>
           <p className='text-muted-foreground'>
-            基于 AiEditor 的富文本编辑器组件。
+            基础的多行文本输入框组件。
           </p>
         </div>
         <div className='flex items-center gap-4'>
-          <div className='flex items-center gap-2'>
-            <Label>工具栏模式</Label>
-            <Tabs
-              value={variant}
-              onValueChange={(v) => setVariant(v as EditorVariant)}
-            >
-              <TabsList>
-                <TabsTrigger value='basic'>基础 (Basic)</TabsTrigger>
-                <TabsTrigger value='standard'>标准 (Standard)</TabsTrigger>
-                <TabsTrigger value='full'>完整 (Full)</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
           <div className='flex items-center gap-2'>
             <Switch
               checked={disabled}
@@ -184,11 +151,10 @@ export default function EditorDemo() {
         <CardContent>
           <EditorFormExample
             disabled={disabled}
-            handleUpload={handleUpload}
-            variant={variant}
           />
         </CardContent>
       </Card>
     </div>
   )
 }
+

@@ -2,7 +2,6 @@ import { type ReactNode } from 'react'
 import { Settings2, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Editor } from '@/components/ui/editor'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -214,10 +213,10 @@ function LayoutInspector({
           <Label className='text-muted-foreground text-xs font-medium'>
             说明内容
           </Label>
-          <Editor
-            variant='plain'
+          {/* 将原本的 Editor 富文本编辑器改为普通的 Textarea 组件 */}
+          <Textarea
             value={el.html}
-            onChange={(html) => updateHtmlBlock(sectionId, el.id, { html })}
+            onChange={(e) => updateHtmlBlock(sectionId, el.id, { html: e.target.value })}
             placeholder='输入说明内容…'
           />
         </div>

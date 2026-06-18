@@ -2,7 +2,7 @@ import { memo, type CSSProperties, type ReactNode } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
-import { Editor } from '@/components/ui/editor'
+import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import {
   buildQuestionOrdinalMap,
@@ -157,16 +157,16 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
         drag={drag}
       >
         <div data-surface-chrome className='min-w-0'>
-          <Editor
-            variant='plain'
+          {/* 将原本的 Editor 富文本编辑器改为普通的 Textarea 组件 */}
+          <Textarea
             value={element.html}
-            onChange={(html) =>
+            onChange={(e) =>
               useBuilderStore
                 .getState()
-                .updateHtmlBlock(sectionId, element.id, { html })
+                .updateHtmlBlock(sectionId, element.id, { html: e.target.value })
             }
             placeholder='输入说明内容…'
-            className='border-none shadow-none focus-within:ring-0 focus-within:ring-offset-0'
+            className='border-none shadow-none focus-within:ring-0 focus-within:ring-offset-0 resize-none min-h-0'
           />
         </div>
       </QuestionBlock>
