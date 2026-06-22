@@ -1,7 +1,8 @@
 import * as React from 'react'
-import { Editor } from '@tiptap/react'
+import type { Editor } from '@tiptap/react'
 import { Code2, Copy, Check } from 'lucide-react'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -9,7 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import {
   Tooltip,
   TooltipContent,

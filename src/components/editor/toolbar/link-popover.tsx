@@ -1,6 +1,9 @@
 import * as React from 'react'
-import { Editor } from '@tiptap/react'
+import type { Editor } from '@tiptap/react'
 import { Link, Link2Off } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Popover,
   PopoverContent,
@@ -11,9 +14,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
 
 interface LinkPopoverProps {
   editor: Editor

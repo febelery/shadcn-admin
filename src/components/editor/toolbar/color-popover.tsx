@@ -1,4 +1,4 @@
-import { Editor } from '@tiptap/react'
+import type { Editor } from '@tiptap/react'
 import { Palette, Highlighter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
