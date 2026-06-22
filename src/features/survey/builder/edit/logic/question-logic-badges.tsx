@@ -21,7 +21,9 @@ export function QuestionLogicBadges({ questionId, className }: Props) {
   const setEditingRuleId = useBuilderStore((s) => s.setEditingRuleId)
   const setBuilderMode = useBuilderStore((s) => s.setBuilderMode)
 
-  const sectionId = schema ? getEditorSection(schema)?.id ?? selectedSectionId : selectedSectionId
+  const sectionId = schema
+    ? (getEditorSection(schema)?.id ?? selectedSectionId)
+    : selectedSectionId
 
   const rules = schema?.rules ?? []
 

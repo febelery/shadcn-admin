@@ -1,15 +1,15 @@
 import axios from 'axios'
 import type { PaginatedResponse, QueryParams } from '@/types/api'
 import type {
-  SurveyListItem,
-  SurveyRecordItem,
-  SurveySchema,
-} from '@/features/survey/core/types'
-import type {
   SurveyAnalysisResult,
   QuestionAnalysis,
   SurveySegmentAnalysisResult,
 } from '@/features/survey/core/analysis-types'
+import type {
+  SurveyListItem,
+  SurveyRecordItem,
+  SurveySchema,
+} from '@/features/survey/core/types'
 
 /** 管理端 API 路径（单数资源名） */
 export const SURVEY_API = {
@@ -23,7 +23,8 @@ export const SURVEY_API = {
   record: (id: string) => `/api/survey/${id}/record`,
   export: (id: string) => `/api/survey/${id}/record/export`,
   analysis: (id: string) => `/api/survey/${id}/analysis`,
-  questionAnalysis: (id: string, questionId: string) => `/api/survey/${id}/analysis/question/${questionId}`,
+  questionAnalysis: (id: string, questionId: string) =>
+    `/api/survey/${id}/analysis/question/${questionId}`,
   segmentAnalysis: (id: string) => `/api/survey/${id}/analysis/segment`,
 } as const
 
@@ -101,7 +102,10 @@ export async function getSurveyQuestionAnalysis(
   questionId: string,
   params?: QueryParams
 ): Promise<QuestionAnalysis> {
-  const { data } = await axios.get(SURVEY_API.questionAnalysis(id, questionId), { params })
+  const { data } = await axios.get(
+    SURVEY_API.questionAnalysis(id, questionId),
+    { params }
+  )
   return data
 }
 

@@ -1,5 +1,5 @@
-import { Input } from '@/components/ui/input'
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { DEFAULT_SUBMISSION } from '@/features/survey/core/schema-defaults'
 import { useBuilderStore } from '../../store'
@@ -46,8 +46,14 @@ export function SubmissionPanel() {
           <p className='text-muted-foreground text-xs font-medium'>回收份数</p>
         </div>
         <div className='flex flex-col gap-3'>
-          <Field orientation='horizontal' className='items-center justify-between gap-3'>
-            <FieldLabel htmlFor='quota-enabled' className='text-sm font-normal leading-relaxed cursor-pointer'>
+          <Field
+            orientation='horizontal'
+            className='items-center justify-between gap-3'
+          >
+            <FieldLabel
+              htmlFor='quota-enabled'
+              className='cursor-pointer text-sm leading-relaxed font-normal'
+            >
               启用总份数上限
             </FieldLabel>
             <Switch
@@ -62,7 +68,10 @@ export function SubmissionPanel() {
           </Field>
           {quota.enabled ? (
             <Field className='gap-1.5'>
-              <FieldLabel htmlFor='quota-total' className='text-muted-foreground text-xs font-medium'>
+              <FieldLabel
+                htmlFor='quota-total'
+                className='text-muted-foreground text-xs font-medium'
+              >
                 最多回收份数
               </FieldLabel>
               <Input
@@ -91,8 +100,14 @@ export function SubmissionPanel() {
           <p className='text-muted-foreground text-xs font-medium'>提交频次</p>
         </div>
         <div className='flex flex-col gap-3'>
-          <Field orientation='horizontal' className='items-center justify-between gap-3'>
-            <FieldLabel htmlFor='rate-enabled' className='text-sm font-normal leading-relaxed cursor-pointer'>
+          <Field
+            orientation='horizontal'
+            className='items-center justify-between gap-3'
+          >
+            <FieldLabel
+              htmlFor='rate-enabled'
+              className='cursor-pointer text-sm leading-relaxed font-normal'
+            >
               启用人次 / 日次限制
             </FieldLabel>
             <Switch
@@ -108,7 +123,10 @@ export function SubmissionPanel() {
           {rate.enabled ? (
             <>
               <Field className='gap-1.5'>
-                <FieldLabel htmlFor='rate-user' className='text-muted-foreground text-xs font-medium'>
+                <FieldLabel
+                  htmlFor='rate-user'
+                  className='text-muted-foreground text-xs font-medium'
+                >
                   每人累计上限
                 </FieldLabel>
                 <Input
@@ -135,7 +153,10 @@ export function SubmissionPanel() {
                 </FieldDescription>
               </Field>
               <Field className='gap-1.5'>
-                <FieldLabel htmlFor='rate-user-day' className='text-muted-foreground text-xs font-medium'>
+                <FieldLabel
+                  htmlFor='rate-user-day'
+                  className='text-muted-foreground text-xs font-medium'
+                >
                   每人每天上限
                 </FieldLabel>
                 <Input
@@ -159,7 +180,10 @@ export function SubmissionPanel() {
                 />
               </Field>
               <Field className='gap-1.5'>
-                <FieldLabel htmlFor='rate-day' className='text-muted-foreground text-xs font-medium'>
+                <FieldLabel
+                  htmlFor='rate-day'
+                  className='text-muted-foreground text-xs font-medium'
+                >
                   问卷每天总上限
                 </FieldLabel>
                 <Input
@@ -190,11 +214,19 @@ export function SubmissionPanel() {
       {/* 防重复与密码 */}
       <div className='border-border/60 bg-muted/20 flex flex-col gap-3 rounded-lg border p-3.5'>
         <div className='flex flex-col gap-0.5'>
-          <p className='text-muted-foreground text-xs font-medium'>防重复与密码</p>
+          <p className='text-muted-foreground text-xs font-medium'>
+            防重复与密码
+          </p>
         </div>
         <div className='flex flex-col gap-3'>
-          <Field orientation='horizontal' className='items-center justify-between gap-3'>
-            <FieldLabel htmlFor='once-user' className='text-sm font-normal leading-relaxed cursor-pointer'>
+          <Field
+            orientation='horizontal'
+            className='items-center justify-between gap-3'
+          >
+            <FieldLabel
+              htmlFor='once-user'
+              className='cursor-pointer text-sm leading-relaxed font-normal'
+            >
               每人仅可填写一次
             </FieldLabel>
             <Switch
@@ -203,8 +235,14 @@ export function SubmissionPanel() {
               onCheckedChange={(c) => updateSubmission({ oncePerUser: !!c })}
             />
           </Field>
-          <Field orientation='horizontal' className='items-center justify-between gap-3'>
-            <FieldLabel htmlFor='once-device' className='text-sm font-normal leading-relaxed cursor-pointer'>
+          <Field
+            orientation='horizontal'
+            className='items-center justify-between gap-3'
+          >
+            <FieldLabel
+              htmlFor='once-device'
+              className='cursor-pointer text-sm leading-relaxed font-normal'
+            >
               每设备仅可填写一次
             </FieldLabel>
             <Switch
@@ -214,7 +252,10 @@ export function SubmissionPanel() {
             />
           </Field>
           <Field className='gap-1.5'>
-            <FieldLabel htmlFor='survey-password' className='text-muted-foreground text-xs font-medium'>
+            <FieldLabel
+              htmlFor='survey-password'
+              className='text-muted-foreground text-xs font-medium'
+            >
               访问密码
             </FieldLabel>
             <Input

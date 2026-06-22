@@ -73,7 +73,8 @@ export function DisplayForm() {
       <form.Field
         name='items'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <FieldSet>
               <div>
@@ -82,7 +83,7 @@ export function DisplayForm() {
                   Select the items you want to display in the sidebar.
                 </FieldDescription>
               </div>
-              
+
               <FieldGroup data-slot='checkbox-group'>
                 {items.map((item) => (
                   <Field
@@ -106,20 +107,20 @@ export function DisplayForm() {
                     />
                     <FieldLabel
                       htmlFor={`display-item-${item.id}`}
-                      className='font-normal cursor-pointer'
+                      className='cursor-pointer font-normal'
                     >
                       {item.label}
                     </FieldLabel>
                   </Field>
                 ))}
               </FieldGroup>
-              
+
               {isInvalid && <FieldError errors={field.state.meta.errors} />}
             </FieldSet>
           )
         }}
       />
-      
+
       <Button type='submit'>Update display</Button>
     </form>
   )

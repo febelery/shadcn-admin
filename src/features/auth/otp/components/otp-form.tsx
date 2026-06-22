@@ -90,7 +90,10 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
       <form.Subscribe
         selector={(state) => state.values.otp}
         children={(otp) => (
-          <Button className='mt-2' disabled={(otp || '').length < 6 || isLoading}>
+          <Button
+            className='mt-2'
+            disabled={(otp || '').length < 6 || isLoading}
+          >
             验证
           </Button>
         )}

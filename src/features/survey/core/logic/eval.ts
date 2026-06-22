@@ -9,7 +9,10 @@ export function isEmptyAnswer(value: unknown): boolean {
 }
 
 /** 统一规范化回答值（例如处理数值型、数组型等） */
-export function normalizeAnswerValue(question: QuestionElement, value: unknown): unknown {
+export function normalizeAnswerValue(
+  question: QuestionElement,
+  value: unknown
+): unknown {
   if (value === undefined || value === null) return value
   if (Array.isArray(value)) return value.map(String)
   if (

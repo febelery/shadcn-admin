@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
 import { Link } from '@tanstack/react-router'
+import { useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -60,7 +60,8 @@ export function NotificationForm() {
       <form.Field
         name='type'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <FieldSet>
               <FieldLegend variant='label'>Notify me about...</FieldLegend>
@@ -72,19 +73,31 @@ export function NotificationForm() {
               >
                 <Field orientation='horizontal' data-invalid={isInvalid}>
                   <RadioGroupItem value='all' id={`${field.name}-all`} />
-                  <FieldLabel htmlFor={`${field.name}-all`} className='font-normal cursor-pointer'>
+                  <FieldLabel
+                    htmlFor={`${field.name}-all`}
+                    className='cursor-pointer font-normal'
+                  >
                     All new messages
                   </FieldLabel>
                 </Field>
                 <Field orientation='horizontal' data-invalid={isInvalid}>
-                  <RadioGroupItem value='mentions' id={`${field.name}-mentions`} />
-                  <FieldLabel htmlFor={`${field.name}-mentions`} className='font-normal cursor-pointer'>
+                  <RadioGroupItem
+                    value='mentions'
+                    id={`${field.name}-mentions`}
+                  />
+                  <FieldLabel
+                    htmlFor={`${field.name}-mentions`}
+                    className='cursor-pointer font-normal'
+                  >
                     Direct messages and mentions
                   </FieldLabel>
                 </Field>
                 <Field orientation='horizontal' data-invalid={isInvalid}>
                   <RadioGroupItem value='none' id={`${field.name}-none`} />
-                  <FieldLabel htmlFor={`${field.name}-none`} className='font-normal cursor-pointer'>
+                  <FieldLabel
+                    htmlFor={`${field.name}-none`}
+                    className='cursor-pointer font-normal'
+                  >
                     Nothing
                   </FieldLabel>
                 </Field>
@@ -103,7 +116,8 @@ export function NotificationForm() {
           <form.Field
             name='communication_emails'
             children={(field) => {
-              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field
                   orientation='horizontal'
@@ -111,13 +125,18 @@ export function NotificationForm() {
                   className='justify-between rounded-lg border p-4'
                 >
                   <FieldContent>
-                    <FieldLabel htmlFor={field.name} className='text-base font-medium'>
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className='text-base font-medium'
+                    >
                       Communication emails
                     </FieldLabel>
                     <FieldDescription>
                       Receive emails about your account activity.
                     </FieldDescription>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </FieldContent>
                   <Switch
                     id={field.name}
@@ -135,7 +154,8 @@ export function NotificationForm() {
           <form.Field
             name='marketing_emails'
             children={(field) => {
-              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field
                   orientation='horizontal'
@@ -143,13 +163,18 @@ export function NotificationForm() {
                   className='justify-between rounded-lg border p-4'
                 >
                   <FieldContent>
-                    <FieldLabel htmlFor={field.name} className='text-base font-medium'>
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className='text-base font-medium'
+                    >
                       Marketing emails
                     </FieldLabel>
                     <FieldDescription>
                       Receive emails about new products, features, and more.
                     </FieldDescription>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </FieldContent>
                   <Switch
                     id={field.name}
@@ -167,7 +192,8 @@ export function NotificationForm() {
           <form.Field
             name='social_emails'
             children={(field) => {
-              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field
                   orientation='horizontal'
@@ -175,13 +201,18 @@ export function NotificationForm() {
                   className='justify-between rounded-lg border p-4'
                 >
                   <FieldContent>
-                    <FieldLabel htmlFor={field.name} className='text-base font-medium'>
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className='text-base font-medium'
+                    >
                       Social emails
                     </FieldLabel>
                     <FieldDescription>
                       Receive emails for friend requests, follows, and more.
                     </FieldDescription>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </FieldContent>
                   <Switch
                     id={field.name}
@@ -199,7 +230,8 @@ export function NotificationForm() {
           <form.Field
             name='security_emails'
             children={(field) => {
-              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field
                   orientation='horizontal'
@@ -207,13 +239,18 @@ export function NotificationForm() {
                   className='justify-between rounded-lg border p-4'
                 >
                   <FieldContent>
-                    <FieldLabel htmlFor={field.name} className='text-base font-medium'>
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className='text-base font-medium'
+                    >
                       Security emails
                     </FieldLabel>
                     <FieldDescription>
                       Receive emails about your account activity and security.
                     </FieldDescription>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
                   </FieldContent>
                   <Switch
                     id={field.name}
@@ -234,18 +271,28 @@ export function NotificationForm() {
       <form.Field
         name='mobile'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
-            <Field orientation='horizontal' data-invalid={isInvalid} className='items-start'>
+            <Field
+              orientation='horizontal'
+              data-invalid={isInvalid}
+              className='items-start'
+            >
               <Checkbox
                 id={field.name}
                 checked={field.state.value}
-                onCheckedChange={(checked) => field.handleChange(checked === true)}
+                onCheckedChange={(checked) =>
+                  field.handleChange(checked === true)
+                }
                 aria-invalid={isInvalid}
                 className='mt-1'
               />
               <FieldContent className='gap-1'>
-                <FieldLabel htmlFor={field.name} className='font-normal cursor-pointer'>
+                <FieldLabel
+                  htmlFor={field.name}
+                  className='cursor-pointer font-normal'
+                >
                   Use different settings for my mobile devices
                 </FieldLabel>
                 <FieldDescription>

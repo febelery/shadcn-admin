@@ -48,12 +48,14 @@ export function TaskMutateDrawer({
 
   // 动态构建默认值
   const initialValues = useMemo(() => {
-    return currentRow ?? {
-      title: '',
-      status: '',
-      label: '',
-      priority: '',
-    }
+    return (
+      currentRow ?? {
+        title: '',
+        status: '',
+        label: '',
+        priority: '',
+      }
+    )
   }, [currentRow])
 
   const form = useForm({
@@ -91,7 +93,7 @@ export function TaskMutateDrawer({
             完成后点击保存。
           </SheetDescription>
         </SheetHeader>
-        
+
         <form
           id='task-form'
           onSubmit={(e) => {
@@ -105,7 +107,8 @@ export function TaskMutateDrawer({
           <form.Field
             name='title'
             children={(field) => {
-              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>标题</FieldLabel>
@@ -128,7 +131,8 @@ export function TaskMutateDrawer({
           <form.Field
             name='status'
             children={(field) => {
-              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>状态</FieldLabel>
@@ -154,7 +158,8 @@ export function TaskMutateDrawer({
           <form.Field
             name='label'
             children={(field) => {
-              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <FieldSet>
                   <FieldLegend variant='label'>标签</FieldLegend>
@@ -165,20 +170,35 @@ export function TaskMutateDrawer({
                     className='flex flex-col space-y-1'
                   >
                     <Field orientation='horizontal' data-invalid={isInvalid}>
-                      <RadioGroupItem value='documentation' id={`${field.name}-documentation`} />
-                      <FieldLabel htmlFor={`${field.name}-documentation`} className='font-normal cursor-pointer'>
+                      <RadioGroupItem
+                        value='documentation'
+                        id={`${field.name}-documentation`}
+                      />
+                      <FieldLabel
+                        htmlFor={`${field.name}-documentation`}
+                        className='cursor-pointer font-normal'
+                      >
                         文档
                       </FieldLabel>
                     </Field>
                     <Field orientation='horizontal' data-invalid={isInvalid}>
-                      <RadioGroupItem value='feature' id={`${field.name}-feature`} />
-                      <FieldLabel htmlFor={`${field.name}-feature`} className='font-normal cursor-pointer'>
+                      <RadioGroupItem
+                        value='feature'
+                        id={`${field.name}-feature`}
+                      />
+                      <FieldLabel
+                        htmlFor={`${field.name}-feature`}
+                        className='cursor-pointer font-normal'
+                      >
                         功能
                       </FieldLabel>
                     </Field>
                     <Field orientation='horizontal' data-invalid={isInvalid}>
                       <RadioGroupItem value='bug' id={`${field.name}-bug`} />
-                      <FieldLabel htmlFor={`${field.name}-bug`} className='font-normal cursor-pointer'>
+                      <FieldLabel
+                        htmlFor={`${field.name}-bug`}
+                        className='cursor-pointer font-normal'
+                      >
                         错误
                       </FieldLabel>
                     </Field>
@@ -193,7 +213,8 @@ export function TaskMutateDrawer({
           <form.Field
             name='priority'
             children={(field) => {
-              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <FieldSet>
                   <FieldLegend variant='label'>优先级</FieldLegend>
@@ -205,19 +226,31 @@ export function TaskMutateDrawer({
                   >
                     <Field orientation='horizontal' data-invalid={isInvalid}>
                       <RadioGroupItem value='high' id={`${field.name}-high`} />
-                      <FieldLabel htmlFor={`${field.name}-high`} className='font-normal cursor-pointer'>
+                      <FieldLabel
+                        htmlFor={`${field.name}-high`}
+                        className='cursor-pointer font-normal'
+                      >
                         高
                       </FieldLabel>
                     </Field>
                     <Field orientation='horizontal' data-invalid={isInvalid}>
-                      <RadioGroupItem value='medium' id={`${field.name}-medium`} />
-                      <FieldLabel htmlFor={`${field.name}-medium`} className='font-normal cursor-pointer'>
+                      <RadioGroupItem
+                        value='medium'
+                        id={`${field.name}-medium`}
+                      />
+                      <FieldLabel
+                        htmlFor={`${field.name}-medium`}
+                        className='cursor-pointer font-normal'
+                      >
                         中
                       </FieldLabel>
                     </Field>
                     <Field orientation='horizontal' data-invalid={isInvalid}>
                       <RadioGroupItem value='low' id={`${field.name}-low`} />
-                      <FieldLabel htmlFor={`${field.name}-low`} className='font-normal cursor-pointer'>
+                      <FieldLabel
+                        htmlFor={`${field.name}-low`}
+                        className='cursor-pointer font-normal'
+                      >
                         低
                       </FieldLabel>
                     </Field>

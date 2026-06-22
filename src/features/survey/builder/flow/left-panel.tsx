@@ -2,7 +2,11 @@ import { useMemo, useCallback } from 'react'
 import { GitBranch, Plus, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { analyseSurvey } from '@/features/survey/core/expression/analyzer'
 import { ruleMatchesSearch } from '@/features/survey/core/logic/rule-meta'

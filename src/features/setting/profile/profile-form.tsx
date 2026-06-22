@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
 import { Link } from '@tanstack/react-router'
+import { useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -75,7 +75,8 @@ export function ProfileForm() {
       <form.Field
         name='username'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>Username</FieldLabel>
@@ -102,7 +103,8 @@ export function ProfileForm() {
       <form.Field
         name='email'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>Email</FieldLabel>
@@ -134,7 +136,8 @@ export function ProfileForm() {
       <form.Field
         name='bio'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>Bio</FieldLabel>
@@ -170,15 +173,20 @@ export function ProfileForm() {
                 name={`urls[${index}].value`}
                 children={(subField) => {
                   const isSubFieldInvalid =
-                    subField.state.meta.isTouched && !subField.state.meta.isValid
+                    subField.state.meta.isTouched &&
+                    !subField.state.meta.isValid
                   return (
                     <Field data-invalid={isSubFieldInvalid}>
-                      <FieldLabel className={cn(index !== 0 && 'sr-only')} htmlFor={subField.name}>
+                      <FieldLabel
+                        className={cn(index !== 0 && 'sr-only')}
+                        htmlFor={subField.name}
+                      >
                         URLs
                       </FieldLabel>
                       {index === 0 && (
                         <FieldDescription>
-                          Add links to your website, blog, or social media profiles.
+                          Add links to your website, blog, or social media
+                          profiles.
                         </FieldDescription>
                       )}
                       <Input
@@ -190,7 +198,9 @@ export function ProfileForm() {
                         aria-invalid={isSubFieldInvalid}
                         className={cn(index !== 0 && 'mt-1.5')}
                       />
-                      {isSubFieldInvalid && <FieldError errors={subField.state.meta.errors} />}
+                      {isSubFieldInvalid && (
+                        <FieldError errors={subField.state.meta.errors} />
+                      )}
                     </Field>
                   )
                 }}

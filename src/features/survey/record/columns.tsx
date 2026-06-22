@@ -1,6 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { getFilterFn } from '@/lib/data-grid-filters'
-import type { QuestionElement, SurveyRecordItem, SurveySchema } from '../core/types'
+import type {
+  QuestionElement,
+  SurveyRecordItem,
+  SurveySchema,
+} from '../core/types'
 import { getQuestionReferenceLabel } from '../shared/question-numbering'
 
 export type SurveyRecordGridRow = SurveyRecordItem
@@ -87,26 +91,24 @@ export function createRecordGridColumns(
       },
       minSize: 110,
     },
-    ...questions.map(
-      (question, index): ColumnDef<SurveyRecordGridRow> => {
-        const titleLabel = schema
-          ? getQuestionReferenceLabel(question, schema)
-          : `${index + 1}. ${question.title}`
-        return {
-          id: `answer_${question.id}`,
-          accessorFn: (row) =>
-            formatAnswerForGrid(question, row.answers[question.id]),
-          header: titleLabel,
-          filterFn,
-          meta: {
-            label: titleLabel,
-            cell: getQuestionCellMeta(question),
-          },
-          enableSorting: false,
-          minSize: getQuestionColumnSize(question),
-        }
+    ...questions.map((question, index): ColumnDef<SurveyRecordGridRow> => {
+      const titleLabel = schema
+        ? getQuestionReferenceLabel(question, schema)
+        : `${index + 1}. ${question.title}`
+      return {
+        id: `answer_${question.id}`,
+        accessorFn: (row) =>
+          formatAnswerForGrid(question, row.answers[question.id]),
+        header: titleLabel,
+        filterFn,
+        meta: {
+          label: titleLabel,
+          cell: getQuestionCellMeta(question),
+        },
+        enableSorting: false,
+        minSize: getQuestionColumnSize(question),
       }
-    ),
+    }),
   ]
 }
 

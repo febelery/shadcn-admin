@@ -12,11 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 
 // 校验 FileList 实例是否非空且为 CSV 格式
@@ -93,7 +89,8 @@ export function TaskImportDialog({
           <form.Field
             name='file'
             children={(field) => {
-              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid
               return (
                 <Field data-invalid={isInvalid} className='my-2'>
                   <FieldLabel htmlFor={field.name}>文件</FieldLabel>

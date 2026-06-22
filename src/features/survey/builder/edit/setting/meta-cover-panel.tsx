@@ -2,13 +2,6 @@ import { useId, useState } from 'react'
 import { Link2 } from 'lucide-react'
 import { type MediaKind, mbToBytes } from '@/lib/files'
 import { cn } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
-import { FileUpload } from '@/components/file-upload'
 import { Button } from '@/components/ui/button'
 import {
   ColorPicker,
@@ -23,6 +16,17 @@ import {
   ColorPickerTrigger,
 } from '@/components/ui/color-picker'
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
+import { FileUpload } from '@/components/file-upload'
 import { DEFAULT_META } from '@/features/survey/core/schema-defaults'
 import { useBuilderStore } from '../../store'
 import { InspectorSection } from '../inspector/panel'
@@ -346,7 +350,10 @@ export function MetaCoverPanel() {
       ) : null}
 
       <Field className='gap-1.5'>
-        <FieldLabel htmlFor='survey-desc' className='text-muted-foreground text-xs font-medium'>
+        <FieldLabel
+          htmlFor='survey-desc'
+          className='text-muted-foreground text-xs font-medium'
+        >
           问卷说明
         </FieldLabel>
         <Textarea
@@ -358,7 +365,10 @@ export function MetaCoverPanel() {
       </Field>
 
       <Field className='gap-1.5'>
-        <FieldLabel htmlFor='submit-label' className='text-muted-foreground text-xs font-medium'>
+        <FieldLabel
+          htmlFor='submit-label'
+          className='text-muted-foreground text-xs font-medium'
+        >
           提交按钮文案
         </FieldLabel>
         <Input

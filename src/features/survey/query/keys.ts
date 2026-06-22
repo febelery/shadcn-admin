@@ -13,7 +13,14 @@ export const surveyKeys = {
   analysis: (id: string, params?: QueryParams) =>
     [...surveyKeys.all, 'analysis', id, params] as const,
   questionAnalysis: (id: string, questionId: string, params?: QueryParams) =>
-    [...surveyKeys.all, 'analysis', id, 'question', questionId, params] as const,
+    [
+      ...surveyKeys.all,
+      'analysis',
+      id,
+      'question',
+      questionId,
+      params,
+    ] as const,
   segmentAnalysis: (id: string, params?: QueryParams) =>
     [...surveyKeys.all, 'analysis', id, 'segment', params] as const,
 }

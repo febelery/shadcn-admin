@@ -1,13 +1,5 @@
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   ColorPicker,
   ColorPickerAlphaSlider,
@@ -20,13 +12,24 @@ import {
   ColorPickerSwatch,
   ColorPickerTrigger,
 } from '@/components/ui/color-picker'
+import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   isSurveyNumberingEnabled,
   SURVEY_NUMBERING_MODE_OPTIONS,
   SURVEY_NUMBERING_OPTIONS,
 } from '@/features/survey/shared/question-numbering'
 import { useBuilderStore } from '../../store'
-import type { QuestionNumberingMode, SurveyDefaultNumberingStyle } from '../../types'
+import type {
+  QuestionNumberingMode,
+  SurveyDefaultNumberingStyle,
+} from '../../types'
 import { InspectorSection } from '../inspector/panel'
 
 function NumberingStyleSelect({
@@ -170,8 +173,9 @@ export function ThemePanel() {
           </Select>
           <FieldDescription className='text-muted-foreground text-xs leading-relaxed'>
             {
-              SURVEY_NUMBERING_MODE_OPTIONS.find((o) => o.value === numberingMode)
-                ?.hint
+              SURVEY_NUMBERING_MODE_OPTIONS.find(
+                (o) => o.value === numberingMode
+              )?.hint
             }
           </FieldDescription>
         </Field>

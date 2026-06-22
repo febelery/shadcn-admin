@@ -10,7 +10,6 @@ import {
   Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ConfirmDialog } from '@/components/confirm-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +22,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import type { SurveyListItem } from '../core/types'
 
 /** 从列表打开已有问卷的编辑页（新标签，保留列表页） */
@@ -114,7 +114,6 @@ export function SurveyRowActions({
           填写记录
         </TooltipContent>
       </Tooltip>
-
 
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>

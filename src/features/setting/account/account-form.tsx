@@ -80,7 +80,8 @@ export function AccountForm() {
       <form.Field
         name='name'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>Name</FieldLabel>
@@ -107,7 +108,8 @@ export function AccountForm() {
       <form.Field
         name='dob'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <Field data-invalid={isInvalid} className='flex flex-col'>
               <FieldLabel htmlFor={field.name}>Date of birth</FieldLabel>
@@ -128,7 +130,8 @@ export function AccountForm() {
       <form.Field
         name='language'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <Field data-invalid={isInvalid} className='flex flex-col'>
               <FieldLabel htmlFor={field.name}>Language</FieldLabel>

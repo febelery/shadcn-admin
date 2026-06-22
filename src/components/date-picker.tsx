@@ -48,8 +48,7 @@ const PM_VALUE = 1
 export type LocalDateTimeString = string
 
 const LOCAL_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss"
-const LOCAL_DATETIME_RE =
-  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/
+const LOCAL_DATETIME_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/
 
 export function formatLocalDateTime(date: Date): LocalDateTimeString {
   return format(date, LOCAL_DATETIME_FORMAT)

@@ -45,7 +45,6 @@ export interface FileValidation {
   validate?: (file: File) => string | null
 }
 
-
 export type UploadFn = (
   file: File,
   options: { onProgress?: (progress: number) => void }

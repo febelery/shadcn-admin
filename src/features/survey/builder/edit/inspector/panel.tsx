@@ -2,13 +2,6 @@ import { type ReactNode } from 'react'
 import { Settings2, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
 import {
   Card,
   CardContent,
@@ -22,6 +15,13 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
 import {
   getInspectorSectionTitle,
   inspectorSectionDefaultOpen,
@@ -31,6 +31,7 @@ import {
   isQuestionNumberVisible,
   SURVEY_NUMBERING_OPTIONS,
 } from '@/features/survey/shared/question-numbering'
+import { getSurveyDefaultNumberingStyle } from '@/features/survey/shared/question-numbering'
 import { getQuestionTypeLabel } from '@/features/survey/shared/question-registry'
 import {
   getQuestionTypeHint,
@@ -38,9 +39,8 @@ import {
 } from '@/features/survey/shared/question-type-hints'
 import { QuestionTypePreview } from '@/features/survey/shared/question-type-preview'
 import { getEditorSection } from '../../../core/editor-schema'
-import { getSurveyDefaultNumberingStyle } from '@/features/survey/shared/question-numbering'
-import { useBuilderStore } from '../../store'
 import { BuilderPanelHeader } from '../../shared/panel-header'
+import { useBuilderStore } from '../../store'
 import type { SurveyElement, QuestionElement } from '../../types'
 import { BuilderGuidance } from '../guidance'
 import { EndPagePanel } from '../setting/end-page-panel'
@@ -59,7 +59,9 @@ function QuestionInspector({
   sectionId: string
   el: QuestionElement
 }) {
-  const surveyStyle = useBuilderStore((s) => s.schema ? getSurveyDefaultNumberingStyle(s.schema) : 'decimal')
+  const surveyStyle = useBuilderStore((s) =>
+    s.schema ? getSurveyDefaultNumberingStyle(s.schema) : 'decimal'
+  )
   const updateQuestion = useBuilderStore((s) => s.updateQuestion)
   const updateQuestionConfig = useBuilderStore((s) => s.updateQuestionConfig)
   const removeElement = useBuilderStore((s) => s.removeElement)
@@ -89,7 +91,12 @@ function QuestionInspector({
 
       <InspectorSection title='基础信息' description='与画布内联编辑同步'>
         <Field className='gap-1.5'>
-          <FieldLabel htmlFor='q-title' className='text-muted-foreground text-xs font-medium'>题目标题</FieldLabel>
+          <FieldLabel
+            htmlFor='q-title'
+            className='text-muted-foreground text-xs font-medium'
+          >
+            题目标题
+          </FieldLabel>
           <Input
             id='q-title'
             className='h-9'
@@ -98,7 +105,12 @@ function QuestionInspector({
           />
         </Field>
         <Field className='gap-1.5'>
-          <FieldLabel htmlFor='q-desc' className='text-muted-foreground text-xs font-medium'>题目说明</FieldLabel>
+          <FieldLabel
+            htmlFor='q-desc'
+            className='text-muted-foreground text-xs font-medium'
+          >
+            题目说明
+          </FieldLabel>
           <Textarea
             id='q-desc'
             rows={2}
@@ -120,9 +132,17 @@ function QuestionInspector({
             ）。可在画布点击题号区域切换单题显隐。
           </p>
         ) : (
-          <Field orientation='horizontal' className='items-start justify-between gap-3'>
+          <Field
+            orientation='horizontal'
+            className='items-start justify-between gap-3'
+          >
             <div className='flex min-w-0 flex-col gap-0.5'>
-              <FieldLabel htmlFor={`show-number-${el.id}`} className='text-sm font-normal leading-relaxed'>显示本题题号</FieldLabel>
+              <FieldLabel
+                htmlFor={`show-number-${el.id}`}
+                className='text-sm leading-relaxed font-normal'
+              >
+                显示本题题号
+              </FieldLabel>
               <FieldDescription className='text-muted-foreground text-xs leading-relaxed'>
                 {`全卷样式：${surveyStyleLabel}，在「问卷设置」中修改`}
               </FieldDescription>
@@ -135,9 +155,17 @@ function QuestionInspector({
             />
           </Field>
         )}
-        <Field orientation='horizontal' className='items-start justify-between gap-3'>
+        <Field
+          orientation='horizontal'
+          className='items-start justify-between gap-3'
+        >
           <div className='flex min-w-0 flex-col gap-0.5'>
-            <FieldLabel htmlFor={`required-${el.id}`} className='text-sm font-normal leading-relaxed'>必填</FieldLabel>
+            <FieldLabel
+              htmlFor={`required-${el.id}`}
+              className='text-sm leading-relaxed font-normal'
+            >
+              必填
+            </FieldLabel>
             <FieldDescription className='text-muted-foreground text-xs leading-relaxed'>
               画布左侧「必/选」徽章可快速切换
             </FieldDescription>
@@ -216,7 +244,9 @@ function LayoutInspector({
           {/* 将原本的 Editor 富文本编辑器改为普通的 Textarea 组件 */}
           <Textarea
             value={el.html}
-            onChange={(e) => updateHtmlBlock(sectionId, el.id, { html: e.target.value })}
+            onChange={(e) =>
+              updateHtmlBlock(sectionId, el.id, { html: e.target.value })
+            }
             placeholder='输入说明内容…'
           />
         </div>
@@ -245,8 +275,12 @@ export function InspectorPanel({ className }: Props = {}) {
   const inspectorTab = useBuilderStore((s) => s.inspectorTab)
   const setInspectorTab = useBuilderStore((s) => s.setInspectorTab)
 
-  const sectionId = useBuilderStore((s) => s.schema ? getEditorSection(s.schema)?.id ?? s.selectedSectionId : s.selectedSectionId)
-  
+  const sectionId = useBuilderStore((s) =>
+    s.schema
+      ? (getEditorSection(s.schema)?.id ?? s.selectedSectionId)
+      : s.selectedSectionId
+  )
+
   const selectedEl = useBuilderStore((s) => {
     if (!s.schema || !s.selectedElementId) return undefined
     const section = getEditorSection(s.schema)

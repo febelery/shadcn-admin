@@ -1,16 +1,12 @@
 import { useState } from 'react'
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
 import { useNavigate } from '@tanstack/react-router'
+import { useForm } from '@tanstack/react-form'
 import { ArrowRight, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { sleep, cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 
 const formSchema = z.object({
@@ -63,7 +59,8 @@ export function ForgotPasswordForm({
       <form.Field
         name='email'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>邮箱</FieldLabel>

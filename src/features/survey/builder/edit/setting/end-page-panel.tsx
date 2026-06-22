@@ -1,6 +1,6 @@
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Field, FieldLabel } from '@/components/ui/field'
 import { useBuilderStore } from '../../store'
 import { InspectorSection } from '../inspector/panel'
 
@@ -18,7 +18,10 @@ export function EndPagePanel() {
       defaultOpen
     >
       <Field className='gap-1.5'>
-        <FieldLabel htmlFor='end-title' className='text-muted-foreground text-xs font-medium'>
+        <FieldLabel
+          htmlFor='end-title'
+          className='text-muted-foreground text-xs font-medium'
+        >
           结束标题
         </FieldLabel>
         <Input
@@ -29,7 +32,10 @@ export function EndPagePanel() {
         />
       </Field>
       <Field className='gap-1.5'>
-        <FieldLabel htmlFor='end-desc' className='text-muted-foreground text-xs font-medium'>
+        <FieldLabel
+          htmlFor='end-desc'
+          className='text-muted-foreground text-xs font-medium'
+        >
           结束说明
         </FieldLabel>
         <Textarea

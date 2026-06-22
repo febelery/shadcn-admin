@@ -12,7 +12,7 @@ export function useFocus() {
     setFocusId(null)
     // 延迟一个渲染帧确保组件已经处于正确的数据状态
     requestAnimationFrame(() => {
-        setFocusId(id)
+      setFocusId(id)
     })
   }, [])
 

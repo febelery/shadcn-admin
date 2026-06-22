@@ -118,10 +118,16 @@ export function isQuestionNumberVisible(
   return true
 }
 
-const displayOrdinalCache = new WeakMap<SurveySchema, Map<string, number | null>>()
+const displayOrdinalCache = new WeakMap<
+  SurveySchema,
+  Map<string, number | null>
+>()
 const ordinalCache = new WeakMap<SurveySchema, Map<string, number>>()
 const referenceLabelCache = new WeakMap<SurveySchema, Map<string, string>>()
-const numberPrefixCache = new WeakMap<SurveySchema, Map<string, string | null>>()
+const numberPrefixCache = new WeakMap<
+  SurveySchema,
+  Map<string, string | null>
+>()
 
 /** 卷内全局序号（每题均有，用于连续模式下编辑器对照） */
 export function buildQuestionOrdinalMap(
@@ -223,7 +229,7 @@ export function getQuestionReferenceLabel(
     const style = getSurveyDefaultNumberingStyle(schema)
 
     questions.forEach((q, index) => {
-      const globalOrdinal = globalOrdinalMap.get(q.id) ?? (index + 1)
+      const globalOrdinal = globalOrdinalMap.get(q.id) ?? index + 1
       const displayOrdinal = displayOrdinalMap.get(q.id) ?? null
       const title = q.title?.trim()
 

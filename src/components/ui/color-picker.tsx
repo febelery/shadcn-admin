@@ -775,7 +775,8 @@ function ColorPickerRootImpl(props: ColorPickerRootImplProps) {
 }
 
 interface ColorPickerTriggerProps
-  extends React.ComponentProps<typeof PopoverTrigger>,
+  extends
+    React.ComponentProps<typeof PopoverTrigger>,
     VariantProps<typeof buttonVariants> {}
 
 function ColorPickerTrigger(props: ColorPickerTriggerProps) {

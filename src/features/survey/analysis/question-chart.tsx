@@ -188,25 +188,29 @@ export function QuestionChart({
       setIsVisible(true)
       return
     }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setIsVisible(true)
-        observer.disconnect()
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          observer.disconnect()
+        }
+      },
+      {
+        rootMargin: '100px',
+        threshold: 0.01,
       }
-    }, {
-      rootMargin: '100px',
-      threshold: 0.01,
-    })
+    )
     observer.observe(node)
     return () => observer.disconnect()
   }, [])
 
-  const { data: analysis, isLoading, error } = useSurveyQuestionAnalysis(
-    surveyId,
-    question.id,
-    params,
-    { enabled: isVisible }
-  )
+  const {
+    data: analysis,
+    isLoading,
+    error,
+  } = useSurveyQuestionAnalysis(surveyId, question.id, params, {
+    enabled: isVisible,
+  })
 
   const typeLabel = getQuestionTypeLabel(question.type) || '未知题型'
 
@@ -235,7 +239,9 @@ export function QuestionChart({
           <div className='space-y-1'>
             <div className='text-sm font-medium'>题目分析加载失败</div>
             <div className='text-muted-foreground text-xs'>
-              {error instanceof Error ? error.message : '当前题目的数据请求异常，请刷新重试。'}
+              {error instanceof Error
+                ? error.message
+                : '当前题目的数据请求异常，请刷新重试。'}
             </div>
           </div>
         </div>

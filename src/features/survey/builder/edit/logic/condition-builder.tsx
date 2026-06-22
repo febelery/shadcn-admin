@@ -254,14 +254,14 @@ export function ConditionBuilder({
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className='overflow-hidden'>
-          <div className='border-t px-2.5 py-2.5 space-y-3.5'>
+          <div className='space-y-3.5 border-t px-2.5 py-2.5'>
             {isAdvanced ? (
               <div className='space-y-2'>
                 <Label className='text-muted-foreground text-[10px] leading-none font-semibold'>
                   高级逻辑表达式（支持手写条件）
                 </Label>
                 <textarea
-                  className='flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 font-mono leading-relaxed'
+                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[60px] w-full rounded-md border px-3 py-2 font-mono text-xs leading-relaxed focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50'
                   value={when}
                   onChange={(e) => onWhenChange(e.target.value)}
                   placeholder="例如: {q.questionId} eq 'value'"
@@ -271,13 +271,13 @@ export function ConditionBuilder({
                     type='button'
                     variant='outline'
                     size='sm'
-                    className='h-7 text-[10px] px-2'
+                    className='h-7 px-2 text-[10px]'
                     onClick={() => setIsAdvanced(false)}
                   >
                     切换为可视化配置
                   </Button>
                 ) : (
-                  <p className='text-[10px] text-muted-foreground leading-normal'>
+                  <p className='text-muted-foreground text-[10px] leading-normal'>
                     当前表达式包含复杂复合逻辑，仅支持在高级表达式模式下编辑。
                   </p>
                 )}
@@ -294,7 +294,7 @@ export function ConditionBuilder({
                   <Button
                     type='button'
                     variant='link'
-                    className='h-auto p-0 text-[10px] text-muted-foreground hover:text-foreground hover:no-underline'
+                    className='text-muted-foreground hover:text-foreground h-auto p-0 text-[10px] hover:no-underline'
                     onClick={() => setIsAdvanced(true)}
                   >
                     切换到高级模式

@@ -1,10 +1,10 @@
+import { Field, FieldLabel } from '@/components/ui/field'
+import { Switch } from '@/components/ui/switch'
 import {
   DatePicker,
   formatLocalDateTime,
   parseLocalDateTime,
 } from '@/components/date-picker'
-import { Field, FieldLabel } from '@/components/ui/field'
-import { Switch } from '@/components/ui/switch'
 import { DEFAULT_SUBMISSION } from '@/features/survey/core/schema-defaults'
 import { useBuilderStore } from '../../store'
 import type { SubmissionTimeWindow } from '../../types'
@@ -22,8 +22,14 @@ export function TimeWindowPanel() {
 
   return (
     <InspectorSection title='投放时间' description='控制问卷可填写的时间窗口'>
-      <Field orientation='horizontal' className='items-center justify-between gap-3'>
-        <FieldLabel htmlFor='time-enabled' className='text-sm font-normal leading-relaxed cursor-pointer'>
+      <Field
+        orientation='horizontal'
+        className='items-center justify-between gap-3'
+      >
+        <FieldLabel
+          htmlFor='time-enabled'
+          className='cursor-pointer text-sm leading-relaxed font-normal'
+        >
           限制开放时间
         </FieldLabel>
         <Switch

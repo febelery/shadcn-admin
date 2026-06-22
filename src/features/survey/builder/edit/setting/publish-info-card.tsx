@@ -17,7 +17,10 @@ export function PublishInfoCard() {
       </CardHeader>
       <CardContent className='px-4 pt-0 pb-4'>
         <ItemGroup>
-          <Item size='sm' className='justify-between px-0 py-1.5 border-b border-border/45 rounded-none'>
+          <Item
+            size='sm'
+            className='border-border/45 justify-between rounded-none border-b px-0 py-1.5'
+          >
             <ItemTitle className='text-muted-foreground text-xs font-normal'>
               标识
             </ItemTitle>
@@ -32,7 +35,7 @@ export function PublishInfoCard() {
               </code>
             </ItemActions>
           </Item>
-          <Item size='sm' className='justify-between px-0 py-1.5 rounded-none'>
+          <Item size='sm' className='justify-between rounded-none px-0 py-1.5'>
             <ItemTitle className='text-muted-foreground text-xs font-normal'>
               版本
             </ItemTitle>

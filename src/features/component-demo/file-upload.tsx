@@ -378,8 +378,6 @@ function FileUploadFormExample({
     },
   })
 
-
-
   return (
     <div className='space-y-6'>
       <form
@@ -393,7 +391,8 @@ function FileUploadFormExample({
         <form.Field
           name='files'
           children={(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+            const isInvalid =
+              field.state.meta.isTouched && !field.state.meta.isValid
             return (
               <Field data-invalid={isInvalid}>
                 <FieldLabel htmlFor={field.name}>上传文件</FieldLabel>
@@ -478,11 +477,15 @@ function FileUploadFormExample({
         children={(files) =>
           files.length > 0 ? (
             <div className='space-y-1.5'>
-              <Label className='text-muted-foreground text-xs'>当前 URL 值</Label>
+              <Label className='text-muted-foreground text-xs'>
+                当前 URL 值
+              </Label>
               <ul className='bg-muted/50 space-y-1 rounded-lg p-3 font-mono text-xs break-all'>
                 {files.map((url: string, i: number) => (
                   <li key={i} className='text-muted-foreground'>
-                    <span className='text-foreground font-medium'>{i + 1}.</span>{' '}
+                    <span className='text-foreground font-medium'>
+                      {i + 1}.
+                    </span>{' '}
                     {url}
                   </li>
                 ))}

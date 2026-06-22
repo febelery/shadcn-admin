@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useForm } from '@tanstack/react-form'
 import { Loader2, Shield, Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
@@ -15,11 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -130,8 +126,6 @@ export function RoleFormDialog({
     )
   }, [open, role])
 
-
-
   const createMutation = useMutation({
     mutationFn: createRole,
     onSuccess: () => {
@@ -213,7 +207,8 @@ export function RoleFormDialog({
                 <form.Field
                   name='name'
                   children={(field) => {
-                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                    const isInvalid =
+                      field.state.meta.isTouched && !field.state.meta.isValid
                     return (
                       <Field data-invalid={isInvalid}>
                         <FieldLabel htmlFor={field.name}>角色标识</FieldLabel>
@@ -228,7 +223,9 @@ export function RoleFormDialog({
                           className='font-mono text-sm'
                           aria-invalid={isInvalid}
                         />
-                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                        {isInvalid && (
+                          <FieldError errors={field.state.meta.errors} />
+                        )}
                       </Field>
                     )
                   }}
@@ -238,7 +235,8 @@ export function RoleFormDialog({
                 <form.Field
                   name='label'
                   children={(field) => {
-                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                    const isInvalid =
+                      field.state.meta.isTouched && !field.state.meta.isValid
                     return (
                       <Field data-invalid={isInvalid}>
                         <FieldLabel htmlFor={field.name}>角色名称</FieldLabel>
@@ -251,7 +249,9 @@ export function RoleFormDialog({
                           onChange={(e) => field.handleChange(e.target.value)}
                           aria-invalid={isInvalid}
                         />
-                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                        {isInvalid && (
+                          <FieldError errors={field.state.meta.errors} />
+                        )}
                       </Field>
                     )
                   }}
@@ -262,7 +262,8 @@ export function RoleFormDialog({
               <form.Field
                 name='description'
                 children={(field) => {
-                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid
                   return (
                     <Field data-invalid={isInvalid}>
                       <FieldLabel htmlFor={field.name}>功能描述</FieldLabel>
@@ -277,7 +278,9 @@ export function RoleFormDialog({
                         className='resize-none'
                         aria-invalid={isInvalid}
                       />
-                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
                     </Field>
                   )
                 }}
@@ -301,7 +304,9 @@ export function RoleFormDialog({
                       children={(field) => (
                         <Switch
                           checked={field.state.value || false}
-                          onCheckedChange={(checked) => field.handleChange(checked)}
+                          onCheckedChange={(checked) =>
+                            field.handleChange(checked)
+                          }
                         />
                       )}
                     />
@@ -309,7 +314,10 @@ export function RoleFormDialog({
                 </div>
 
                 <form.Subscribe
-                  selector={(state) => [state.values.isAllPermissions, state.values.permissions ?? []]}
+                  selector={(state) => [
+                    state.values.isAllPermissions,
+                    state.values.permissions ?? [],
+                  ]}
                   children={([isAll, selected]) => {
                     const isAllPermissions = !!isAll
                     const selectedPermissions = selected as string[]
@@ -331,7 +339,9 @@ export function RoleFormDialog({
                       <form.Field
                         name='permissions'
                         children={(field) => {
-                          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                          const isInvalid =
+                            field.state.meta.isTouched &&
+                            !field.state.meta.isValid
                           return (
                             <div className='space-y-4'>
                               {Array.from(groupedPermissions.entries()).map(
@@ -360,7 +370,9 @@ export function RoleFormDialog({
                                                 ? 'indeterminate'
                                                 : false
                                           }
-                                          onCheckedChange={() => toggleGroup(permKeys)}
+                                          onCheckedChange={() =>
+                                            toggleGroup(permKeys)
+                                          }
                                         />
                                         <span className='text-muted-foreground/80 text-xs font-bold tracking-wider uppercase'>
                                           {group}
@@ -404,7 +416,9 @@ export function RoleFormDialog({
                                   )
                                 }
                               )}
-                              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                              {isInvalid && (
+                                <FieldError errors={field.state.meta.errors} />
+                              )}
                             </div>
                           )
                         }}

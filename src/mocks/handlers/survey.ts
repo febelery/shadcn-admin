@@ -3,8 +3,8 @@ import {
   DEMO_SURVEY_ID,
 } from '@/mocks/fixtures/survey-all-types-demo'
 import { faker } from '@faker-js/faker'
-import { http, HttpResponse } from 'msw'
 import ExcelJS from 'exceljs'
+import { http, HttpResponse } from 'msw'
 import {
   matchFilterValue,
   parseQueryFilterParam,
@@ -20,6 +20,7 @@ import type {
   SurveySegmentAnalysisResult,
   SegmentDefinition,
 } from '@/features/survey/core/analysis-types'
+import { evaluateCondition } from '@/features/survey/core/logic/eval'
 import {
   countQuestions,
   createEmptySurvey,
@@ -31,7 +32,6 @@ import type {
   SurveyRecordItem,
   SurveySchema,
 } from '@/features/survey/core/types'
-import { evaluateCondition } from '@/features/survey/core/logic/eval'
 
 /**
  * 核心统计计算逻辑：根据指定问题的类型及其对应的配置，针对筛选后的答卷数据进行单题层面的指标统计
@@ -1341,7 +1341,7 @@ export const surveyHandlers = [
         return typeof v === 'object' ? JSON.stringify(v) : String(v)
       }),
     ])
-    
+
     // 使用 exceljs 重构数据表写入 Buffer 逻辑
     const workbook = new ExcelJS.Workbook()
     const worksheet = workbook.addWorksheet('Records')

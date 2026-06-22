@@ -9,8 +9,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { getEditorSection } from '../../core/editor-schema'
-import { useBuilderStore } from '../store'
 import { BuilderDndProvider } from '../shared/dnd-provider'
+import { useBuilderStore } from '../store'
 import { BuilderWorkspacePanel } from './canvas-panel'
 import { InspectorPanel } from './inspector/panel'
 import { QuestionPalette } from './palette'
@@ -21,7 +21,11 @@ const desktopOnly = 'hidden lg:flex'
 export function EditWorkspace() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [inspectorOpen, setInspectorOpen] = useState(false)
-  const sectionId = useBuilderStore((s) => s.schema ? getEditorSection(s.schema)?.id ?? s.selectedSectionId : s.selectedSectionId)
+  const sectionId = useBuilderStore((s) =>
+    s.schema
+      ? (getEditorSection(s.schema)?.id ?? s.selectedSectionId)
+      : s.selectedSectionId
+  )
 
   return (
     <BuilderDndProvider sectionId={sectionId}>

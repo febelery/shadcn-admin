@@ -140,7 +140,9 @@ export function FileUploadDropzone({
           ],
         'focus-within:border-primary/50 focus-within:ring-ring/20 focus-within:ring-2',
         variant === 'minimal' ? 'py-0' : '',
-        variant === 'button' ? 'border-none bg-transparent hover:bg-transparent p-0' : '',
+        variant === 'button'
+          ? 'border-none bg-transparent p-0 hover:bg-transparent'
+          : '',
         className
       )}
       onDragEnter={handleDragEnter}

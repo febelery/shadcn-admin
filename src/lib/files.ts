@@ -81,8 +81,25 @@ const FILE_KIND_RULES: FileKindRule[] = [
   {
     kind: 'code',
     extensions: [
-      'html', 'css', 'js', 'jsx', 'ts', 'tsx', 'json', 'xml', 'php', 'py',
-      'rb', 'java', 'c', 'cpp', 'cs', 'go', 'rs', 'swift', 'kt'
+      'html',
+      'css',
+      'js',
+      'jsx',
+      'ts',
+      'tsx',
+      'json',
+      'xml',
+      'php',
+      'py',
+      'rb',
+      'java',
+      'c',
+      'cpp',
+      'cs',
+      'go',
+      'rs',
+      'swift',
+      'kt',
     ],
   },
   {

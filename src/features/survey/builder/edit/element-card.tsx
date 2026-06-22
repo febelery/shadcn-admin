@@ -2,8 +2,8 @@ import { memo, type CSSProperties, type ReactNode } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
-import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
 import {
   buildQuestionOrdinalMap,
   buildQuestionDisplayOrdinalMap,
@@ -163,10 +163,12 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
             onChange={(e) =>
               useBuilderStore
                 .getState()
-                .updateHtmlBlock(sectionId, element.id, { html: e.target.value })
+                .updateHtmlBlock(sectionId, element.id, {
+                  html: e.target.value,
+                })
             }
             placeholder='输入说明内容…'
-            className='border-none shadow-none focus-within:ring-0 focus-within:ring-offset-0 resize-none min-h-0'
+            className='min-h-0 resize-none border-none shadow-none focus-within:ring-0 focus-within:ring-offset-0'
           />
         </div>
       </QuestionBlock>

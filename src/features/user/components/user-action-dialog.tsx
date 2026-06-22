@@ -13,11 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
 import { SelectDropdown } from '@/components/select-dropdown'
@@ -140,8 +136,6 @@ export function UserActionDialog({
     if (open) form.reset()
   }, [open, initialValues])
 
-
-
   return (
     <Dialog
       open={open}
@@ -172,14 +166,18 @@ export function UserActionDialog({
             <form.Field
               name='firstName'
               children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
                     className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
                   >
-                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className='col-span-2 w-full justify-end text-end'
+                    >
                       名字
                     </FieldLabel>
                     <Input
@@ -194,7 +192,10 @@ export function UserActionDialog({
                       aria-invalid={isInvalid}
                     />
                     {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                      <FieldError
+                        errors={field.state.meta.errors}
+                        className='col-span-4 col-start-3 text-start'
+                      />
                     )}
                   </Field>
                 )
@@ -205,14 +206,18 @@ export function UserActionDialog({
             <form.Field
               name='lastName'
               children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
                     className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
                   >
-                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className='col-span-2 w-full justify-end text-end'
+                    >
                       姓氏
                     </FieldLabel>
                     <Input
@@ -227,7 +232,10 @@ export function UserActionDialog({
                       aria-invalid={isInvalid}
                     />
                     {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                      <FieldError
+                        errors={field.state.meta.errors}
+                        className='col-span-4 col-start-3 text-start'
+                      />
                     )}
                   </Field>
                 )
@@ -238,14 +246,18 @@ export function UserActionDialog({
             <form.Field
               name='username'
               children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
                     className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
                   >
-                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className='col-span-2 w-full justify-end text-end'
+                    >
                       用户名
                     </FieldLabel>
                     <Input
@@ -259,7 +271,10 @@ export function UserActionDialog({
                       aria-invalid={isInvalid}
                     />
                     {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                      <FieldError
+                        errors={field.state.meta.errors}
+                        className='col-span-4 col-start-3 text-start'
+                      />
                     )}
                   </Field>
                 )
@@ -270,14 +285,18 @@ export function UserActionDialog({
             <form.Field
               name='email'
               children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
                     className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
                   >
-                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className='col-span-2 w-full justify-end text-end'
+                    >
                       邮箱
                     </FieldLabel>
                     <Input
@@ -291,7 +310,10 @@ export function UserActionDialog({
                       aria-invalid={isInvalid}
                     />
                     {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                      <FieldError
+                        errors={field.state.meta.errors}
+                        className='col-span-4 col-start-3 text-start'
+                      />
                     )}
                   </Field>
                 )
@@ -302,14 +324,18 @@ export function UserActionDialog({
             <form.Field
               name='phoneNumber'
               children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
                     className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
                   >
-                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className='col-span-2 w-full justify-end text-end'
+                    >
                       电话号码
                     </FieldLabel>
                     <Input
@@ -323,7 +349,10 @@ export function UserActionDialog({
                       aria-invalid={isInvalid}
                     />
                     {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                      <FieldError
+                        errors={field.state.meta.errors}
+                        className='col-span-4 col-start-3 text-start'
+                      />
                     )}
                   </Field>
                 )
@@ -334,14 +363,18 @@ export function UserActionDialog({
             <form.Field
               name='role'
               children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
                     className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
                   >
-                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className='col-span-2 w-full justify-end text-end'
+                    >
                       角色
                     </FieldLabel>
                     <SelectDropdown
@@ -355,7 +388,10 @@ export function UserActionDialog({
                       }))}
                     />
                     {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                      <FieldError
+                        errors={field.state.meta.errors}
+                        className='col-span-4 col-start-3 text-start'
+                      />
                     )}
                   </Field>
                 )
@@ -366,14 +402,18 @@ export function UserActionDialog({
             <form.Field
               name='password'
               children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
                     className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
                   >
-                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className='col-span-2 w-full justify-end text-end'
+                    >
                       密码
                     </FieldLabel>
                     <PasswordInput
@@ -387,7 +427,10 @@ export function UserActionDialog({
                       aria-invalid={isInvalid}
                     />
                     {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                      <FieldError
+                        errors={field.state.meta.errors}
+                        className='col-span-4 col-start-3 text-start'
+                      />
                     )}
                   </Field>
                 )
@@ -398,14 +441,18 @@ export function UserActionDialog({
             <form.Field
               name='confirmPassword'
               children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
                     className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
                   >
-                    <FieldLabel htmlFor={field.name} className='col-span-2 justify-end w-full text-end'>
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className='col-span-2 w-full justify-end text-end'
+                    >
                       确认密码
                     </FieldLabel>
                     <form.Subscribe
@@ -425,7 +472,10 @@ export function UserActionDialog({
                       )}
                     />
                     {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} className='col-span-4 col-start-3 text-start' />
+                      <FieldError
+                        errors={field.state.meta.errors}
+                        className='col-span-4 col-start-3 text-start'
+                      />
                     )}
                   </Field>
                 )

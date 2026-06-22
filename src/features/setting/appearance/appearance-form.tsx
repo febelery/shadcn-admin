@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
 import { fonts } from '@/config/fonts'
+import { useForm } from '@tanstack/react-form'
 import { ChevronDown } from 'lucide-react'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { cn } from '@/lib/utils'
@@ -55,7 +55,8 @@ export function AppearanceForm() {
       <form.Field
         name='font'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>Font</FieldLabel>
@@ -79,7 +80,7 @@ export function AppearanceForm() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className='absolute inset-e-3 top-2.5 h-4 w-4 opacity-50 pointer-events-none' />
+                <ChevronDown className='pointer-events-none absolute inset-e-3 top-2.5 h-4 w-4 opacity-50' />
               </div>
               <FieldDescription className='font-manrope'>
                 Set the font you want to use in the dashboard.
@@ -94,7 +95,8 @@ export function AppearanceForm() {
       <form.Field
         name='theme'
         children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          const isInvalid =
+            field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel>Theme</FieldLabel>
@@ -108,9 +110,13 @@ export function AppearanceForm() {
                 className='grid max-w-md grid-cols-2 gap-8 pt-2'
               >
                 {/* 浅色主题 */}
-                <FieldLabel className='[&:has([data-state=checked])>div]:border-primary flex flex-col font-normal! cursor-pointer'>
-                  <RadioGroupItem value='light' className='sr-only' aria-invalid={isInvalid} />
-                  <div className='border-muted hover:border-accent items-center rounded-md border-2 p-1 w-full'>
+                <FieldLabel className='[&:has([data-state=checked])>div]:border-primary flex cursor-pointer flex-col font-normal!'>
+                  <RadioGroupItem
+                    value='light'
+                    className='sr-only'
+                    aria-invalid={isInvalid}
+                  />
+                  <div className='border-muted hover:border-accent w-full items-center rounded-md border-2 p-1'>
                     <div className='space-y-2 rounded-sm bg-[#ecedef] p-2'>
                       <div className='space-y-2 rounded-md bg-white p-2 shadow-xs'>
                         <div className='h-2 w-[80px] rounded-lg bg-[#ecedef]' />
@@ -126,15 +132,17 @@ export function AppearanceForm() {
                       </div>
                     </div>
                   </div>
-                  <span className='block w-full p-2 text-center'>
-                    Light
-                  </span>
+                  <span className='block w-full p-2 text-center'>Light</span>
                 </FieldLabel>
 
                 {/* 深色主题 */}
-                <FieldLabel className='[&:has([data-state=checked])>div]:border-primary flex flex-col font-normal! cursor-pointer'>
-                  <RadioGroupItem value='dark' className='sr-only' aria-invalid={isInvalid} />
-                  <div className='border-muted bg-popover hover:bg-accent hover:text-accent-foreground items-center rounded-md border-2 p-1 w-full'>
+                <FieldLabel className='[&:has([data-state=checked])>div]:border-primary flex cursor-pointer flex-col font-normal!'>
+                  <RadioGroupItem
+                    value='dark'
+                    className='sr-only'
+                    aria-invalid={isInvalid}
+                  />
+                  <div className='border-muted bg-popover hover:bg-accent hover:text-accent-foreground w-full items-center rounded-md border-2 p-1'>
                     <div className='space-y-2 rounded-sm bg-slate-950 p-2'>
                       <div className='space-y-2 rounded-md bg-slate-800 p-2 shadow-xs'>
                         <div className='h-2 w-[80px] rounded-lg bg-slate-400' />
@@ -150,9 +158,7 @@ export function AppearanceForm() {
                       </div>
                     </div>
                   </div>
-                  <span className='block w-full p-2 text-center'>
-                    Dark
-                  </span>
+                  <span className='block w-full p-2 text-center'>Dark</span>
                 </FieldLabel>
               </RadioGroup>
               {isInvalid && <FieldError errors={field.state.meta.errors} />}
