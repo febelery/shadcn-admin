@@ -17,21 +17,17 @@ import {
 import '@xyflow/react/dist/style.css'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
-import { analyseSurvey } from '../../core/expression/analyzer'
 import { extractQuestionRefsFromWhen } from '../../core/logic/condition-serializer'
-import {
-  buildFlowGraph,
-  flowNodeDimensions,
-  layoutFlowGraphWithMeta,
-  START_ID,
-} from '../../core/logic/flow-graph'
+import { flowNodeDimensions, START_ID } from '../../core/logic/flow-graph'
 import { ruleMatchesSearch } from '../../core/logic/rule-meta'
-import { flattenQuestions } from '../../core/schema-defaults'
-import { getQuestionReferenceLabel } from '../../shared/question-numbering'
 import { useBuilderStore } from '../store'
-import type { SurveySchema, FlowGraphEdge } from '../types'
+import type { Rule, FlowGraphEdge } from '../types'
 import './canvas.css'
 import { GraphNode, type NodeData } from './nodes'
+import type { FlowProjection } from './projection'
+
+const EMPTY_RULES: FlowProjection['rules'] = []
+const EMPTY_QUESTION_TITLES: FlowProjection['questionTitles'] = new Map()
 
 const nodeTypes = {
   graphNode: GraphNode,
@@ -232,33 +228,11 @@ function edgeHandles(kind: FlowGraphEdge['kind']) {
   }
 }
 
-function buildLayoutSignature(
-  schema: SurveySchema,
-  showJump: boolean,
-  showVisibility: boolean
-) {
-  const section = schema.sections[0]
-  return JSON.stringify({
-    showJump,
-    showVisibility,
-    elements: section?.elements.map((e) => e.id),
-    rules: schema.rules.map((r) => ({
-      id: r.id,
-      enabled: r.enabled,
-      when: r.when,
-      action: r.action,
-    })),
-    titles: section?.elements
-      .filter((e) => e.kind === 'question')
-      .map((e) => (e.kind === 'question' ? e.title : '')),
-  })
-}
-
 function nodeMatchesSearch(
   data: NodeData,
   query: string,
   questionTitles: Map<string, string>,
-  rules: SurveySchema['rules']
+  rules: Rule[]
 ): boolean {
   if (!query.trim()) return true
   const needle = query.trim().toLowerCase()
@@ -278,20 +252,14 @@ function nodeMatchesSearch(
   return false
 }
 
-function ruleTouchesQuestion(
-  rule: SurveySchema['rules'][number],
-  questionId: string
-) {
+function ruleTouchesQuestion(rule: Rule, questionId: string) {
   return (
     extractQuestionRefsFromWhen(rule.when).includes(questionId) ||
     rule.action.target === questionId
   )
 }
 
-function pickRuleForQuestion(
-  rules: SurveySchema['rules'],
-  questionId: string
-): string | null {
+function pickRuleForQuestion(rules: Rule[], questionId: string): string | null {
   const enabled = rules.filter((r) => r.enabled)
   const outgoing = enabled.find((r) => {
     if (!extractQuestionRefsFromWhen(r.when).includes(questionId)) return false
@@ -308,10 +276,9 @@ function pickRuleForQuestion(
   return targetRule?.id ?? null
 }
 
-function CanvasInner() {
+function CanvasInner({ projection }: { projection: FlowProjection | null }) {
   const { setCenter } = useReactFlow()
   const { resolvedTheme } = useTheme()
-  const schema = useBuilderStore((s) => s.schema)
   const showJump = useBuilderStore((s) => s.flowShowJumpEdges)
   const showVisibility = useBuilderStore((s) => s.flowShowVisibilityEdges)
   const searchQuery = useBuilderStore((s) => s.flowCanvasSearchQuery)
@@ -320,23 +287,11 @@ function CanvasInner() {
 
   const initialFitDone = useRef(false)
 
-  const layoutSig = useMemo(
-    () =>
-      schema ? buildLayoutSignature(schema, showJump, showVisibility) : '',
-    [schema, showJump, showVisibility]
-  )
-
-  const questionTitles = useMemo(() => {
-    const map = new Map<string, string>()
-    if (!schema) return map
-    flattenQuestions(schema).forEach((q) => {
-      map.set(q.id, getQuestionReferenceLabel(q, schema))
-    })
-    return map
-  }, [schema])
+  const layoutSig = projection?.topologyKey ?? ''
+  const questionTitles = projection?.questionTitles ?? EMPTY_QUESTION_TITLES
 
   const { baseNodes, edges, layoutMeta } = useMemo(() => {
-    if (!schema) {
+    if (!projection) {
       return {
         baseNodes: [] as Node[],
         edges: [] as Edge[],
@@ -344,14 +299,8 @@ function CanvasInner() {
       }
     }
 
-    const graph = buildFlowGraph(schema)
-    const { positions, columns, compact } = layoutFlowGraphWithMeta(graph)
-    const issuesMap = new Map<string, 'error' | 'warn'>()
-    for (const i of analyseSurvey(schema)) {
-      if (!i.targetId) continue
-      if (i.severity === 'error') issuesMap.set(i.targetId, 'error')
-      else if (!issuesMap.has(i.targetId)) issuesMap.set(i.targetId, 'warn')
-    }
+    const { graph, layout, issueSeverityByTarget } = projection
+    const { positions, columns, compact } = layout
 
     const nodeRects = new Map<
       string,
@@ -359,7 +308,9 @@ function CanvasInner() {
     >()
     const rfNodes: Node[] = graph.nodes.map((n: any) => {
       const pos = positions.get(n.id) ?? { x: 0, y: 0 }
-      const elIssue = n.elementId ? issuesMap.get(n.elementId) : undefined
+      const elIssue = n.elementId
+        ? issueSeverityByTarget.get(n.elementId)
+        : undefined
       const { w, h } = flowNodeDimensions(n, compact)
       nodeRects.set(n.id, { x: pos.x, y: pos.y, w, h })
       const data: NodeData = {
@@ -461,12 +412,12 @@ function CanvasInner() {
       edges: rfEdges,
       layoutMeta: { columns, compact },
     }
-  }, [schema, showJump, showVisibility])
+  }, [projection, showJump, showVisibility])
 
   const hasSearch = searchQuery.trim().length > 0
   const selectedRule = useMemo(
-    () => schema?.rules.find((r) => r.id === editingRuleId),
-    [schema?.rules, editingRuleId]
+    () => projection?.rules.find((r) => r.id === editingRuleId),
+    [projection?.rules, editingRuleId]
   )
 
   const nodes = useMemo(
@@ -477,7 +428,7 @@ function CanvasInner() {
           data,
           searchQuery,
           questionTitles,
-          schema?.rules ?? []
+          projection?.rules ?? EMPTY_RULES
         )
         return {
           ...n,
@@ -495,7 +446,7 @@ function CanvasInner() {
       baseNodes,
       searchQuery,
       questionTitles,
-      schema?.rules,
+      projection?.rules,
       selectedRule,
       hasSearch,
     ]
@@ -559,10 +510,12 @@ function CanvasInner() {
     (_: React.MouseEvent, node: Node) => {
       const data = node.data as unknown as NodeData
       if (data.elementId) {
-        selectFlowRule(pickRuleForQuestion(schema?.rules ?? [], data.elementId))
+        selectFlowRule(
+          pickRuleForQuestion(projection?.rules ?? EMPTY_RULES, data.elementId)
+        )
       }
     },
-    [schema?.rules, selectFlowRule]
+    [projection?.rules, selectFlowRule]
   )
 
   const onEdgeClick = useCallback(
@@ -573,7 +526,7 @@ function CanvasInner() {
     [selectFlowRule]
   )
 
-  if (!schema) return null
+  if (!projection) return null
 
   const colorMode = resolvedTheme === 'dark' ? 'dark' : 'light'
 
@@ -614,10 +567,10 @@ function CanvasInner() {
   )
 }
 
-export function Canvas() {
+export function Canvas({ projection }: { projection: FlowProjection | null }) {
   return (
     <ReactFlowProvider>
-      <CanvasInner />
+      <CanvasInner projection={projection} />
     </ReactFlowProvider>
   )
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { GitBranch, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import {
 import { useBuilderStore } from '../store'
 import { CenterPanel } from './center-panel'
 import { LeftPanel } from './left-panel'
+import { createFlowProjector } from './projection'
 import { RightPanel } from './right-panel'
 
 const desktopOnly = 'hidden lg:flex'
@@ -37,7 +38,13 @@ export function FlowWorkspace() {
   const [editorOpen, setEditorOpen] = useState(false)
   const isMobile = useIsMobileLayout()
 
+  const schema = useBuilderStore((s) => s.schema)
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
+  const [project] = useState(createFlowProjector)
+  const projection = useMemo(
+    () => (schema ? project(schema) : null),
+    [schema, project]
+  )
 
   const openEditor = useCallback(() => {
     if (isMobile) setEditorOpen(true)
@@ -58,10 +65,10 @@ export function FlowWorkspace() {
             desktopOnly
           )}
         >
-          <LeftPanel onNewRule={openEditor} />
+          <LeftPanel projection={projection} onNewRule={openEditor} />
         </aside>
         <main className='from-background via-muted/25 to-muted/40 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-linear-to-b'>
-          <CenterPanel />
+          <CenterPanel projection={projection} />
         </main>
         <aside
           className={cn(
@@ -69,7 +76,7 @@ export function FlowWorkspace() {
             desktopOnly
           )}
         >
-          <RightPanel />
+          <RightPanel projection={projection} />
         </aside>
       </div>
 
@@ -107,6 +114,7 @@ export function FlowWorkspace() {
             <SheetTitle>逻辑规则</SheetTitle>
           </SheetHeader>
           <LeftPanel
+            projection={projection}
             className='flex h-full w-full max-w-none shrink border-0'
             onNewRule={() => {
               openEditor()
@@ -124,7 +132,10 @@ export function FlowWorkspace() {
           <SheetHeader className='sr-only'>
             <SheetTitle>属性</SheetTitle>
           </SheetHeader>
-          <RightPanel className='flex h-full w-full max-w-none shrink border-0' />
+          <RightPanel
+            projection={projection}
+            className='flex h-full w-full max-w-none shrink border-0'
+          />
         </SheetContent>
       </Sheet>
     </>

@@ -1,14 +1,13 @@
-import { useMemo } from 'react'
 import { MousePointerClick, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { analyseSurvey } from '@/features/survey/core/expression/analyzer'
 import { BuilderGuidance } from '../edit/guidance'
 import { BuilderPanelHeader } from '../shared/panel-header'
 import { useBuilderStore } from '../store'
-import { groupIssuesByRule } from './issues/issue-utils'
+import type { FlowProjection } from './projection'
 import { RuleEditorSection } from './rule-editor'
 
 type Props = {
+  projection: FlowProjection | null
   className?: string
 }
 
@@ -19,16 +18,11 @@ type Props = {
  * - 选中规则 → 规则
  * - 未选中规则 → 空态引导
  */
-export function RightPanel({ className }: Props) {
-  const schema = useBuilderStore((s) => s.schema)
+export function RightPanel({ projection, className }: Props) {
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
 
-  const issues = useMemo(() => (schema ? analyseSurvey(schema) : []), [schema])
-
-  const issuesByRule = useMemo(() => groupIssuesByRule(issues), [issues])
-
   const ruleIssues = editingRuleId
-    ? (issuesByRule.get(editingRuleId) ?? [])
+    ? (projection?.issuesByRule.get(editingRuleId) ?? [])
     : []
 
   let title = '规则'

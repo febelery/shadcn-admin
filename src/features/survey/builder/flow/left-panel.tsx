@@ -8,47 +8,31 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { analyseSurvey } from '@/features/survey/core/expression/analyzer'
 import { ruleMatchesSearch } from '@/features/survey/core/logic/rule-meta'
-import { flattenQuestions } from '@/features/survey/core/schema-defaults'
-import { getQuestionReferenceLabel } from '@/features/survey/shared/question-numbering'
 import { BuilderPanelHeader } from '../shared/panel-header'
 import { useBuilderStore } from '../store'
-import { groupIssuesByRule } from './issues/issue-utils'
+import type { FlowProjection } from './projection'
 import { RulesList } from './rule-list'
 
+const EMPTY_RULES: FlowProjection['rules'] = []
+const EMPTY_QUESTIONS: FlowProjection['questions'] = []
+const EMPTY_QUESTION_TITLES: FlowProjection['questionTitles'] = new Map()
+
 type Props = {
+  projection: FlowProjection | null
   className?: string
   /** 点击新建时回调（移动端打开右侧 Sheet） */
   onNewRule?: () => void
 }
 
 /** 流程模式 · 左栏：纯规则索引（搜索 / 筛选 / 列表） */
-export function LeftPanel({ className, onNewRule }: Props) {
-  const schema = useBuilderStore((s) => s.schema)
+export function LeftPanel({ projection, className, onNewRule }: Props) {
   const searchQuery = useBuilderStore((s) => s.flowRuleSearchQuery)
   const setFlowSearchQuery = useBuilderStore((s) => s.setFlowRuleSearchQuery)
   const startFlowNewRule = useBuilderStore((s) => s.startFlowNewRule)
-  const rules = useBuilderStore((s) => s.schema?.rules ?? [])
-
-  const issuesByRule = useMemo(() => {
-    if (!schema) return new Map()
-    return groupIssuesByRule(analyseSurvey(schema))
-  }, [schema])
-
-  const questionTitles = useMemo(() => {
-    const map = new Map<string, string>()
-    if (!schema) return map
-    flattenQuestions(schema).forEach((q) => {
-      map.set(q.id, getQuestionReferenceLabel(q, schema))
-    })
-    return map
-  }, [schema])
-
-  const questions = useMemo(
-    () => (schema ? flattenQuestions(schema) : []),
-    [schema]
-  )
+  const rules = projection?.rules ?? EMPTY_RULES
+  const questions = projection?.questions ?? EMPTY_QUESTIONS
+  const questionTitles = projection?.questionTitles ?? EMPTY_QUESTION_TITLES
 
   const filteredRules = useMemo(
     () =>
@@ -104,7 +88,10 @@ export function LeftPanel({ className, onNewRule }: Props) {
               'p-3 pt-2'
             )}
           >
-            <RulesList rules={filteredRules} issuesByRule={issuesByRule} />
+            <RulesList
+              rules={filteredRules}
+              issuesByRule={projection?.issuesByRule}
+            />
           </div>
         </ScrollArea>
       </div>

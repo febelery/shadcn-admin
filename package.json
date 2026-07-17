@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsr generate && tsc -b && vite build",
+    "test": "vitest run --config vitest.config.ts",
     "routes:gen": "tsr generate",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -91,7 +92,8 @@
     "prettier-plugin-tailwindcss": "^0.8.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.61.1",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "vitest": "^4.1.10"
   },
   "msw": {
     "workerDirectory": [

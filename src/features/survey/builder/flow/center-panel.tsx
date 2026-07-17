@@ -1,41 +1,21 @@
-import { useMemo } from 'react'
 import { AlertCircle, AlertTriangle, Workflow } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { analyseSurvey } from '@/features/survey/core/expression/analyzer'
-import { getRuleCategory } from '@/features/survey/core/logic/rule-meta'
-import { flattenQuestions } from '@/features/survey/core/schema-defaults'
 import { BuilderPanelHeader } from '../shared/panel-header'
-import { useBuilderStore } from '../store'
 import { Canvas } from './canvas'
+import type { FlowProjection } from './projection'
 import { Toolbar } from './toolbar'
 
+type Props = {
+  projection: FlowProjection | null
+}
+
 /** 中栏：工具栏 + 流程图画布 */
-export function CenterPanel() {
-  const schema = useBuilderStore((s) => s.schema)
-  const rules = useBuilderStore((s) => s.schema?.rules ?? [])
-
-  const stats = useMemo(() => {
-    if (!schema) return ''
-    const qCount = flattenQuestions(schema).length
-    const enabledRules = rules.filter((r) => r.enabled).length
-    const byCat = {
-      visibility: rules.filter((r) => getRuleCategory(r) === 'visibility')
-        .length,
-      jump: rules.filter((r) => getRuleCategory(r) === 'jump').length,
-      end: rules.filter((r) => getRuleCategory(r) === 'end').length,
-    }
-    return `共 ${qCount} 题 · ${enabledRules} 条启用规则（显隐 ${byCat.visibility} · 跳题 ${byCat.jump} · 结束 ${byCat.end}）`
-  }, [schema, rules])
-
-  const issues = useMemo(() => (schema ? analyseSurvey(schema) : []), [schema])
-  const issueStats = useMemo(
-    () => ({
-      errors: issues.filter((i) => i.severity === 'error').length,
-      warnings: issues.filter((i) => i.severity === 'warn').length,
-      first: issues[0],
-    }),
-    [issues]
-  )
+export function CenterPanel({ projection }: Props) {
+  const stats = projection?.stats.text ?? ''
+  const issueStats = projection?.issueStats ?? {
+    errors: 0,
+    warnings: 0,
+  }
 
   return (
     <div className='flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden'>
@@ -82,7 +62,7 @@ export function CenterPanel() {
         </div>
       ) : null}
       <div className='relative min-h-0 flex-1 overflow-hidden pb-[calc(3.25rem+env(safe-area-inset-bottom))] lg:pb-0'>
-        <Canvas />
+        <Canvas projection={projection} />
       </div>
     </div>
   )
