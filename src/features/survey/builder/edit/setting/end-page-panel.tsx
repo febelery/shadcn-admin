@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -5,11 +6,13 @@ import { useBuilderStore } from '../../builder-session'
 import { InspectorSection } from '../inspector/panel'
 
 export function EndPagePanel() {
-  const document = useBuilderStore((s) => s.document)
-  const updateMeta = useBuilderStore((s) => s.updateMeta)
-
-  const endTitle = document.meta.endTitle
-  const endDescription = document.meta.endDescription
+  const { endTitle, endDescription, updateMeta } = useBuilderStore(
+    useShallow((state) => ({
+      endTitle: state.document.meta.endTitle,
+      endDescription: state.document.meta.endDescription,
+      updateMeta: state.updateMeta,
+    }))
+  )
 
   return (
     <InspectorSection

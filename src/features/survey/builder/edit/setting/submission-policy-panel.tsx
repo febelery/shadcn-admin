@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow'
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { useBuilderStore } from '../../builder-session'
@@ -9,8 +10,25 @@ function optionalPositiveInteger(value: string): number | undefined {
 }
 
 export function SubmissionPolicyPanel() {
-  const policy = useBuilderStore((state) => state.document.submissionPolicy)
-  const updatePolicy = useBuilderStore((state) => state.updateSubmissionPolicy)
+  const {
+    totalLimit,
+    perUserLimit,
+    dailyPerUserLimit,
+    dailyLimit,
+    perDeviceLimit,
+    accessPassword,
+    updatePolicy,
+  } = useBuilderStore(
+    useShallow((state) => ({
+      totalLimit: state.document.submissionPolicy.totalLimit,
+      perUserLimit: state.document.submissionPolicy.perUserLimit,
+      dailyPerUserLimit: state.document.submissionPolicy.dailyPerUserLimit,
+      dailyLimit: state.document.submissionPolicy.dailyLimit,
+      perDeviceLimit: state.document.submissionPolicy.perDeviceLimit,
+      accessPassword: state.document.submissionPolicy.accessPassword,
+      updatePolicy: state.updateSubmissionPolicy,
+    }))
+  )
 
   return (
     <InspectorSection title='回收与限填' description='份数、频次与访问控制'>
@@ -29,7 +47,7 @@ export function SubmissionPolicyPanel() {
             min={1}
             className='h-9'
             placeholder='不限制'
-            value={policy.totalLimit ?? ''}
+            value={totalLimit ?? ''}
             onChange={(event) =>
               updatePolicy({
                 totalLimit: optionalPositiveInteger(event.target.value),
@@ -57,7 +75,7 @@ export function SubmissionPolicyPanel() {
             min={1}
             className='h-9'
             placeholder='不限制'
-            value={policy.perUserLimit ?? ''}
+            value={perUserLimit ?? ''}
             onChange={(event) =>
               updatePolicy({
                 perUserLimit: optionalPositiveInteger(event.target.value),
@@ -78,7 +96,7 @@ export function SubmissionPolicyPanel() {
             min={1}
             className='h-9'
             placeholder='不限制'
-            value={policy.dailyPerUserLimit ?? ''}
+            value={dailyPerUserLimit ?? ''}
             onChange={(event) =>
               updatePolicy({
                 dailyPerUserLimit: optionalPositiveInteger(event.target.value),
@@ -99,7 +117,7 @@ export function SubmissionPolicyPanel() {
             min={1}
             className='h-9'
             placeholder='不限制'
-            value={policy.dailyLimit ?? ''}
+            value={dailyLimit ?? ''}
             onChange={(event) =>
               updatePolicy({
                 dailyLimit: optionalPositiveInteger(event.target.value),
@@ -124,7 +142,7 @@ export function SubmissionPolicyPanel() {
             min={1}
             className='h-9'
             placeholder='不限制'
-            value={policy.perDeviceLimit ?? ''}
+            value={perDeviceLimit ?? ''}
             onChange={(event) =>
               updatePolicy({
                 perDeviceLimit: optionalPositiveInteger(event.target.value),
@@ -145,7 +163,7 @@ export function SubmissionPolicyPanel() {
             autoComplete='new-password'
             className='h-9'
             placeholder='设置后需输入才可填写'
-            value={policy.accessPassword ?? ''}
+            value={accessPassword ?? ''}
             onChange={(event) =>
               updatePolicy({
                 accessPassword: event.target.value || undefined,

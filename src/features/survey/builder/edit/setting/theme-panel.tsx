@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -122,15 +123,21 @@ function LocalColorPicker({
 }
 
 export function ThemePanel() {
-  const document = useBuilderStore((s) => s.document)
-  const updateMeta = useBuilderStore((s) => s.updateMeta)
-  const updateTheme = useBuilderStore((s) => s.updateTheme)
-
-  const meta = document.meta
-  const primaryColor = document.theme.primaryColor
-
-  const numberingStyle = meta.defaultQuestionNumbering ?? 'decimal'
-  const numberingMode = meta.questionNumberingMode ?? 'global'
+  const {
+    numberingStyle,
+    numberingMode,
+    primaryColor,
+    updateMeta,
+    updateTheme,
+  } = useBuilderStore(
+    useShallow((state) => ({
+      numberingStyle: state.document.meta.defaultQuestionNumbering ?? 'decimal',
+      numberingMode: state.document.meta.questionNumberingMode ?? 'global',
+      primaryColor: state.document.theme.primaryColor,
+      updateMeta: state.updateMeta,
+      updateTheme: state.updateTheme,
+    }))
+  )
 
   return (
     <InspectorSection title='主题' description='品牌色与题号样式' defaultOpen>

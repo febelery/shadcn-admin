@@ -1,6 +1,7 @@
 import { Fragment, memo } from 'react'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { LayoutGrid, LayoutTemplate } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 import { cn } from '@/lib/utils'
 import { SurveyCoverHeader } from '@/features/survey/shared/survey-cover-header'
 import type { SurveyElement } from '../../core/types'
@@ -16,13 +17,29 @@ import { WorkspaceInsertSlot } from './insert-slot'
 import { BUILDER_WORKSPACE_SCROLL_ATTR } from './workspace-scroll'
 
 const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
-  const meta = useBuilderStore((s) => s.document.meta)
-  const theme = useBuilderStore((s) => s.document.theme)
-  const updateMeta = useBuilderStore((s) => s.updateMeta)
+  const {
+    title,
+    description,
+    coverType,
+    coverColor,
+    cover,
+    primaryColor,
+    updateMeta,
+  } = useBuilderStore(
+    useShallow((state) => ({
+      title: state.document.meta.title,
+      description: state.document.meta.description,
+      coverType: state.document.meta.coverType,
+      coverColor: state.document.meta.coverColor,
+      cover: state.document.meta.cover,
+      primaryColor: state.document.theme.primaryColor,
+      updateMeta: state.updateMeta,
+    }))
+  )
 
-  const hasCoverImage = Boolean(meta.cover)
+  const hasCoverImage = Boolean(cover)
   const onLightText =
-    meta.coverType === 'color' || (meta.coverType === 'image' && hasCoverImage)
+    coverType === 'color' || (coverType === 'image' && hasCoverImage)
 
   const titleClass = cn(
     'text-xl font-semibold tracking-tight leading-tight sm:text-2xl',
@@ -36,11 +53,11 @@ const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
 
   return (
     <SurveyCoverHeader
-      meta={meta}
-      theme={theme}
+      meta={{ title, description, coverType, coverColor, cover }}
+      theme={{ primaryColor }}
       titleSlot={
         <InlineEditable
-          value={meta.title}
+          value={title}
           onChange={(title) => updateMeta({ title })}
           placeholder='未命名问卷'
           maxLength={BUILDER_TEXT_LIMITS.surveyTitle}
@@ -49,7 +66,7 @@ const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
       }
       descriptionSlot={
         <InlineEditable
-          value={meta.description}
+          value={description}
           onChange={(description) => updateMeta({ description })}
           placeholder='添加问卷说明（选填）'
           multiline

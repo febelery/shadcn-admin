@@ -14,6 +14,8 @@
 - `query/`：React Query hooks 与缓存 key；HTTP adapter 位于 `src/api/survey.ts`
 - `list/`、`record/`、`analysis/`：管理端查询视图
 
+Builder UI selector 只订阅实际渲染字段；同一视图需要多个字段时使用 Zustand `useShallow` 保持单次订阅。普通面板不能订阅整份 `document`、`meta`、`theme` 或 `submissionPolicy`；只有确实消费整份文档并返回稳定结果的投影模块可以跨过这条限制。
+
 持久化边界：HTTP 返回值必须经 `parseSurveyDocument()` 解码。create、update、publish 均返回完整规范文档，Builder 通过 `adoptDocument()` 接管服务端事实；不能仅切换 dirty 或局部回填发布字段。
 
 `document-factory.ts` 只负责默认文档；`document-elements.ts` 负责从单页 `elements[]` 派生题目序列。文档实体 ID 直接使用浏览器原生 `crypto.randomUUID()`，不增加透传包装。

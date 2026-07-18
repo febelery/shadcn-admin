@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { DatePicker } from '@/components/date-picker'
 import { useBuilderStore } from '../../builder-session'
@@ -10,8 +11,13 @@ function parseInstant(value?: string): Date | undefined {
 }
 
 export function AvailabilityPanel() {
-  const policy = useBuilderStore((state) => state.document.submissionPolicy)
-  const updatePolicy = useBuilderStore((state) => state.updateSubmissionPolicy)
+  const { opensAt, closesAt, updatePolicy } = useBuilderStore(
+    useShallow((state) => ({
+      opensAt: state.document.submissionPolicy.opensAt,
+      closesAt: state.document.submissionPolicy.closesAt,
+      updatePolicy: state.updateSubmissionPolicy,
+    }))
+  )
 
   return (
     <InspectorSection title='投放时间' description='控制问卷可填写的时间窗口'>
@@ -21,8 +27,8 @@ export function AvailabilityPanel() {
         </FieldLabel>
         <DatePicker
           includeTime
-          value={parseInstant(policy.opensAt)}
-          max={parseInstant(policy.closesAt)}
+          value={parseInstant(opensAt)}
+          max={parseInstant(closesAt)}
           placeholder='不限制开始'
           onChange={(date) =>
             updatePolicy({
@@ -37,8 +43,8 @@ export function AvailabilityPanel() {
         </FieldLabel>
         <DatePicker
           includeTime
-          value={parseInstant(policy.closesAt)}
-          min={parseInstant(policy.opensAt)}
+          value={parseInstant(closesAt)}
+          min={parseInstant(opensAt)}
           placeholder='不限制结束'
           onChange={(date) =>
             updatePolicy({

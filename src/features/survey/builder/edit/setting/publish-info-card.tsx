@@ -1,12 +1,18 @@
+import { useShallow } from 'zustand/react/shallow'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Item, ItemGroup, ItemTitle, ItemActions } from '@/components/ui/item'
 import { useBuilderStore } from '../../builder-session'
 
 export function PublishInfoCard() {
-  const document = useBuilderStore((s) => s.document)
+  const { slug, revision } = useBuilderStore(
+    useShallow((state) => ({
+      slug: state.document.slug,
+      revision: state.document.revision,
+    }))
+  )
 
-  if (!document.slug) return null
+  if (!slug) return null
 
   return (
     <Card className='gap-0 py-0 shadow-sm'>
@@ -31,7 +37,7 @@ export function PublishInfoCard() {
                   'bg-muted rounded px-1.5 py-0.5'
                 )}
               >
-                {document.slug}
+                {slug}
               </code>
             </ItemActions>
           </Item>
@@ -46,7 +52,7 @@ export function PublishInfoCard() {
                   'bg-muted rounded px-1.5 py-0.5'
                 )}
               >
-                r{document.revision}
+                r{revision}
               </code>
             </ItemActions>
           </Item>

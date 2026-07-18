@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 import { Link2 } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 import { type MediaKind, mbToBytes } from '@/lib/files'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -279,9 +280,17 @@ function CoverColorPicker({
 }
 
 export function MetaCoverPanel() {
-  const document = useBuilderStore((s) => s.document)
-  const updateMeta = useBuilderStore((s) => s.updateMeta)
-  const meta = document.meta
+  const { coverType, coverColor, cover, description, submitLabel, updateMeta } =
+    useBuilderStore(
+      useShallow((state) => ({
+        coverType: state.document.meta.coverType,
+        coverColor: state.document.meta.coverColor,
+        cover: state.document.meta.cover,
+        description: state.document.meta.description,
+        submitLabel: state.document.meta.submitLabel,
+        updateMeta: state.updateMeta,
+      }))
+    )
 
   return (
     <InspectorSection title='头图与展示' description='封面、说明与提交按钮'>
@@ -290,10 +299,10 @@ export function MetaCoverPanel() {
           头图样式
         </FieldLabel>
         <Tabs
-          value={meta.coverType}
+          value={coverType}
           onValueChange={(v) =>
             updateMeta({
-              coverType: v as typeof meta.coverType,
+              coverType: v as typeof coverType,
             })
           }
         >
@@ -320,25 +329,25 @@ export function MetaCoverPanel() {
         </Tabs>
       </Field>
 
-      {meta.coverType === 'color' ? (
+      {coverType === 'color' ? (
         <Field className='gap-1.5'>
           <FieldLabel className='text-muted-foreground text-xs font-medium'>
             头图背景色
           </FieldLabel>
           <CoverColorPicker
-            value={meta.coverColor ?? DEFAULT_META.coverColor ?? '#ffffff'}
+            value={coverColor ?? DEFAULT_META.coverColor ?? '#ffffff'}
             onChange={(coverColor) => updateMeta({ coverColor })}
           />
         </Field>
       ) : null}
 
-      {meta.coverType === 'image' ? (
+      {coverType === 'image' ? (
         <Field className='gap-1.5'>
           <FieldLabel className='text-muted-foreground text-xs font-medium'>
             头图图片
           </FieldLabel>
           <MediaUrlField
-            value={meta.cover ?? ''}
+            value={cover ?? ''}
             onChange={(cover) => updateMeta({ cover })}
             crop
             aspect={2}
@@ -359,7 +368,7 @@ export function MetaCoverPanel() {
         <Textarea
           id='survey-desc'
           rows={3}
-          value={meta.description}
+          value={description}
           onChange={(e) => updateMeta({ description: e.target.value })}
         />
       </Field>
@@ -374,7 +383,7 @@ export function MetaCoverPanel() {
         <Input
           id='submit-label'
           className='h-9'
-          value={meta.submitLabel}
+          value={submitLabel}
           onChange={(e) => updateMeta({ submitLabel: e.target.value })}
         />
       </Field>

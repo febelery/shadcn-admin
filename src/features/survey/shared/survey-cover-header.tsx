@@ -2,9 +2,14 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import type { SurveyMeta, ThemeConfig } from '../core/types'
 
+type SurveyCoverMeta = Pick<
+  SurveyMeta,
+  'title' | 'description' | 'coverType' | 'coverColor' | 'cover'
+>
+
 type Props = {
-  meta: SurveyMeta
-  theme: ThemeConfig
+  meta: SurveyCoverMeta
+  theme: Pick<ThemeConfig, 'primaryColor'>
   className?: string
   /** 构建器画布：自定义标题/说明槽，实现 WYSIWYG */
   titleSlot?: ReactNode
