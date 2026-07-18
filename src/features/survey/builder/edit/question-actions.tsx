@@ -9,7 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { useBuilderStore } from '../store'
+import { useBuilderStoreApi } from '../store'
 import type { SurveyElement } from '../types'
 
 export type QuestionDragHandleProps = {
@@ -110,6 +110,7 @@ export function WorkspaceQuestionActions({
   selected,
   drag,
 }: Props) {
+  const store = useBuilderStoreApi()
   return (
     <div
       className={cn(
@@ -136,7 +137,7 @@ export function WorkspaceQuestionActions({
         <ActionButton
           label='复制'
           onClick={() =>
-            useBuilderStore.getState().duplicateElement(sectionId, element.id)
+            store.getState().duplicateElement(sectionId, element.id)
           }
         >
           <Copy className='size-3 shrink-0 stroke-2' />
@@ -145,9 +146,7 @@ export function WorkspaceQuestionActions({
         <ActionButton
           label='删除'
           destructive
-          onClick={() =>
-            useBuilderStore.getState().removeElement(sectionId, element.id)
-          }
+          onClick={() => store.getState().removeElement(sectionId, element.id)}
         >
           <Trash2 className='size-3 shrink-0 stroke-2' />
         </ActionButton>

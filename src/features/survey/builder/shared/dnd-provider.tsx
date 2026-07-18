@@ -23,7 +23,7 @@ import {
   getQuestionManifest,
   LAYOUT_MANIFESTS,
 } from '../../shared/question-registry'
-import { useBuilderStore } from '../store'
+import { useBuilderStoreApi } from '../store'
 import type { QuestionType } from '../types'
 import {
   INSERT_DROP,
@@ -107,6 +107,7 @@ type Props = {
 }
 
 export function BuilderDndProvider({ sectionId, children }: Props) {
+  const storeApi = useBuilderStoreApi()
   const [activeDrag, setActiveDrag] = useState<ActiveDrag>(null)
 
   const sensors = useSensors(
@@ -152,7 +153,7 @@ export function BuilderDndProvider({ sectionId, children }: Props) {
     if (!over || !sectionId) return
 
     const activeData = active.data.current as PaletteDragData | undefined
-    const store = useBuilderStore.getState()
+    const store = storeApi.getState()
     const section = store.schema?.sections.find((s) => s.id === sectionId)
     if (!section) return
 

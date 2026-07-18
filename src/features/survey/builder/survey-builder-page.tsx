@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
 import { ArrowLeft, Save, Send } from 'lucide-react'
 import { toast } from 'sonner'
@@ -19,7 +19,11 @@ import {
 } from '../query/hooks'
 import { EditWorkspace } from './edit/workspace'
 import { FlowWorkspace } from './flow/workspace'
-import { useBuilderStore } from './store'
+import {
+  BuilderStoreProvider,
+  createBuilderStore,
+  useBuilderStore,
+} from './store'
 import { hasRuleDraftChanges } from './store/rule-authoring'
 import { useRuleAuthoring } from './store/use-rule-authoring'
 
@@ -48,20 +52,32 @@ function assertValidPayload(payload: SurveySchema): boolean {
   }
 }
 
-export function SurveyBuilderPage(props: Props) {
+function SurveyBuilderSession({
+  initialSchema,
+  props,
+}: {
+  initialSchema: SurveySchema
+  props: Props
+}) {
+  const [store] = useState(() => createBuilderStore(initialSchema))
+
+  return (
+    <BuilderStoreProvider store={store}>
+      <SurveyBuilderContent props={props} />
+    </BuilderStoreProvider>
+  )
+}
+
+function SurveyBuilderContent({ props }: { props: Props }) {
   const isCreate = props.mode === 'create'
   const surveyId = props.mode === 'edit' ? props.surveyId : undefined
   const router = useRouter()
 
-  const { data, isLoading } = useSurveyDetail(surveyId ?? '', {
-    enabled: !isCreate,
-  })
   const { mutateAsync: create, isPending: creating } = useCreateSurvey()
   const { mutateAsync: save, isPending: saving } = useUpdateSurvey()
   const { mutateAsync: publish, isPending: publishing } = usePublishSurvey()
 
   const schema = useBuilderStore((s) => s.schema)
-  const init = useBuilderStore((s) => s.init)
   const isDirty = useBuilderStore((s) => s.isDirty)
   const markSaved = useBuilderStore((s) => s.markSaved)
   const getSchemaForSave = useBuilderStore((s) => s.getSchemaForSave)
@@ -72,36 +88,6 @@ export function SurveyBuilderPage(props: Props) {
   const navigate = useBuilderStore((s) => s.navigate)
   const { leaveToEdit } = useRuleAuthoring()
   const updateMeta = useBuilderStore((s) => s.updateMeta)
-
-  const lastInitializedIdRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    if (isCreate) {
-      if (lastInitializedIdRef.current !== 'create') {
-        init(createEmptySurvey())
-        lastInitializedIdRef.current = 'create'
-      }
-      return
-    }
-
-    if (data && lastInitializedIdRef.current !== surveyId) {
-      init(data)
-      lastInitializedIdRef.current = surveyId ?? null
-    }
-  }, [isCreate, surveyId, data, init])
-
-  if (!isCreate && isLoading) {
-    return (
-      <div className='text-muted-foreground flex h-[50vh] items-center justify-center gap-2'>
-        <Spinner className='h-5 w-5' />
-        加载问卷中…
-      </div>
-    )
-  }
-
-  if (!schema) {
-    return null
-  }
 
   const persistPayload = async (payload: SurveySchema): Promise<string> => {
     if (isCreate) {
@@ -175,7 +161,7 @@ export function SurveyBuilderPage(props: Props) {
               'placeholder:text-muted-foreground/50 text-base leading-none font-semibold tracking-tight',
               'min-w-0 flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 sm:max-w-md'
             )}
-            value={schema.meta.title}
+            value={schema?.meta.title ?? ''}
             placeholder='问卷标题'
             onChange={(e) => updateMeta({ title: e.target.value })}
           />
@@ -261,5 +247,34 @@ export function SurveyBuilderPage(props: Props) {
       {builderMode === 'edit' && <EditWorkspace />}
       {builderMode === 'flow' && <FlowWorkspace />}
     </div>
+  )
+}
+
+export function SurveyBuilderPage(props: Props) {
+  const isCreate = props.mode === 'create'
+  const surveyId = props.mode === 'edit' ? props.surveyId : undefined
+  const [emptySurvey] = useState(createEmptySurvey)
+  const { data, isLoading } = useSurveyDetail(surveyId ?? '', {
+    enabled: !isCreate,
+  })
+
+  if (!isCreate && isLoading) {
+    return (
+      <div className='text-muted-foreground flex h-[50vh] items-center justify-center gap-2'>
+        <Spinner className='h-5 w-5' />
+        加载问卷中…
+      </div>
+    )
+  }
+
+  const initialSchema = isCreate ? emptySurvey : data
+  if (!initialSchema) return null
+
+  return (
+    <SurveyBuilderSession
+      key={isCreate ? 'create' : initialSchema.id}
+      initialSchema={initialSchema}
+      props={props}
+    />
   )
 }

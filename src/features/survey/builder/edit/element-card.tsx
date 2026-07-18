@@ -11,7 +11,7 @@ import {
   getSurveyDefaultNumberingStyle,
 } from '../../shared/question-numbering'
 import { useIsPaletteDragging } from '../shared/dnd-provider'
-import { useBuilderStore } from '../store'
+import { useBuilderStore, useBuilderStoreApi } from '../store'
 import type { SurveyElement } from '../types'
 import { QuestionLogicBadges } from './logic/question-logic-badges'
 import {
@@ -51,6 +51,8 @@ function QuestionBlock({
   drag: QuestionDragHandleProps
   children: ReactNode
 }) {
+  const store = useBuilderStoreApi()
+
   return (
     <article
       ref={setNodeRef}
@@ -70,7 +72,7 @@ function QuestionBlock({
         const target = e.target as HTMLElement
         if (target.closest(`[${QUESTION_REQUIRED_TOGGLE_ATTR}]`)) return
         if (target.closest(`[${QUESTION_NUMBER_TOGGLE_ATTR}]`)) return
-        useBuilderStore.getState().select(sectionId, element.id)
+        store.getState().select(sectionId, element.id)
       }}
     >
       <div className='min-w-0 px-3.5 py-3 pr-11'>{children}</div>
@@ -89,6 +91,7 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
   element,
   selected,
 }: Props) {
+  const store = useBuilderStoreApi()
   const globalOrdinal = useBuilderStore((s) =>
     s.schema ? (buildQuestionOrdinalMap(s.schema).get(element.id) ?? 1) : 1
   )
@@ -161,11 +164,9 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
           <Textarea
             value={element.html}
             onChange={(e) =>
-              useBuilderStore
-                .getState()
-                .updateHtmlBlock(sectionId, element.id, {
-                  html: e.target.value,
-                })
+              store.getState().updateHtmlBlock(sectionId, element.id, {
+                html: e.target.value,
+              })
             }
             placeholder='输入说明内容…'
             className='min-h-0 resize-none border-none shadow-none focus-within:ring-0 focus-within:ring-offset-0'
@@ -219,14 +220,10 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
         surveyDefaultNumbering={surveyDefaultNumbering}
         selected={selected}
         onPatch={(patch) =>
-          useBuilderStore
-            .getState()
-            .updateQuestion(sectionId, element.id, patch)
+          store.getState().updateQuestion(sectionId, element.id, patch)
         }
         onConfigChange={(patch) =>
-          useBuilderStore
-            .getState()
-            .updateQuestionConfig(sectionId, element.id, patch)
+          store.getState().updateQuestionConfig(sectionId, element.id, patch)
         }
       />
     </QuestionBlock>

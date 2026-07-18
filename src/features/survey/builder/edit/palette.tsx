@@ -39,7 +39,7 @@ import {
 } from '../../shared/question-registry'
 import { PALETTE_DRAG } from '../shared/dnd-types'
 import { BuilderPanelHeader } from '../shared/panel-header'
-import { useBuilderStore } from '../store'
+import { useBuilderStore, useBuilderStoreApi } from '../store'
 import type { QuestionType, QuestionManifest, PaletteTypeId } from '../types'
 
 type PaletteItem =
@@ -215,6 +215,7 @@ type Props = {
 }
 
 export function QuestionPalette({ className, onNavigate }: Props = {}) {
+  const store = useBuilderStoreApi()
   const [query, setQuery] = useState('')
   const sectionId = useBuilderStore((s) => s.selectedSectionId)
   const disabled = !sectionId
@@ -244,13 +245,11 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
     if (!sectionId) return
     const isLayout = item.type === 'divider' || item.type === 'html_block'
     if (isLayout) {
-      useBuilderStore
+      store
         .getState()
         .addLayout(sectionId, item.type as 'divider' | 'html_block')
     } else {
-      useBuilderStore
-        .getState()
-        .addQuestion(sectionId, item.type as QuestionType)
+      store.getState().addQuestion(sectionId, item.type as QuestionType)
     }
     onNavigate?.()
   }

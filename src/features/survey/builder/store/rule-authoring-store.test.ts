@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { QuestionElement, SurveySchema } from '../../core/types'
-import { useBuilderStore } from './index'
+import { createBuilderStore, type BuilderStore } from './index'
 
 function question(id: string, title: string): QuestionElement {
   return {
@@ -48,31 +48,33 @@ function survey(): SurveySchema {
 }
 
 describe('builder rule authoring interface', () => {
+  let store: BuilderStore
+
   beforeEach(() => {
-    useBuilderStore.getState().init(survey())
+    store = createBuilderStore(survey())
   })
 
   it('does not dirty or mutate the survey until applying a new draft', () => {
-    const state = useBuilderStore.getState()
+    const state = store.getState()
 
     expect(state.beginRuleDraft({ type: 'new' })).toBe('started')
-    expect(useBuilderStore.getState()).toMatchObject({
+    expect(store.getState()).toMatchObject({
       isDirty: false,
       builderMode: 'flow',
     })
-    expect(useBuilderStore.getState().schema?.rules).toEqual([])
+    expect(store.getState().schema?.rules).toEqual([])
 
-    expect(useBuilderStore.getState().applyRuleDraft()).toBe(true)
-    expect(useBuilderStore.getState().schema?.rules).toHaveLength(1)
-    expect(useBuilderStore.getState().isDirty).toBe(true)
+    expect(store.getState().applyRuleDraft()).toBe(true)
+    expect(store.getState().schema?.rules).toHaveLength(1)
+    expect(store.getState().isDirty).toBe(true)
   })
 
   it('discards a new draft without changing the survey', () => {
-    useBuilderStore.getState().beginRuleDraft({ type: 'new' })
-    useBuilderStore.getState().discardRuleDraft()
+    store.getState().beginRuleDraft({ type: 'new' })
+    store.getState().discardRuleDraft()
 
-    expect(useBuilderStore.getState().schema?.rules).toEqual([])
-    expect(useBuilderStore.getState()).toMatchObject({
+    expect(store.getState().schema?.rules).toEqual([])
+    expect(store.getState()).toMatchObject({
       ruleDraft: null,
       editingRuleId: null,
       isDirty: false,
@@ -80,23 +82,32 @@ describe('builder rule authoring interface', () => {
   })
 
   it('requires confirmation before replacing a changed draft', () => {
-    useBuilderStore.getState().beginRuleDraft({ type: 'new' })
+    store.getState().beginRuleDraft({ type: 'new' })
 
-    expect(useBuilderStore.getState().beginRuleDraft({ type: 'new' })).toBe(
+    expect(store.getState().beginRuleDraft({ type: 'new' })).toBe(
       'confirmation-required'
     )
-    expect(useBuilderStore.getState().schema?.rules).toEqual([])
+    expect(store.getState().schema?.rules).toEqual([])
   })
 
   it('refuses to apply a draft with blocking validation issues', () => {
-    useBuilderStore.getState().beginRuleDraft({ type: 'new' })
-    useBuilderStore.getState().changeRuleDraft({
+    store.getState().beginRuleDraft({ type: 'new' })
+    store.getState().changeRuleDraft({
       type: 'condition',
       when: '{q.missing} notEmpty',
     })
 
-    expect(useBuilderStore.getState().applyRuleDraft()).toBe(false)
-    expect(useBuilderStore.getState().schema?.rules).toEqual([])
-    expect(useBuilderStore.getState().isDirty).toBe(false)
+    expect(store.getState().applyRuleDraft()).toBe(false)
+    expect(store.getState().schema?.rules).toEqual([])
+    expect(store.getState().isDirty).toBe(false)
+  })
+
+  it('creates isolated sessions for different surveys', () => {
+    const other = createBuilderStore({ ...survey(), id: 'survey-2' })
+
+    store.getState().updateMeta({ title: '会话一' })
+
+    expect(store.getState().schema?.meta.title).toBe('会话一')
+    expect(other.getState().schema?.meta.title).toBe('测试问卷')
   })
 })

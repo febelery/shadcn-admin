@@ -33,7 +33,6 @@ export interface BuilderState {
   flowShowVisibilityEdges: boolean
   inspectorTab: 'element' | 'settings'
 
-  init: (schema: SurveySchema) => void
   updateMeta: (patch: Partial<SurveySchema['meta']>) => void
   updateTheme: (patch: Partial<SurveySchema['theme']>) => void
   updateSubmission: (patch: Partial<SurveySchema['submission']>) => void
