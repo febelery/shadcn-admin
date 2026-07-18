@@ -44,6 +44,59 @@ describe('parseSurveyDocument', () => {
     ).toThrow()
   })
 
+  it('rejects duplicate document and rule identities', () => {
+    const document = createEmptySurvey()
+    const firstQuestion = {
+      kind: 'question' as const,
+      id: 'duplicate-question',
+      type: 'text' as const,
+      title: '第一题',
+      required: false,
+      config: {},
+    }
+    document.sections[0].elements = [
+      firstQuestion,
+      { ...firstQuestion, title: '第二题' },
+    ]
+
+    expect(() => parseSurveyDocument(document)).toThrow(/element ID/)
+
+    document.sections[0].elements = []
+    document.rules = [
+      {
+        id: 'duplicate-rule',
+        name: '规则一',
+        enabled: true,
+        priority: 0,
+        condition: { questionId: 'question', operator: 'not_empty' },
+        action: { id: 'action-1', type: 'end' },
+      },
+      {
+        id: 'duplicate-rule',
+        name: '规则二',
+        enabled: true,
+        priority: 1,
+        condition: { questionId: 'question', operator: 'not_empty' },
+        action: { id: 'action-2', type: 'end' },
+      },
+    ]
+
+    expect(() => parseSurveyDocument(document)).toThrow(/rule ID/)
+  })
+
+  it('rejects unknown fields instead of silently stripping them', () => {
+    const document = createEmptySurvey()
+    expect(() =>
+      parseSurveyDocument({ ...document, unexpectedField: true })
+    ).toThrow()
+    expect(() =>
+      parseSurveyDocument({
+        ...document,
+        submission: { ...document.submission, unsupported: true },
+      })
+    ).toThrow()
+  })
+
   it('rejects the removed string DSL and between rule operator', () => {
     const document = createEmptySurvey()
     const baseRule = {

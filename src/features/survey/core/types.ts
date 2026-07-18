@@ -312,7 +312,6 @@ export interface RuleAction {
   id: string
   type: RuleActionType
   target?: string
-  value?: unknown
 }
 
 export type RulePresenceConditionOperator = 'empty' | 'not_empty'

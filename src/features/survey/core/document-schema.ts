@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { getDocumentIdentityIssues } from './document-identities'
 import { SURVEY_DOCUMENT_SCHEMA_VERSION } from './document-version'
 import { getQuestionConfigIssues } from './question-config'
 import { parseRichTextContent } from './rich-text'
@@ -11,38 +12,43 @@ const ruleActionTypeValues = [
   'end',
 ] as const
 
-const ruleActionSchema = z.object({
-  id: z.string(),
-  type: z.enum(ruleActionTypeValues),
-  target: z.string().optional(),
-  value: z.unknown().optional(),
-})
+const ruleActionSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.enum(ruleActionTypeValues),
+    target: z.string().optional(),
+  })
+  .strict()
 
 const ruleConditionSchema = z.union([
-  z.object({
-    questionId: z.string().min(1),
-    operator: z.enum(['empty', 'not_empty']),
-  }),
-  z.object({
-    questionId: z.string().min(1),
-    operator: z.enum([
-      'eq',
-      'neq',
-      'gt',
-      'gte',
-      'lt',
-      'lte',
-      'contains',
-      'not_contains',
-    ]),
-    value: z.union([z.string(), z.number()]),
-  }),
+  z
+    .object({
+      questionId: z.string().min(1),
+      operator: z.enum(['empty', 'not_empty']),
+    })
+    .strict(),
+  z
+    .object({
+      questionId: z.string().min(1),
+      operator: z.enum([
+        'eq',
+        'neq',
+        'gt',
+        'gte',
+        'lt',
+        'lte',
+        'contains',
+        'not_contains',
+      ]),
+      value: z.union([z.string(), z.number()]),
+    })
+    .strict(),
 ])
 
 const questionElementSchema = z
   .object({
     kind: z.literal('question'),
-    id: z.string(),
+    id: z.string().min(1),
     type: z.enum(QUESTION_TYPES),
     title: z.string(),
     description: z.string().optional(),
@@ -92,11 +98,11 @@ const questionElementSchema = z
 const surveyElementSchema: z.ZodType<unknown> = z.lazy(() =>
   z.discriminatedUnion('kind', [
     questionElementSchema,
-    z.object({ kind: z.literal('divider'), id: z.string() }),
+    z.object({ kind: z.literal('divider'), id: z.string().min(1) }).strict(),
     z
       .object({
         kind: z.literal('rich_text'),
-        id: z.string(),
+        id: z.string().min(1),
         content: z.unknown(),
       })
       .strict()
@@ -111,92 +117,147 @@ const surveyElementSchema: z.ZodType<unknown> = z.lazy(() =>
           })
         }
       }),
-    z.object({
-      kind: z.literal('panel'),
-      id: z.string(),
-      title: z.string().optional(),
-      collapsible: z.boolean().optional(),
-      elements: z.array(surveyElementSchema),
-    }),
+    z
+      .object({
+        kind: z.literal('panel'),
+        id: z.string().min(1),
+        title: z.string().optional(),
+        collapsible: z.boolean().optional(),
+        elements: z.array(surveyElementSchema),
+      })
+      .strict(),
   ])
 )
 
-const sectionSchema = z.object({
-  id: z.string(),
-  title: z.string().optional(),
-  description: z.string().optional(),
-  elements: z.array(surveyElementSchema),
-})
+const sectionSchema = z
+  .object({
+    id: z.string().min(1),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    elements: z.array(surveyElementSchema),
+  })
+  .strict()
 
-const surveyDocumentSchema = z.object({
-  id: z.string(),
-  schemaVersion: z.literal(SURVEY_DOCUMENT_SCHEMA_VERSION),
-  revision: z.number().int().nonnegative(),
-  status: z.enum(['draft', 'published', 'archived']),
-  slug: z.string().optional(),
-  publishedAt: z.string().optional(),
-  meta: z.object({
-    title: z.string().min(1),
-    description: z.string(),
-    coverType: z.enum(['none', 'color', 'image']),
-    coverColor: z.string().optional(),
-    cover: z.string().optional(),
-    submitLabel: z.string(),
-    endTitle: z.string(),
-    endDescription: z.string(),
-    defaultQuestionNumbering: z
-      .enum([
-        'decimal',
-        'chinese',
-        'decimal_paren',
-        'decimal_bracket',
-        'letter_upper',
-        'letter_lower',
-        'roman_upper',
-        'roman_lower',
-        'none',
-      ])
-      .optional(),
-    questionNumberingMode: z.enum(['global', 'continuous']).optional(),
-  }),
-  presentation: z.object({ type: z.literal('scroll') }),
-  theme: z.object({
-    primaryColor: z.string(),
-    backgroundColor: z.string(),
-    borderRadius: z.string(),
-    fontFamily: z.string().optional(),
-  }),
-  variables: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      type: z.enum(['string', 'number', 'boolean']),
-      source: z.enum(['url', 'hidden', 'literal']),
-      default: z.union([z.string(), z.number(), z.boolean()]).optional(),
-    })
-  ),
-  sections: z.tuple([sectionSchema]),
-  rules: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      enabled: z.boolean(),
-      priority: z.number(),
-      condition: ruleConditionSchema,
-      action: ruleActionSchema,
-    })
-  ),
-  validators: z.array(
-    z.object({
-      id: z.string(),
-      fields: z.array(z.string()),
-      rule: z.string(),
-      message: z.string(),
-    })
-  ),
-  submission: z.record(z.string(), z.unknown()),
-  extensions: z.record(z.string(), z.unknown()).optional(),
-})
+const surveyDocumentSchema = z
+  .object({
+    id: z.string().min(1),
+    schemaVersion: z.literal(SURVEY_DOCUMENT_SCHEMA_VERSION),
+    revision: z.number().int().nonnegative(),
+    status: z.enum(['draft', 'published', 'archived']),
+    slug: z.string().optional(),
+    publishedAt: z.string().optional(),
+    meta: z
+      .object({
+        title: z.string().min(1),
+        description: z.string(),
+        coverType: z.enum(['none', 'color', 'image']),
+        coverColor: z.string().optional(),
+        cover: z.string().optional(),
+        submitLabel: z.string(),
+        endTitle: z.string(),
+        endDescription: z.string(),
+        defaultQuestionNumbering: z
+          .enum([
+            'decimal',
+            'chinese',
+            'decimal_paren',
+            'decimal_bracket',
+            'letter_upper',
+            'letter_lower',
+            'roman_upper',
+            'roman_lower',
+            'none',
+          ])
+          .optional(),
+        questionNumberingMode: z.enum(['global', 'continuous']).optional(),
+      })
+      .strict(),
+    presentation: z.object({ type: z.literal('scroll') }).strict(),
+    theme: z
+      .object({
+        primaryColor: z.string(),
+        backgroundColor: z.string(),
+        borderRadius: z.string(),
+        fontFamily: z.string().optional(),
+      })
+      .strict(),
+    variables: z.array(
+      z
+        .object({
+          id: z.string().min(1),
+          name: z.string(),
+          type: z.enum(['string', 'number', 'boolean']),
+          source: z.enum(['url', 'hidden', 'literal']),
+          default: z.union([z.string(), z.number(), z.boolean()]).optional(),
+        })
+        .strict()
+    ),
+    sections: z.tuple([sectionSchema]),
+    rules: z.array(
+      z
+        .object({
+          id: z.string().min(1),
+          name: z.string(),
+          enabled: z.boolean(),
+          priority: z.number(),
+          condition: ruleConditionSchema,
+          action: ruleActionSchema,
+        })
+        .strict()
+    ),
+    validators: z.array(
+      z
+        .object({
+          id: z.string().min(1),
+          fields: z.array(z.string()),
+          rule: z.string(),
+          message: z.string(),
+        })
+        .strict()
+    ),
+    submission: z
+      .object({
+        quota: z
+          .object({
+            enabled: z.boolean(),
+            total: z.number().int().positive(),
+          })
+          .strict()
+          .optional(),
+        timeWindow: z
+          .object({
+            enabled: z.boolean(),
+            startAt: z.string().optional(),
+            endAt: z.string().optional(),
+          })
+          .strict()
+          .optional(),
+        rateLimit: z
+          .object({
+            enabled: z.boolean(),
+            maxPerUser: z.number().int().nonnegative().optional(),
+            maxPerUserPerDay: z.number().int().nonnegative().optional(),
+            maxPerDay: z.number().int().nonnegative().optional(),
+          })
+          .strict()
+          .optional(),
+        oncePerDevice: z.boolean().optional(),
+        oncePerUser: z.boolean().optional(),
+        password: z.string().optional(),
+      })
+      .strict(),
+    extensions: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict()
+  .superRefine((document, context) => {
+    for (const issue of getDocumentIdentityIssues(document as SurveyDocument)) {
+      context.addIssue({
+        code: 'custom',
+        path: issue.path,
+        message: issue.message,
+      })
+    }
+  })
 
 export function parseSurveyDocument(data: unknown): SurveyDocument {
   return surveyDocumentSchema.parse(data) as SurveyDocument

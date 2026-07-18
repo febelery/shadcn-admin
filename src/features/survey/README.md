@@ -17,6 +17,8 @@
 
 当前文档契约明确只支持一个 `section`，不接受静默合并。`schemaVersion` 表示文档格式，`revision` 表示发布修订，两者不可复用。
 
+`document-schema.ts` 严格拒绝未知持久化字段；`document-identities.ts` 保证 section、element、rule、action、variable 与 validator 在各自命名空间内唯一。重复身份不能进入 Builder。
+
 题型与 config 通过 `QuestionConfigByType` 判别联合建模。`question-config.ts` 统一负责持久化解析、字段所有权和依赖数值的原子归一化；Store 不直接合并任意 config。
 
 规则与问卷结构是事实来源，流程图是派生视图。规则编辑使用显式草稿事务；未来 XYFlow 连线只创建规则草稿意图。
