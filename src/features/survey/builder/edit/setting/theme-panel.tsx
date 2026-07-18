@@ -20,11 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { isSurveyNumberingEnabled } from '@/features/survey/core/question-numbering'
 import {
-  isSurveyNumberingEnabled,
   SURVEY_NUMBERING_MODE_OPTIONS,
   SURVEY_NUMBERING_OPTIONS,
-} from '@/features/survey/shared/question-numbering'
+} from '@/features/survey/shared/numbering-options'
 import { useBuilderStore } from '../../store'
 import type {
   QuestionNumberingMode,

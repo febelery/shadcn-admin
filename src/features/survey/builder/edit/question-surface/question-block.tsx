@@ -14,7 +14,7 @@ import {
 import {
   isSurveyNumberingEnabled,
   isQuestionNumberVisible,
-} from '@/features/survey/shared/question-numbering'
+} from '@/features/survey/core/question-numbering'
 import { QuestionRequiredMark } from '@/features/survey/shared/question-required-mark'
 import { LABEL_LIMITS } from '../../store'
 import type {

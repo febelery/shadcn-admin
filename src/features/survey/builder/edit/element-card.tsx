@@ -8,7 +8,7 @@ import {
   buildQuestionDisplayOrdinalMap,
   getQuestionNumberingMode,
   getSurveyDefaultNumberingStyle,
-} from '../../shared/question-numbering'
+} from '../../core/question-numbering'
 import { RichTextEditor } from '../../shared/rich-text-editor'
 import { useIsPaletteDragging } from '../shared/dnd-provider'
 import { useBuilderStore, useBuilderStoreApi } from '../store'

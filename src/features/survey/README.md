@@ -15,13 +15,15 @@
 
 `document-factory.ts` 只负责默认文档与 section 创建；`document-elements.ts` 负责递归题目遍历。文档实体 ID 直接使用浏览器原生 `crypto.randomUUID()`，不增加透传包装。
 
+`core/question-numbering.ts` 只包含文档序号计算与缓存；`shared/numbering-options.ts` 只包含 UI 下拉文案和 CSS class，core 不反向依赖 shared。
+
 当前文档契约明确只支持一个 `section`，不接受静默合并。`schemaVersion` 表示文档格式，`revision` 表示发布修订，两者不可复用。
 
 `document-schema.ts` 严格拒绝未知持久化字段；`document-identities.ts` 保证 section、element、rule、action、variable 与 validator 在各自命名空间内唯一。重复身份不能进入 Builder。
 
 题型与 config 通过 `QuestionConfigByType` 判别联合建模。`question-config.ts` 统一负责持久化解析、字段所有权和依赖数值的原子归一化；Store 不直接合并任意 config。
 
-规则与问卷结构是事实来源，流程图是派生视图。规则编辑使用显式草稿事务；未来 XYFlow 连线只创建规则草稿意图。
+规则与问卷结构是事实来源，流程图是派生视图。`core/logic/flow-graph.ts` 只构建领域节点和规则边，`builder/flow/layout.ts` 才负责 Dagre 坐标；规则编辑使用显式草稿事务，未来 XYFlow 连线只创建规则草稿意图。
 
 规则条件持久化为 `condition.questionId/operator/value`，不保存或解析字符串 DSL。规则能力必须同时覆盖文档 schema、创作 UI、静态分析和填写端求值。
 

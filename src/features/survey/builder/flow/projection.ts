@@ -1,14 +1,10 @@
 import { flattenQuestions } from '../../core/document-elements'
 import { analyseSurvey, type StaticIssue } from '../../core/logic/analyzer'
-import {
-  buildFlowGraph,
-  layoutFlowGraphWithMeta,
-  type FlowGraph,
-  type FlowLayoutResult,
-} from '../../core/logic/flow-graph'
+import { buildFlowGraph, type FlowGraph } from '../../core/logic/flow-graph'
 import { getRuleCategory } from '../../core/logic/rule-meta'
+import { getQuestionReferenceLabel } from '../../core/question-numbering'
 import type { QuestionElement, Rule, SurveyDocument } from '../../core/types'
-import { getQuestionReferenceLabel } from '../../shared/question-numbering'
+import { layoutFlowGraph, type FlowLayoutResult } from './layout'
 
 export interface FlowProjectionStats {
   questionCount: number
@@ -142,7 +138,7 @@ export function createFlowProjector() {
     const layout =
       topologyKey === previousTopologyKey && previousLayout
         ? previousLayout
-        : layoutFlowGraphWithMeta(graph)
+        : layoutFlowGraph(graph)
 
     const errors = issues.filter((issue) => issue.severity === 'error').length
     const warnings = issues.filter((issue) => issue.severity === 'warn').length

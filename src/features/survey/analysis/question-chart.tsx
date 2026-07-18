@@ -9,7 +9,7 @@ import type {
   QuestionElement,
   SurveyDocument,
 } from '@/features/survey/core/types'
-import { getQuestionNumberPrefix } from '@/features/survey/shared/question-numbering'
+import { getQuestionNumberPrefix } from '@/features/survey/core/question-numbering'
 import { useSurveyQuestionAnalysis } from '../query/hooks'
 import { ChoiceChart } from './charts/choice-chart'
 import { LikertChart } from './charts/likert-chart'

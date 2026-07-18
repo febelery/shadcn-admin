@@ -30,8 +30,8 @@ import {
   getSurveyDefaultNumberingStyle,
   isSurveyNumberingEnabled,
   isQuestionNumberVisible,
-  SURVEY_NUMBERING_OPTIONS,
-} from '@/features/survey/shared/question-numbering'
+} from '@/features/survey/core/question-numbering'
+import { SURVEY_NUMBERING_OPTIONS } from '@/features/survey/shared/numbering-options'
 import {
   getQuestionTypeHint,
   hasQuestionTypePreview,

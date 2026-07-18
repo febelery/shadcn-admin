@@ -9,7 +9,7 @@ import type {
   QuestionElement,
   SurveyDocument,
 } from '@/features/survey/core/types'
-import { getQuestionNumberPrefix } from '@/features/survey/shared/question-numbering'
+import { getQuestionNumberPrefix } from '@/features/survey/core/question-numbering'
 
 export type FieldKind = 'choice' | 'multi' | 'number' | 'text'
 

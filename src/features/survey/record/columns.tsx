@@ -5,7 +5,7 @@ import type {
   SurveyRecordItem,
   SurveyDocument,
 } from '../core/types'
-import { getQuestionReferenceLabel } from '../shared/question-numbering'
+import { getQuestionReferenceLabel } from '../core/question-numbering'
 
 export type SurveyRecordGridRow = SurveyRecordItem
 

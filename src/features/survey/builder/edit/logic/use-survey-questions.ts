@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { flattenQuestions } from '@/features/survey/core/document-elements'
-import { getQuestionReferenceLabel } from '@/features/survey/shared/question-numbering'
+import { getQuestionReferenceLabel } from '@/features/survey/core/question-numbering'
 import { useBuilderStore } from '../../store'
 import type { QuestionElement } from '../../types'
 

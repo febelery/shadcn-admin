@@ -4,12 +4,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { questionNumberColumn } from '@/features/survey/shared/question-layout'
 import {
   isQuestionNumberVisible,
   getQuestionNumberLabel,
-  getQuestionNumberTextClass,
-} from '@/features/survey/shared/question-numbering'
+} from '@/features/survey/core/question-numbering'
+import { getQuestionNumberTextClass } from '@/features/survey/shared/numbering-options'
+import { questionNumberColumn } from '@/features/survey/shared/question-layout'
 import type {
   QuestionElement,
   QuestionNumberingMode,

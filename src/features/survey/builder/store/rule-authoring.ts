@@ -23,7 +23,7 @@ import type {
   RuleCondition,
   SurveyDocument,
 } from '../../core/types'
-import { getQuestionReferenceLabel } from '../../shared/question-numbering'
+import { getQuestionReferenceLabel } from '../../core/question-numbering'
 
 export interface RuleDraft {
   kind: 'create' | 'edit'
