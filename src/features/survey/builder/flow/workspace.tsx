@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { GitBranch, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -10,38 +10,23 @@ import {
 } from '@/components/ui/sheet'
 import { useBuilderStore } from '../builder-session'
 import { useRuleAuthoring } from '../session/rule-authoring'
-import { buildRuleDraftPreviewDocument } from '../session/rule-draft'
 import { CenterPanel } from './center-panel'
 import { LeftPanel } from './left-panel'
-import { createFlowProjector } from './projection'
 import { RightPanel } from './right-panel'
+import { createFlowWorkspaceProjector } from './workspace-projection'
 
 const desktopOnly = 'hidden lg:flex'
 
 export function FlowWorkspace() {
-  const document = useBuilderStore((s) => s.document)
-  const ruleDraft = useBuilderStore((s) => s.ruleDraft)
+  const [project] = useState(createFlowWorkspaceProjector)
+  const {
+    committed: projection,
+    canvas: canvasProjection,
+    draftIssues,
+  } = useBuilderStore((s) => project(s.document, s.ruleDraft))
   const logicMobilePanel = useBuilderStore((s) => s.logicMobilePanel)
   const navigate = useBuilderStore((s) => s.navigate)
   const { clearRuleFocus } = useRuleAuthoring()
-  const [project] = useState(createFlowProjector)
-  const [projectPreview] = useState(createFlowProjector)
-  const projection = useMemo(() => project(document), [document, project])
-  const previewDocument = useMemo(
-    () =>
-      ruleDraft ? buildRuleDraftPreviewDocument(document, ruleDraft) : document,
-    [document, ruleDraft]
-  )
-  const canvasProjection = useMemo(() => {
-    if (!ruleDraft) return projection
-    const preview = projectPreview(previewDocument)
-    return {
-      ...preview,
-      // 草稿只叠加边，不参与正式拓扑布局和视口失效。
-      layout: projection.layout,
-      topologyKey: projection.topologyKey,
-    }
-  }, [previewDocument, projection, ruleDraft, projectPreview])
 
   return (
     <>
@@ -66,7 +51,7 @@ export function FlowWorkspace() {
             desktopOnly
           )}
         >
-          <RightPanel projection={projection} />
+          <RightPanel projection={projection} draftIssues={draftIssues} />
         </aside>
       </div>
 
@@ -131,6 +116,7 @@ export function FlowWorkspace() {
           </SheetHeader>
           <RightPanel
             projection={projection}
+            draftIssues={draftIssues}
             className='flex h-full w-full max-w-none shrink border-0'
           />
         </SheetContent>

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { QuestionElement, Rule, SurveyDocument } from '../../core/types'
+import type { RuleDraft } from '../session/rule-draft'
 import { createFlowProjector } from './projection'
+import { createFlowWorkspaceProjector } from './workspace-projection'
 
 function question(id: string, title: string): QuestionElement {
   return {
@@ -156,6 +158,48 @@ describe('createFlowProjector', () => {
           code: 'action_target',
           severity: 'error',
         }),
+      ])
+    )
+  })
+})
+
+describe('createFlowWorkspaceProjector', () => {
+  it('keeps the React-facing projection stable for unrelated document changes', () => {
+    const project = createFlowWorkspaceProjector()
+    const document = createTestDocument()
+    const before = project(document, null)
+    const after = project(
+      {
+        ...document,
+        theme: { ...document.theme, primaryColor: '#2563eb' },
+        submissionPolicy: { totalLimit: 100 },
+      },
+      null
+    )
+
+    expect(after).toBe(before)
+    expect(after.draftIssues).toBeUndefined()
+  })
+
+  it('projects draft edges without replacing the committed layout', () => {
+    const project = createFlowWorkspaceProjector()
+    const document = createTestDocument()
+    const editedRule = rule({
+      condition: { questionId: 'missing-question', operator: 'not_empty' },
+    })
+    const draft: RuleDraft = {
+      kind: 'edit',
+      original: rule(),
+      value: editedRule,
+    }
+    const result = project(document, draft)
+
+    expect(result.canvas).not.toBe(result.committed)
+    expect(result.canvas.layout).toBe(result.committed.layout)
+    expect(result.canvas.topologyKey).toBe(result.committed.topologyKey)
+    expect(result.draftIssues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'condition_question' }),
       ])
     )
   })

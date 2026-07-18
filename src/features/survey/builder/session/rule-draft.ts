@@ -184,6 +184,38 @@ export function deriveRuleDraftModel(
   }
 }
 
+/** 返回引用稳定的规则编辑读模型，避免无关文档字段唤醒编辑器。 */
+export function createRuleDraftModelProjector() {
+  let previousElements: SurveyDocument['elements'] | null = null
+  let previousRules: SurveyDocument['rules'] | null = null
+  let previousNumberingStyle: SurveyDocument['meta']['defaultQuestionNumbering']
+  let previousNumberingMode: SurveyDocument['meta']['questionNumberingMode']
+  let previousDraft: RuleDraft | null = null
+  let previousModel: RuleDraftModel | null = null
+
+  return (document: SurveyDocument, draft: RuleDraft): RuleDraftModel => {
+    if (
+      document.elements === previousElements &&
+      document.rules === previousRules &&
+      document.meta.defaultQuestionNumbering === previousNumberingStyle &&
+      document.meta.questionNumberingMode === previousNumberingMode &&
+      draft === previousDraft &&
+      previousModel
+    ) {
+      return previousModel
+    }
+
+    const model = deriveRuleDraftModel(document, draft)
+    previousElements = document.elements
+    previousRules = document.rules
+    previousNumberingStyle = document.meta.defaultQuestionNumbering
+    previousNumberingMode = document.meta.questionNumberingMode
+    previousDraft = draft
+    previousModel = model
+    return model
+  }
+}
+
 function resolveRuleName(
   document: SurveyDocument,
   draft: RuleDraft,
@@ -293,7 +325,14 @@ export function getRuleDraftIssues(
   draft: RuleDraft
 ): StaticIssue[] {
   const preview = buildRuleDraftPreviewDocument(document, draft)
-  return analyseSurvey(preview).filter((issue) => {
+  return filterRuleDraftIssues(analyseSurvey(preview), draft)
+}
+
+export function filterRuleDraftIssues(
+  issues: StaticIssue[],
+  draft: RuleDraft
+): StaticIssue[] {
+  return issues.filter((issue) => {
     if (issue.ruleId === draft.value.id) return true
     return (
       issue.code === 'visibility_conflict' &&

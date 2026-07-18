@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { ChevronDown, MousePointerClick } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -22,7 +23,7 @@ import type { RuleActionType } from '../../../core/types'
 import { useBuilderStore } from '../../builder-session'
 import { useRuleDraftEditor } from '../../session/rule-authoring'
 import {
-  deriveRuleDraftModel,
+  createRuleDraftModelProjector,
   type RuleDraftChange,
 } from '../../session/rule-draft'
 import { BuilderGuidance } from '../guidance'
@@ -124,11 +125,14 @@ type Props = {
 }
 
 export function RuleEditorPanel({ className, ruleIssues }: Props) {
-  const document = useBuilderStore((s) => s.document)
   const { draft, hasChanges, changeDraft, applyDraft, cancelDraft } =
     useRuleDraftEditor()
+  const [projectModel] = useState(createRuleDraftModelProjector)
+  const model = useBuilderStore((s) =>
+    draft ? projectModel(s.document, draft) : null
+  )
 
-  if (!draft) {
+  if (!draft || !model) {
     return (
       <div
         className={cn(
@@ -150,7 +154,6 @@ export function RuleEditorPanel({ className, ruleIssues }: Props) {
     )
   }
 
-  const model = deriveRuleDraftModel(document, draft)
   const rule = draft.value
   const hasBlockingIssues = ruleIssues.some(
     (issue) => issue.severity === 'error'

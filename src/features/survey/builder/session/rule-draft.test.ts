@@ -5,6 +5,7 @@ import {
   beginRuleDraft,
   buildRuleDraftPreviewDocument,
   changeRuleDraft,
+  createRuleDraftModelProjector,
   deriveRuleDraftModel,
   getRuleDraftIssues,
   hasRuleDraftChanges,
@@ -108,6 +109,26 @@ describe('rule authoring', () => {
 
     expect(model.sourceId).toBe('q2')
     expect(changed.value.action.target).toBe('q3')
+  })
+
+  it('keeps the editor model stable when unrelated settings change', () => {
+    const project = createRuleDraftModelProjector()
+    const document = createTestDocument()
+    const draft = beginRuleDraft(document, {
+      type: 'existing',
+      ruleId: 'rule-1',
+    })!
+    const before = project(document, draft)
+    const after = project(
+      {
+        ...document,
+        theme: { ...document.theme, primaryColor: '#2563eb' },
+        submissionPolicy: { perDeviceLimit: 1 },
+      },
+      draft
+    )
+
+    expect(after).toBe(before)
   })
 
   it('applies a draft exactly once', () => {

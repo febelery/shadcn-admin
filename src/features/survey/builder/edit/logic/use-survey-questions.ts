@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { flattenQuestions } from '@/features/survey/core/document-elements'
 import { getQuestionReferenceLabel } from '@/features/survey/core/question-numbering'
-import type { QuestionElement } from '../../../core/types'
+import type { QuestionElement, SurveyDocument } from '../../../core/types'
 import { useBuilderStore } from '../../builder-session'
 
 type SurveyQuestionCatalog = {
@@ -9,25 +9,54 @@ type SurveyQuestionCatalog = {
   selectOptions: { id: string; label: string }[]
 }
 
-/** 规则编辑器使用的题目目录：一次订阅提供查找索引与选择器文案。 */
-export function useSurveyQuestionCatalog(filterIds?: string[]) {
-  const document = useBuilderStore((s) => s.document)
+function createQuestionCatalogProjector() {
+  let previousElements: SurveyDocument['elements'] | null = null
+  let previousNumberingStyle: SurveyDocument['meta']['defaultQuestionNumbering']
+  let previousNumberingMode: SurveyDocument['meta']['questionNumberingMode']
+  let previousCatalog: SurveyQuestionCatalog | null = null
 
-  return useMemo<SurveyQuestionCatalog>(() => {
+  return (document: SurveyDocument): SurveyQuestionCatalog => {
+    if (
+      document.elements === previousElements &&
+      document.meta.defaultQuestionNumbering === previousNumberingStyle &&
+      document.meta.questionNumberingMode === previousNumberingMode &&
+      previousCatalog
+    ) {
+      return previousCatalog
+    }
+
     const questions = flattenQuestions(document)
-    const questionsById = new Map(
-      questions.map((question) => [question.id, question])
-    )
-    const list = filterIds?.length
-      ? questions.filter((q) => filterIds.includes(q.id))
-      : questions
-
-    return {
-      questionsById,
-      selectOptions: list.map((question) => ({
+    const catalog = {
+      questionsById: new Map(
+        questions.map((question) => [question.id, question])
+      ),
+      selectOptions: questions.map((question) => ({
         id: question.id,
         label: getQuestionReferenceLabel(question, document),
       })),
     }
-  }, [document, filterIds])
+    previousElements = document.elements
+    previousNumberingStyle = document.meta.defaultQuestionNumbering
+    previousNumberingMode = document.meta.questionNumberingMode
+    previousCatalog = catalog
+    return catalog
+  }
+}
+
+/** 规则编辑器使用的题目目录：一次订阅提供查找索引与选择器文案。 */
+export function useSurveyQuestionCatalog(filterIds?: string[]) {
+  const [project] = useState(createQuestionCatalogProjector)
+  const catalog = useBuilderStore((s) => project(s.document))
+
+  return useMemo<SurveyQuestionCatalog>(() => {
+    if (!filterIds?.length) return catalog
+    const allowedIds = new Set(filterIds)
+
+    return {
+      questionsById: catalog.questionsById,
+      selectOptions: catalog.selectOptions.filter((option) =>
+        allowedIds.has(option.id)
+      ),
+    }
+  }, [catalog, filterIds])
 }

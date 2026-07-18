@@ -1,15 +1,15 @@
-import { useMemo } from 'react'
 import { MousePointerClick, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { StaticIssue } from '../../core/logic/analyzer'
 import { useBuilderStore } from '../builder-session'
 import { BuilderGuidance } from '../edit/guidance'
-import { getRuleDraftIssues } from '../session/rule-draft'
 import { BuilderPanelHeader } from '../shared/panel-header'
 import type { FlowProjection } from './projection'
 import { RuleEditorSection } from './rule-editor'
 
 type Props = {
   projection: FlowProjection | null
+  draftIssues?: StaticIssue[]
   className?: string
 }
 
@@ -20,20 +20,11 @@ type Props = {
  * - 选中规则 → 规则
  * - 未选中规则 → 空态引导
  */
-export function RightPanel({ projection, className }: Props) {
+export function RightPanel({ projection, draftIssues, className }: Props) {
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
-  const document = useBuilderStore((s) => s.document)
-  const ruleDraft = useBuilderStore((s) => s.ruleDraft)
-
-  const draftIssues = useMemo(
-    () => (ruleDraft ? getRuleDraftIssues(document, ruleDraft) : []),
-    [document, ruleDraft]
-  )
-  const ruleIssues = ruleDraft
-    ? draftIssues
-    : editingRuleId
-      ? (projection?.issuesByRule.get(editingRuleId) ?? [])
-      : []
+  const ruleIssues =
+    draftIssues ??
+    (editingRuleId ? (projection?.issuesByRule.get(editingRuleId) ?? []) : [])
 
   let title = '规则'
   let content: React.ReactNode
