@@ -9,6 +9,7 @@ import {
   MarkerType,
   ReactFlowProvider,
   getSmoothStepPath,
+  useNodesInitialized,
   useReactFlow,
   type EdgeProps,
   type Edge,
@@ -284,7 +285,8 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
   const { openRule, clearRuleFocus } = useRuleAuthoring()
 
-  const initialFitDone = useRef(false)
+  const nodesInitialized = useNodesInitialized()
+  const focusedTopology = useRef<string | null>(null)
 
   const layoutSig = projection?.topologyKey ?? ''
   const questionTitles = projection?.questionTitles ?? EMPTY_QUESTION_TITLES
@@ -490,20 +492,18 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
     })
   }, [nodes, setCenter, layoutMeta.compact])
 
-  // 仅在首次进入 / 结构变化时定位可读视口，不干扰用户手动缩放
+  // 仅在 XYFlow 完成节点初始化后按拓扑定位一次，不干扰用户手动缩放。
   useEffect(() => {
-    if (!nodes.length) return
-    initialFitDone.current = false
-  }, [layoutSig, nodes.length])
-
-  useEffect(() => {
-    if (!nodes.length || initialFitDone.current) return
-    const id = requestAnimationFrame(() => {
-      focusReadableView()
-      initialFitDone.current = true
-    })
-    return () => cancelAnimationFrame(id)
-  }, [layoutSig, focusReadableView, nodes.length])
+    if (
+      !nodesInitialized ||
+      !nodes.length ||
+      focusedTopology.current === layoutSig
+    ) {
+      return
+    }
+    focusReadableView()
+    focusedTopology.current = layoutSig
+  }, [nodesInitialized, nodes.length, layoutSig, focusReadableView])
 
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
