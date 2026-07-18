@@ -186,11 +186,14 @@ function computeSingleQuestionAnalysis(
       options: optionAnalyses,
     }
   } else if (question.type === 'cascader') {
-    const pathCounts = new Map<string, { label: string; count: number }>()
+    const pathCounts = new Map<
+      string,
+      { pathIds: string[]; label: string; count: number }
+    >()
     for (const val of validAnswers) {
       if (Array.isArray(val) && val.length > 0) {
         const pathIds = val.map(String)
-        const optionId = JSON.stringify(pathIds)
+        const pathKey = JSON.stringify(pathIds)
         const label = getCascaderPathLabels(
           question.config.cascaderOptions ?? [],
           pathIds
@@ -198,8 +201,9 @@ function computeSingleQuestionAnalysis(
           .filter(Boolean)
           .join(' / ')
         if (label) {
-          const current = pathCounts.get(optionId)
-          pathCounts.set(optionId, {
+          const current = pathCounts.get(pathKey)
+          pathCounts.set(pathKey, {
+            pathIds,
             label,
             count: (current?.count ?? 0) + 1,
           })
@@ -207,9 +211,9 @@ function computeSingleQuestionAnalysis(
       }
     }
 
-    let sortedAnalyses = Array.from(pathCounts.entries())
-      .map(([optionId, path]) => ({
-        optionId,
+    const paths = Array.from(pathCounts.values())
+      .map((path) => ({
+        pathIds: path.pathIds,
         label: path.label,
         count: path.count,
         percentage:
@@ -217,29 +221,11 @@ function computeSingleQuestionAnalysis(
       }))
       .sort((a, b) => b.count - a.count)
 
-    const limitCount = 10
-
-    if (sortedAnalyses.length > limitCount) {
-      const top10 = sortedAnalyses.slice(0, limitCount)
-      const others = sortedAnalyses.slice(limitCount)
-      const otherCount = others.reduce((sum, item) => sum + item.count, 0)
-      const otherPercentage =
-        answerCount > 0 ? Number((otherCount / answerCount).toFixed(4)) : 0
-
-      top10.push({
-        optionId: '__other_paths__',
-        label: '其他路径',
-        count: otherCount,
-        percentage: otherPercentage,
-      })
-      sortedAnalyses = top10
-    }
-
     return {
       questionId: question.id,
       title: question.title,
       type: question.type,
-      options: sortedAnalyses,
+      paths,
     }
   } else if (
     question.type === 'rating' ||

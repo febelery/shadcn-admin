@@ -11,7 +11,7 @@ import type {
 } from '@/features/survey/core/types'
 import { getQuestionTypeLabel } from '@/features/survey/shared/question-type-labels'
 import { useSurveyQuestionAnalysis } from '../query/hooks'
-import { ChoiceChart } from './charts/choice-chart'
+import { FrequencyChart } from './charts/frequency-chart'
 import { LikertChart } from './charts/likert-chart'
 import { MatrixChart } from './charts/matrix-chart'
 import { NumberChart } from './charts/number-chart'
@@ -248,8 +248,27 @@ export function QuestionChart({
       case 'single_choice':
       case 'dropdown':
       case 'multiple_choice':
+        return (
+          <FrequencyChart
+            items={analysis.options.map((option) => ({
+              id: option.optionId,
+              label: option.label,
+              count: option.count,
+              percentage: option.percentage,
+            }))}
+          />
+        )
       case 'cascader':
-        return <ChoiceChart analysis={analysis} />
+        return (
+          <FrequencyChart
+            items={analysis.paths.map((path) => ({
+              id: JSON.stringify(path.pathIds),
+              label: path.label,
+              count: path.count,
+              percentage: path.percentage,
+            }))}
+          />
+        )
       case 'ranking':
         return <RankingChart analysis={analysis} />
       case 'rating':
