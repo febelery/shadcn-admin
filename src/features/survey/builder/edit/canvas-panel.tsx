@@ -62,10 +62,9 @@ const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
 })
 
 export function BuilderWorkspacePanel() {
-  const document = useBuilderStore((s) => s.document)
+  const elements = useBuilderStore((s) => s.document.elements)
   const selectedElementId = useBuilderStore((s) => s.selectedElementId)
 
-  const elements = document.elements
   const isPaletteDragging = useIsPaletteDragging()
 
   const renderElementCard = (el: SurveyElement) => {

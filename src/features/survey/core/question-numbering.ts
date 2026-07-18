@@ -115,30 +115,83 @@ export function isQuestionNumberVisible(
   return true
 }
 
-const displayOrdinalCache = new WeakMap<
-  SurveyDocument,
-  Map<string, number | null>
+interface QuestionNumberingProjection {
+  ordinals: Map<string, number>
+  displayOrdinals: Map<string, number | null>
+  prefixes: Map<string, string | null>
+  referenceLabels: Map<string, string>
+}
+
+const numberingProjectionCache = new WeakMap<
+  SurveyDocument['elements'],
+  Map<string, QuestionNumberingProjection>
 >()
-const ordinalCache = new WeakMap<SurveyDocument, Map<string, number>>()
-const referenceLabelCache = new WeakMap<SurveyDocument, Map<string, string>>()
-const numberPrefixCache = new WeakMap<
-  SurveyDocument,
-  Map<string, string | null>
->()
+
+function getQuestionNumberingProjection(
+  document: SurveyDocument
+): QuestionNumberingProjection {
+  const style = getSurveyDefaultNumberingStyle(document)
+  const mode = getQuestionNumberingMode(document)
+  const cacheKey = `${style}:${mode}`
+  let projectionsByConfig = numberingProjectionCache.get(document.elements)
+  const cached = projectionsByConfig?.get(cacheKey)
+  if (cached) return cached
+
+  const questions = flattenQuestions(document)
+  const ordinals = new Map<string, number>()
+  const displayOrdinals = new Map<string, number | null>()
+  const prefixes = new Map<string, string | null>()
+  const referenceLabels = new Map<string, string>()
+
+  let visibleCount = 0
+  questions.forEach((question, index) => {
+    const globalOrdinal = index + 1
+    const visible = isQuestionNumberVisible(question, style)
+    if (visible) visibleCount += 1
+    const displayOrdinal =
+      mode === 'global' ? globalOrdinal : visible ? visibleCount : null
+    const title = question.title?.trim()
+
+    ordinals.set(question.id, globalOrdinal)
+    displayOrdinals.set(question.id, displayOrdinal)
+
+    if (!visible || displayOrdinal == null) {
+      prefixes.set(question.id, null)
+      referenceLabels.set(question.id, title || `题目 ${globalOrdinal}`)
+      return
+    }
+
+    const prefix = getQuestionNumberLabel(displayOrdinal, style)
+    prefixes.set(question.id, prefix)
+    referenceLabels.set(
+      question.id,
+      prefix
+        ? title
+          ? `${prefix} ${title}`
+          : prefix
+        : title || `题目 ${globalOrdinal}`
+    )
+  })
+
+  const projection = {
+    ordinals,
+    displayOrdinals,
+    prefixes,
+    referenceLabels,
+  }
+  if (!projectionsByConfig) {
+    projectionsByConfig = new Map()
+    numberingProjectionCache.set(document.elements, projectionsByConfig)
+  }
+  projectionsByConfig.set(cacheKey, projection)
+  return projection
+}
 
 /** 卷内全局序号（每题均有，用于连续模式下编辑器对照） */
 export function buildQuestionOrdinalMap(
   document: SurveyDocument
 ): Map<string, number> {
-  const cachedOrdinals = ordinalCache.get(document)
-  if (cachedOrdinals) return cachedOrdinals
-
-  const ordinalByQuestionId = new Map<string, number>()
-  flattenQuestions(document).forEach((question, index) =>
-    ordinalByQuestionId.set(question.id, index + 1)
-  )
-  ordinalCache.set(document, ordinalByQuestionId)
-  return ordinalByQuestionId
+  return getQuestionNumberingProjection(document).ordinals
 }
 
 /**
@@ -148,32 +201,7 @@ export function buildQuestionOrdinalMap(
 export function buildQuestionDisplayOrdinalMap(
   document: SurveyDocument
 ): Map<string, number | null> {
-  const cachedOrdinals = displayOrdinalCache.get(document)
-  if (cachedOrdinals) return cachedOrdinals
-
-  const style = getSurveyDefaultNumberingStyle(document)
-  const mode = getQuestionNumberingMode(document)
-  const ordinalByQuestionId = new Map<string, number | null>()
-
-  if (mode === 'global') {
-    flattenQuestions(document).forEach((question, index) =>
-      ordinalByQuestionId.set(question.id, index + 1)
-    )
-    displayOrdinalCache.set(document, ordinalByQuestionId)
-    return ordinalByQuestionId
-  }
-
-  let visibleCount = 0
-  for (const question of flattenQuestions(document)) {
-    if (isQuestionNumberVisible(question, style)) {
-      visibleCount += 1
-      ordinalByQuestionId.set(question.id, visibleCount)
-    } else {
-      ordinalByQuestionId.set(question.id, null)
-    }
-  }
-  displayOrdinalCache.set(document, ordinalByQuestionId)
-  return ordinalByQuestionId
+  return getQuestionNumberingProjection(document).displayOrdinals
 }
 
 /** 按序号生成题号文案（不考虑单题显隐） */
@@ -191,33 +219,9 @@ export function getQuestionNumberPrefix(
   question: QuestionElement,
   document: SurveyDocument
 ): string | null {
-  let prefixByQuestionId = numberPrefixCache.get(document)
-  if (!prefixByQuestionId) {
-    const nextPrefixByQuestionId = new Map<string, string | null>()
-    const style = getSurveyDefaultNumberingStyle(document)
-    const displayOrdinalMap = buildQuestionDisplayOrdinalMap(document)
-    const questions = flattenQuestions(document)
-
-    questions.forEach((item) => {
-      if (!isQuestionNumberVisible(item, style)) {
-        nextPrefixByQuestionId.set(item.id, null)
-        return
-      }
-      const displayOrdinal = displayOrdinalMap.get(item.id)
-      if (displayOrdinal == null) {
-        nextPrefixByQuestionId.set(item.id, null)
-        return
-      }
-      nextPrefixByQuestionId.set(
-        item.id,
-        getQuestionNumberLabel(displayOrdinal, style)
-      )
-    })
-    numberPrefixCache.set(document, nextPrefixByQuestionId)
-    prefixByQuestionId = nextPrefixByQuestionId
-  }
-
-  return prefixByQuestionId.get(question.id) ?? null
+  return (
+    getQuestionNumberingProjection(document).prefixes.get(question.id) ?? null
+  )
 }
 
 /** 编辑器/流程图用：带题号的题目引用文案 */
@@ -225,45 +229,9 @@ export function getQuestionReferenceLabel(
   question: QuestionElement,
   document: SurveyDocument
 ): string {
-  let referenceLabelByQuestionId = referenceLabelCache.get(document)
-  if (!referenceLabelByQuestionId) {
-    const nextReferenceLabelByQuestionId = new Map<string, string>()
-    const questions = flattenQuestions(document)
-    const displayOrdinalMap = buildQuestionDisplayOrdinalMap(document)
-    const globalOrdinalMap = buildQuestionOrdinalMap(document)
-    const style = getSurveyDefaultNumberingStyle(document)
-
-    questions.forEach((item, index) => {
-      const globalOrdinal = globalOrdinalMap.get(item.id) ?? index + 1
-      const displayOrdinal = displayOrdinalMap.get(item.id) ?? null
-      const title = item.title?.trim()
-
-      if (!isQuestionNumberVisible(item, style)) {
-        nextReferenceLabelByQuestionId.set(
-          item.id,
-          title || `题目 ${globalOrdinal}`
-        )
-        return
-      }
-
-      const ordinal = displayOrdinal ?? globalOrdinal
-      const numberLabel = getQuestionNumberLabel(ordinal, style)
-      if (!numberLabel) {
-        nextReferenceLabelByQuestionId.set(
-          item.id,
-          title || `题目 ${globalOrdinal}`
-        )
-        return
-      }
-
-      nextReferenceLabelByQuestionId.set(
-        item.id,
-        title ? `${numberLabel} ${title}` : numberLabel
-      )
-    })
-    referenceLabelCache.set(document, nextReferenceLabelByQuestionId)
-    referenceLabelByQuestionId = nextReferenceLabelByQuestionId
-  }
-
-  return referenceLabelByQuestionId.get(question.id) ?? question.title ?? ''
+  return (
+    getQuestionNumberingProjection(document).referenceLabels.get(question.id) ??
+    question.title ??
+    ''
+  )
 }
