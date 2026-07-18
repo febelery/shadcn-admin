@@ -54,6 +54,7 @@ describe('builder rule authoring interface', () => {
     expect(store.getState()).toMatchObject({
       isDirty: false,
       builderMode: 'flow',
+      logicMobilePanel: 'closed',
     })
     expect(store.getState().document.rules).toEqual([])
 

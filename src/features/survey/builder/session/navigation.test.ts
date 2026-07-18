@@ -12,12 +12,33 @@ const editFocus: BuilderNavigationSnapshot = {
 }
 
 describe('resolveBuilderNavigation', () => {
-  it('opens a rule editor as one atomic navigation', () => {
+  it('focuses a rule without opening a mobile panel', () => {
     expect(
       resolveBuilderNavigation(editFocus, {
         type: 'show-rule-editor',
         ruleId: 'rule-1',
       })
+    ).toEqual({
+      builderMode: 'flow',
+      editingRuleId: 'rule-1',
+      selectedElementId: null,
+      logicMobilePanel: 'closed',
+    })
+  })
+
+  it('moves from the mobile rule list to the selected rule editor', () => {
+    expect(
+      resolveBuilderNavigation(
+        {
+          ...editFocus,
+          builderMode: 'flow',
+          logicMobilePanel: 'rules',
+        },
+        {
+          type: 'show-rule-editor',
+          ruleId: 'rule-1',
+        }
+      )
     ).toEqual({
       builderMode: 'flow',
       editingRuleId: 'rule-1',

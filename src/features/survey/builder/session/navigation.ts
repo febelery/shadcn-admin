@@ -61,7 +61,10 @@ export function resolveBuilderNavigation(
         builderMode: 'flow',
         editingRuleId: intent.ruleId,
         selectedElementId: null,
-        logicMobilePanel: 'editor',
+        logicMobilePanel:
+          current.logicMobilePanel === 'rules'
+            ? 'editor'
+            : current.logicMobilePanel,
       }
     case 'close-mobile-panel':
       return { ...current, logicMobilePanel: 'closed' }
