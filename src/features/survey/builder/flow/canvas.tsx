@@ -6,26 +6,28 @@ import {
   Controls,
   EdgeLabelRenderer,
   MiniMap,
-  MarkerType,
   ReactFlowProvider,
   getSmoothStepPath,
   useNodesInitialized,
   useReactFlow,
   type EdgeProps,
-  type Edge,
-  type Node,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
-import { START_ID, type FlowGraphEdge } from '../../core/logic/flow-graph'
+import { START_ID } from '../../core/logic/flow-graph'
 import { ruleMatchesSearch } from '../../core/logic/rule-meta'
 import type { Rule } from '../../core/types'
 import { useBuilderStore } from '../builder-session'
 import { useRuleAuthoring } from '../session/rule-authoring'
+import {
+  createFlowCanvasProjection,
+  FLOW_END_EDGE_COLOR,
+  getFlowEdgeStyle,
+  type FlowCanvasEdge,
+} from './canvas-projection'
 import './canvas.css'
-import { flowNodeDimensions } from './layout'
-import { GraphNode, type NodeData } from './nodes'
+import { GraphNode, type FlowCanvasNode, type NodeData } from './nodes'
 import type { FlowProjection } from './projection'
 
 const EMPTY_RULES: FlowProjection['rules'] = []
@@ -39,16 +41,6 @@ const edgeTypes = {
   flowRule: FlowRuleEdge,
 }
 
-const END_EDGE_COLOR = 'rgb(37 99 235)'
-
-type FlowEdgeData = {
-  kind: FlowGraphEdge['kind']
-  ruleId?: string
-  label?: string
-  labelOffsetX?: number
-  labelOffsetY?: number
-}
-
 function FlowRuleEdge({
   sourceX,
   sourceY,
@@ -60,8 +52,8 @@ function FlowRuleEdge({
   style,
   data,
   selected,
-}: EdgeProps) {
-  const edgeData = data as FlowEdgeData | undefined
+}: EdgeProps<FlowCanvasEdge>) {
+  const edgeData = data
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
@@ -134,7 +126,7 @@ function FlowLegend() {
     },
     {
       label: '结束',
-      color: END_EDGE_COLOR,
+      color: FLOW_END_EDGE_COLOR,
       dash: false,
     },
   ]
@@ -169,64 +161,6 @@ function FlowLegend() {
       </div>
     </div>
   )
-}
-
-/** 边样式 — 使用 React Flow CSS 变量，避免 inline SVG 颜色无效 */
-function edgeStyle(
-  kind: FlowGraphEdge['kind'],
-  selected: boolean
-): React.CSSProperties {
-  switch (kind) {
-    case 'jump':
-      return {
-        stroke: 'var(--primary)',
-        strokeWidth: selected ? 3 : 2.25,
-      }
-    case 'end':
-      return {
-        stroke: END_EDGE_COLOR,
-        strokeWidth: selected ? 3 : 2.25,
-      }
-    case 'visibility':
-      return {
-        stroke: 'rgb(217 119 6)',
-        strokeWidth: selected ? 2.75 : 1.75,
-        strokeDasharray: '5 5',
-        opacity: selected ? 1 : 0.78,
-      }
-    default:
-      return {
-        stroke: 'var(--muted-foreground)',
-        strokeWidth: selected ? 2 : 1.5,
-        opacity: selected ? 0.8 : 0.38,
-      }
-  }
-}
-
-function markerColor(kind: FlowGraphEdge['kind']): string {
-  if (kind === 'end') return END_EDGE_COLOR
-  if (kind === 'jump') return 'var(--primary)'
-  if (kind === 'visibility') return 'rgb(217 119 6)'
-  return 'var(--muted-foreground)'
-}
-
-function edgeHandles(kind: FlowGraphEdge['kind']) {
-  if (kind === 'default') {
-    return {
-      sourceHandle: 'out-bottom',
-      targetHandle: 'in-top',
-    }
-  }
-  if (kind === 'visibility') {
-    return {
-      sourceHandle: 'out-left',
-      targetHandle: 'in-left',
-    }
-  }
-  return {
-    sourceHandle: 'out-right',
-    targetHandle: 'in-right',
-  }
 }
 
 function nodeMatchesSearch(
@@ -277,7 +211,7 @@ function pickRuleForQuestion(rules: Rule[], questionId: string): string | null {
 }
 
 function CanvasInner({ projection }: { projection: FlowProjection | null }) {
-  const { setCenter } = useReactFlow()
+  const { setCenter } = useReactFlow<FlowCanvasNode, FlowCanvasEdge>()
   const { resolvedTheme } = useTheme()
   const showJump = useBuilderStore((s) => s.flowShowJumpEdges)
   const showVisibility = useBuilderStore((s) => s.flowShowVisibilityEdges)
@@ -291,129 +225,14 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
   const layoutSig = projection?.topologyKey ?? ''
   const questionTitles = projection?.questionTitles ?? EMPTY_QUESTION_TITLES
 
-  const { baseNodes, edges, layoutMeta } = useMemo(() => {
-    if (!projection) {
-      return {
-        baseNodes: [] as Node[],
-        edges: [] as Edge[],
-        layoutMeta: { columns: 1, compact: false },
-      }
-    }
-
-    const { graph, layout, issueSeverityByTarget } = projection
-    const { positions, columns, compact } = layout
-
-    const nodeRects = new Map<
-      string,
-      { x: number; y: number; w: number; h: number }
-    >()
-    const rfNodes: Node[] = graph.nodes.map((n) => {
-      const pos = positions.get(n.id) ?? { x: 0, y: 0 }
-      const elIssue = n.elementId
-        ? issueSeverityByTarget.get(n.elementId)
-        : undefined
-      const { w, h } = flowNodeDimensions(n, compact)
-      nodeRects.set(n.id, { x: pos.x, y: pos.y, w, h })
-      const data: NodeData = {
-        ...n,
-        compact,
-        hasError: elIssue === 'error',
-        hasWarn: elIssue === 'warn',
-      }
-      return {
-        id: n.id,
-        type: 'graphNode',
-        position: pos,
-        width: w,
-        height: h,
-        data: data as unknown as Record<string, unknown>,
-        draggable: false,
-      }
-    })
-
-    const labelSlots = new Map<string, { x: number; y: number }>()
-    const ruleEdges = graph.edges.filter((edge) => edge.kind !== 'default')
-    const grouped = new Map<string, typeof ruleEdges>()
-    for (const edge of ruleEdges) {
-      const list = grouped.get(edge.source) ?? []
-      list.push(edge)
-      grouped.set(edge.source, list)
-    }
-
-    for (const edgesForSource of grouped.values()) {
-      const sorted = [...edgesForSource].sort((a, b) => {
-        const aTarget = nodeRects.get(a.target)
-        const bTarget = nodeRects.get(b.target)
-        if (!aTarget || !bTarget) return 0
-        const ay = aTarget.y + aTarget.h / 2
-        const by = bTarget.y + bTarget.h / 2
-        if (ay !== by) return ay - by
-        const ax = aTarget.x + aTarget.w / 2
-        const bx = bTarget.x + bTarget.w / 2
-        return ax - bx
-      })
-
-      sorted.forEach((edge, index) => {
-        const source = nodeRects.get(edge.source)
-        const target = nodeRects.get(edge.target)
-        if (!source || !target) return
-        const sx = source.x + source.w / 2
-        const sy = source.y + source.h / 2
-        const tx = target.x + target.w / 2
-        const ty = target.y + target.h / 2
-        const dx = tx - sx
-        const dy = ty - sy
-        const vertical = Math.abs(dy) >= Math.abs(dx)
-        const direction = index % 2 === 0 ? 1 : -1
-        const distance = 14 + Math.floor(index / 2) * 12
-        labelSlots.set(edge.id, {
-          x: vertical ? direction * distance : 0,
-          y: vertical ? 0 : direction * distance,
-        })
-      })
-    }
-
-    const rfEdges: Edge[] = graph.edges
-      .filter((e) => {
-        if (e.kind === 'visibility') return showVisibility
-        if (e.kind === 'jump' || e.kind === 'end') return showJump
-        return true
-      })
-      .map((e) => {
-        const handles = edgeHandles(e.kind)
-        const labelOffset = labelSlots.get(e.id)
-        return {
-          id: e.id,
-          source: e.source,
-          target: e.target,
-          ...handles,
-          label: undefined,
-          type: 'flowRule',
-          animated: e.kind === 'jump' || e.kind === 'end',
-          style: edgeStyle(e.kind, false),
-          interactionWidth: e.kind === 'default' ? 12 : 24,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 14,
-            height: 14,
-            color: markerColor(e.kind),
-          },
-          data: {
-            ruleId: e.ruleId,
-            kind: e.kind,
-            label: e.kind === 'default' ? undefined : e.label,
-            labelOffsetX: labelOffset?.x,
-            labelOffsetY: labelOffset?.y,
-          },
-        }
-      })
-
-    return {
-      baseNodes: rfNodes,
-      edges: rfEdges,
-      layoutMeta: { columns, compact },
-    }
-  }, [projection, showJump, showVisibility])
+  const { baseNodes, edges, layoutMeta } = useMemo(
+    () =>
+      createFlowCanvasProjection(projection, {
+        showJump,
+        showVisibility,
+      }),
+    [projection, showJump, showVisibility]
+  )
 
   const hasSearch = searchQuery.trim().length > 0
   const selectedRule = useMemo(
@@ -424,7 +243,7 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
   const nodes = useMemo(
     () =>
       baseNodes.map((n) => {
-        const data = n.data as unknown as NodeData
+        const data = n.data
         const matches = nodeMatchesSearch(
           data,
           searchQuery,
@@ -456,13 +275,13 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
   const styledEdges = useMemo(
     () =>
       edges.map((e) => {
-        const kind = e.data?.kind as FlowGraphEdge['kind'] | undefined
-        const ruleId = e.data?.ruleId as string | undefined
+        const kind = e.data?.kind
+        const ruleId = e.data?.ruleId
         const selected = !!ruleId && ruleId === editingRuleId
         return {
           ...e,
           animated: selected || e.animated,
-          style: edgeStyle(kind ?? 'default', selected),
+          style: getFlowEdgeStyle(kind ?? 'default', selected),
         }
       }),
     [edges, editingRuleId]
@@ -473,9 +292,7 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
     if (!nodes.length) return
 
     const startNode = nodes.find((n) => n.id === START_ID)
-    const firstQuestion = nodes.find(
-      (n) => (n.data as unknown as NodeData).kind === 'question'
-    )
+    const firstQuestion = nodes.find((n) => n.data.kind === 'question')
     const anchor = startNode ?? firstQuestion ?? nodes[0]
     const width =
       typeof anchor.width === 'number'
@@ -506,8 +323,8 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
   }, [nodesInitialized, nodes.length, layoutSig, focusReadableView])
 
   const onNodeClick = useCallback(
-    (_: React.MouseEvent, node: Node) => {
-      const data = node.data as unknown as NodeData
+    (_: React.MouseEvent, node: FlowCanvasNode) => {
+      const data = node.data
       if (data.elementId) {
         const ruleId = pickRuleForQuestion(
           projection?.rules ?? EMPTY_RULES,
@@ -521,8 +338,8 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
   )
 
   const onEdgeClick = useCallback(
-    (_: React.MouseEvent, edge: Edge) => {
-      const ruleId = edge.data?.ruleId as string | undefined
+    (_: React.MouseEvent, edge: FlowCanvasEdge) => {
+      const ruleId = edge.data?.ruleId
       if (ruleId) openRule(ruleId)
     },
     [openRule]
@@ -533,7 +350,7 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
   const colorMode = resolvedTheme === 'dark' ? 'dark' : 'light'
 
   return (
-    <ReactFlow
+    <ReactFlow<FlowCanvasNode, FlowCanvasEdge>
       nodes={nodes}
       edges={styledEdges}
       nodeTypes={nodeTypes}

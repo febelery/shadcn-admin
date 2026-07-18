@@ -1,17 +1,19 @@
 import { memo } from 'react'
-import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
 import { cn } from '@/lib/utils'
 import type { FlowGraphNode } from '../../core/logic/flow-graph'
-import type { QuestionType } from '../../core/types'
 import { getQuestionUiManifest } from '../../shared/question-ui-registry'
 
-export type NodeData = FlowGraphNode & {
-  compact?: boolean
-  selected?: boolean
-  dimmed?: boolean
-  hasError?: boolean
-  hasWarn?: boolean
-}
+export type NodeData = Record<string, unknown> &
+  FlowGraphNode & {
+    compact?: boolean
+    selected?: boolean
+    dimmed?: boolean
+    hasError?: boolean
+    hasWarn?: boolean
+  }
+
+export type FlowCanvasNode = Node<NodeData, 'graphNode'>
 
 const handleClass =
   '!size-2 !border-2 !border-card !bg-muted-foreground/50 opacity-0'
@@ -22,7 +24,7 @@ const sideHandleClass =
 /** 流程节点 · 统一栏宽，内容居中，连线竖直对齐 */
 export const GraphNode = memo(function GraphNode({
   data,
-}: NodeProps & { data: NodeData }) {
+}: NodeProps<FlowCanvasNode>) {
   const compact = data.compact ?? false
 
   if (data.kind === 'start') {
@@ -76,7 +78,7 @@ export const GraphNode = memo(function GraphNode({
   }
 
   const manifest = data.questionType
-    ? getQuestionUiManifest(data.questionType as QuestionType)
+    ? getQuestionUiManifest(data.questionType)
     : undefined
   const statusText = data.hasError ? '错误' : data.hasWarn ? '警告' : null
 

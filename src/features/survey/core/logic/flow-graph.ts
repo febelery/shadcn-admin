@@ -7,10 +7,12 @@ import {
 } from '../question-numbering'
 import type {
   QuestionElement,
+  QuestionType,
   Rule,
   RuleCondition,
   SurveyDocument,
 } from '../types'
+import { getConditionOperatorDefinition } from './operators'
 
 export type FlowNodeKind = 'start' | 'end' | 'question'
 
@@ -23,7 +25,7 @@ export interface FlowGraphNode {
   label: string
   /** 问卷题号文案，如 1. / 一、；未启用题号时为 null */
   numberLabel?: string | null
-  questionType?: string
+  questionType?: QuestionType
   hasVisibilityRules?: boolean
   hasBranchRules?: boolean
   issueCodes?: string[]
@@ -56,33 +58,6 @@ function truncateLabel(text: string, max = 14) {
   return `${cleaned.slice(0, max - 1)}…`
 }
 
-function operatorText(op: string) {
-  switch (op) {
-    case 'eq':
-      return '等于'
-    case 'neq':
-      return '不等于'
-    case 'gt':
-      return '大于'
-    case 'gte':
-      return '大于等于'
-    case 'lt':
-      return '小于'
-    case 'lte':
-      return '小于等于'
-    case 'contains':
-      return '包含'
-    case 'not_contains':
-      return '不包含'
-    case 'empty':
-      return '为空'
-    case 'not_empty':
-      return '不为空'
-    default:
-      return op
-  }
-}
-
 function optionLabelForValue(
   question: QuestionElement | undefined,
   value?: string | number
@@ -97,7 +72,7 @@ function summarizeCondition(
   condition: RuleCondition,
   sourceQuestion?: QuestionElement
 ): string {
-  const operator = operatorText(condition.operator)
+  const operator = getConditionOperatorDefinition(condition.operator).label
   if (!('value' in condition)) return operator
   const value = optionLabelForValue(sourceQuestion, condition.value)
   return `${operator} ${value}`.trim()
