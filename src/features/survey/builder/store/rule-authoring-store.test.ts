@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { QuestionElement, SurveySchema } from '../../core/types'
+import type { QuestionElement, SurveyDocument } from '../../core/types'
 import { createBuilderStore, type BuilderStore } from './index'
 
 function question(id: string, title: string): QuestionElement {
@@ -13,7 +13,7 @@ function question(id: string, title: string): QuestionElement {
   }
 }
 
-function survey(): SurveySchema {
+function createTestDocument(): SurveyDocument {
   return {
     id: 'survey-1',
     schemaVersion: 1,
@@ -52,7 +52,7 @@ describe('builder rule authoring interface', () => {
   let store: BuilderStore
 
   beforeEach(() => {
-    store = createBuilderStore(survey())
+    store = createBuilderStore(createTestDocument())
   })
 
   it('does not dirty or mutate the survey until applying a new draft', () => {
@@ -104,7 +104,10 @@ describe('builder rule authoring interface', () => {
   })
 
   it('creates isolated sessions for different surveys', () => {
-    const other = createBuilderStore({ ...survey(), id: 'survey-2' })
+    const other = createBuilderStore({
+      ...createTestDocument(),
+      id: 'survey-2',
+    })
 
     store.getState().updateMeta({ title: '会话一' })
 

@@ -1,3 +1,4 @@
+import { flattenQuestions } from '../../core/document-elements'
 import { analyseSurvey, type StaticIssue } from '../../core/logic/analyzer'
 import { canUseQuestionAsRuleSource } from '../../core/logic/rule-capabilities'
 import {
@@ -14,14 +15,13 @@ import {
   createRuleAction,
   normalizeRulePriorities,
 } from '../../core/logic/rule-utils'
-import { flattenQuestions } from '../../core/schema-defaults'
 import type {
   QuestionElement,
   Rule,
   RuleAction,
   RuleActionType,
   RuleCondition,
-  SurveySchema,
+  SurveyDocument,
 } from '../../core/types'
 import { getQuestionReferenceLabel } from '../../shared/question-numbering'
 
@@ -67,19 +67,19 @@ function cloneRule(rule: Rule): Rule {
 }
 
 function getTargetLabel(
-  schema: SurveySchema,
+  document: SurveyDocument,
   questions: QuestionElement[],
   target?: string
 ) {
   const question = target
     ? questions.find((item) => item.id === target)
     : undefined
-  return question ? getQuestionReferenceLabel(question, schema) : undefined
+  return question ? getQuestionReferenceLabel(question, document) : undefined
 }
 
-function createDefaultRule(schema: SurveySchema): Rule {
-  const questions = flattenQuestions(schema)
-  const rule = createEmptyRule(schema.rules.length)
+function createDefaultRule(document: SurveyDocument): Rule {
+  const questions = flattenQuestions(document)
+  const rule = createEmptyRule(document.rules.length)
   const source = questions.find((question, index) => {
     return (
       canUseQuestionAsRuleSource(question) &&
@@ -99,20 +99,24 @@ function createDefaultRule(schema: SurveySchema): Rule {
     : createRuleAction('end')
   rule.name = getAutoRuleName(
     rule.action.type,
-    getTargetLabel(schema, questions, rule.action.target)
+    getTargetLabel(document, questions, rule.action.target)
   )
   return rule
 }
 
 export function beginRuleDraft(
-  schema: SurveySchema,
+  document: SurveyDocument,
   request: RuleDraftRequest
 ): RuleDraft | null {
   if (request.type === 'new') {
-    return { kind: 'create', original: null, value: createDefaultRule(schema) }
+    return {
+      kind: 'create',
+      original: null,
+      value: createDefaultRule(document),
+    }
   }
 
-  const rule = schema.rules.find((item) => item.id === request.ruleId)
+  const rule = document.rules.find((item) => item.id === request.ruleId)
   if (!rule) return null
   return {
     kind: 'edit',
@@ -122,11 +126,11 @@ export function beginRuleDraft(
 }
 
 export function deriveRuleDraftModel(
-  schema: SurveySchema,
+  document: SurveyDocument,
   draft: RuleDraft,
   requestedActionTypes: readonly RuleActionType[] = EDITABLE_RULE_ACTION_TYPES
 ): RuleDraftModel {
-  const questions = flattenQuestions(schema)
+  const questions = flattenQuestions(document)
   const rule = draft.value
   const allowedSourceIds = getRuleSourceQuestionIds(questions)
   const sourceId = resolveRuleSourceId(
@@ -138,7 +142,7 @@ export function deriveRuleDraftModel(
     requestedTypes: requestedActionTypes,
     sourceId,
     questions,
-    rules: schema.rules,
+    rules: document.rules,
     currentRuleId: rule.id,
     condition: rule.condition,
   })
@@ -151,7 +155,7 @@ export function deriveRuleDraftModel(
     type: selectedType,
     sourceId,
     questions,
-    rules: schema.rules,
+    rules: document.rules,
     currentRuleId: rule.id,
     condition: rule.condition,
   })
@@ -162,13 +166,13 @@ export function deriveRuleDraftModel(
     fallbackTypes: requestedActionTypes,
     sourceId,
     questions,
-    rules: schema.rules,
+    rules: document.rules,
     currentRuleId: rule.id,
     condition: rule.condition,
   })
   const generatedName = getAutoRuleName(
     action.type,
-    getTargetLabel(schema, questions, action.target)
+    getTargetLabel(document, questions, action.target)
   )
 
   return {
@@ -184,7 +188,7 @@ export function deriveRuleDraftModel(
 }
 
 function resolveRuleName(
-  schema: SurveySchema,
+  document: SurveyDocument,
   draft: RuleDraft,
   currentModel: RuleDraftModel,
   nextAction: RuleAction
@@ -200,17 +204,21 @@ function resolveRuleName(
 
   return getAutoRuleName(
     nextAction.type,
-    getTargetLabel(schema, flattenQuestions(schema), nextAction.target)
+    getTargetLabel(document, flattenQuestions(document), nextAction.target)
   )
 }
 
 export function changeRuleDraft(
-  schema: SurveySchema,
+  document: SurveyDocument,
   draft: RuleDraft,
   change: RuleDraftChange,
   requestedActionTypes: readonly RuleActionType[] = EDITABLE_RULE_ACTION_TYPES
 ): RuleDraft {
-  const currentModel = deriveRuleDraftModel(schema, draft, requestedActionTypes)
+  const currentModel = deriveRuleDraftModel(
+    document,
+    draft,
+    requestedActionTypes
+  )
 
   if (change.type === 'name') {
     return { ...draft, value: { ...draft.value, name: change.name } }
@@ -219,7 +227,7 @@ export function changeRuleDraft(
     return { ...draft, value: { ...draft.value, enabled: change.enabled } }
   }
 
-  const questions = flattenQuestions(schema)
+  const questions = flattenQuestions(document)
   let condition = draft.value.condition
   let requestedType = currentModel.action.type
   let requestedTarget = currentModel.action.target
@@ -248,7 +256,7 @@ export function changeRuleDraft(
     fallbackTypes: requestedActionTypes,
     sourceId,
     questions,
-    rules: schema.rules,
+    rules: document.rules,
     currentRuleId: draft.value.id,
     condition,
   })
@@ -259,7 +267,7 @@ export function changeRuleDraft(
       ...draft.value,
       condition,
       action: nextAction,
-      name: resolveRuleName(schema, draft, currentModel, nextAction),
+      name: resolveRuleName(document, draft, currentModel, nextAction),
     },
   }
 }
@@ -271,23 +279,23 @@ export function hasRuleDraftChanges(draft: RuleDraft | null): boolean {
 }
 
 export function buildRuleDraftPreviewDocument(
-  schema: SurveySchema,
+  document: SurveyDocument,
   draft: RuleDraft
-): SurveySchema {
-  const existingIndex = schema.rules.findIndex(
+): SurveyDocument {
+  const existingIndex = document.rules.findIndex(
     (rule) => rule.id === draft.value.id
   )
-  const rules = [...schema.rules]
+  const rules = [...document.rules]
   if (existingIndex === -1) rules.push(cloneRule(draft.value))
   else rules[existingIndex] = cloneRule(draft.value)
-  return { ...schema, rules }
+  return { ...document, rules }
 }
 
 export function getRuleDraftIssues(
-  schema: SurveySchema,
+  document: SurveyDocument,
   draft: RuleDraft
 ): StaticIssue[] {
-  const preview = buildRuleDraftPreviewDocument(schema, draft)
+  const preview = buildRuleDraftPreviewDocument(document, draft)
   return analyseSurvey(preview).filter((issue) => {
     if (issue.ruleId === draft.value.id) return true
     return (

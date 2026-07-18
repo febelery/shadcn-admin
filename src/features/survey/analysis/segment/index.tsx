@@ -10,7 +10,7 @@ import type {
   SegmentDefinition,
 } from '@/features/survey/core/analysis-types'
 import type {
-  SurveySchema,
+  SurveyDocument,
   QuestionElement,
 } from '@/features/survey/core/types'
 import { useSurveySegmentAnalysis } from '../../query/hooks'
@@ -31,13 +31,13 @@ import { getConditionIssues, type ValidationIssue } from './validator'
 
 export interface SegmentAnalysisProps {
   surveyId: string
-  schema: SurveySchema
+  document: SurveyDocument
   questions: QuestionElement[]
 }
 
 export function SegmentAnalysis({
   surveyId,
-  schema,
+  document,
   questions,
 }: SegmentAnalysisProps) {
   const supportedQuestions = React.useMemo(
@@ -54,11 +54,11 @@ export function SegmentAnalysis({
   )
 
   const questionOptions = React.useMemo(() => {
-    return supportedQuestions.map((q) => ({
-      id: q.id,
-      label: getQuestionLabel(q, schema, questions),
+    return supportedQuestions.map((question) => ({
+      id: question.id,
+      label: getQuestionLabel(question, document, questions),
     }))
-  }, [supportedQuestions, schema, questions])
+  }, [supportedQuestions, document, questions])
 
   const [draftSegments, setDraftSegments] = React.useState<SegmentDefinition[]>(
     () => [createSegment(1)]
@@ -453,7 +453,7 @@ export function SegmentAnalysis({
         appliedConditionCount={appliedConditionCount}
         hasPendingChanges={hasPendingChanges}
         questionMap={questionMap}
-        schema={schema}
+        document={document}
         questions={questions}
         isFetching={isFetching}
         refetch={refetch}

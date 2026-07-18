@@ -1,5 +1,4 @@
 import type { CascaderOption } from '@/components/ui/cascader'
-import { createQuestionId } from '../core/schema-defaults'
 import type { CascaderNode } from '../core/types'
 
 /** 问卷节点 → Cascader 组件选项（组件 value 使用节点 id） */
@@ -18,14 +17,14 @@ export function cascaderNodesToOptions(
 
 /** 创建新级联节点 */
 export function createCascaderNode(label: string): CascaderNode {
-  return { id: createQuestionId(), label }
+  return { id: crypto.randomUUID(), label }
 }
 
 /** 深拷贝级联树并重新生成 id（复制题目时使用） */
 export function cloneCascaderNodes(nodes: CascaderNode[]): CascaderNode[] {
   return nodes.map((node) => ({
     ...node,
-    id: createQuestionId(),
+    id: crypto.randomUUID(),
     children: node.children?.length
       ? cloneCascaderNodes(node.children)
       : undefined,

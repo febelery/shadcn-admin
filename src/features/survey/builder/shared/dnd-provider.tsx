@@ -135,7 +135,9 @@ export function BuilderDndProvider({ sectionId, children }: Props) {
         }
       }
       if (data.layoutType) {
-        const m = LAYOUT_MANIFESTS.find((x: any) => x.type === data.layoutType)
+        const m = LAYOUT_MANIFESTS.find(
+          (manifest) => manifest.type === data.layoutType
+        )
         if (m) {
           setActiveDrag({ kind: 'palette', label: m.label, icon: m.icon })
           return

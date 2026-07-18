@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { SURVEY_DOCUMENT_SCHEMA_VERSION } from './document-version'
 import { getQuestionConfigIssues } from './question-config'
-import { QUESTION_TYPES, type SurveySchema } from './types'
+import { QUESTION_TYPES, type SurveyDocument } from './types'
 
 const ruleActionTypeValues = [
   'show',
@@ -184,6 +184,6 @@ const surveyDocumentSchema = z.object({
   extensions: z.record(z.string(), z.unknown()).optional(),
 })
 
-export function parseSurveyDocument(data: unknown): SurveySchema {
-  return surveyDocumentSchema.parse(data) as SurveySchema
+export function parseSurveyDocument(data: unknown): SurveyDocument {
+  return surveyDocumentSchema.parse(data) as SurveyDocument
 }

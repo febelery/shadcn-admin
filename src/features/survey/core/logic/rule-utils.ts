@@ -1,12 +1,11 @@
-import { createQuestionId } from '../schema-defaults'
 import type { Rule, RuleAction, RuleActionType } from '../types'
 
 export function createRuleId() {
-  return createQuestionId()
+  return crypto.randomUUID()
 }
 
 export function createActionId() {
-  return createQuestionId()
+  return crypto.randomUUID()
 }
 
 export function createEmptyRule(priority = 0): Rule {

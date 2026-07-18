@@ -2,7 +2,7 @@ import type { QuestionType } from '../core/types'
 
 export type {
   BuilderMode,
-  SurveySchema,
+  SurveyDocument,
   SurveyElement,
   QuestionElement,
   QuestionContentPatch,

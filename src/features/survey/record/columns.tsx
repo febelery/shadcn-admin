@@ -3,7 +3,7 @@ import { getFilterFn } from '@/lib/data-grid-filters'
 import type {
   QuestionElement,
   SurveyRecordItem,
-  SurveySchema,
+  SurveyDocument,
 } from '../core/types'
 import { getQuestionReferenceLabel } from '../shared/question-numbering'
 
@@ -16,7 +16,7 @@ const statusOptions = [
 
 export function createRecordGridColumns(
   questions: QuestionElement[],
-  schema?: SurveySchema
+  document?: SurveyDocument
 ): ColumnDef<SurveyRecordGridRow>[] {
   const filterFn = getFilterFn<SurveyRecordGridRow>()
 
@@ -92,8 +92,8 @@ export function createRecordGridColumns(
       minSize: 110,
     },
     ...questions.map((question, index): ColumnDef<SurveyRecordGridRow> => {
-      const titleLabel = schema
-        ? getQuestionReferenceLabel(question, schema)
+      const titleLabel = document
+        ? getQuestionReferenceLabel(question, document)
         : `${index + 1}. ${question.title}`
       return {
         id: `answer_${question.id}`,

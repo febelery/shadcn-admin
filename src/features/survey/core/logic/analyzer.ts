@@ -1,6 +1,6 @@
+import { flattenQuestions } from '../document-elements'
 import { getQuestionDefinition } from '../question-definitions'
-import { flattenQuestions } from '../schema-defaults'
-import type { QuestionElement, RuleCondition, SurveySchema } from '../types'
+import type { QuestionElement, RuleCondition, SurveyDocument } from '../types'
 import { getRuleOperatorsForQuestionType } from './operators'
 import { canUseQuestionAsRuleSource } from './rule-capabilities'
 import { getRuleConditionKey } from './rule-condition'
@@ -41,7 +41,7 @@ function conditionValueIssue(
   return null
 }
 
-export function analyseSurvey(document: SurveySchema): StaticIssue[] {
+export function analyseSurvey(document: SurveyDocument): StaticIssue[] {
   const issues: StaticIssue[] = []
   const questions = flattenQuestions(document)
   const questionById = new Map(
@@ -179,6 +179,6 @@ export function analyseSurvey(document: SurveySchema): StaticIssue[] {
   return issues
 }
 
-export function hasBlockingIssues(document: SurveySchema): boolean {
+export function hasBlockingIssues(document: SurveyDocument): boolean {
   return analyseSurvey(document).some((issue) => issue.severity === 'error')
 }

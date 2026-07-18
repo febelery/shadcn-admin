@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { QuestionElement, Rule, SurveySchema } from '../../core/types'
+import type { QuestionElement, Rule, SurveyDocument } from '../../core/types'
 import {
   applyRuleDraft,
   beginRuleDraft,
@@ -32,7 +32,7 @@ function existingRule(): Rule {
   }
 }
 
-function survey(rules: Rule[] = [existingRule()]): SurveySchema {
+function createTestDocument(rules: Rule[] = [existingRule()]): SurveyDocument {
   return {
     id: 'survey-1',
     schemaVersion: 1,
@@ -72,77 +72,77 @@ function survey(rules: Rule[] = [existingRule()]): SurveySchema {
 }
 
 describe('rule authoring', () => {
-  it('creates a useful draft without changing the committed schema', () => {
-    const schema = survey([])
-    const draft = beginRuleDraft(schema, { type: 'new' })
+  it('creates a useful draft without changing the committed document', () => {
+    const document = createTestDocument([])
+    const draft = beginRuleDraft(document, { type: 'new' })
 
     expect(draft?.value).toMatchObject({
       name: '显示 2. 第二题',
       condition: { questionId: 'q1', operator: 'not_empty' },
       action: { type: 'show', target: 'q2' },
     })
-    expect(schema.rules).toEqual([])
+    expect(document.rules).toEqual([])
     expect(hasRuleDraftChanges(draft)).toBe(true)
   })
 
   it('edits a copy and leaves the original rule untouched', () => {
-    const schema = survey()
-    const draft = beginRuleDraft(schema, {
+    const document = createTestDocument()
+    const draft = beginRuleDraft(document, {
       type: 'existing',
       ruleId: 'rule-1',
     })!
-    const changed = changeRuleDraft(schema, draft, {
+    const changed = changeRuleDraft(document, draft, {
       type: 'action-type',
       actionType: 'jump_to_question',
     })
 
     expect(changed.value.action.type).toBe('jump_to_question')
     expect(changed.value.name).toBe('跳转到 2. 第二题')
-    expect(schema.rules[0]).toEqual(existingRule())
+    expect(document.rules[0]).toEqual(existingRule())
     expect(hasRuleDraftChanges(changed)).toBe(true)
   })
 
   it('derives available targets and normalizes a changed condition', () => {
-    const schema = survey()
-    const draft = beginRuleDraft(schema, {
+    const document = createTestDocument()
+    const draft = beginRuleDraft(document, {
       type: 'existing',
       ruleId: 'rule-1',
     })!
-    const changed = changeRuleDraft(schema, draft, {
+    const changed = changeRuleDraft(document, draft, {
       type: 'condition',
       condition: { questionId: 'q2', operator: 'not_empty' },
     })
-    const model = deriveRuleDraftModel(schema, changed)
+    const model = deriveRuleDraftModel(document, changed)
 
     expect(model.sourceId).toBe('q2')
     expect(changed.value.action.target).toBe('q3')
   })
 
   it('applies a draft exactly once', () => {
-    const schema = survey([])
-    const draft = beginRuleDraft(schema, { type: 'new' })!
-    const rules = applyRuleDraft(schema.rules, draft)
+    const document = createTestDocument([])
+    const draft = beginRuleDraft(document, { type: 'new' })!
+    const rules = applyRuleDraft(document.rules, draft)
 
     expect(rules).toHaveLength(1)
     expect(rules[0]).toEqual(draft.value)
-    expect(schema.rules).toEqual([])
+    expect(document.rules).toEqual([])
   })
 
   it('builds preview and validation without changing committed rules', () => {
-    const schema = survey()
-    const draft = beginRuleDraft(schema, {
+    const document = createTestDocument()
+    const draft = beginRuleDraft(document, {
       type: 'existing',
       ruleId: 'rule-1',
     })!
-    const invalid = changeRuleDraft(schema, draft, {
+    const invalid = changeRuleDraft(document, draft, {
       type: 'condition',
       condition: { questionId: 'missing', operator: 'not_empty' },
     })
-    const preview = buildRuleDraftPreviewDocument(schema, invalid)
+    const preview = buildRuleDraftPreviewDocument(document, invalid)
 
     expect(preview.rules[0].condition.questionId).toBe('missing')
-    expect(schema.rules[0].condition.questionId).toBe('q1')
-    expect(getRuleDraftIssues(schema, invalid)).toEqual(
+    expect(document.rules[0].condition.questionId).toBe('q1')
+    expect(getRuleDraftIssues(document, invalid)).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           code: 'condition_question',

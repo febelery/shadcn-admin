@@ -7,6 +7,7 @@ import {
   Cell,
   Legend,
   Treemap,
+  type TreemapNode,
 } from 'recharts'
 import { Progress } from '@/components/ui/progress'
 import type { ChoiceAnalysis } from '@/features/survey/core/analysis-types'
@@ -31,10 +32,10 @@ const PIE_COLORS = [
 /**
  * Treemap 自定义渲染节点组件
  */
-function CustomizedTreemapContent(props: any) {
-  const { x, y, width, height, index, name, 比例, depth } = props
-  if (depth !== 1) return null
-  if (width < 30 || height < 20) return null
+function CustomizedTreemapContent(props: TreemapNode) {
+  const { x, y, width, height, index, name, depth } = props
+  const percentage = typeof props.比例 === 'string' ? props.比例 : ''
+  if (depth !== 1 || width < 30 || height < 20) return <g />
 
   const color = PIE_COLORS[index % PIE_COLORS.length]
 
@@ -72,7 +73,7 @@ function CustomizedTreemapContent(props: any) {
             fontWeight='500'
             className='select-none'
           >
-            {比例}
+            {percentage}
           </text>
         </>
       ) : width > 40 && height > 20 ? (
@@ -84,7 +85,7 @@ function CustomizedTreemapContent(props: any) {
           fontWeight='500'
           className='select-none'
         >
-          {比例}
+          {percentage}
         </text>
       ) : null}
     </g>
@@ -177,7 +178,7 @@ export function ChoiceChart({ analysis }: ChoiceChartProps) {
           dataKey='size'
           aspectRatio={4 / 3}
           stroke='#fff'
-          content={<CustomizedTreemapContent />}
+          content={CustomizedTreemapContent}
         >
           <Tooltip
             content={({ active, payload }) => {

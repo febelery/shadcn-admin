@@ -1,8 +1,6 @@
 import { clampText } from '../store'
 import type { ChoiceOption } from '../types'
 
-const createQuestionId = () => crypto.randomUUID()
-
 type ParseOptions = {
   labelMaxLength?: number
   /** 追加模式：用于默认文案「选项 N」的起始序号 */
@@ -26,7 +24,7 @@ export function parseOptionLines(
       const label =
         clampText(line.split('\t')[0]?.trim() ?? '', labelMaxLength) || fallback
       return {
-        id: createQuestionId(),
+        id: crypto.randomUUID(),
         label,
       }
     })

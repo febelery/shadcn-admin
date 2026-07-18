@@ -8,7 +8,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { getEditorSection } from '../../core/editor-schema'
+import { getEditorSection } from '../../core/editor-section'
 import { BuilderDndProvider } from '../shared/dnd-provider'
 import { useBuilderStore } from '../store'
 import { BuilderWorkspacePanel } from './canvas-panel'

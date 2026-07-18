@@ -1,7 +1,7 @@
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { DEFAULT_SUBMISSION } from '@/features/survey/core/schema-defaults'
+import { DEFAULT_SUBMISSION } from '@/features/survey/core/document-factory'
 import { useBuilderStore } from '../../store'
 import type {
   SubmissionConfig,

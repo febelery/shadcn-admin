@@ -12,7 +12,7 @@ import { DataGridRowHeightMenu } from '@/components/data-grid/data-grid-row-heig
 import { DataGridSortMenu } from '@/components/data-grid/data-grid-sort-menu'
 import { FilterMenu, type FilterConfig } from '@/components/filter-menu'
 import { PageLayout } from '@/components/layout/page-layout'
-import { flattenQuestions } from '../core/schema-defaults'
+import { flattenQuestions } from '../core/document-elements'
 import {
   useExportSurveyRecordExcel,
   useSurveyDetail,
@@ -67,18 +67,18 @@ export function SurveyRecordPage({ surveyId }: SurveyRecordPageProps) {
     pageSize: pagination.pageSize,
   }
 
-  const { data: schema } = useSurveyDetail(surveyId)
+  const { data: document } = useSurveyDetail(surveyId)
   const { data } = useSurveyRecord(surveyId, params)
   const { mutate: exportExcel, isPending: exporting } =
     useExportSurveyRecordExcel()
 
   const questions = useMemo(
-    () => (schema ? flattenQuestions(schema) : []),
-    [schema]
+    () => (document ? flattenQuestions(document) : []),
+    [document]
   )
   const columns = useMemo(
-    () => createRecordGridColumns(questions, schema),
-    [questions, schema]
+    () => createRecordGridColumns(questions, document),
+    [questions, document]
   )
 
   const { table, ...dataGridProps } = useDataGrid({
@@ -115,7 +115,7 @@ export function SurveyRecordPage({ surveyId }: SurveyRecordPageProps) {
   return (
     <PageLayout
       variant='fixed'
-      title={schema ? `${schema.meta.title} · 填写记录` : '填写记录'}
+      title={document ? `${document.meta.title} · 填写记录` : '填写记录'}
       description={`按题目列查看每位填写人的提交记录，共 ${data?.meta?.total ?? 0} 条。`}
       actions={
         <div className='flex items-center gap-2'>

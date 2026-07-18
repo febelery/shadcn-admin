@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { createEmptySurvey, createSection } from './document-factory'
 import { parseSurveyDocument } from './document-schema'
-import { createEmptySurvey, createSection } from './schema-defaults'
 
 describe('parseSurveyDocument', () => {
   it('accepts the current document contract', () => {

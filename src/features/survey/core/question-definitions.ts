@@ -1,4 +1,3 @@
-import { createQuestionId } from './schema-defaults'
 import type { QuestionConfig, QuestionElement, QuestionType } from './types'
 
 export type QuestionCategory = '选择' | '输入' | '评价' | '结构' | '媒体'
@@ -37,7 +36,7 @@ function baseQuestion<Type extends QuestionType>(
 ): QuestionElement<Type> {
   return {
     kind: 'question',
-    id: createQuestionId(),
+    id: crypto.randomUUID(),
     type,
     title,
     required: false,
@@ -46,8 +45,8 @@ function baseQuestion<Type extends QuestionType>(
 }
 
 const defaultOptions = () => [
-  { id: createQuestionId(), label: '选项 1' },
-  { id: createQuestionId(), label: '选项 2' },
+  { id: crypto.randomUUID(), label: '选项 1' },
+  { id: crypto.randomUUID(), label: '选项 2' },
 ]
 
 const unsupported = {
@@ -123,7 +122,7 @@ export const QUESTION_DEFINITIONS = [
     ruleSourceUnavailableReason: unsupported.matrix,
     create: () =>
       baseQuestion('matrix_single', '矩阵单选题', {
-        rows: [{ id: createQuestionId(), label: '行 1' }],
+        rows: [{ id: crypto.randomUUID(), label: '行 1' }],
         columns: defaultOptions(),
       }),
   },
@@ -139,7 +138,7 @@ export const QUESTION_DEFINITIONS = [
     ruleSourceUnavailableReason: unsupported.matrix,
     create: () =>
       baseQuestion('matrix_multiple', '矩阵多选题', {
-        rows: [{ id: createQuestionId(), label: '行 1' }],
+        rows: [{ id: crypto.randomUUID(), label: '行 1' }],
         columns: defaultOptions(),
       }),
   },
@@ -158,9 +157,9 @@ export const QUESTION_DEFINITIONS = [
         placeholder: '请选择',
         cascaderOptions: [
           {
-            id: createQuestionId(),
+            id: crypto.randomUUID(),
             label: '一级',
-            children: [{ id: createQuestionId(), label: '二级' }],
+            children: [{ id: crypto.randomUUID(), label: '二级' }],
           },
         ],
       }),
@@ -316,7 +315,7 @@ export const QUESTION_DEFINITIONS = [
     ruleSourceUnavailableReason: unsupported.likert,
     create: () =>
       baseQuestion('likert', '李克特量表', {
-        statements: [{ id: createQuestionId(), label: '陈述 1' }],
+        statements: [{ id: crypto.randomUUID(), label: '陈述 1' }],
         scaleMin: 1,
         scaleMax: 5,
       }),

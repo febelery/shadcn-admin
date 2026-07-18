@@ -1,4 +1,3 @@
-import { createQuestionId } from './schema-defaults'
 import type { ChoiceOption } from './types'
 
 export const DEFAULT_OTHER_LABEL = '其他（请说明）'
@@ -30,7 +29,7 @@ export function setOtherChoiceOptionEnabled(
   return [
     ...regular,
     other ?? {
-      id: createQuestionId(),
+      id: crypto.randomUUID(),
       label,
       isOther: true,
     },

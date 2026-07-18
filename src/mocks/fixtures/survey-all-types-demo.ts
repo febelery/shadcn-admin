@@ -1,12 +1,11 @@
+import { flattenQuestions } from '@/features/survey/core/document-elements'
+import {
+  createEmptySurvey,
+  createSection,
+} from '@/features/survey/core/document-factory'
 import { isPresenceConditionOperator } from '@/features/survey/core/logic/operators'
 import { createRuleAction } from '@/features/survey/core/logic/rule-utils'
 import { getQuestionDefinition } from '@/features/survey/core/question-definitions'
-import {
-  createEmptySurvey,
-  createQuestionId,
-  createSection,
-  flattenQuestions,
-} from '@/features/survey/core/schema-defaults'
 import type {
   CascaderNode,
   ChoiceOption,
@@ -15,7 +14,7 @@ import type {
   RuleConditionOperator,
   QuestionType,
   SurveyElement,
-  SurveySchema,
+  SurveyDocument,
 } from '@/features/survey/core/types'
 
 /** 列表中固定的演示问卷 ID，便于从列表点进编辑测试 */
@@ -25,7 +24,7 @@ const IMG_COVER = 'https://picsum.photos/seed/yunling-hotel-cover/1600/640.jpg'
 
 function opt(label: string, isOther?: boolean): ChoiceOption {
   return {
-    id: createQuestionId(),
+    id: crypto.randomUUID(),
     label,
     ...(isOther ? { isOther: true } : {}),
   }
@@ -33,7 +32,7 @@ function opt(label: string, isOther?: boolean): ChoiceOption {
 
 function cascaderNode(label: string, children?: CascaderNode[]): CascaderNode {
   return {
-    id: createQuestionId(),
+    id: crypto.randomUUID(),
     label,
     ...(children ? { children } : {}),
   }
@@ -55,21 +54,21 @@ function q<Type extends QuestionType>(
 }
 
 function divider(): SurveyElement {
-  return { kind: 'divider', id: createQuestionId() }
+  return { kind: 'divider', id: crypto.randomUUID() }
 }
 
 /** 生成「云岭精品酒店 · 住客体验调研」——覆盖全部题型，文案按真实业务场景编写 */
-export function createAllTypesDemoSurvey(): SurveySchema {
-  const survey = createEmptySurvey('云岭精品酒店 · 住客体验调研')
-  survey.id = DEMO_SURVEY_ID
-  survey.status = 'draft'
-  survey.meta.description =
+export function createAllTypesDemoSurvey(): SurveyDocument {
+  const document = createEmptySurvey('云岭精品酒店 · 住客体验调研')
+  document.id = DEMO_SURVEY_ID
+  document.status = 'draft'
+  document.meta.description =
     '感谢您选择云岭精品酒店。本问卷约需 5 分钟，您的反馈将帮助我们持续改进服务。'
-  survey.meta.coverType = 'image'
-  survey.meta.cover = IMG_COVER
-  survey.meta.submitLabel = '提交反馈'
-  survey.meta.endTitle = '感谢您的宝贵意见'
-  survey.meta.endDescription =
+  document.meta.coverType = 'image'
+  document.meta.cover = IMG_COVER
+  document.meta.submitLabel = '提交反馈'
+  document.meta.endTitle = '感谢您的宝贵意见'
+  document.meta.endDescription =
     '您的反馈已收到，期待再次为您服务。退房时可至前台领取一份手冲咖啡券。'
 
   const demoSections = [
@@ -79,7 +78,7 @@ export function createAllTypesDemoSurvey(): SurveySchema {
       elements: [
         {
           kind: 'html_block',
-          id: createQuestionId(),
+          id: crypto.randomUUID(),
           html: `<p>尊敬的住客，您好！</p>
 <p>云岭精品酒店重视每一位客人的真实感受。本问卷用于了解您本次入住的整体体验，<strong>所有信息仅用于服务质量改进</strong>，不会对外公开。</p>
 <p>若您愿意留下联系方式，我们将在您下次入住时为您准备一份欢迎礼遇。</p>`,
@@ -191,32 +190,32 @@ export function createAllTypesDemoSurvey(): SurveySchema {
         q('matrix_single', '请对下列各项的满意度进行评价', {
           config: {
             rows: [
-              { id: createQuestionId(), label: '客房卫生' },
-              { id: createQuestionId(), label: '床品舒适度' },
-              { id: createQuestionId(), label: '隔音效果' },
-              { id: createQuestionId(), label: '员工服务态度' },
+              { id: crypto.randomUUID(), label: '客房卫生' },
+              { id: crypto.randomUUID(), label: '床品舒适度' },
+              { id: crypto.randomUUID(), label: '隔音效果' },
+              { id: crypto.randomUUID(), label: '员工服务态度' },
             ],
             columns: [
-              { id: createQuestionId(), label: '非常不满意' },
-              { id: createQuestionId(), label: '不满意' },
-              { id: createQuestionId(), label: '一般' },
-              { id: createQuestionId(), label: '满意' },
-              { id: createQuestionId(), label: '非常满意' },
+              { id: crypto.randomUUID(), label: '非常不满意' },
+              { id: crypto.randomUUID(), label: '不满意' },
+              { id: crypto.randomUUID(), label: '一般' },
+              { id: crypto.randomUUID(), label: '满意' },
+              { id: crypto.randomUUID(), label: '非常满意' },
             ],
           },
         }),
         q('matrix_multiple', '在以下场景中，您使用过哪些服务？（每行可多选）', {
           config: {
             rows: [
-              { id: createQuestionId(), label: '抵达当天' },
-              { id: createQuestionId(), label: '入住期间' },
-              { id: createQuestionId(), label: '退房当天' },
+              { id: crypto.randomUUID(), label: '抵达当天' },
+              { id: crypto.randomUUID(), label: '入住期间' },
+              { id: crypto.randomUUID(), label: '退房当天' },
             ],
             columns: [
-              { id: createQuestionId(), label: '行李寄存' },
-              { id: createQuestionId(), label: '延迟退房' },
-              { id: createQuestionId(), label: '叫车服务' },
-              { id: createQuestionId(), label: '客房送洗' },
+              { id: crypto.randomUUID(), label: '行李寄存' },
+              { id: crypto.randomUUID(), label: '延迟退房' },
+              { id: crypto.randomUUID(), label: '叫车服务' },
+              { id: crypto.randomUUID(), label: '客房送洗' },
             ],
           },
         }),
@@ -240,11 +239,14 @@ export function createAllTypesDemoSurvey(): SurveySchema {
           config: {
             statements: [
               {
-                id: createQuestionId(),
+                id: crypto.randomUUID(),
                 label: '酒店环境符合我对「精品」的预期',
               },
-              { id: createQuestionId(), label: '员工能主动预判并满足我的需求' },
-              { id: createQuestionId(), label: '我会考虑在一年内再次入住' },
+              {
+                id: crypto.randomUUID(),
+                label: '员工能主动预判并满足我的需求',
+              },
+              { id: crypto.randomUUID(), label: '我会考虑在一年内再次入住' },
             ],
             scaleMin: 1,
             scaleMax: 5,
@@ -325,24 +327,24 @@ export function createAllTypesDemoSurvey(): SurveySchema {
     }),
   ]
 
-  survey.sections = [
+  document.sections = [
     createSection({
       title: '全部题型演示',
       elements: demoSections.flatMap((section) => section.elements),
     }),
   ]
 
-  const questions = flattenQuestions(survey)
+  const questions = flattenQuestions(document)
   const findQuestion = (text: string) => {
     const item = questions.find((question) => question.title.includes(text))
-    if (!item) throw new Error(`Demo survey question not found: ${text}`)
+    if (!item) throw new Error(`Demo document question not found: ${text}`)
     return item
   }
   const optionId = (question: QuestionElement, text: string) => {
     const item = question.config.options?.find((option) =>
       option.label.includes(text)
     )
-    if (!item) throw new Error(`Demo survey option not found: ${text}`)
+    if (!item) throw new Error(`Demo document option not found: ${text}`)
     return item.id
   }
   const addRule = ({
@@ -360,11 +362,11 @@ export function createAllTypesDemoSurvey(): SurveySchema {
     action: RuleActionType
     target?: QuestionElement
   }) => {
-    survey.rules.push({
-      id: createQuestionId(),
+    document.rules.push({
+      id: crypto.randomUUID(),
       name,
       enabled: true,
-      priority: survey.rules.length,
+      priority: document.rules.length,
       condition: isPresenceConditionOperator(op)
         ? { questionId: source.id, operator: op }
         : { questionId: source.id, operator: op, value: value ?? '' },
@@ -493,5 +495,5 @@ export function createAllTypesDemoSurvey(): SurveySchema {
     action: 'end',
   })
 
-  return survey
+  return document
 }

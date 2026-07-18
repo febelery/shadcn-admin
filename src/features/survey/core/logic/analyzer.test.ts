@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createEmptySurvey } from '../schema-defaults'
+import { createEmptySurvey } from '../document-factory'
 import type { QuestionElement, Rule, RuleCondition } from '../types'
 import { analyseSurvey } from './analyzer'
 

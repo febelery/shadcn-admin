@@ -15,10 +15,10 @@ import {
   Tooltip,
 } from 'recharts'
 import { Progress } from '@/components/ui/progress'
-import type { RatingAnalysis } from '@/features/survey/core/analysis-types'
+import type { NumericAnalysis } from '@/features/survey/core/analysis-types'
 
 interface NumberChartProps {
-  analysis: RatingAnalysis
+  analysis: NumericAnalysis
 }
 
 export function NumberChart({ analysis }: NumberChartProps) {

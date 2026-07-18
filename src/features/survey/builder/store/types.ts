@@ -1,6 +1,6 @@
 import type { RuleCategory } from '../../core/logic/rule-meta'
 import type {
-  SurveySchema,
+  SurveyDocument,
   QuestionContentPatch,
   QuestionConfigPatch,
   HtmlBlockElement,
@@ -16,7 +16,7 @@ import type {
 } from './rule-authoring'
 
 export interface BuilderState {
-  document: SurveySchema
+  document: SurveyDocument
   selectedSectionId: string | null
   selectedElementId: string | null
   isDirty: boolean
@@ -33,9 +33,9 @@ export interface BuilderState {
   flowShowVisibilityEdges: boolean
   inspectorTab: 'element' | 'settings'
 
-  updateMeta: (patch: Partial<SurveySchema['meta']>) => void
-  updateTheme: (patch: Partial<SurveySchema['theme']>) => void
-  updateSubmission: (patch: Partial<SurveySchema['submission']>) => void
+  updateMeta: (patch: Partial<SurveyDocument['meta']>) => void
+  updateTheme: (patch: Partial<SurveyDocument['theme']>) => void
+  updateSubmission: (patch: Partial<SurveyDocument['submission']>) => void
   addQuestion: (sectionId: string, type: QuestionType, index?: number) => void
   addLayout: (
     sectionId: string,
@@ -61,8 +61,8 @@ export interface BuilderState {
   ) => void
   removeElement: (sectionId: string, elementId: string) => void
   select: (sectionId: string | null, elementId?: string | null) => void
-  adoptDocument: (document: SurveySchema) => void
-  getDocumentSnapshot: () => SurveySchema
+  adoptDocument: (document: SurveyDocument) => void
+  getDocumentSnapshot: () => SurveyDocument
 
   // 流程与规则相关操作
   navigate: (intent: BuilderNavigationIntent) => void

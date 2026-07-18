@@ -9,8 +9,8 @@ import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { parseSurveyDocument } from '../core/document-schema'
 import { analyseSurvey } from '../core/logic/analyzer'
-import { createEmptySurvey } from '../core/schema-defaults'
-import type { SurveySchema } from '../core/types'
+import { createEmptySurvey } from '../core/document-factory'
+import type { SurveyDocument } from '../core/types'
 import {
   useCreateSurvey,
   usePublishSurvey,
@@ -42,7 +42,7 @@ function formatSchemaValidationError(err: unknown): string {
   return '问卷数据结构校验失败'
 }
 
-function parseValidDocument(document: SurveySchema): SurveySchema | null {
+function parseValidDocument(document: SurveyDocument): SurveyDocument | null {
   try {
     return parseSurveyDocument(document)
   } catch (err) {
@@ -55,7 +55,7 @@ function SurveyBuilderSession({
   initialDocument,
   props,
 }: {
-  initialDocument: SurveySchema
+  initialDocument: SurveyDocument
   props: Props
 }) {
   const [store] = useState(() => createBuilderStore(initialDocument))
@@ -89,8 +89,8 @@ function SurveyBuilderContent({ props }: { props: Props }) {
   const updateMeta = useBuilderStore((s) => s.updateMeta)
 
   const persistDocument = async (
-    document: SurveySchema
-  ): Promise<SurveySchema> => {
+    document: SurveyDocument
+  ): Promise<SurveyDocument> => {
     if (isCreate) {
       return create(document)
     }

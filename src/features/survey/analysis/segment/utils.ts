@@ -7,7 +7,7 @@ import { getSegmentOperatorsForQuestionType } from '@/features/survey/core/logic
 import { isChoiceQuestionType } from '@/features/survey/core/question-capabilities'
 import type {
   QuestionElement,
-  SurveySchema,
+  SurveyDocument,
 } from '@/features/survey/core/types'
 import { getQuestionNumberPrefix } from '@/features/survey/shared/question-numbering'
 
@@ -87,11 +87,11 @@ export function isSupportedQuestion(question: QuestionElement): boolean {
 
 export function getQuestionLabel(
   question: QuestionElement,
-  schema: SurveySchema,
+  document: SurveyDocument,
   questions: QuestionElement[]
 ): string {
   const idx = questions.indexOf(question) + 1
-  const prefix = getQuestionNumberPrefix(question, schema)
+  const prefix = getQuestionNumberPrefix(question, document)
   if (prefix) {
     return `${prefix.trim()} ${question.title || '未命名'}`
   }
@@ -172,11 +172,11 @@ export function getSelectionDescription(
 export function getConditionText(
   condition: SegmentCondition,
   question: QuestionElement,
-  schema: SurveySchema,
+  document: SurveyDocument,
   questions: QuestionElement[]
 ): string {
   if (!condition.questionId || !question) return '未选择题目'
-  const label = getQuestionLabel(question, schema, questions)
+  const label = getQuestionLabel(question, document, questions)
   const operator = OPERATOR_LABELS[condition.operator]
   const value = getSelectionDescription(condition, question)
   if (!operatorNeedsValue(condition.operator)) return `${label} ${operator}`
@@ -195,12 +195,12 @@ export function getSegmentConditionCount(
 export function getSegmentPreview(
   segment: SegmentDefinition,
   questionMap: Map<string, QuestionElement>,
-  schema: SurveySchema,
+  document: SurveyDocument,
   questions: QuestionElement[]
 ): string[] {
   return segment.conditions.map((condition) => {
     const question = questionMap.get(condition.questionId)
-    return getConditionText(condition, question!, schema, questions)
+    return getConditionText(condition, question!, document, questions)
   })
 }
 

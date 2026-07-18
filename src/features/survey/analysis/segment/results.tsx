@@ -17,7 +17,7 @@ import type {
   SurveySegmentAnalysisResult,
 } from '@/features/survey/core/analysis-types'
 import type {
-  SurveySchema,
+  SurveyDocument,
   QuestionElement,
 } from '@/features/survey/core/types'
 import { formatPercent, getSegmentPreview } from './utils'
@@ -30,7 +30,7 @@ interface SegmentResultsProps {
   appliedConditionCount: number
   hasPendingChanges: boolean
   questionMap: Map<string, QuestionElement>
-  schema: SurveySchema
+  document: SurveyDocument
   questions: QuestionElement[]
   isFetching?: boolean
   refetch?: () => void
@@ -73,7 +73,7 @@ export const SegmentResults = React.memo(function SegmentResults({
   appliedSegments,
   hasPendingChanges,
   questionMap,
-  schema,
+  document,
   questions,
   isFetching = false,
   refetch,
@@ -146,7 +146,7 @@ export const SegmentResults = React.memo(function SegmentResults({
                 const condTexts = getSegmentPreview(
                   segment,
                   questionMap,
-                  schema,
+                  document,
                   questions
                 )
                 const chartBg = CHART_COLORS[idx % CHART_COLORS.length]

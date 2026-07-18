@@ -14,7 +14,7 @@ import {
   getSurveyQuestionAnalysis,
   getSurveySegmentAnalysis,
 } from '@/api/survey'
-import type { SurveyRecordItem, SurveySchema } from '../core/types'
+import type { SurveyRecordItem, SurveyDocument } from '../core/types'
 import { surveyKeys } from './keys'
 
 export function useSurveyList(params?: QueryParams) {
@@ -51,7 +51,7 @@ export function useUpdateSurveyStatus() {
       status,
     }: {
       id: string
-      status: SurveySchema['status']
+      status: SurveyDocument['status']
     }) => updateSurveyStatus(id, status),
     onSuccess: () => qc.invalidateQueries({ queryKey: surveyKeys.lists() }),
   })
@@ -79,7 +79,7 @@ export function useSurveyDetail(id: string, options?: { enabled?: boolean }) {
 export function useUpdateSurvey() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: SurveySchema }) =>
+    mutationFn: ({ id, data }: { id: string; data: SurveyDocument }) =>
       updateSurvey(id, data),
     onSuccess: (document, { id }) => {
       qc.setQueryData(surveyKeys.detail(id), document)

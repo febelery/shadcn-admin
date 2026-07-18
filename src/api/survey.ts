@@ -9,7 +9,7 @@ import { parseSurveyDocument } from '@/features/survey/core/document-schema'
 import type {
   SurveyListItem,
   SurveyRecordItem,
-  SurveySchema,
+  SurveyDocument,
 } from '@/features/survey/core/types'
 
 /** 管理端 API 路径（单数资源名） */
@@ -37,8 +37,8 @@ export async function listSurvey(
 }
 
 export async function createSurvey(
-  document: SurveySchema
-): Promise<SurveySchema> {
+  document: SurveyDocument
+): Promise<SurveyDocument> {
   const { data } = await axios.post(
     SURVEY_API.create,
     parseSurveyDocument(document)
@@ -46,15 +46,15 @@ export async function createSurvey(
   return parseSurveyDocument(data)
 }
 
-export async function getSurveyDetail(id: string): Promise<SurveySchema> {
+export async function getSurveyDetail(id: string): Promise<SurveyDocument> {
   const { data } = await axios.get(SURVEY_API.detail(id))
   return parseSurveyDocument(data)
 }
 
 export async function updateSurvey(
   id: string,
-  document: SurveySchema
-): Promise<SurveySchema> {
+  document: SurveyDocument
+): Promise<SurveyDocument> {
   const { data } = await axios.put(
     SURVEY_API.update(id),
     parseSurveyDocument(document)
@@ -68,12 +68,12 @@ export async function deleteSurvey(id: string) {
 
 export async function updateSurveyStatus(
   id: string,
-  status: SurveySchema['status']
+  status: SurveyDocument['status']
 ) {
   await axios.patch(SURVEY_API.status(id), { status })
 }
 
-export async function publishSurvey(id: string): Promise<SurveySchema> {
+export async function publishSurvey(id: string): Promise<SurveyDocument> {
   const { data } = await axios.post(SURVEY_API.publish(id))
   return parseSurveyDocument(data)
 }

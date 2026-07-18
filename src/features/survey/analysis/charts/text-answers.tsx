@@ -1,4 +1,5 @@
 import React from 'react'
+import type { QueryParams } from '@/types/api'
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useDebouncedCallback } from '@/hooks/use-debounced-callback'
 import { Button } from '@/components/ui/button'
@@ -12,7 +13,7 @@ import { useSurveyQuestionAnalysis } from '../../query/hooks'
 interface TextAnswersProps {
   analysis: TextAnalysis
   surveyId: string
-  params?: any
+  params?: QueryParams
 }
 
 /**
@@ -88,8 +89,9 @@ export function TextAnswers({ analysis, surveyId, params }: TextAnswersProps) {
 
   // 4. 确定当前应该渲染的数据源
   const currentAnswers = React.useMemo(() => {
-    const textAnalysis = pagedAnalysis as TextAnalysis | undefined
-    return textAnalysis?.answers ?? analysis.answers
+    return pagedAnalysis && 'answers' in pagedAnalysis
+      ? pagedAnalysis.answers
+      : analysis.answers
   }, [analysis.answers, pagedAnalysis])
 
   const totalCount = currentAnswers?.meta?.total ?? 0

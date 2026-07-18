@@ -4,7 +4,6 @@ import {
   partitionChoiceOptions,
   setOtherChoiceOptionEnabled,
 } from '@/features/survey/core/choice-other-option'
-import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import type { ChoiceOption } from '../../types'
 import type { InlineEditableElement } from '../inline-editable'
 
@@ -80,7 +79,7 @@ export function useChoiceOptions({ options, onChange }: Options) {
     (index: number, factory?: () => ChoiceOption) => {
       const { regular } = partitionChoiceOptions(options)
       const next: ChoiceOption = factory?.() ?? {
-        id: createQuestionId(),
+        id: crypto.randomUUID(),
         label: '',
       }
       const merged = [...regular]

@@ -1,7 +1,6 @@
 import { Circle, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import { LABEL_LIMITS } from '../../store'
 import type {
   LikertStatement,
@@ -129,7 +128,7 @@ export function SurfaceLikertEditor({ question, onConfigChange }: Props) {
           setStatements([
             ...statements,
             {
-              id: createQuestionId(),
+              id: crypto.randomUUID(),
               label: `陈述 ${statements.length + 1}`,
             },
           ])

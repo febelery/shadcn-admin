@@ -6,12 +6,12 @@ import {
   getSurveyDefaultNumberingStyle,
   isQuestionNumberVisible,
 } from '../../shared/question-numbering'
-import { flattenQuestions } from '../schema-defaults'
+import { flattenQuestions } from '../document-elements'
 import type {
   QuestionElement,
   Rule,
   RuleCondition,
-  SurveySchema,
+  SurveyDocument,
 } from '../types'
 
 export type FlowNodeKind = 'start' | 'end' | 'question'
@@ -105,21 +105,21 @@ function summarizeCondition(
   return `${operator} ${value}`.trim()
 }
 
-/** 从 schema 构建流程图节点与边（仅题目，不含说明块/分割线等布局元素） */
-export function buildFlowGraph(schema: SurveySchema): FlowGraph {
+/** 从 document 构建流程图节点与边（仅题目，不含说明块/分割线等布局元素） */
+export function buildFlowGraph(document: SurveyDocument): FlowGraph {
   const nodes: FlowGraphNode[] = []
   const edges: FlowGraphEdge[] = []
-  const section = schema.sections[0]
+  const section = document.sections[0]
 
-  const displayOrdinalMap = buildQuestionDisplayOrdinalMap(schema)
-  const globalOrdinalMap = buildQuestionOrdinalMap(schema)
-  const surveyStyle = getSurveyDefaultNumberingStyle(schema)
+  const displayOrdinalMap = buildQuestionDisplayOrdinalMap(document)
+  const globalOrdinalMap = buildQuestionOrdinalMap(document)
+  const surveyStyle = getSurveyDefaultNumberingStyle(document)
 
   nodes.push({ id: START_ID, kind: 'start', label: '开始' })
   nodes.push({
     id: END_ID,
     kind: 'end',
-    label: schema.meta.endTitle || '结束',
+    label: document.meta.endTitle || '结束',
   })
 
   const flowQuestions = section.elements.filter(
@@ -143,13 +143,13 @@ export function buildFlowGraph(schema: SurveySchema): FlowGraph {
       label: el.title || `题目 ${globalOrdinal}`,
       numberLabel,
       questionType: el.type,
-      hasVisibilityRules: schema.rules.some(
+      hasVisibilityRules: document.rules.some(
         (r) =>
           r.enabled &&
           (r.action.type === 'show' || r.action.type === 'hide') &&
           r.action.target === el.id
       ),
-      hasBranchRules: schema.rules.some(
+      hasBranchRules: document.rules.some(
         (r) => r.enabled && ruleReferencesQuestionAsSource(r, el.id)
       ),
     })
@@ -189,7 +189,7 @@ export function buildFlowGraph(schema: SurveySchema): FlowGraph {
   }
 
   // 规则边
-  for (const rule of schema.rules) {
+  for (const rule of document.rules) {
     if (!rule.enabled) continue
     const sourceQId = rule.condition.questionId
     if (!sourceQId) continue
@@ -255,10 +255,10 @@ export function layoutFlowGraphWithMeta(graph: FlowGraph) {
 }
 
 export function getQuestionById(
-  schema: SurveySchema,
+  document: SurveyDocument,
   id: string
 ): QuestionElement | undefined {
-  return flattenQuestions(schema).find((q) => q.id === id)
+  return flattenQuestions(document).find((q) => q.id === id)
 }
 
 // ─── 流程图节点布局（画布坐标，与 builder/panel-layout 的 CSS shell 无关） ───

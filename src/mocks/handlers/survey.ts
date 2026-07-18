@@ -2,6 +2,7 @@ import {
   createAllTypesDemoSurvey,
   DEMO_SURVEY_ID,
 } from '@/mocks/fixtures/survey-all-types-demo'
+import type { FilterValue } from '@/types/data-grid'
 import { faker } from '@faker-js/faker'
 import ExcelJS from 'exceljs'
 import { http, HttpResponse } from 'msw'
@@ -13,27 +14,23 @@ import { sleep } from '@/lib/utils'
 import type {
   SurveyAnalysisResult,
   QuestionAnalysis,
-  RatingAnalysis,
   TextAnswerItem,
-  TextAnalysis,
-  ChoiceAnalysis,
   SurveySegmentAnalysisResult,
   SegmentDefinition,
 } from '@/features/survey/core/analysis-types'
-import { parseSurveyDocument } from '@/features/survey/core/document-schema'
-import { evaluateCondition } from '@/features/survey/core/logic/eval'
 import {
   countQuestions,
-  createQuestionId,
-  createEmptySurvey,
   flattenQuestions,
-} from '@/features/survey/core/schema-defaults'
+} from '@/features/survey/core/document-elements'
+import { createEmptySurvey } from '@/features/survey/core/document-factory'
+import { parseSurveyDocument } from '@/features/survey/core/document-schema'
+import { evaluateCondition } from '@/features/survey/core/logic/eval'
 import type {
   CascaderNode,
   QuestionElement,
   SurveyListItem,
   SurveyRecordItem,
-  SurveySchema,
+  SurveyDocument,
 } from '@/features/survey/core/types'
 
 function getCascaderPathLabels(
@@ -55,19 +52,19 @@ function getCascaderPathLabels(
  * 核心统计计算逻辑：根据指定问题的类型及其对应的配置，针对筛选后的答卷数据进行单题层面的指标统计
  */
 function computeSingleQuestionAnalysis(
-  q: any,
-  filteredRecords: any[],
+  question: QuestionElement,
+  filteredRecords: SurveyRecordItem[],
   _totalRecords: number,
   queryParams?: { page?: number; pageSize?: number; search?: string }
 ): QuestionAnalysis {
   const validAnswers = filteredRecords
-    .map((r) => r.answers[q.id])
+    .map((r) => r.answers[question.id])
     .filter((val) => val !== undefined && val !== null && val !== '')
 
   const answerCount = validAnswers.length
 
-  if (q.type === 'single_choice' || q.type === 'dropdown') {
-    const options = q.config.options ?? []
+  if (question.type === 'single_choice' || question.type === 'dropdown') {
+    const options = question.config.options ?? []
     const countMap = new Map<string, number>()
     for (const opt of options) {
       countMap.set(opt.id, 0)
@@ -82,7 +79,7 @@ function computeSingleQuestionAnalysis(
       }
     }
 
-    const optionAnalyses = options.map((opt: any) => {
+    const optionAnalyses = options.map((opt) => {
       const count = countMap.get(opt.id) ?? 0
       const percentage =
         answerCount > 0 ? Number((count / answerCount).toFixed(4)) : 0
@@ -100,13 +97,13 @@ function computeSingleQuestionAnalysis(
     }
 
     return {
-      questionId: q.id,
-      title: q.title,
-      type: q.type,
+      questionId: question.id,
+      title: question.title,
+      type: question.type,
       options: optionAnalyses,
-    } as ChoiceAnalysis
-  } else if (q.type === 'multiple_choice') {
-    const options = q.config.options ?? []
+    }
+  } else if (question.type === 'multiple_choice') {
+    const options = question.config.options ?? []
     const countMap = new Map<string, number>()
     for (const opt of options) {
       countMap.set(opt.id, 0)
@@ -122,7 +119,7 @@ function computeSingleQuestionAnalysis(
       }
     }
 
-    const optionAnalyses = options.map((opt: any) => {
+    const optionAnalyses = options.map((opt) => {
       const count = countMap.get(opt.id) ?? 0
       const percentage =
         answerCount > 0 ? Number((count / answerCount).toFixed(4)) : 0
@@ -130,13 +127,13 @@ function computeSingleQuestionAnalysis(
     })
 
     return {
-      questionId: q.id,
-      title: q.title,
-      type: q.type,
+      questionId: question.id,
+      title: question.title,
+      type: question.type,
       options: optionAnalyses,
-    } as ChoiceAnalysis
-  } else if (q.type === 'ranking') {
-    const options = q.config.options ?? []
+    }
+  } else if (question.type === 'ranking') {
+    const options = question.config.options ?? []
     const countMap = new Map<string, number>()
     const rankSumMap = new Map<string, number>()
     for (const opt of options) {
@@ -158,7 +155,7 @@ function computeSingleQuestionAnalysis(
       }
     }
 
-    const optionAnalyses = options.map((opt: any) => {
+    const optionAnalyses = options.map((opt) => {
       const count = countMap.get(opt.id) ?? 0
       const rankSum = rankSumMap.get(opt.id) ?? 0
       const avgRank =
@@ -174,36 +171,40 @@ function computeSingleQuestionAnalysis(
     })
 
     return {
-      questionId: q.id,
-      title: q.title,
-      type: q.type,
+      questionId: question.id,
+      title: question.title,
+      type: question.type,
       options: optionAnalyses,
-    } as ChoiceAnalysis
-  } else if (q.type === 'cascader') {
-    const pathCounts = new Map<string, number>()
+    }
+  } else if (question.type === 'cascader') {
+    const pathCounts = new Map<string, { label: string; count: number }>()
     for (const val of validAnswers) {
-      let pathStr = ''
       if (Array.isArray(val) && val.length > 0) {
-        pathStr = getCascaderPathLabels(
-          q.config.cascaderOptions ?? [],
-          val.map(String)
+        const pathIds = val.map(String)
+        const optionId = JSON.stringify(pathIds)
+        const label = getCascaderPathLabels(
+          question.config.cascaderOptions ?? [],
+          pathIds
         )
           .filter(Boolean)
           .join(' / ')
-      } else if (val) {
-        pathStr = String(val)
-      }
-      if (pathStr) {
-        pathCounts.set(pathStr, (pathCounts.get(pathStr) ?? 0) + 1)
+        if (label) {
+          const current = pathCounts.get(optionId)
+          pathCounts.set(optionId, {
+            label,
+            count: (current?.count ?? 0) + 1,
+          })
+        }
       }
     }
 
     let sortedAnalyses = Array.from(pathCounts.entries())
-      .map(([label, count]) => ({
-        label,
-        count,
+      .map(([optionId, path]) => ({
+        optionId,
+        label: path.label,
+        count: path.count,
         percentage:
-          answerCount > 0 ? Number((count / answerCount).toFixed(4)) : 0,
+          answerCount > 0 ? Number((path.count / answerCount).toFixed(4)) : 0,
       }))
       .sort((a, b) => b.count - a.count)
 
@@ -217,6 +218,7 @@ function computeSingleQuestionAnalysis(
         answerCount > 0 ? Number((otherCount / answerCount).toFixed(4)) : 0
 
       top10.push({
+        optionId: '__other_paths__',
         label: '其他路径',
         count: otherCount,
         percentage: otherPercentage,
@@ -225,16 +227,16 @@ function computeSingleQuestionAnalysis(
     }
 
     return {
-      questionId: q.id,
-      title: q.title,
-      type: q.type,
+      questionId: question.id,
+      title: question.title,
+      type: question.type,
       options: sortedAnalyses,
-    } as ChoiceAnalysis
+    }
   } else if (
-    q.type === 'rating' ||
-    q.type === 'nps' ||
-    q.type === 'slider' ||
-    q.type === 'number'
+    question.type === 'rating' ||
+    question.type === 'nps' ||
+    question.type === 'slider' ||
+    question.type === 'number'
   ) {
     const scores = validAnswers.map(Number).filter((s) => !Number.isNaN(s))
     const sum = scores.reduce((a, b) => a + b, 0)
@@ -252,14 +254,14 @@ function computeSingleQuestionAnalysis(
     }
 
     const distMap = new Map<number | string, number>()
-    if (q.type === 'rating') {
-      const maxStars = q.config.starCount || 5
+    if (question.type === 'rating') {
+      const maxStars = question.config.starCount || 5
       for (let i = 1; i <= maxStars; i++) distMap.set(i, 0)
-    } else if (q.type === 'nps') {
+    } else if (question.type === 'nps') {
       for (let i = 0; i <= 10; i++) distMap.set(i, 0)
     }
 
-    if (q.type === 'slider' || q.type === 'number') {
+    if (question.type === 'slider' || question.type === 'number') {
       if (scores.length > 0) {
         const minVal = Math.min(...scores)
         const maxVal = Math.max(...scores)
@@ -345,7 +347,7 @@ function computeSingleQuestionAnalysis(
     )
 
     let npsProps = {}
-    if (q.type === 'nps') {
+    if (question.type === 'nps') {
       const promoters = scores.filter((s) => s >= 9).length
       const passives = scores.filter((s) => s >= 7 && s <= 8).length
       const detractors = scores.filter((s) => s <= 6).length
@@ -362,9 +364,9 @@ function computeSingleQuestionAnalysis(
     }
 
     return {
-      questionId: q.id,
-      title: q.title,
-      type: q.type,
+      questionId: question.id,
+      title: question.title,
+      type: question.type,
       avgScore,
       medianScore,
       minScore: scores.length > 0 ? Math.min(...scores) : 0,
@@ -372,12 +374,15 @@ function computeSingleQuestionAnalysis(
       sumScore: sum,
       distribution,
       ...npsProps,
-    } as RatingAnalysis
-  } else if (q.type === 'matrix_single' || q.type === 'matrix_multiple') {
-    const rows = q.config.rows ?? []
-    const columns = q.config.columns ?? []
+    }
+  } else if (
+    question.type === 'matrix_single' ||
+    question.type === 'matrix_multiple'
+  ) {
+    const rows = question.config.rows ?? []
+    const columns = question.config.columns ?? []
 
-    const rowAnalyses = rows.map((row: any) => {
+    const rowAnalyses = rows.map((row) => {
       const colCounts = new Map<string, number>()
       for (const col of columns) {
         colCounts.set(col.id, 0)
@@ -406,7 +411,7 @@ function computeSingleQuestionAnalysis(
         }
       }
 
-      const colAnalyses = columns.map((col: any) => {
+      const colAnalyses = columns.map((col) => {
         const count = colCounts.get(col.id) ?? 0
         const percentage =
           rowAnswerCount > 0 ? Number((count / rowAnswerCount).toFixed(4)) : 0
@@ -421,17 +426,17 @@ function computeSingleQuestionAnalysis(
     })
 
     return {
-      questionId: q.id,
-      title: q.title,
-      type: q.type,
+      questionId: question.id,
+      title: question.title,
+      type: question.type,
       rows: rowAnalyses,
-    } as any
-  } else if (q.type === 'likert') {
-    const statements = q.config.statements ?? []
-    const scaleMin = q.config.scaleMin ?? 1
-    const scaleMax = q.config.scaleMax ?? 5
+    }
+  } else if (question.type === 'likert') {
+    const statements = question.config.statements ?? []
+    const scaleMin = question.config.scaleMin ?? 1
+    const scaleMax = question.config.scaleMax ?? 5
 
-    const statementAnalyses = statements.map((stmt: any) => {
+    const statementAnalyses = statements.map((stmt) => {
       const scoreCounts = new Map<number, number>()
       for (let i = scaleMin; i <= scaleMax; i++) {
         scoreCounts.set(i, 0)
@@ -470,11 +475,11 @@ function computeSingleQuestionAnalysis(
     })
 
     return {
-      questionId: q.id,
-      title: q.title,
-      type: q.type,
+      questionId: question.id,
+      title: question.title,
+      type: question.type,
       statements: statementAnalyses,
-    } as any
+    }
   } else {
     const page = queryParams?.page ?? 1
     const pageSize = queryParams?.pageSize ?? 5
@@ -482,7 +487,7 @@ function computeSingleQuestionAnalysis(
 
     const textAnswers: TextAnswerItem[] = []
     for (const record of filteredRecords) {
-      const val = record.answers[q.id]
+      const val = record.answers[question.id]
       if (val !== undefined && val !== null && val !== '') {
         const textRep = Array.isArray(val)
           ? val.join(', ')
@@ -508,9 +513,9 @@ function computeSingleQuestionAnalysis(
     const pagedData = textAnswers.slice(start, start + pageSize)
 
     return {
-      questionId: q.id,
-      title: q.title,
-      type: q.type,
+      questionId: question.id,
+      title: question.title,
+      type: question.type,
       answers: {
         data: pagedData,
         meta: {
@@ -520,7 +525,7 @@ function computeSingleQuestionAnalysis(
           totalPages: Math.ceil(textAnswers.length / pageSize),
         },
       },
-    } as TextAnalysis
+    }
   }
 }
 
@@ -555,7 +560,7 @@ function recordMatchesSegment(
 
 faker.seed(42)
 
-const detailMap = new Map<string, SurveySchema>()
+const detailMap = new Map<string, SurveyDocument>()
 const listItems: SurveyListItem[] = []
 const recordMap = new Map<string, SurveyRecordItem[]>()
 const pinnedSurveyIds = new Set<string>([DEMO_SURVEY_ID])
@@ -575,28 +580,28 @@ function compareSurveyListItems(a: SurveyListItem, b: SurveyListItem) {
   return Date.parse(b.createdAt) - Date.parse(a.createdAt)
 }
 
-function syncListFromDetail(schema: SurveySchema) {
-  const idx = listItems.findIndex((s) => s.id === schema.id)
+function updateListItemFromDocument(document: SurveyDocument) {
+  const idx = listItems.findIndex((s) => s.id === document.id)
   const item: SurveyListItem = {
-    id: schema.id,
-    title: schema.meta.title,
-    description: schema.meta.description,
-    status: schema.status,
-    questionCount: countQuestions(schema),
+    id: document.id,
+    title: document.meta.title,
+    description: document.meta.description,
+    status: document.status,
+    questionCount: countQuestions(document),
     recordCount:
-      recordMap.get(schema.id)?.length ??
+      recordMap.get(document.id)?.length ??
       faker.number.int({ min: 0, max: 200 }),
     createdAt: listItems[idx]?.createdAt ?? new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    slug: schema.slug,
+    slug: document.slug,
   }
   if (idx >= 0) listItems[idx] = item
   else listItems.unshift(item)
 }
 
-function seedRecord(surveyId: string, schema: SurveySchema) {
+function seedSurveyRecords(surveyId: string, document: SurveyDocument) {
   if (recordMap.has(surveyId)) return
-  const questions = flattenQuestions(schema)
+  const questions = flattenQuestions(document)
   const recordCount = surveyId === DEMO_SURVEY_ID ? 225 : 25
 
   // 生成 30 天内的权重分布，模拟周期性的回收活动与波峰波谷
@@ -986,20 +991,24 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
 // 置顶全题型演示问卷，便于从列表进入编辑页测试
 const demoSurvey = createAllTypesDemoSurvey()
 detailMap.set(DEMO_SURVEY_ID, demoSurvey)
-seedRecord(demoSurvey.id, demoSurvey)
-syncListFromDetail(demoSurvey)
+seedSurveyRecords(demoSurvey.id, demoSurvey)
+updateListItemFromDocument(demoSurvey)
 
 // seed list
 for (let i = 0; i < 20; i++) {
-  const schema = createEmptySurvey(faker.lorem.words(3))
-  schema.status = faker.helpers.arrayElement(['draft', 'published', 'archived'])
-  if (schema.status === 'published') {
-    schema.slug = faker.lorem.slug()
-    schema.publishedAt = faker.date.recent().toISOString()
+  const document = createEmptySurvey(faker.lorem.words(3))
+  document.status = faker.helpers.arrayElement([
+    'draft',
+    'published',
+    'archived',
+  ])
+  if (document.status === 'published') {
+    document.slug = faker.lorem.slug()
+    document.publishedAt = faker.date.recent().toISOString()
   }
-  detailMap.set(schema.id, schema)
-  seedRecord(schema.id, schema)
-  syncListFromDetail(schema)
+  detailMap.set(document.id, document)
+  seedSurveyRecords(document.id, document)
+  updateListItemFromDocument(document)
 }
 
 function sortRecords(
@@ -1072,10 +1081,10 @@ export const surveyHandlers = [
   http.post('/api/survey', async ({ request }) => {
     await sleep(150)
     const document = parseSurveyDocument(await request.json())
-    document.id = createQuestionId()
+    document.id = crypto.randomUUID()
     detailMap.set(document.id, document)
     recordMap.set(document.id, [])
-    syncListFromDetail(document)
+    updateListItemFromDocument(document)
     return HttpResponse.json(document)
   }),
 
@@ -1088,8 +1097,8 @@ export const surveyHandlers = [
       document = createAllTypesDemoSurvey()
       document.id = id
       detailMap.set(id, document)
-      syncListFromDetail(document)
-      seedRecord(id, document)
+      updateListItemFromDocument(document)
+      seedSurveyRecords(id, document)
     }
     return HttpResponse.json(document)
   }),
@@ -1100,7 +1109,7 @@ export const surveyHandlers = [
     const document = parseSurveyDocument(await request.json())
     document.id = id
     detailMap.set(id, document)
-    syncListFromDetail(document)
+    updateListItemFromDocument(document)
     return HttpResponse.json(document)
   }),
 
@@ -1116,12 +1125,12 @@ export const surveyHandlers = [
   http.patch('/api/survey/:id/status', async ({ params, request }) => {
     const id = params.id as string
     const { status } = (await request.json()) as {
-      status: SurveySchema['status']
+      status: SurveyDocument['status']
     }
-    const schema = detailMap.get(id)
-    if (schema) {
-      schema.status = status
-      syncListFromDetail(schema)
+    const document = detailMap.get(id)
+    if (document) {
+      document.status = status
+      updateListItemFromDocument(document)
     }
     return new HttpResponse(null, { status: 204 })
   }),
@@ -1134,7 +1143,7 @@ export const surveyHandlers = [
     document.revision += 1
     document.slug = document.slug || faker.lorem.slug()
     document.publishedAt = new Date().toISOString()
-    syncListFromDetail(document)
+    updateListItemFromDocument(document)
     return HttpResponse.json(document)
   }),
 
@@ -1142,14 +1151,14 @@ export const surveyHandlers = [
     await sleep(200)
     const id = params.id as string
     const url = new URL(request.url)
-    const schema = detailMap.get(id)
-    if (!schema) return new HttpResponse(null, { status: 404 })
+    const document = detailMap.get(id)
+    if (!document) return new HttpResponse(null, { status: 404 })
 
     const records = recordMap.get(id) ?? []
-    const questions = flattenQuestions(schema)
+    const questions = flattenQuestions(document)
 
     // 1. 解析筛选条件
-    const activeFilters: { key: string; filter: any }[] = []
+    const activeFilters: { key: string; filter: FilterValue }[] = []
     const statusFilter = parseQueryFilterParam(url.searchParams.get('status'))
     if (statusFilter)
       activeFilters.push({ key: 'status', filter: statusFilter })
@@ -1160,11 +1169,11 @@ export const surveyHandlers = [
     if (completedAtFilter)
       activeFilters.push({ key: 'completedAt', filter: completedAtFilter })
 
-    for (const q of questions) {
-      const rawFilter = url.searchParams.get(q.id)
+    for (const question of questions) {
+      const rawFilter = url.searchParams.get(question.id)
       const parsed = parseQueryFilterParam(rawFilter)
       if (parsed) {
-        activeFilters.push({ key: q.id, filter: parsed })
+        activeFilters.push({ key: question.id, filter: parsed })
       }
     }
 
@@ -1249,16 +1258,16 @@ export const surveyHandlers = [
       const id = params.id as string
       const questionId = params.questionId as string
       const url = new URL(request.url)
-      const schema = detailMap.get(id)
-      if (!schema) return new HttpResponse(null, { status: 404 })
+      const document = detailMap.get(id)
+      if (!document) return new HttpResponse(null, { status: 404 })
 
       const records = recordMap.get(id) ?? []
-      const questions = flattenQuestions(schema)
-      const q = questions.find((item) => item.id === questionId)
-      if (!q) return new HttpResponse(null, { status: 404 })
+      const questions = flattenQuestions(document)
+      const question = questions.find((item) => item.id === questionId)
+      if (!question) return new HttpResponse(null, { status: 404 })
 
       // 1. 解析筛选条件
-      const activeFilters: { key: string; filter: any }[] = []
+      const activeFilters: { key: string; filter: FilterValue }[] = []
       const statusFilter = parseQueryFilterParam(url.searchParams.get('status'))
       if (statusFilter)
         activeFilters.push({ key: 'status', filter: statusFilter })
@@ -1301,7 +1310,7 @@ export const surveyHandlers = [
 
       // 3. 计算单题的统计分析
       const analysis = computeSingleQuestionAnalysis(
-        q,
+        question,
         filteredRecords,
         filteredRecords.length,
         {
@@ -1318,11 +1327,11 @@ export const surveyHandlers = [
     await sleep(180)
     const id = params.id as string
     const url = new URL(request.url)
-    const schema = detailMap.get(id)
-    if (!schema) return new HttpResponse(null, { status: 404 })
+    const document = detailMap.get(id)
+    if (!document) return new HttpResponse(null, { status: 404 })
 
     const records = recordMap.get(id) ?? []
-    const questions = flattenQuestions(schema)
+    const questions = flattenQuestions(document)
     const questionMap = new Map(questions.map((item) => [item.id, item]))
     const segments = parseSegmentDefinitions(url.searchParams.get('segments'))
 
@@ -1372,21 +1381,21 @@ export const surveyHandlers = [
 
   http.get('/api/survey/:id/record/export', async ({ params }) => {
     const id = params.id as string
-    const schema = detailMap.get(id)
+    const document = detailMap.get(id)
     const records = recordMap.get(id) ?? []
-    const questions = schema ? flattenQuestions(schema) : []
+    const questions = document ? flattenQuestions(document) : []
     const headers = [
       'record_id',
       'status',
       'started_at',
-      ...questions.map((q) => q.title),
+      ...questions.map((question) => question.title),
     ]
     const rows = records.map((r) => [
       r.id,
       r.status,
       r.startedAt,
-      ...questions.map((q) => {
-        const v = r.answers[q.id]
+      ...questions.map((question) => {
+        const v = r.answers[question.id]
         if (v == null) return ''
         return typeof v === 'object' ? JSON.stringify(v) : String(v)
       }),

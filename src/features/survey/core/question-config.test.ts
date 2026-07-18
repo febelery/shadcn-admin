@@ -9,7 +9,7 @@ import {
   QUESTION_DEFINITIONS,
   getQuestionDefinition,
 } from './question-definitions'
-import { createEmptySurvey } from './schema-defaults'
+import { createEmptySurvey } from './document-factory'
 
 describe('question config module', () => {
   it('owns valid defaults for every registered question type', () => {

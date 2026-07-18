@@ -15,29 +15,48 @@ export interface ChoiceOptionAnalysis {
   percentage: number // 占比 (选择人数 / 本题答题人数，或对于多选为选择人数 / 总答卷人数)
 }
 
-export interface BaseQuestionAnalysis {
+export interface BaseQuestionAnalysis<Type extends QuestionType> {
   questionId: string
   title: string
-  type: QuestionType
+  type: Type
 }
 
-export interface ChoiceAnalysis extends BaseQuestionAnalysis {
+type ChoiceAnalysisQuestionType =
+  | 'single_choice'
+  | 'multiple_choice'
+  | 'dropdown'
+  | 'ranking'
+  | 'cascader'
+
+type NumericAnalysisQuestionType = 'rating' | 'nps' | 'slider' | 'number'
+
+type MatrixAnalysisQuestionType = 'matrix_single' | 'matrix_multiple'
+
+type TextAnalysisQuestionType = Exclude<
+  QuestionType,
+  | ChoiceAnalysisQuestionType
+  | NumericAnalysisQuestionType
+  | MatrixAnalysisQuestionType
+  | 'likert'
+>
+
+export interface ChoiceAnalysis extends BaseQuestionAnalysis<ChoiceAnalysisQuestionType> {
   options: ChoiceOptionAnalysis[]
 }
 
-export interface RatingScoreDistribution {
+export interface ScoreDistribution {
   score: number | string
   count: number
   percentage: number
 }
 
-export interface RatingAnalysis extends BaseQuestionAnalysis {
+export interface NumericAnalysis extends BaseQuestionAnalysis<NumericAnalysisQuestionType> {
   avgScore?: number
   medianScore?: number
   minScore?: number
   maxScore?: number
   sumScore?: number
-  distribution: RatingScoreDistribution[]
+  distribution: ScoreDistribution[]
   // NPS 专属属性
   npsScore?: number
   promoters?: number
@@ -58,7 +77,7 @@ export interface MatrixRowAnalysis {
   columns: MatrixColumnValueAnalysis[]
 }
 
-export interface MatrixAnalysis extends BaseQuestionAnalysis {
+export interface MatrixAnalysis extends BaseQuestionAnalysis<MatrixAnalysisQuestionType> {
   rows: MatrixRowAnalysis[]
 }
 
@@ -74,7 +93,7 @@ export interface LikertStatementAnalysis {
   distribution: LikertStatementValueAnalysis[]
 }
 
-export interface LikertAnalysis extends BaseQuestionAnalysis {
+export interface LikertAnalysis extends BaseQuestionAnalysis<'likert'> {
   statements: LikertStatementAnalysis[]
 }
 
@@ -85,7 +104,7 @@ export interface TextAnswerItem {
   completedAt?: string
 }
 
-export interface TextAnalysis extends BaseQuestionAnalysis {
+export interface TextAnalysis extends BaseQuestionAnalysis<TextAnalysisQuestionType> {
   answers: {
     data: TextAnswerItem[]
     meta: {
@@ -99,7 +118,7 @@ export interface TextAnalysis extends BaseQuestionAnalysis {
 
 export type QuestionAnalysis =
   | ChoiceAnalysis
-  | RatingAnalysis
+  | NumericAnalysis
   | MatrixAnalysis
   | LikertAnalysis
   | TextAnalysis

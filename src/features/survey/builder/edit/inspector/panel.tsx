@@ -38,7 +38,7 @@ import {
   hasQuestionTypePreview,
 } from '@/features/survey/shared/question-type-hints'
 import { QuestionTypePreview } from '@/features/survey/shared/question-type-preview'
-import { getEditorSection } from '../../../core/editor-schema'
+import { getEditorSection } from '../../../core/editor-section'
 import { BuilderPanelHeader } from '../../shared/panel-header'
 import { useBuilderStore } from '../../store'
 import type {

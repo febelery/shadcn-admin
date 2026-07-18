@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageLayout } from '@/components/layout/page-layout'
-import { flattenQuestions } from '../core/schema-defaults'
+import { flattenQuestions } from '../core/document-elements'
 import { useSurveyDetail, useSurveyAnalysis } from '../query/hooks'
 import { surveyKeys } from '../query/keys'
 import { OverviewCards } from './overview-cards'
@@ -26,11 +26,12 @@ interface SurveyAnalysisPageProps {
 
 export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
   const queryClient = useQueryClient()
-  const { data: schema, isLoading: loadingSchema } = useSurveyDetail(surveyId)
+  const { data: document, isLoading: loadingDocument } =
+    useSurveyDetail(surveyId)
 
   const questions = React.useMemo(() => {
-    return schema ? flattenQuestions(schema) : []
-  }, [schema])
+    return document ? flattenQuestions(document) : []
+  }, [document])
 
   const {
     data: analysis,
@@ -46,12 +47,12 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
     })
   }, [queryClient, surveyId])
 
-  const isLoading = loadingSchema || loadingAnalysis
+  const isLoading = loadingDocument || loadingAnalysis
 
   return (
     <PageLayout
       variant='default'
-      title={schema ? `${schema.meta.title} · 数据分析` : '数据分析'}
+      title={document ? `${document.meta.title} · 数据分析` : '数据分析'}
       description='提供整体回收概况、逐题统计与服务端条件统计。'
       actions={
         <div className='flex items-center gap-2'>
@@ -114,7 +115,7 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
             ))}
           </div>
         </div>
-      ) : analysis ? (
+      ) : analysis && document ? (
         <>
           <OverviewCards overview={analysis.overview} />
 
@@ -179,7 +180,7 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
                         key={q.id}
                         question={q}
                         index={idx + 1}
-                        schema={schema}
+                        document={document}
                         surveyId={surveyId}
                       />
                     ))}
@@ -188,10 +189,10 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
             </TabsContent>
 
             <TabsContent value='segment' className='mt-0 space-y-4'>
-              {activeTab === 'segment' && schema && (
+              {activeTab === 'segment' && (
                 <SegmentAnalysis
                   surveyId={surveyId}
-                  schema={schema}
+                  document={document}
                   questions={questions}
                 />
               )}

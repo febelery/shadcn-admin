@@ -1,10 +1,14 @@
 import React from 'react'
+import type { QueryParams } from '@/types/api'
 import { AlertCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { QuestionAnalysis } from '@/features/survey/core/analysis-types'
 import { getQuestionTypeLabel } from '@/features/survey/core/question-definitions'
+import type {
+  QuestionElement,
+  SurveyDocument,
+} from '@/features/survey/core/types'
 import { getQuestionNumberPrefix } from '@/features/survey/shared/question-numbering'
 import { useSurveyQuestionAnalysis } from '../query/hooks'
 import { ChoiceChart } from './charts/choice-chart'
@@ -13,17 +17,6 @@ import { MatrixChart } from './charts/matrix-chart'
 import { NumberChart } from './charts/number-chart'
 import { RatingChart } from './charts/rating-chart'
 import { TextAnswers } from './charts/text-answers'
-
-interface QuestionChartProps {
-  question: any
-  analysis?: QuestionAnalysis
-  isLoading?: boolean
-  error?: string | null
-  index: number
-  schema: any
-  surveyId: string
-  params?: any
-}
 
 /**
  * 针对不同题型设计的精致骨架屏
@@ -165,17 +158,17 @@ function QuestionChartSkeleton({ type }: { type: string }) {
 }
 
 interface QuestionChartProps {
-  question: any
+  question: QuestionElement
   index: number
-  schema: any
+  document: SurveyDocument
   surveyId: string
-  params?: any
+  params?: QueryParams
 }
 
 export function QuestionChart({
   question,
   index,
-  schema,
+  document,
   surveyId,
   params,
 }: QuestionChartProps) {
@@ -215,10 +208,10 @@ export function QuestionChart({
   const typeLabel = getQuestionTypeLabel(question.type) || '未知题型'
 
   // 利用系统内置的题号前缀逻辑进行题号匹配
-  const prefixText = React.useMemo(() => {
-    if (!schema || !question) return null
-    return getQuestionNumberPrefix(question, schema)
-  }, [schema, question])
+  const prefixText = React.useMemo(
+    () => getQuestionNumberPrefix(question, document),
+    [document, question]
+  )
 
   // 如果系统内置题号不为空，则取其内容，否则回退到标准的 Q{index} 编号，确保数据分析页的参考性
   const prefixDisplay = React.useMemo(() => {
@@ -257,18 +250,18 @@ export function QuestionChart({
       case 'multiple_choice':
       case 'ranking':
       case 'cascader':
-        return <ChoiceChart analysis={analysis as any} />
+        return <ChoiceChart analysis={analysis} />
       case 'rating':
       case 'nps':
-        return <RatingChart analysis={analysis as any} />
+        return <RatingChart analysis={analysis} />
       case 'slider':
       case 'number':
-        return <NumberChart analysis={analysis as any} />
+        return <NumberChart analysis={analysis} />
       case 'matrix_single':
       case 'matrix_multiple':
-        return <MatrixChart analysis={analysis as any} />
+        return <MatrixChart analysis={analysis} />
       case 'likert':
-        return <LikertChart analysis={analysis as any} />
+        return <LikertChart analysis={analysis} />
       case 'text':
       case 'textarea':
       case 'fill_in':
@@ -280,7 +273,7 @@ export function QuestionChart({
       default:
         return (
           <TextAnswers
-            analysis={analysis as any}
+            analysis={analysis}
             surveyId={surveyId}
             params={params}
           />

@@ -22,7 +22,7 @@ Admin 设计器校验规则结构与语义；**规则求值、显隐、跳题导
 1. **无**任何 `show` 规则以 `q` 为 `target` → 初始 **可见**
 2. **存在** `show` 规则以 `q` 为 `target` → 初始 **隐藏**；任一匹配且启用的 `show` 规则条件为真 → **可见**
 3. 任一匹配且启用的 `hide` 规则条件为真 → **隐藏**（覆盖 show）
-4. 显隐仅影响 UI 与必填校验范围；不改变 schema 中题目顺序
+4. 显隐仅影响 UI 与必填校验范围；不改变 document 中题目顺序
 
 ## 跳题导航
 
@@ -34,16 +34,16 @@ Admin 设计器校验规则结构与语义；**规则求值、显隐、跳题导
 ### 下一题算法（伪代码）
 
 ```
-function getNextQuestion(currentId, answers, schema):
+function getNextQuestion(currentId, answers, document):
   rules = sorted enabled rules by priority
   for rule in rules:
     if evaluate(rule.condition, answers) and rule.action is jump/end from current:
       return apply jump/end action
 
   candidates = questions after currentId in flatten order
-  for q in candidates:
-    if isVisible(q, answers, schema):
-      return q.id
+  for question in candidates:
+    if isVisible(question, answers, document):
+      return question.id
   return null // survey complete
 ```
 

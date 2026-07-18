@@ -8,10 +8,10 @@ import {
   AreaChart,
 } from 'recharts'
 import { Progress } from '@/components/ui/progress'
-import type { RatingAnalysis } from '@/features/survey/core/analysis-types'
+import type { NumericAnalysis } from '@/features/survey/core/analysis-types'
 
 interface RatingChartProps {
-  analysis: RatingAnalysis
+  analysis: NumericAnalysis
 }
 
 export function RatingChart({ analysis }: RatingChartProps) {

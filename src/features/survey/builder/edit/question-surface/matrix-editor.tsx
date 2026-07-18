@@ -1,7 +1,6 @@
 import { Circle, Square, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import { LABEL_LIMITS } from '../../store'
 import type {
   MatrixColumn,
@@ -78,7 +77,7 @@ export function SurfaceMatrixEditor({ question, onConfigChange }: Props) {
                   setCols([
                     ...cols,
                     {
-                      id: createQuestionId(),
+                      id: crypto.randomUUID(),
                       label: `列 ${cols.length + 1}`,
                     },
                   ])
@@ -151,7 +150,7 @@ export function SurfaceMatrixEditor({ question, onConfigChange }: Props) {
           e.stopPropagation()
           setRows([
             ...rows,
-            { id: createQuestionId(), label: `行 ${rows.length + 1}` },
+            { id: crypto.randomUUID(), label: `行 ${rows.length + 1}` },
           ])
         }}
       >

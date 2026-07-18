@@ -1,19 +1,18 @@
-import { createQuestionId } from '../../core/schema-defaults'
 import { cloneCascaderNodes } from '../../shared/cascader-adapters'
-import type { SurveySchema, SurveyElement } from '../types'
+import type { SurveyDocument, SurveyElement } from '../types'
 
-export function findSection(schema: SurveySchema, sectionId: string) {
-  return schema.sections.find((s) => s.id === sectionId)
+export function findSection(document: SurveyDocument, sectionId: string) {
+  return document.sections.find((s) => s.id === sectionId)
 }
 
 export function remapIds<T extends { id: string }>(items: T[]): T[] {
-  return items.map((item) => ({ ...item, id: createQuestionId() }))
+  return items.map((item) => ({ ...item, id: crypto.randomUUID() }))
 }
 
-/** 复制题目/布局块 — JSON 深拷贝（兼容 Immer draft），并换新 id */
-export function cloneElement(el: SurveyElement): SurveyElement {
-  const cloned = JSON.parse(JSON.stringify(el)) as SurveyElement
-  cloned.id = createQuestionId()
+/** 复制题目或布局块，并为其中所有文档实体分配新 ID。 */
+export function cloneElement(element: SurveyElement): SurveyElement {
+  const cloned = structuredClone(element)
+  cloned.id = crypto.randomUUID()
 
   if (cloned.kind === 'question') {
     const cfg = cloned.config
@@ -35,23 +34,27 @@ export function cloneElement(el: SurveyElement): SurveyElement {
   return cloned
 }
 
-export function collectQuestionIdsFromElement(el: SurveyElement): string[] {
-  if (el.kind === 'question') {
-    const nested = el.config.templateElements?.flatMap((item) =>
+export function collectQuestionIdsFromElement(
+  element: SurveyElement
+): string[] {
+  if (element.kind === 'question') {
+    const nested = element.config.templateElements?.flatMap((item) =>
       collectQuestionIdsFromElement(item)
     )
-    return [el.id, ...(nested ?? [])]
+    return [element.id, ...(nested ?? [])]
   }
-  if (el.kind === 'panel') {
-    return el.elements.flatMap((item) => collectQuestionIdsFromElement(item))
+  if (element.kind === 'panel') {
+    return element.elements.flatMap((item) =>
+      collectQuestionIdsFromElement(item)
+    )
   }
   return []
 }
 
-export function insertAt<T>(arr: T[], item: T, index?: number) {
-  if (index === undefined || index < 0 || index > arr.length) {
-    arr.push(item)
+export function insertAt<T>(items: T[], item: T, index?: number) {
+  if (index === undefined || index < 0 || index > items.length) {
+    items.push(item)
   } else {
-    arr.splice(index, 0, item)
+    items.splice(index, 0, item)
   }
 }

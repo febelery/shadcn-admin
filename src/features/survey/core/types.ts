@@ -1,4 +1,4 @@
-/** Survey Schema — plain strings, no locales */
+/** Canonical survey document. Text content is stored without locale wrappers. */
 
 export type SurveyStatus = 'draft' | 'published' | 'archived'
 
@@ -391,7 +391,7 @@ export interface SubmissionConfig {
   password?: string
 }
 
-export interface SurveySchema {
+export interface SurveyDocument {
   id: string
   /** 持久化文档格式版本；只随文档契约变更。 */
   schemaVersion: 1

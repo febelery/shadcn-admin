@@ -5,7 +5,7 @@ import {
   formatLocalDateTime,
   parseLocalDateTime,
 } from '@/components/date-picker'
-import { DEFAULT_SUBMISSION } from '@/features/survey/core/schema-defaults'
+import { DEFAULT_SUBMISSION } from '@/features/survey/core/document-factory'
 import { useBuilderStore } from '../../store'
 import type { SubmissionTimeWindow } from '../../types'
 import { InspectorSection } from '../inspector/panel'

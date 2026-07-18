@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createEmptySurvey } from '../../core/schema-defaults'
+import { createEmptySurvey } from '../../core/document-factory'
 import { createBuilderStore } from './index'
 
 describe('Builder question config interface', () => {

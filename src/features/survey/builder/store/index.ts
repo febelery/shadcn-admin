@@ -1,17 +1,14 @@
 import { createStore } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import { getEditorSectionId } from '../../core/editor-schema'
+import { DEFAULT_SUBMISSION } from '../../core/document-factory'
+import { getEditorSectionId } from '../../core/editor-section'
 import {
   normalizeRulePriorities,
   removeRulesReferencingQuestions,
 } from '../../core/logic/rule-utils'
 import { applyQuestionConfigPatch } from '../../core/question-config'
 import { getQuestionDefinition } from '../../core/question-definitions'
-import {
-  createQuestionId,
-  DEFAULT_SUBMISSION,
-} from '../../core/schema-defaults'
-import type { SurveySchema, SurveyElement } from '../types'
+import type { SurveyDocument, SurveyElement } from '../types'
 import {
   findSection,
   cloneElement,
@@ -28,7 +25,7 @@ import {
 } from './rule-authoring'
 import type { BuilderState } from './types'
 
-export function createBuilderStore(initialDocument: SurveySchema) {
+export function createBuilderStore(initialDocument: SurveyDocument) {
   const document = structuredClone(initialDocument)
   return createStore<BuilderState>()(
     immer((set, get) => ({
@@ -107,10 +104,10 @@ export function createBuilderStore(initialDocument: SurveySchema) {
           if (!sec) return
           const el: SurveyElement =
             kind === 'divider'
-              ? { kind: 'divider', id: createQuestionId() }
+              ? { kind: 'divider', id: crypto.randomUUID() }
               : {
                   kind: 'html_block',
-                  id: createQuestionId(),
+                  id: crypto.randomUUID(),
                   html: '<p>说明文字</p>',
                 }
           insertAt(sec.elements, el, index)
@@ -131,17 +128,26 @@ export function createBuilderStore(initialDocument: SurveySchema) {
           s.isDirty = true
         }),
 
-      duplicateElement: (sectionId, elementId) =>
+      duplicateElement: (sectionId, elementId) => {
+        const sourceSection = findSection(get().document, sectionId)
+        const source = sourceSection?.elements.find(
+          (element) => element.id === elementId
+        )
+        if (!source) return
+        const copy = cloneElement(source)
+
         set((s) => {
-          const sec = findSection(s.document, sectionId)
-          if (!sec) return
-          const idx = sec.elements.findIndex((e) => e.id === elementId)
-          if (idx === -1) return
-          const copy = cloneElement(sec.elements[idx])
-          sec.elements.splice(idx + 1, 0, copy)
+          const section = findSection(s.document, sectionId)
+          if (!section) return
+          const sourceIndex = section.elements.findIndex(
+            (element) => element.id === elementId
+          )
+          if (sourceIndex === -1) return
+          section.elements.splice(sourceIndex + 1, 0, copy)
           s.selectedElementId = copy.id
           s.isDirty = true
-        }),
+        })
+      },
 
       updateQuestion: (sectionId, elementId, patch) =>
         set((s) => {

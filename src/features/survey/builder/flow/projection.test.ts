@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { QuestionElement, Rule, SurveySchema } from '../../core/types'
+import type { QuestionElement, Rule, SurveyDocument } from '../../core/types'
 import { createFlowProjector } from './projection'
 
 function question(id: string, title: string): QuestionElement {
@@ -34,7 +34,9 @@ function rule(overrides: Partial<Rule> = {}): Rule {
   }
 }
 
-function survey(overrides: Partial<SurveySchema> = {}): SurveySchema {
+function createTestDocument(
+  overrides: Partial<SurveyDocument> = {}
+): SurveyDocument {
   return {
     id: 'survey-1',
     schemaVersion: 1,
@@ -71,20 +73,20 @@ function survey(overrides: Partial<SurveySchema> = {}): SurveySchema {
 }
 
 describe('createFlowProjector', () => {
-  it('returns one shared projection for the same schema', () => {
+  it('returns one shared projection for the same document', () => {
     const project = createFlowProjector()
-    const schema = survey()
+    const document = createTestDocument()
 
-    expect(project(schema)).toBe(project(schema))
+    expect(project(document)).toBe(project(document))
   })
 
   it('reuses the whole projection when unrelated settings change', () => {
     const project = createFlowProjector()
-    const schema = survey()
-    const before = project(schema)
+    const document = createTestDocument()
+    const before = project(document)
     const after = project({
-      ...schema,
-      theme: { ...schema.theme, primaryColor: '#2563eb' },
+      ...document,
+      theme: { ...document.theme, primaryColor: '#2563eb' },
       submission: { oncePerDevice: true },
     })
 
@@ -93,12 +95,12 @@ describe('createFlowProjector', () => {
 
   it('updates labels without recomputing topology layout', () => {
     const project = createFlowProjector()
-    const schema = survey()
-    const before = project(schema)
-    const firstSection = schema.sections[0]
+    const document = createTestDocument()
+    const before = project(document)
+    const firstSection = document.sections[0]
     const firstQuestion = firstSection.elements[0] as QuestionElement
     const after = project({
-      ...schema,
+      ...document,
       sections: [
         {
           ...firstSection,
@@ -120,9 +122,9 @@ describe('createFlowProjector', () => {
 
   it('recomputes layout when committed rule topology changes', () => {
     const project = createFlowProjector()
-    const schema = survey({ rules: [] })
-    const before = project(schema)
-    const after = project({ ...schema, rules: [rule()] })
+    const document = createTestDocument({ rules: [] })
+    const before = project(document)
+    const after = project({ ...document, rules: [rule()] })
 
     expect(after.topologyKey).not.toBe(before.topologyKey)
     expect(after.layout).not.toBe(before.layout)
@@ -130,8 +132,8 @@ describe('createFlowProjector', () => {
 
   it('reuses layout when only a rule condition label changes', () => {
     const project = createFlowProjector()
-    const schema = survey()
-    const before = project(schema)
+    const document = createTestDocument()
+    const before = project(document)
     const changedRule = rule({
       condition: {
         questionId: 'q1',
@@ -139,7 +141,7 @@ describe('createFlowProjector', () => {
         value: 'q1-yes',
       },
     })
-    const after = project({ ...schema, rules: [changedRule] })
+    const after = project({ ...document, rules: [changedRule] })
 
     expect(after.topologyKey).toBe(before.topologyKey)
     expect(after.layout).toBe(before.layout)
@@ -157,7 +159,7 @@ describe('createFlowProjector', () => {
         target: 'missing-question',
       },
     })
-    const projection = project(survey({ rules: [invalidRule] }))
+    const projection = project(createTestDocument({ rules: [invalidRule] }))
 
     expect(projection.stats.questionCount).toBe(2)
     expect(projection.stats.enabledRuleCount).toBe(1)

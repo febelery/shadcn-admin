@@ -304,7 +304,7 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
       string,
       { x: number; y: number; w: number; h: number }
     >()
-    const rfNodes: Node[] = graph.nodes.map((n: any) => {
+    const rfNodes: Node[] = graph.nodes.map((n) => {
       const pos = positions.get(n.id) ?? { x: 0, y: 0 }
       const elIssue = n.elementId
         ? issueSeverityByTarget.get(n.elementId)
@@ -329,7 +329,7 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
     })
 
     const labelSlots = new Map<string, { x: number; y: number }>()
-    const ruleEdges = graph.edges.filter((e: any) => e.kind !== 'default')
+    const ruleEdges = graph.edges.filter((edge) => edge.kind !== 'default')
     const grouped = new Map<string, typeof ruleEdges>()
     for (const edge of ruleEdges) {
       const list = grouped.get(edge.source) ?? []
@@ -371,12 +371,12 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
     }
 
     const rfEdges: Edge[] = graph.edges
-      .filter((e: any) => {
+      .filter((e) => {
         if (e.kind === 'visibility') return showVisibility
         if (e.kind === 'jump' || e.kind === 'end') return showJump
         return true
       })
-      .map((e: any) => {
+      .map((e) => {
         const handles = edgeHandles(e.kind)
         const labelOffset = labelSlots.get(e.id)
         return {

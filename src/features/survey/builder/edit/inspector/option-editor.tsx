@@ -13,7 +13,6 @@ import {
   SortableOverlay,
 } from '@/components/ui/sortable'
 import { Textarea } from '@/components/ui/textarea'
-import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import {
   OPTION_LINE_PRESETS,
   optionsToLines,
@@ -114,7 +113,7 @@ export function OptionEditor({
               onChange([
                 ...options,
                 {
-                  id: createQuestionId(),
+                  id: crypto.randomUUID(),
                   label: `${label} ${options.length + 1}`,
                 },
               ])

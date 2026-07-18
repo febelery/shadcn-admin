@@ -8,7 +8,6 @@ import {
   partitionChoiceOptions,
   setOtherChoiceOptionEnabled,
 } from '@/features/survey/core/choice-other-option'
-import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import { LABEL_LIMITS } from '../../store'
 import type {
   ChoiceOption,
@@ -173,7 +172,7 @@ export function SurfaceRankingList({
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
                 insertOptionAfter(index, () => ({
-                  id: createQuestionId(),
+                  id: crypto.randomUUID(),
                   label: '',
                 }))
               }

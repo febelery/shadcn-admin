@@ -1,3 +1,4 @@
+import { flattenQuestions } from '../../core/document-elements'
 import { analyseSurvey, type StaticIssue } from '../../core/logic/analyzer'
 import {
   buildFlowGraph,
@@ -6,8 +7,7 @@ import {
   type FlowLayoutResult,
 } from '../../core/logic/flow-graph'
 import { getRuleCategory } from '../../core/logic/rule-meta'
-import { flattenQuestions } from '../../core/schema-defaults'
-import type { QuestionElement, Rule, SurveySchema } from '../../core/types'
+import type { QuestionElement, Rule, SurveyDocument } from '../../core/types'
 import { getQuestionReferenceLabel } from '../../shared/question-numbering'
 
 export interface FlowProjectionStats {
@@ -96,48 +96,48 @@ function buildStats(questions: QuestionElement[], rules: Rule[]) {
 }
 
 /**
- * 创建一个会话级投影器。相同 schema 引用只计算一次；展示信息变化会刷新投影，
+ * 创建一个会话级投影器。相同 document 引用只计算一次；展示信息变化会刷新投影，
  * 但只要图拓扑不变，就复用上一次 Dagre 布局。
  */
 export function createFlowProjector() {
-  let previousSchema: SurveySchema | null = null
+  let previousDocument: SurveyDocument | null = null
   let previousProjection: FlowProjection | null = null
-  let previousSections: SurveySchema['sections'] | null = null
-  let previousRules: SurveySchema['rules'] | null = null
+  let previousSections: SurveyDocument['sections'] | null = null
+  let previousRules: SurveyDocument['rules'] | null = null
   let previousEndTitle: string | undefined
-  let previousNumberingStyle: SurveySchema['meta']['defaultQuestionNumbering']
-  let previousNumberingMode: SurveySchema['meta']['questionNumberingMode']
+  let previousNumberingStyle: SurveyDocument['meta']['defaultQuestionNumbering']
+  let previousNumberingMode: SurveyDocument['meta']['questionNumberingMode']
   let previousTopologyKey = ''
   let previousLayout: FlowLayoutResult | null = null
 
-  return (schema: SurveySchema): FlowProjection => {
-    if (schema === previousSchema && previousProjection) {
+  return (document: SurveyDocument): FlowProjection => {
+    if (document === previousDocument && previousProjection) {
       return previousProjection
     }
 
     const hasSameProjectionInputs =
-      schema.sections === previousSections &&
-      schema.rules === previousRules &&
-      schema.meta.endTitle === previousEndTitle &&
-      schema.meta.defaultQuestionNumbering === previousNumberingStyle &&
-      schema.meta.questionNumberingMode === previousNumberingMode
+      document.sections === previousSections &&
+      document.rules === previousRules &&
+      document.meta.endTitle === previousEndTitle &&
+      document.meta.defaultQuestionNumbering === previousNumberingStyle &&
+      document.meta.questionNumberingMode === previousNumberingMode
     if (hasSameProjectionInputs && previousProjection) {
-      previousSchema = schema
+      previousDocument = document
       return previousProjection
     }
 
-    const questions = flattenQuestions(schema)
-    const rules = schema.rules
+    const questions = flattenQuestions(document)
+    const rules = document.rules
     const questionTitles = new Map<string, string>()
     for (const question of questions) {
       questionTitles.set(
         question.id,
-        getQuestionReferenceLabel(question, schema)
+        getQuestionReferenceLabel(question, document)
       )
     }
 
-    const issues = analyseSurvey(schema)
-    const graph = buildFlowGraph(schema)
+    const issues = analyseSurvey(document)
+    const graph = buildFlowGraph(document)
     const topologyKey = buildTopologyKey(graph)
     const layout =
       topologyKey === previousTopologyKey && previousLayout
@@ -160,13 +160,13 @@ export function createFlowProjector() {
       stats: buildStats(questions, rules),
     }
 
-    previousSchema = schema
+    previousDocument = document
     previousProjection = projection
-    previousSections = schema.sections
-    previousRules = schema.rules
-    previousEndTitle = schema.meta.endTitle
-    previousNumberingStyle = schema.meta.defaultQuestionNumbering
-    previousNumberingMode = schema.meta.questionNumberingMode
+    previousSections = document.sections
+    previousRules = document.rules
+    previousEndTitle = document.meta.endTitle
+    previousNumberingStyle = document.meta.defaultQuestionNumbering
+    previousNumberingMode = document.meta.questionNumberingMode
     previousTopologyKey = topologyKey
     previousLayout = layout
     return projection
