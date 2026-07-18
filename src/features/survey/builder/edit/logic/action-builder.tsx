@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import type { RuleAction, RuleActionType } from '../../types'
-import { useQuestionSelectOptions } from './use-survey-questions'
+import { useSurveyQuestionCatalog } from './use-survey-questions'
 
 const ACTION_OPTIONS: { value: RuleActionType; label: string }[] = [
   { value: 'show', label: '显示题目' },
@@ -52,7 +52,8 @@ export function ActionBuilder({
   defaultTargetId,
   allowedTypes,
 }: Props) {
-  const targetOptions = useQuestionSelectOptions(targetQuestionIds)
+  const { selectOptions: targetOptions } =
+    useSurveyQuestionCatalog(targetQuestionIds)
   const selectedTargetLabel = useMemo(() => {
     const selectedId = action.target ?? defaultTargetId ?? ''
     return targetOptions.find((o) => o.id === selectedId)?.label

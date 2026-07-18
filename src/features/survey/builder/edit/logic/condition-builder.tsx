@@ -29,10 +29,7 @@ import type {
   ConditionOperator,
   QuestionElement,
 } from '../../types'
-import {
-  useSurveyQuestions,
-  useQuestionSelectOptions,
-} from './use-survey-questions'
+import { useSurveyQuestionCatalog } from './use-survey-questions'
 
 type Props = {
   when: string
@@ -64,22 +61,21 @@ function ConditionRow({
   allowedSourceIds?: string[]
   defaultSourceId?: string
 }) {
-  // 使用静态导入的关系操作符与条件判断方法
-  const questions = useSurveyQuestions()
-  const sourceOptions = useQuestionSelectOptions(allowedSourceIds)
+  const { questionsById, selectOptions: sourceOptions } =
+    useSurveyQuestionCatalog(allowedSourceIds)
 
   const effectiveRef =
     sourceOptions.some((o) => o.id === condition.ref) || !defaultSourceId
       ? condition.ref || defaultSourceId || ''
       : defaultSourceId
-  const selectedQ = questions.find((q) => q.id === effectiveRef)
+  const selectedQ = questionsById.get(effectiveRef)
   const operators = selectedQ
     ? getOperatorsForQuestionType(selectedQ.type)
     : getOperatorsForQuestionType('text')
   const opDef = operators.find((o) => o.value === condition.operator)
 
   const pickSource = (id: string) => {
-    const q = questions.find((x) => x.id === id)
+    const q = questionsById.get(id)
     const ops = q ? getOperatorsForQuestionType(q.type) : []
     onChange({
       ...condition,
