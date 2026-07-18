@@ -25,7 +25,6 @@ function rule(overrides: Partial<Rule> = {}): Rule {
     id: 'rule-1',
     name: '跳到第二题',
     enabled: true,
-    priority: 0,
     condition: { questionId: 'q1', operator: 'not_empty' },
     action: {
       id: 'action-1',

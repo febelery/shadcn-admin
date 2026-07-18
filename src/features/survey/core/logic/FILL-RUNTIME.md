@@ -11,7 +11,7 @@ Admin 设计器校验规则结构与语义；**规则求值、显隐、跳题导
 ## 求值顺序
 
 1. 仅处理 `enabled === true` 的规则
-2. 按 `priority` **升序**；同优先级按 `id` 字典序稳定排序
+2. 严格按 `document.rules[]` 数组顺序执行
 3. 对每条规则：若 `evaluate(condition)` 为真，则执行 `action`
 4. `end` 动作命中后**立即终止**问卷，不再评估后续规则
 
@@ -35,7 +35,7 @@ Admin 设计器校验规则结构与语义；**规则求值、显隐、跳题导
 
 ```
 function getNextQuestion(currentId, answers, document):
-  rules = sorted enabled rules by priority
+  rules = enabled rules in document.rules order
   for rule in rules:
     if evaluate(rule.condition, answers) and rule.action is jump/end from current:
       return apply jump/end action

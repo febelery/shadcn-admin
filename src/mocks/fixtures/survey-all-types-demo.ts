@@ -318,7 +318,6 @@ export function createAllTypesDemoSurvey(): SurveyDocument {
       id: crypto.randomUUID(),
       name,
       enabled: true,
-      priority: document.rules.length,
       condition: isPresenceConditionOperator(op)
         ? { questionId: source.id, operator: op }
         : { questionId: source.id, operator: op, value: value ?? '' },

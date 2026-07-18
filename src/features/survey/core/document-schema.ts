@@ -174,7 +174,6 @@ const surveyDocumentSchema = z
           id: z.string().min(1),
           name: z.string(),
           enabled: z.boolean(),
-          priority: z.number(),
           condition: ruleConditionSchema,
           action: ruleActionSchema,
         })

@@ -25,7 +25,6 @@ function rule(condition: RuleCondition, action: Rule['action']): Rule {
     id: 'rule-1',
     name: 'Test rule',
     enabled: true,
-    priority: 0,
     condition,
     action,
   }

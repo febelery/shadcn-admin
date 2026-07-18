@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { flattenQuestions } from '@/features/survey/core/document-elements'
 import { getQuestionReferenceLabel } from '@/features/survey/core/question-numbering'
-import type { QuestionElement, SurveyDocument } from '../../../core/types'
-import { useBuilderStore } from '../../builder-session'
+import type { QuestionElement, SurveyDocument } from '../../core/types'
+import { useBuilderStore } from '../builder-session'
 
 type SurveyQuestionCatalog = {
   questionsById: Map<string, QuestionElement>

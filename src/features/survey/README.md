@@ -7,6 +7,7 @@
 - `builder/session/`：单个 Builder 会话的文档、编辑焦点、规则草稿与 dirty 状态实现
 - `builder/edit/`：题目画布、题型 Surface、Inspector 与问卷设置
 - `builder/flow/`：从文档派生的流程投影、规则列表与规则编辑入口
+- `builder/rules/`：编辑画布与流程模式共享的规则创作 UI
 - `builder/shared/`：编辑和流程模式共同使用的 DnD 与面板组件
 - `shared/question-type-labels.ts`：无图标依赖的题型展示名称，供分析和 Builder 复用
 - `shared/question-ui-registry.ts`：Palette 分类与图标，不参与文档 mutation 或规则能力判定
@@ -29,7 +30,7 @@
 
 `submissionPolicy` 使用一套扁平配额语言：`totalLimit`、`dailyLimit`、`perUserLimit`、`dailyPerUserLimit` 与 `perDeviceLimit`。字段存在即生效，字段缺失即不限制；不保存 `enabled`、`oncePerUser` 或 `0 表示无限` 等重复状态。`opensAt` 与 `closesAt` 持久化为 UTC instant，不能保存依赖浏览器时区解释的本地时间。
 
-规则与问卷结构是事实来源，流程图是派生视图。`core/logic/flow-graph.ts` 只构建领域节点和规则边，`builder/flow/layout.ts` 才负责 Dagre 坐标；规则编辑使用显式草稿事务，未来 XYFlow 连线只创建规则草稿意图。
+规则与问卷结构是事实来源，`rules[]` 的数组位置是唯一执行顺序，不保存第二套 priority。流程图是派生视图：`core/logic/flow-graph.ts` 只构建领域节点和规则边，`builder/flow/layout.ts` 才负责 Dagre 坐标；规则编辑使用显式草稿事务，未来 XYFlow 连线只创建规则草稿意图。
 
 规则条件持久化为 `condition.questionId/operator/value`，不保存或解析字符串 DSL。规则能力必须同时覆盖文档 schema、创作 UI、静态分析和填写端求值。
 

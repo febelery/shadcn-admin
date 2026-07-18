@@ -1,9 +1,6 @@
 import { createStore } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import {
-  normalizeRulePriorities,
-  removeRulesReferencingQuestions,
-} from '../../core/logic/rule-utils'
+import { removeRulesReferencingQuestions } from '../../core/logic/rule-utils'
 import { applyQuestionConfigPatch } from '../../core/question-config'
 import { createQuestion } from '../../core/question-factory'
 import { EMPTY_RICH_TEXT, parseRichTextContent } from '../../core/rich-text'
@@ -297,7 +294,7 @@ export function createBuilderStore(initialDocument: SurveyDocument) {
         set((s) => {
           const nextRules = s.document.rules.filter((r) => r.id !== ruleId)
           if (nextRules.length === s.document.rules.length) return
-          s.document.rules = normalizeRulePriorities(nextRules)
+          s.document.rules = nextRules
           if (s.ruleDraft?.value.id === ruleId) {
             s.ruleDraft = null
           }

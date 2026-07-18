@@ -8,12 +8,11 @@ export function createActionId() {
   return crypto.randomUUID()
 }
 
-export function createEmptyRule(priority = 0): Rule {
+export function createEmptyRule(): Rule {
   return {
     id: createRuleId(),
     name: '新规则',
     enabled: true,
-    priority,
     condition: { questionId: '', operator: 'not_empty' },
     action: createRuleAction('show'),
   }
@@ -69,19 +68,13 @@ export function ruleReferencesAnyQuestion(
   return [...questionIds].some((id) => ruleReferencesQuestion(rule, id))
 }
 
-export function normalizeRulePriorities(rules: Rule[]): Rule[] {
-  return rules.map((rule, priority) => ({ ...rule, priority }))
-}
-
 export function removeRulesReferencingQuestions(
   rules: Rule[],
   questionIds: Iterable<string>
 ): Rule[] {
   const ids = new Set(questionIds)
   if (ids.size === 0) return rules
-  return normalizeRulePriorities(
-    rules.filter((rule) => !ruleReferencesAnyQuestion(rule, ids))
-  )
+  return rules.filter((rule) => !ruleReferencesAnyQuestion(rule, ids))
 }
 
 /** 与某题相关的规则（条件来源或动作目标） */

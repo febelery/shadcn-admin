@@ -13,7 +13,7 @@ import type { SurveyElement } from '../../core/types'
 import { RichTextEditor } from '../../shared/rich-text-editor'
 import { useBuilderStore, useBuilderStoreApi } from '../builder-session'
 import { useIsPaletteDragging } from '../shared/dnd-provider'
-import { QuestionLogicBadges } from './logic/question-logic-badges'
+import { QuestionLogicBadges } from './question-logic-badges'
 import {
   WorkspaceQuestionActions,
   type QuestionDragHandleProps,

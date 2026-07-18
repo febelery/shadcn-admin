@@ -1,6 +1,6 @@
 # Rule Contract
 
-The survey document's `rules` array is the canonical rule source. A rule contains one structured `condition` and one `action`; no string expression is persisted or parsed.
+The survey document's `rules` array is the canonical rule source and its array position is the execution order. A rule contains one structured `condition` and one `action`; no duplicate priority field or string expression is persisted or parsed.
 
 ```ts
 type RuleCondition =
@@ -8,14 +8,7 @@ type RuleCondition =
   | {
       questionId: string
       operator:
-        | 'eq'
-        | 'neq'
-        | 'gt'
-        | 'gte'
-        | 'lt'
-        | 'lte'
-        | 'contains'
-        | 'not_contains'
+        'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'contains' | 'not_contains'
       value: string | number
     }
 ```

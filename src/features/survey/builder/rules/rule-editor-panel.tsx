@@ -18,15 +18,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import type { StaticIssue } from '../../../core/logic/analyzer'
-import type { RuleActionType } from '../../../core/types'
-import { useBuilderStore } from '../../builder-session'
-import { useRuleDraftEditor } from '../../session/rule-authoring'
+import type { StaticIssue } from '../../core/logic/analyzer'
+import type { RuleActionType } from '../../core/types'
+import { useBuilderStore } from '../builder-session'
+import { BuilderGuidance } from '../edit/guidance'
+import { useRuleDraftEditor } from '../session/rule-authoring'
 import {
   createRuleDraftModelProjector,
   type RuleDraftChange,
-} from '../../session/rule-draft'
-import { BuilderGuidance } from '../guidance'
+} from '../session/rule-draft'
 import { ActionBuilder } from './action-builder'
 import { ConditionBuilder } from './condition-builder'
 
@@ -119,12 +119,15 @@ function RuleSettings({
   )
 }
 
-type Props = {
+type RuleEditorPanelProps = {
   className?: string
   ruleIssues: StaticIssue[]
 }
 
-export function RuleEditorPanel({ className, ruleIssues }: Props) {
+export function RuleEditorPanel({
+  className,
+  ruleIssues,
+}: RuleEditorPanelProps) {
   const { draft, hasChanges, changeDraft, applyDraft, cancelDraft } =
     useRuleDraftEditor()
   const [projectModel] = useState(createRuleDraftModelProjector)

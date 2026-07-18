@@ -10,11 +10,7 @@ import {
   normalizeRuleAction,
   resolveRuleSourceId,
 } from '../../core/logic/rule-constraints'
-import {
-  createEmptyRule,
-  createRuleAction,
-  normalizeRulePriorities,
-} from '../../core/logic/rule-utils'
+import { createEmptyRule, createRuleAction } from '../../core/logic/rule-utils'
 import { getQuestionReferenceLabel } from '../../core/question-numbering'
 import type {
   QuestionElement,
@@ -76,7 +72,7 @@ function getTargetLabel(
 
 function createDefaultRule(document: SurveyDocument): Rule {
   const questions = flattenQuestions(document)
-  const rule = createEmptyRule(document.rules.length)
+  const rule = createEmptyRule()
   const source = questions.find((question, index) => {
     return (
       canUseQuestionAsRuleSource(question) &&
@@ -346,5 +342,5 @@ export function applyRuleDraft(rules: Rule[], draft: RuleDraft): Rule[] {
   const existingIndex = next.findIndex((rule) => rule.id === draft.value.id)
   if (existingIndex === -1) next.push(cloneRule(draft.value))
   else next[existingIndex] = cloneRule(draft.value)
-  return normalizeRulePriorities(next)
+  return next
 }

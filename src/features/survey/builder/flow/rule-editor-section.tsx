@@ -1,5 +1,5 @@
 import type { StaticIssue } from '../../core/logic/analyzer'
-import { RuleEditorPanel } from '../edit/logic/rule-editor'
+import { RuleEditorPanel } from '../rules/rule-editor-panel'
 import { RuleValidation } from './rule-validation'
 
 type Props = {

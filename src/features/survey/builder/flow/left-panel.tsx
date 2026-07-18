@@ -35,9 +35,9 @@ export function LeftPanel({ projection, className }: Props) {
 
   const filteredRules = useMemo(
     () =>
-      [...rules]
-        .sort((a, b) => a.priority - b.priority)
-        .filter((r) => ruleMatchesSearch(r, searchQuery, questionTitles)),
+      rules.filter((rule) =>
+        ruleMatchesSearch(rule, searchQuery, questionTitles)
+      ),
     [rules, searchQuery, questionTitles]
   )
 

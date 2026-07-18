@@ -5,7 +5,7 @@ import { useBuilderStore } from '../builder-session'
 import { BuilderGuidance } from '../edit/guidance'
 import { BuilderPanelHeader } from '../shared/panel-header'
 import type { FlowProjection } from './projection'
-import { RuleEditorSection } from './rule-editor'
+import { RuleEditorSection } from './rule-editor-section'
 
 type Props = {
   projection: FlowProjection | null

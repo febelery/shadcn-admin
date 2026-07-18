@@ -23,7 +23,7 @@ import type {
   QuestionElement,
   RuleCondition,
   RuleConditionOperator,
-} from '../../../core/types'
+} from '../../core/types'
 import { useSurveyQuestionCatalog } from './use-survey-questions'
 
 type Props = {

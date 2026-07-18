@@ -27,7 +27,6 @@ function existingRule(): Rule {
     id: 'rule-1',
     name: '显示 2. 第二题',
     enabled: true,
-    priority: 0,
     condition: { questionId: 'q1', operator: 'not_empty' },
     action: { id: 'action-1', type: 'show', target: 'q2' },
   }
@@ -139,6 +138,29 @@ describe('rule authoring', () => {
     expect(rules).toHaveLength(1)
     expect(rules[0]).toEqual(draft.value)
     expect(document.rules).toEqual([])
+  })
+
+  it('uses array position as the only rule execution order', () => {
+    const first = existingRule()
+    const second = {
+      ...existingRule(),
+      id: 'rule-2',
+      name: '第二条规则',
+      action: { id: 'action-2', type: 'end' as const },
+    }
+    const document = createTestDocument([first, second])
+    const draft = beginRuleDraft(document, {
+      type: 'existing',
+      ruleId: first.id,
+    })!
+    const changed = changeRuleDraft(document, draft, {
+      type: 'name',
+      name: '修改后的第一条规则',
+    })
+
+    expect(
+      applyRuleDraft(document.rules, changed).map((rule) => rule.id)
+    ).toEqual(['rule-1', 'rule-2'])
   })
 
   it('builds preview and validation without changing committed rules', () => {

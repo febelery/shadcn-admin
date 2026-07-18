@@ -64,7 +64,6 @@ describe('parseSurveyDocument', () => {
         id: 'duplicate-rule',
         name: '规则一',
         enabled: true,
-        priority: 0,
         condition: { questionId: 'question', operator: 'not_empty' },
         action: { id: 'action-1', type: 'end' },
       },
@@ -72,7 +71,6 @@ describe('parseSurveyDocument', () => {
         id: 'duplicate-rule',
         name: '规则二',
         enabled: true,
-        priority: 1,
         condition: { questionId: 'question', operator: 'not_empty' },
         action: { id: 'action-2', type: 'end' },
       },
@@ -100,6 +98,21 @@ describe('parseSurveyDocument', () => {
   it('rejects removed placeholder capabilities', () => {
     const document = createEmptySurvey()
 
+    expect(() =>
+      parseSurveyDocument({
+        ...document,
+        rules: [
+          {
+            id: 'legacy-priority-rule',
+            name: '旧顺序字段',
+            enabled: true,
+            priority: 10,
+            condition: { questionId: 'q1', operator: 'not_empty' },
+            action: { id: 'legacy-priority-action', type: 'end' },
+          },
+        ],
+      })
+    ).toThrow()
     expect(() => parseSurveyDocument({ ...document, submission: {} })).toThrow()
     expect(() => parseSurveyDocument({ ...document, variables: [] })).toThrow()
     expect(() => parseSurveyDocument({ ...document, validators: [] })).toThrow()
@@ -165,7 +178,6 @@ describe('parseSurveyDocument', () => {
       id: 'rule-1',
       name: 'Rule',
       enabled: true,
-      priority: 0,
       action: { id: 'action-1', type: 'end' },
     }
 

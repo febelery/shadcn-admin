@@ -297,7 +297,6 @@ export interface Rule {
   id: string
   name: string
   enabled: boolean
-  priority: number
   condition: RuleCondition
   action: RuleAction
 }
