@@ -29,11 +29,27 @@ import {
   flattenQuestions,
 } from '@/features/survey/core/schema-defaults'
 import type {
+  CascaderNode,
   QuestionElement,
   SurveyListItem,
   SurveyRecordItem,
   SurveySchema,
 } from '@/features/survey/core/types'
+
+function getCascaderPathLabels(
+  nodes: CascaderNode[],
+  pathIds: string[]
+): string[] {
+  const labels: string[] = []
+  let level = nodes
+  for (const id of pathIds) {
+    const node = level.find((item) => item.id === id)
+    if (!node) return pathIds
+    labels.push(node.label)
+    level = node.children ?? []
+  }
+  return labels
+}
 
 /**
  * 核心统计计算逻辑：根据指定问题的类型及其对应的配置，针对筛选后的答卷数据进行单题层面的指标统计
@@ -54,7 +70,7 @@ function computeSingleQuestionAnalysis(
     const options = q.config.options ?? []
     const countMap = new Map<string, number>()
     for (const opt of options) {
-      countMap.set(opt.label, 0)
+      countMap.set(opt.id, 0)
     }
     let otherCount = 0
     for (const val of validAnswers) {
@@ -67,14 +83,15 @@ function computeSingleQuestionAnalysis(
     }
 
     const optionAnalyses = options.map((opt: any) => {
-      const count = countMap.get(opt.label) ?? 0
+      const count = countMap.get(opt.id) ?? 0
       const percentage =
         answerCount > 0 ? Number((count / answerCount).toFixed(4)) : 0
-      return { label: opt.label, count, percentage }
+      return { optionId: opt.id, label: opt.label, count, percentage }
     })
 
-    if (otherCount > 0 || q.config.allowOther) {
+    if (otherCount > 0) {
       optionAnalyses.push({
+        optionId: '__unknown__',
         label: q.config.otherLabel || '其他',
         count: otherCount,
         percentage:
@@ -92,7 +109,7 @@ function computeSingleQuestionAnalysis(
     const options = q.config.options ?? []
     const countMap = new Map<string, number>()
     for (const opt of options) {
-      countMap.set(opt.label, 0)
+      countMap.set(opt.id, 0)
     }
     for (const val of validAnswers) {
       if (Array.isArray(val)) {
@@ -106,10 +123,10 @@ function computeSingleQuestionAnalysis(
     }
 
     const optionAnalyses = options.map((opt: any) => {
-      const count = countMap.get(opt.label) ?? 0
+      const count = countMap.get(opt.id) ?? 0
       const percentage =
         answerCount > 0 ? Number((count / answerCount).toFixed(4)) : 0
-      return { label: opt.label, count, percentage }
+      return { optionId: opt.id, label: opt.label, count, percentage }
     })
 
     return {
@@ -123,8 +140,8 @@ function computeSingleQuestionAnalysis(
     const countMap = new Map<string, number>()
     const rankSumMap = new Map<string, number>()
     for (const opt of options) {
-      countMap.set(opt.label, 0)
-      rankSumMap.set(opt.label, 0)
+      countMap.set(opt.id, 0)
+      rankSumMap.set(opt.id, 0)
     }
 
     for (const val of validAnswers) {
@@ -142,13 +159,14 @@ function computeSingleQuestionAnalysis(
     }
 
     const optionAnalyses = options.map((opt: any) => {
-      const count = countMap.get(opt.label) ?? 0
-      const rankSum = rankSumMap.get(opt.label) ?? 0
+      const count = countMap.get(opt.id) ?? 0
+      const rankSum = rankSumMap.get(opt.id) ?? 0
       const avgRank =
         answerCount > 0 ? Number((rankSum / answerCount).toFixed(2)) : 0
       const percentage =
         answerCount > 0 ? Number((count / answerCount).toFixed(4)) : 0
       return {
+        optionId: opt.id,
         label: `${opt.label} (平均排名: ${avgRank || '-'})`,
         count,
         percentage,
@@ -166,7 +184,12 @@ function computeSingleQuestionAnalysis(
     for (const val of validAnswers) {
       let pathStr = ''
       if (Array.isArray(val) && val.length > 0) {
-        pathStr = val.map(String).filter(Boolean).join(' / ')
+        pathStr = getCascaderPathLabels(
+          q.config.cascaderOptions ?? [],
+          val.map(String)
+        )
+          .filter(Boolean)
+          .join(' / ')
       } else if (val) {
         pathStr = String(val)
       }
@@ -357,13 +380,13 @@ function computeSingleQuestionAnalysis(
     const rowAnalyses = rows.map((row: any) => {
       const colCounts = new Map<string, number>()
       for (const col of columns) {
-        colCounts.set(col.label, 0)
+        colCounts.set(col.id, 0)
       }
 
       let rowAnswerCount = 0
       for (const val of validAnswers) {
         if (val && typeof val === 'object') {
-          const rowVal = (val as Record<string, unknown>)[row.label]
+          const rowVal = (val as Record<string, unknown>)[row.id]
           if (rowVal !== undefined && rowVal !== null) {
             rowAnswerCount++
             if (Array.isArray(rowVal)) {
@@ -384,13 +407,14 @@ function computeSingleQuestionAnalysis(
       }
 
       const colAnalyses = columns.map((col: any) => {
-        const count = colCounts.get(col.label) ?? 0
+        const count = colCounts.get(col.id) ?? 0
         const percentage =
           rowAnswerCount > 0 ? Number((count / rowAnswerCount).toFixed(4)) : 0
-        return { columnLabel: col.label, count, percentage }
+        return { columnId: col.id, columnLabel: col.label, count, percentage }
       })
 
       return {
+        rowId: row.id,
         rowLabel: row.label,
         columns: colAnalyses,
       }
@@ -416,7 +440,7 @@ function computeSingleQuestionAnalysis(
       let stmtAnswerCount = 0
       for (const val of validAnswers) {
         if (val && typeof val === 'object') {
-          const scoreVal = (val as Record<string, unknown>)[stmt.label]
+          const scoreVal = (val as Record<string, unknown>)[stmt.id]
           if (scoreVal !== undefined && scoreVal !== null) {
             const s = Number(scoreVal)
             if (!Number.isNaN(s)) {
@@ -439,6 +463,7 @@ function computeSingleQuestionAnalysis(
       )
 
       return {
+        statementId: stmt.id,
         statementLabel: stmt.label,
         distribution,
       }
@@ -640,6 +665,21 @@ function pseudoRandom(seed: number, idStr: string): number {
   return x - Math.floor(x)
 }
 
+function findCascaderPathIds(
+  nodes: QuestionElement['config']['cascaderOptions'],
+  labels: string[]
+): string[] {
+  const ids: string[] = []
+  let level = nodes ?? []
+  for (const label of labels) {
+    const node = level.find((item) => item.label === label)
+    if (!node) return []
+    ids.push(node.id)
+    level = node.children ?? []
+  }
+  return ids
+}
+
 // 优化后的数据生成器，基于问题唯一 ID 确定固有概率分布与吸引力指数，并附加合理的样本波动噪声
 function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
   const options = question.config.options ?? []
@@ -667,10 +707,10 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
       for (let i = 0; i < options.length; i++) {
         target -= weights[i]
         if (target <= 0) {
-          return options[i].label
+          return options[i].id
         }
       }
-      return options[options.length - 1].label
+      return options[options.length - 1].id
     }
 
     case 'multiple_choice': {
@@ -682,21 +722,21 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
         return 0.05 + Math.pow(attr, 1.8) * 0.75
       })
 
-      const chosenLabels: string[] = []
+      const chosenOptionIds: string[] = []
       options.forEach((opt, idx) => {
         // 每个样本根据固有概率进行随机决策
         const optRand = pseudoRandom(seed + idx * 17, question.id + '_multi')
         if (optRand < probabilities[idx]) {
-          chosenLabels.push(opt.label)
+          chosenOptionIds.push(opt.id)
         }
       })
 
       // 保底选中，如果一个都没选，选中固有概率最高的那个
-      if (chosenLabels.length === 0) {
+      if (chosenOptionIds.length === 0) {
         const maxIdx = probabilities.indexOf(Math.max(...probabilities))
-        return [options[maxIdx]?.label ?? '选项']
+        return options[maxIdx] ? [options[maxIdx].id] : []
       }
-      return chosenLabels
+      return chosenOptionIds
     }
 
     case 'ranking': {
@@ -709,10 +749,12 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
         // 样本带来的随机噪声 (-25 ~ +25 分)
         const noise =
           (pseudoRandom(seed + idx * 13, question.id + '_rank') - 0.5) * 50
-        return { label: opt.label, score: baseScore + noise }
+        return { optionId: opt.id, score: baseScore + noise }
       })
 
-      return scores.sort((a, b) => b.score - a.score).map((item) => item.label)
+      return scores
+        .sort((a, b) => b.score - a.score)
+        .map((item) => item.optionId)
     }
 
     case 'matrix_single':
@@ -731,10 +773,7 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
           if (score > 0.99) score = 0.99
 
           const colIdx = Math.floor(score * columns.length)
-          return [
-            row.label,
-            columns[colIdx]?.label ?? columns[columns.length - 1].label,
-          ]
+          return [row.id, columns[colIdx]?.id ?? columns[columns.length - 1].id]
         })
       )
 
@@ -755,7 +794,7 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
               question.id + '_matrix_multi_opt'
             )
             if (randVal < prob) {
-              chosenCols.push(col.label)
+              chosenCols.push(col.id)
             }
           })
 
@@ -765,9 +804,9 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
               pseudoRandom(seed + rowIndex, question.id + '_matrix_multi_fb') *
                 columns.length
             )
-            chosenCols.push(columns[fallbackIdx].label)
+            chosenCols.push(columns[fallbackIdx].id)
           }
-          return [row.label, chosenCols]
+          return [row.id, chosenCols]
         })
       )
 
@@ -779,20 +818,33 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
           const subRand = pseudoRandom(seed + 1, question.id)
           const cities = ['上海', '北京', '深圳', '成都']
           const city = cities[Math.floor(subRand * cities.length)]
-          return ['中国大陆', city]
+          return findCascaderPathIds(question.config.cascaderOptions, [
+            '中国大陆',
+            city,
+          ])
         } else if (rand < 0.85) {
           const subRand = pseudoRandom(seed + 1, question.id)
           const cities = ['香港', '澳门', '台北']
           const city = cities[Math.floor(subRand * cities.length)]
-          return ['港澳台', city]
+          return findCascaderPathIds(question.config.cascaderOptions, [
+            '港澳台',
+            city,
+          ])
         } else {
           const subRand = pseudoRandom(seed + 1, question.id)
           const cities = ['新加坡', '东京', '其他']
           const city = cities[Math.floor(subRand * cities.length)]
-          return ['海外', city]
+          return findCascaderPathIds(question.config.cascaderOptions, [
+            '海外',
+            city,
+          ])
         }
       }
-      return ['中国大陆', '浙江', '杭州']
+      return findCascaderPathIds(question.config.cascaderOptions, [
+        '中国大陆',
+        '浙江',
+        '杭州',
+      ])
     }
 
     case 'text':
@@ -897,7 +949,7 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
           let val = Math.round(scaleMin + (baseCenter + noise) * range)
           if (val < scaleMin) val = scaleMin
           if (val > scaleMax) val = scaleMax
-          return [stmt.label, val]
+          return [stmt.id, val]
         })
       )
     }
@@ -911,7 +963,7 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
                 element.kind === 'question'
             )
             .map((nestedQuestion, nestedIndex) => [
-              nestedQuestion.title,
+              nestedQuestion.id,
               buildSampleAnswer(
                 nestedQuestion,
                 seed + itemIndex + nestedIndex + 1

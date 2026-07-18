@@ -11,6 +11,15 @@ const dateQuestion: QuestionElement = {
   config: {},
 }
 
+const choiceQuestion: QuestionElement = {
+  id: 'choice',
+  kind: 'question',
+  type: 'single_choice',
+  title: 'Choice',
+  required: false,
+  config: { options: [{ id: 'option-1', label: 'Renamed label' }] },
+}
+
 describe('evaluateCondition', () => {
   it('compares date values chronologically', () => {
     expect(
@@ -32,5 +41,20 @@ describe('evaluateCondition', () => {
         value: '2026-07-18',
       })
     ).toBe(true)
+  })
+
+  it('matches choice answers by option identity instead of label', () => {
+    const condition = {
+      questionId: choiceQuestion.id,
+      operator: 'eq' as const,
+      value: 'option-1',
+    }
+
+    expect(evaluateRuleCondition('option-1', choiceQuestion, condition)).toBe(
+      true
+    )
+    expect(
+      evaluateRuleCondition('Renamed label', choiceQuestion, condition)
+    ).toBe(false)
   })
 })

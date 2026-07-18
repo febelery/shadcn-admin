@@ -318,10 +318,7 @@ export const SegmentRow = React.memo(function SegmentRow({
                 </SelectTrigger>
                 <SelectContent>
                   {question.config?.options?.map((option) => (
-                    <SelectItem
-                      key={option.id ?? option.label}
-                      value={option.label}
-                    >
+                    <SelectItem key={option.id} value={option.id}>
                       {option.label}
                     </SelectItem>
                   ))}

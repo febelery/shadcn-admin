@@ -18,4 +18,6 @@
 
 规则条件持久化为 `condition.questionId/operator/value`，不保存或解析字符串 DSL。规则能力必须同时覆盖文档 schema、创作 UI、静态分析和填写端求值。
 
+选择、排序、级联、矩阵与 Likert 答案使用稳定 ID，label 仅用于展示。完整约定见 `core/ANSWER-CONTRACT.md`。
+
 填写运行时位于独立 consumer app。开发期 HTTP 实现在 `src/mocks/handlers/survey.ts`。

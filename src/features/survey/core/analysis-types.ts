@@ -9,6 +9,7 @@ export interface SurveyAnalysisOverview {
 }
 
 export interface ChoiceOptionAnalysis {
+  optionId: string
   label: string
   count: number
   percentage: number // 占比 (选择人数 / 本题答题人数，或对于多选为选择人数 / 总答卷人数)
@@ -45,12 +46,14 @@ export interface RatingAnalysis extends BaseQuestionAnalysis {
 }
 
 export interface MatrixColumnValueAnalysis {
+  columnId: string
   columnLabel: string
   count: number
   percentage: number
 }
 
 export interface MatrixRowAnalysis {
+  rowId: string
   rowLabel: string
   columns: MatrixColumnValueAnalysis[]
 }
@@ -66,6 +69,7 @@ export interface LikertStatementValueAnalysis {
 }
 
 export interface LikertStatementAnalysis {
+  statementId: string
   statementLabel: string
   distribution: LikertStatementValueAnalysis[]
 }

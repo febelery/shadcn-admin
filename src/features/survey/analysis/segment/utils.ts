@@ -110,7 +110,7 @@ export function getDefaultValue(
 ): string | undefined {
   if (!operatorNeedsValue(operator)) return undefined
   if (isChoiceQuestionType(question.type)) {
-    return question.config?.options?.[0]?.label ?? ''
+    return question.config?.options?.[0]?.id ?? ''
   }
   return ''
 }
@@ -161,7 +161,10 @@ export function getSelectionDescription(
     return `${value} 到 ${String(condition.value2 ?? '')}`
   }
   if (isChoiceQuestionType(question.type)) {
-    return value || '请选择答案'
+    const label =
+      question.config.options?.find((option) => option.id === value)?.label ??
+      value
+    return label || '请选择答案'
   }
   return value || '请输入值'
 }

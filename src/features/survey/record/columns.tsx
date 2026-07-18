@@ -192,15 +192,19 @@ function getChoiceOptions(question: QuestionElement) {
   if (options.length > 0) {
     return options.map((option) => ({
       label: option.label,
-      value: option.label,
+      value: option.id,
     }))
   }
 
   if (question.type === 'cascader') {
-    return ['中国大陆', '浙江', '杭州'].map((value) => ({
-      label: value,
-      value,
-    }))
+    const flatten = (
+      nodes: NonNullable<QuestionElement['config']['cascaderOptions']>
+    ): { label: string; value: string }[] =>
+      nodes.flatMap((node) => [
+        { label: node.label, value: node.id },
+        ...flatten(node.children ?? []),
+      ])
+    return flatten(question.config.cascaderOptions ?? [])
   }
 
   if (question.type === 'file_upload') {
@@ -232,17 +236,21 @@ function formatAnswerForGrid(
     return Boolean(answer)
   }
 
-  if (
-    question.type === 'multiple_choice' ||
-    question.type === 'cascader' ||
-    question.type === 'file_upload'
-  ) {
+  if (question.type === 'single_choice' || question.type === 'dropdown') {
+    return String(answer)
+  }
+
+  if (question.type === 'multiple_choice') {
+    return toStringArray(answer)
+  }
+
+  if (question.type === 'cascader' || question.type === 'file_upload') {
     return toStringArray(answer)
   }
 
   if (question.type === 'ranking') {
     return toStringArray(answer)
-      .map((value, index) => `${index + 1}. ${value}`)
+      .map((value, index) => `${index + 1}. ${getOptionLabel(question, value)}`)
       .join(' / ')
   }
 
@@ -252,11 +260,31 @@ function formatAnswerForGrid(
 
   if (
     question.type === 'matrix_single' ||
-    question.type === 'matrix_multiple' ||
-    question.type === 'likert'
+    question.type === 'matrix_multiple'
   ) {
     return Object.entries(answer as Record<string, unknown>)
-      .map(([row, value]) => `${row}: ${formatInlineValue(value)}`)
+      .map(([rowId, value]) => {
+        const rowLabel =
+          question.config.rows?.find((row) => row.id === rowId)?.label ?? rowId
+        const columnLabels = toStringArray(value).map(
+          (columnId) =>
+            question.config.columns?.find((column) => column.id === columnId)
+              ?.label ?? columnId
+        )
+        return `${rowLabel}: ${columnLabels.join(', ')}`
+      })
+      .join(' | ')
+  }
+
+  if (question.type === 'likert') {
+    return Object.entries(answer as Record<string, unknown>)
+      .map(([statementId, value]) => {
+        const statementLabel =
+          question.config.statements?.find(
+            (statement) => statement.id === statementId
+          )?.label ?? statementId
+        return `${statementLabel}: ${formatInlineValue(value)}`
+      })
       .join(' | ')
   }
 
@@ -267,6 +295,14 @@ function formatAnswerForGrid(
   }
 
   return formatInlineValue(answer)
+}
+
+function getOptionLabel(question: QuestionElement, optionId: unknown): string {
+  const value = String(optionId ?? '')
+  return (
+    question.config.options?.find((option) => option.id === value)?.label ??
+    value
+  )
 }
 
 function toStringArray(value: unknown): string[] {
