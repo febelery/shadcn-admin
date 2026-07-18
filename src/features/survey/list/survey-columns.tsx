@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '@/components/data-table'
-import type { SurveyListItem } from '../core/types'
+import type { SurveyListItem } from '../core/admin-data-schema'
 import { SurveyRowActions } from './survey-row-actions'
 
 /** 从列表打开已有问卷的编辑页（新标签，保留列表页） */

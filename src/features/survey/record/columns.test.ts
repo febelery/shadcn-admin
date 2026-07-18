@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { QuestionElement, SurveyRecordItem } from '../core/types'
+import type { SurveyRecordItem } from '../core/admin-data-schema'
+import type { QuestionElement } from '../core/types'
 import { createRecordGridColumns } from './columns'
 
 function choiceQuestion(label: string): QuestionElement {

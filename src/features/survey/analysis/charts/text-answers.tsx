@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import type {
   TextAnalysis,
   TextAnswerItem,
-} from '@/features/survey/core/analysis-types'
+} from '@/features/survey/core/analysis-schema'
 import { useSurveyQuestionAnalysis } from '../../query/hooks'
 
 interface TextAnswersProps {

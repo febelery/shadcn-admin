@@ -1,7 +1,7 @@
 import type {
   SegmentCondition,
   SegmentDefinition,
-} from '@/features/survey/core/analysis-types'
+} from '@/features/survey/core/analysis-schema'
 import type { QuestionElement } from '@/features/survey/core/types'
 import {
   getOperators,

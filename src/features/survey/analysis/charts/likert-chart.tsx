@@ -1,4 +1,4 @@
-import type { LikertAnalysis } from '@/features/survey/core/analysis-types'
+import type { LikertAnalysis } from '@/features/survey/core/analysis-schema'
 
 interface LikertChartProps {
   analysis: LikertAnalysis

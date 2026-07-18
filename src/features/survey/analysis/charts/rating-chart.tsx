@@ -8,7 +8,7 @@ import {
   AreaChart,
 } from 'recharts'
 import { Progress } from '@/components/ui/progress'
-import type { NumericAnalysis } from '@/features/survey/core/analysis-types'
+import type { NumericAnalysis } from '@/features/survey/core/analysis-schema'
 
 interface RatingChartProps {
   analysis: NumericAnalysis

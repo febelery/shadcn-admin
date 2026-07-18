@@ -15,7 +15,7 @@ import {
   Tooltip,
 } from 'recharts'
 import { Progress } from '@/components/ui/progress'
-import type { NumericAnalysis } from '@/features/survey/core/analysis-types'
+import type { NumericAnalysis } from '@/features/survey/core/analysis-schema'
 
 interface NumberChartProps {
   analysis: NumericAnalysis

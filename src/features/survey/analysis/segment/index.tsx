@@ -8,7 +8,7 @@ import type {
   SegmentCondition,
   SegmentConditionOperator,
   SegmentDefinition,
-} from '@/features/survey/core/analysis-types'
+} from '@/features/survey/core/analysis-schema'
 import type {
   SurveyDocument,
   QuestionElement,

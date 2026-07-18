@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { SegmentCondition } from '../../core/analysis-types'
+import type { SegmentCondition } from '../../core/analysis-schema'
 import type { QuestionElement } from '../../core/types'
 import { getDefaultValue, getSelectionDescription } from './utils'
 

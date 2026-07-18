@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { PaginatedResponse, QueryParams } from '@/types/api'
+import type { QueryParams } from '@/types/api'
 import {
   createSurvey,
   deleteSurvey,
@@ -14,7 +14,8 @@ import {
   getSurveyQuestionAnalysis,
   getSurveySegmentAnalysis,
 } from '@/api/survey'
-import type { SurveyRecordItem, SurveyDocument } from '../core/types'
+import type { SurveyRecordResponse } from '../core/admin-data-schema'
+import type { SurveyDocument } from '../core/types'
 import { surveyKeys } from './keys'
 
 export function useSurveyList(params?: QueryParams) {
@@ -122,7 +123,7 @@ async function listAllSurveyRecords(surveyId: string) {
       pageSize: records.length,
       totalPages: 1,
     },
-  } satisfies PaginatedResponse<SurveyRecordItem>
+  } satisfies SurveyRecordResponse
 }
 
 /** 获取问卷全部填写记录的 query hook */

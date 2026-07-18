@@ -1,11 +1,8 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { getFilterFn } from '@/lib/data-grid-filters'
+import type { SurveyRecordItem } from '../core/admin-data-schema'
 import { getQuestionReferenceLabel } from '../core/question-numbering'
-import type {
-  QuestionElement,
-  SurveyRecordItem,
-  SurveyDocument,
-} from '../core/types'
+import type { QuestionElement, SurveyDocument } from '../core/types'
 
 export type SurveyRecordGridRow = SurveyRecordItem
 

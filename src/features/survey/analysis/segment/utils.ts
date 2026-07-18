@@ -2,7 +2,7 @@ import type {
   SegmentCondition,
   SegmentConditionOperator,
   SegmentDefinition,
-} from '@/features/survey/core/analysis-types'
+} from '@/features/survey/core/analysis-schema'
 import { getSegmentOperatorsForQuestionType } from '@/features/survey/core/logic/operators'
 import { questionUsesOptions } from '@/features/survey/core/question-config'
 import { getQuestionNumberPrefix } from '@/features/survey/core/question-numbering'

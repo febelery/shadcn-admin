@@ -1,5 +1,5 @@
 import { Progress } from '@/components/ui/progress'
-import type { RankingAnalysis } from '@/features/survey/core/analysis-types'
+import type { RankingAnalysis } from '@/features/survey/core/analysis-schema'
 
 type Props = {
   analysis: RankingAnalysis

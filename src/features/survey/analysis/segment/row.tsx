@@ -28,7 +28,7 @@ import {
 import type {
   SegmentCondition,
   SegmentConditionOperator,
-} from '@/features/survey/core/analysis-types'
+} from '@/features/survey/core/analysis-schema'
 import { questionUsesOptions } from '@/features/survey/core/question-config'
 import type { QuestionElement } from '@/features/survey/core/types'
 import {

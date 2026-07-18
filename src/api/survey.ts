@@ -1,16 +1,21 @@
 import axios from 'axios'
-import type { PaginatedResponse, QueryParams } from '@/types/api'
-import type {
-  SurveyAnalysisResult,
-  QuestionAnalysis,
-  SurveySegmentAnalysisResult,
-} from '@/features/survey/core/analysis-types'
+import type { QueryParams } from '@/types/api'
+import {
+  parseSurveyListResponse,
+  parseSurveyRecordResponse,
+  type SurveyListResponse,
+  type SurveyRecordResponse,
+} from '@/features/survey/core/admin-data-schema'
+import {
+  parseQuestionAnalysis,
+  parseSurveyAnalysis,
+  parseSurveySegmentAnalysis,
+  type QuestionAnalysis,
+  type SurveyAnalysisResult,
+  type SurveySegmentAnalysisResult,
+} from '@/features/survey/core/analysis-schema'
 import { parseSurveyDocument } from '@/features/survey/core/document-schema'
-import type {
-  SurveyListItem,
-  SurveyRecordItem,
-  SurveyDocument,
-} from '@/features/survey/core/types'
+import type { SurveyDocument } from '@/features/survey/core/types'
 
 /** 管理端 API 路径（单数资源名） */
 export const SURVEY_API = {
@@ -31,9 +36,9 @@ export const SURVEY_API = {
 
 export async function listSurvey(
   params?: QueryParams
-): Promise<PaginatedResponse<SurveyListItem>> {
+): Promise<SurveyListResponse> {
   const { data } = await axios.get(SURVEY_API.list, { params })
-  return data
+  return parseSurveyListResponse(data)
 }
 
 export async function createSurvey(
@@ -82,9 +87,9 @@ export async function publishSurvey(id: string): Promise<SurveyDocument> {
 export async function listSurveyRecord(
   id: string,
   params?: QueryParams
-): Promise<PaginatedResponse<SurveyRecordItem>> {
+): Promise<SurveyRecordResponse> {
   const { data } = await axios.get(SURVEY_API.record(id), { params })
-  return data
+  return parseSurveyRecordResponse(data)
 }
 
 /** 导出问卷答题记录为 Excel */
@@ -102,7 +107,7 @@ export async function getSurveyAnalysis(
   params?: QueryParams
 ): Promise<SurveyAnalysisResult> {
   const { data } = await axios.get(SURVEY_API.analysis(id), { params })
-  return data
+  return parseSurveyAnalysis(data)
 }
 
 /** 获取问卷中单道题目的详细分析数据 */
@@ -115,7 +120,7 @@ export async function getSurveyQuestionAnalysis(
     SURVEY_API.questionAnalysis(id, questionId),
     { params }
   )
-  return data
+  return parseQuestionAnalysis(data)
 }
 
 /** 获取问卷条件统计结果 */
@@ -124,5 +129,5 @@ export async function getSurveySegmentAnalysis(
   params?: QueryParams
 ): Promise<SurveySegmentAnalysisResult> {
   const { data } = await axios.get(SURVEY_API.segmentAnalysis(id), { params })
-  return data
+  return parseSurveySegmentAnalysis(data)
 }

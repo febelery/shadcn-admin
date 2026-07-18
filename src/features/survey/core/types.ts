@@ -315,27 +315,3 @@ export interface SurveyDocument {
   rules: Rule[]
   submissionPolicy: SubmissionPolicy
 }
-
-export interface SurveyListItem {
-  id: string
-  title: string
-  description: string
-  status: SurveyStatus
-  questionCount: number
-  recordCount: number
-  createdAt: string
-  updatedAt: string
-  slug?: string
-}
-
-/** 答题/提交记录数据结构 */
-export interface SurveyRecordItem {
-  id: string
-  surveyId: string
-  respondent?: string
-  status: 'partial' | 'complete'
-  answers: Record<string, unknown>
-  startedAt: string
-  completedAt?: string
-  durationMs?: number
-}

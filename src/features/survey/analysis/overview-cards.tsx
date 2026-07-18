@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { SurveyAnalysisOverview } from '@/features/survey/core/analysis-types'
+import type { SurveyAnalysisOverview } from '@/features/survey/core/analysis-schema'
 
 interface OverviewCardsProps {
   overview: SurveyAnalysisOverview

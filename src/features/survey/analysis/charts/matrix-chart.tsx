@@ -1,5 +1,5 @@
 import React from 'react'
-import type { MatrixAnalysis } from '@/features/survey/core/analysis-types'
+import type { MatrixAnalysis } from '@/features/survey/core/analysis-schema'
 
 interface MatrixChartProps {
   analysis: MatrixAnalysis

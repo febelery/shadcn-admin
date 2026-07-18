@@ -18,7 +18,7 @@ import {
 import { ColumnVisibility } from '@/components/column-visibility'
 import { DataTable, DataTablePagination } from '@/components/data-table'
 import { FilterMenu } from '@/components/filter-menu'
-import type { SurveyListItem } from '../core/types'
+import type { SurveyListItem } from '../core/admin-data-schema'
 import {
   useDeleteSurvey,
   usePublishSurvey,

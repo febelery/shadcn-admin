@@ -23,7 +23,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import type { SurveyListItem } from '../core/types'
+import type { SurveyListItem } from '../core/admin-data-schema'
 
 /** 从列表打开已有问卷的编辑页（新标签，保留列表页） */
 const editInNewTab = {

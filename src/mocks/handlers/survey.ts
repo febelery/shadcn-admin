@@ -12,12 +12,16 @@ import {
 } from '@/lib/data-grid-filters'
 import { sleep } from '@/lib/utils'
 import type {
+  SurveyListItem,
+  SurveyRecordItem,
+} from '@/features/survey/core/admin-data-schema'
+import type {
   SurveyAnalysisResult,
   QuestionAnalysis,
   TextAnswerItem,
   SurveySegmentAnalysisResult,
   SegmentDefinition,
-} from '@/features/survey/core/analysis-types'
+} from '@/features/survey/core/analysis-schema'
 import { validateQuestionAnswer } from '@/features/survey/core/answer-validation'
 import {
   countQuestions,
@@ -29,8 +33,6 @@ import { evaluateCondition } from '@/features/survey/core/logic/eval'
 import type {
   CascaderNode,
   QuestionElement,
-  SurveyListItem,
-  SurveyRecordItem,
   SurveyDocument,
 } from '@/features/survey/core/types'
 
@@ -341,7 +343,17 @@ function computeSingleQuestionAnalysis(
       })
     )
 
-    let npsProps = {}
+    const result = {
+      questionId: question.id,
+      title: question.title,
+      avgScore,
+      medianScore,
+      minScore: scores.length > 0 ? Math.min(...scores) : 0,
+      maxScore: scores.length > 0 ? Math.max(...scores) : 0,
+      sumScore: sum,
+      distribution,
+    }
+
     if (question.type === 'nps') {
       const promoters = scores.filter((s) => s >= 9).length
       const passives = scores.filter((s) => s >= 7 && s <= 8).length
@@ -350,7 +362,9 @@ function computeSingleQuestionAnalysis(
       const pctDetractors = scores.length > 0 ? detractors / scores.length : 0
       const npsScore = Math.round((pctPromoters - pctDetractors) * 100)
 
-      npsProps = {
+      return {
+        ...result,
+        type: question.type,
         npsScore,
         promoters,
         passives,
@@ -359,16 +373,8 @@ function computeSingleQuestionAnalysis(
     }
 
     return {
-      questionId: question.id,
-      title: question.title,
+      ...result,
       type: question.type,
-      avgScore,
-      medianScore,
-      minScore: scores.length > 0 ? Math.min(...scores) : 0,
-      maxScore: scores.length > 0 ? Math.max(...scores) : 0,
-      sumScore: sum,
-      distribution,
-      ...npsProps,
     }
   } else if (
     question.type === 'matrix_single' ||
