@@ -12,13 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import {
-  DEFAULT_OTHER_LABEL,
-  DEFAULT_OTHER_PLACEHOLDER,
-  partitionChoiceOptions,
-  setOtherChoiceOptionEnabled,
-} from '@/features/survey/core/choice-other-option'
 import { questionUsesOptions } from '@/features/survey/core/question-config'
 import {
   createCascaderNode,
@@ -240,90 +233,14 @@ export function ChoiceInspectorFields({
   config: QuestionConfig
   patchConfig: PatchConfig
 }) {
-  // 已使用静态导入的 Choice 工具方法和常量
-
-  const { regular, other } = partitionChoiceOptions(config.options ?? [])
-  const otherEnabled = other !== undefined
-  const otherLabel = other?.label ?? DEFAULT_OTHER_LABEL
-
-  const setOptions = (nextRegular: typeof regular) => {
-    patchConfig({
-      options: setOtherChoiceOptionEnabled(
-        nextRegular,
-        otherEnabled,
-        otherLabel
-      ),
-    })
-  }
-
-  const setOtherOptionEnabled = (enabled: boolean) => {
-    patchConfig({
-      options: setOtherChoiceOptionEnabled(
-        config.options ?? [],
-        enabled,
-        DEFAULT_OTHER_LABEL
-      ),
-    })
-  }
-
   return (
     <>
-      <OptionEditor options={regular} onChange={setOptions} />
+      <OptionEditor
+        options={config.options ?? []}
+        onChange={(options) => patchConfig({ options })}
+      />
 
       <InspectorFormGroup title='选项行为'>
-        {(['single_choice', 'multiple_choice'] as QuestionType[]).includes(
-          type
-        ) && (
-          <>
-            <div className='flex items-center justify-between gap-2'>
-              <Label
-                htmlFor='allow-other'
-                className='text-muted-foreground text-xs font-medium'
-              >
-                允许「其他」自填
-              </Label>
-              <Switch
-                id='allow-other'
-                checked={otherEnabled}
-                onCheckedChange={(checked) =>
-                  setOtherOptionEnabled(Boolean(checked))
-                }
-              />
-            </div>
-            {otherEnabled && (
-              <>
-                <div className='flex flex-col gap-1'>
-                  <Label className='text-muted-foreground text-xs font-medium'>
-                    其他选项文案
-                  </Label>
-                  <Input
-                    value={otherLabel}
-                    onChange={(e) => {
-                      const label = e.target.value
-                      patchConfig({
-                        options: (config.options ?? []).map((option) =>
-                          option.isOther ? { ...option, label } : option
-                        ),
-                      })
-                    }}
-                  />
-                </div>
-                <div className='flex flex-col gap-1'>
-                  <Label className='text-muted-foreground text-xs font-medium'>
-                    自填占位提示
-                  </Label>
-                  <Input
-                    value={config.otherPlaceholder ?? DEFAULT_OTHER_PLACEHOLDER}
-                    onChange={(e) =>
-                      patchConfig({ otherPlaceholder: e.target.value })
-                    }
-                  />
-                </div>
-              </>
-            )}
-          </>
-        )}
-
         {type === 'multiple_choice' && (
           <div className='grid grid-cols-2 gap-2'>
             <div className='flex flex-col gap-1'>

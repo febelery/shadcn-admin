@@ -20,11 +20,10 @@ export const DEMO_SURVEY_ID = 'a1111111-1111-4111-8111-111111111111'
 
 const IMG_COVER = 'https://picsum.photos/seed/yunling-hotel-cover/1600/640.jpg'
 
-function opt(label: string, isOther?: boolean): ChoiceOption {
+function opt(label: string): ChoiceOption {
   return {
     id: crypto.randomUUID(),
     label,
-    ...(isOther ? { isOther: true } : {}),
   }
 }
 
@@ -101,7 +100,7 @@ export function createAllTypesDemoSurvey(): SurveyDocument {
           opt('携程 / 飞猪等 OTA'),
           opt('企业协议 / 差旅平台'),
           opt('朋友推荐 / 社交媒体'),
-          opt('其他', true),
+          opt('其他'),
         ],
       },
     }),

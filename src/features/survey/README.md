@@ -28,6 +28,8 @@
 
 `core/question-factory.ts` 只创建具有合法默认配置的题目；规则条件能力由 `core/logic/rule-capabilities.ts` 拥有；Palette 和 Inspector 元数据分别留在其 UI 模块。三者不能重新合并为通用题型注册表。
 
+选项答案只保存稳定 `option.id`。在建立“选项身份 + 自填文本”的结构化答案契约前，不提供伪装成普通选项的「其他自填」。
+
 `submissionPolicy` 使用一套扁平配额语言：`totalLimit`、`dailyLimit`、`perUserLimit`、`dailyPerUserLimit` 与 `perDeviceLimit`。字段存在即生效，字段缺失即不限制；不保存 `enabled`、`oncePerUser` 或 `0 表示无限` 等重复状态。`opensAt` 与 `closesAt` 持久化为 UTC instant，不能保存依赖浏览器时区解释的本地时间。
 
 规则与问卷结构是事实来源，`rules[]` 的数组位置是唯一执行顺序，不保存第二套 priority。流程图是派生视图：`core/logic/flow-graph.ts` 只构建领域节点和规则边，`builder/flow/layout.ts` 才负责 Dagre 坐标；规则编辑使用显式草稿事务，未来 XYFlow 连线只创建规则草稿意图。

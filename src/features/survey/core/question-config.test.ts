@@ -67,16 +67,17 @@ describe('question config module', () => {
     ).toThrow()
   })
 
-  it('derives the other-choice capability from the option itself', () => {
+  it('rejects removed free-text choice fields', () => {
     expect(() =>
       parseQuestionConfig('single_choice', {
         options: [{ id: 'other', label: '', isOther: true }],
       })
-    ).not.toThrow()
+    ).toThrow()
 
     expect(() =>
-      parseQuestionConfig('dropdown', {
-        options: [{ id: 'other', label: '其他', isOther: true }],
+      parseQuestionConfig('single_choice', {
+        options: [{ id: 'other', label: '其他' }],
+        otherPlaceholder: '请说明',
       })
     ).toThrow()
   })

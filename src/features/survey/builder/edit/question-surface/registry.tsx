@@ -1,6 +1,5 @@
 import { Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { partitionChoiceOptions } from '@/features/survey/core/choice-other-option'
 import type {
   QuestionConfigPatch,
   QuestionElement,
@@ -24,26 +23,23 @@ type SurfaceAdapter = (props: SurfaceProps) => React.ReactNode
 function choiceSurface(mode: 'single' | 'multiple'): SurfaceAdapter {
   return ({ question, onConfigChange }) => {
     const options = question.config.options ?? []
-    const { regular, other } = partitionChoiceOptions(options)
     return (
       <SurfaceChoiceList
         question={question}
         mode={mode}
-        options={other ? [...regular, other] : regular}
+        options={options}
         onChange={(next) => onConfigChange({ options: next })}
-        onConfigChange={onConfigChange}
-        showOtherOptionToggle
       />
     )
   }
 }
 
 const dropdownSurface: SurfaceAdapter = ({ question, onConfigChange }) => {
-  const { regular } = partitionChoiceOptions(question.config.options ?? [])
+  const options = question.config.options ?? []
   return (
     <SurfaceDropdownEditor
       question={question}
-      options={regular}
+      options={options}
       onChange={(options) => onConfigChange({ options })}
     />
   )
@@ -51,10 +47,9 @@ const dropdownSurface: SurfaceAdapter = ({ question, onConfigChange }) => {
 
 const rankingSurface: SurfaceAdapter = ({ question, onConfigChange }) => {
   const options = question.config.options ?? []
-  const { regular, other } = partitionChoiceOptions(options)
   return (
     <SurfaceRankingList
-      options={other ? [...regular, other] : regular}
+      options={options}
       onChange={(next) => onConfigChange({ options: next })}
     />
   )

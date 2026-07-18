@@ -24,10 +24,6 @@ const idLabelSchema = z
   })
   .strict()
 
-const choiceOptionSchema = idLabelSchema.extend({
-  isOther: z.boolean().optional(),
-})
-
 function uniqueIds<T extends { id: string }>(
   items: T[],
   context: z.RefinementCtx
@@ -44,16 +40,6 @@ function uniqueIds<T extends { id: string }>(
     ids.add(item.id)
   })
 }
-
-const choiceOptionsSchema = z
-  .array(choiceOptionSchema)
-  .min(1, '至少保留一个选项')
-  .superRefine((options, context) => {
-    uniqueIds(options, context)
-    if (options.filter((option) => option.isOther).length > 1) {
-      context.addIssue({ code: 'custom', message: '只能有一个其他选项' })
-    }
-  })
 
 const regularChoiceOptionsSchema = z
   .array(idLabelSchema)
@@ -102,8 +88,7 @@ const optionalLengthFields = {
 }
 
 const choiceFields = {
-  options: choiceOptionsSchema,
-  otherPlaceholder: z.string().optional(),
+  options: regularChoiceOptionsSchema,
   randomizeOptions: z.boolean().optional(),
   optionLayout: z.enum(['vertical', 'horizontal']).optional(),
 }

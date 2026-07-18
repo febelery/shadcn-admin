@@ -77,8 +77,6 @@ export type QuestionType = (typeof QUESTION_TYPES)[number]
 export interface ChoiceOption {
   id: string
   label: string
-  /** 是否为「其他」可自填项 */
-  isOther?: boolean
 }
 
 export interface MatrixRow {
@@ -112,7 +110,6 @@ interface QuestionConfigFields {
   scaleMax?: number
   minSelect?: number
   maxSelect?: number
-  otherPlaceholder?: string
   randomizeOptions?: boolean
   optionLayout?: 'vertical' | 'horizontal'
   starCount?: number
@@ -137,7 +134,6 @@ type StrictQuestionConfig<Config extends Partial<QuestionConfigFields>> =
 
 type ChoiceConfig = {
   options: ChoiceOption[]
-  otherPlaceholder?: string
   randomizeOptions?: boolean
   optionLayout?: 'vertical' | 'horizontal'
 }

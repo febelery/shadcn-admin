@@ -1,9 +1,4 @@
 import { useRef, useCallback } from 'react'
-import {
-  DEFAULT_OTHER_LABEL,
-  partitionChoiceOptions,
-  setOtherChoiceOptionEnabled,
-} from '@/features/survey/core/choice-other-option'
 import type { ChoiceOption } from '../../../core/types'
 import type { InlineEditableElement } from '../inline-editable'
 
@@ -17,12 +12,8 @@ function focusEditor(element: InlineEditableElement) {
   element.setSelectionRange(element.value.length, element.value.length)
 }
 
-/** 画布选项列表：增删改标签与「其他」同步 */
+/** 画布选项列表：增删改标签与编辑焦点。 */
 export function useChoiceOptions({ options, onChange }: Options) {
-  const otherOption = partitionChoiceOptions(options).other
-  const otherEnabled = otherOption !== undefined
-  const otherLabel = otherOption?.label ?? DEFAULT_OTHER_LABEL
-
   const editorRefs = useRef<Map<string, InlineEditableElement>>(new Map())
   const pendingFocusId = useRef<string | null>(null)
 
@@ -63,38 +54,29 @@ export function useChoiceOptions({ options, onChange }: Options) {
   const removeOption = useCallback(
     (id: string) => {
       if (options.length <= 1) return
-      const next = options.filter((o) => o.id !== id)
-      onChange(
-        setOtherChoiceOptionEnabled(
-          partitionChoiceOptions(next).regular,
-          otherEnabled,
-          otherLabel
-        )
-      )
+      onChange(options.filter((option) => option.id !== id))
     },
-    [onChange, options, otherEnabled, otherLabel]
+    [onChange, options]
   )
 
   const insertOptionAfter = useCallback(
     (index: number, factory?: () => ChoiceOption) => {
-      const { regular } = partitionChoiceOptions(options)
       const next: ChoiceOption = factory?.() ?? {
         id: crypto.randomUUID(),
         label: '',
       }
-      const merged = [...regular]
+      const merged = [...options]
       merged.splice(index + 1, 0, next)
-      onChange(setOtherChoiceOptionEnabled(merged, otherEnabled, otherLabel))
+      onChange(merged)
       focusRow(next.id)
       return next
     },
-    [onChange, options, otherEnabled, otherLabel, focusRow]
+    [onChange, options, focusRow]
   )
 
-  const insertAfterLastRegular = useCallback(
+  const insertAfterLast = useCallback(
     (factory?: () => ChoiceOption) => {
-      const { regular } = partitionChoiceOptions(options)
-      return insertOptionAfter(regular.length - 1, factory)
+      return insertOptionAfter(options.length - 1, factory)
     },
     [insertOptionAfter, options]
   )
@@ -112,8 +94,7 @@ export function useChoiceOptions({ options, onChange }: Options) {
     updateOptionLabel,
     removeOption,
     insertOptionAfter,
-    insertAfterLastRegular,
+    insertAfterLast,
     focusPreviousOption,
-    partition: () => partitionChoiceOptions(options),
   }
 }
