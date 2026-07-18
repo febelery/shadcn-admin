@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptySurvey } from '../../core/document-factory'
-import { createBuilderStore } from './index'
+import { createBuilderStore } from './store'
 
 describe('Builder element duplication interface', () => {
   it('copies a plain document element and remaps nested identities', () => {

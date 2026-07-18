@@ -1,8 +1,8 @@
 /* eslint-disable react-refresh/only-export-components -- Provider, hooks, and factory form one Builder session interface. */
 import { createContext, useContext, type ReactNode } from 'react'
 import { useStore } from 'zustand'
-import { createBuilderStore, type BuilderStore } from './store/index'
-import type { BuilderState } from './store/types'
+import type { BuilderState } from './session/state'
+import { createBuilderStore, type BuilderStore } from './session/store'
 
 const BuilderStoreContext = createContext<BuilderStore | null>(null)
 
@@ -29,5 +29,5 @@ export function useBuilderStoreApi(): BuilderStore {
 }
 
 export { createBuilderStore }
-export type { BuilderStore } from './store/index'
-export type { BuilderState } from './store/types'
+export type { BuilderStore } from './session/store'
+export type { BuilderState } from './session/state'

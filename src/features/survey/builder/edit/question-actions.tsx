@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import type { SurveyElement } from '../../core/types'
-import { useBuilderStoreApi } from '../store'
+import { useBuilderStoreApi } from '../builder-session'
 
 export type QuestionDragHandleProps = {
   setActivatorNodeRef: (node: HTMLElement | null) => void

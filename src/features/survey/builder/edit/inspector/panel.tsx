@@ -40,8 +40,8 @@ import type {
   QuestionElement,
   SurveyElement,
 } from '../../../core/types'
+import { useBuilderStore } from '../../builder-session'
 import { BuilderPanelHeader } from '../../shared/panel-header'
-import { useBuilderStore } from '../../store'
 import { BuilderGuidance } from '../guidance'
 import { EndPagePanel } from '../setting/end-page-panel'
 import { MetaCoverPanel } from '../setting/meta-cover-panel'

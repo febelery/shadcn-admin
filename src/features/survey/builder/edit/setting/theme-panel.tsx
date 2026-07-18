@@ -29,7 +29,7 @@ import type {
   QuestionNumberingMode,
   SurveyDefaultNumberingStyle,
 } from '../../../core/types'
-import { useBuilderStore } from '../../store'
+import { useBuilderStore } from '../../builder-session'
 import { InspectorSection } from '../inspector/panel'
 
 function NumberingStyleSelect({

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { useBuilderStore } from '../store'
+import { useBuilderStore } from '../builder-session'
 
 type Props = {
   className?: string

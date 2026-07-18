@@ -32,13 +32,10 @@ export interface RuleDraft {
 }
 
 export type RuleDraftRequest =
-  | { type: 'new' }
-  | { type: 'existing'; ruleId: string }
+  { type: 'new' } | { type: 'existing'; ruleId: string }
 
 export type BeginRuleDraftResult =
-  | 'started'
-  | 'confirmation-required'
-  | 'not-found'
+  'started' | 'confirmation-required' | 'not-found'
 
 export type RuleDraftChange =
   | { type: 'condition'; condition: RuleCondition }

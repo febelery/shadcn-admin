@@ -7,7 +7,7 @@ import type {
   SubmissionQuota,
   SubmissionRateLimit,
 } from '../../../core/types'
-import { useBuilderStore } from '../../store'
+import { useBuilderStore } from '../../builder-session'
 import { InspectorSection } from '../inspector/panel'
 
 export function SubmissionPanel() {

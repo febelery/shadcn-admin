@@ -3,8 +3,8 @@ import { useShallow } from 'zustand/react/shallow'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { getQuestionRuleSummary } from '@/features/survey/core/logic/question-rule-index'
-import { useBuilderStore } from '../../store'
-import { useRuleAuthoring } from '../../store/use-rule-authoring'
+import { useBuilderStore } from '../../builder-session'
+import { useRuleAuthoring } from '../../session/rule-authoring'
 
 type Props = {
   questionId: string

@@ -1,7 +1,7 @@
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { useBuilderStore } from '../../store'
+import { useBuilderStore } from '../../builder-session'
 import { InspectorSection } from '../inspector/panel'
 
 export function EndPagePanel() {

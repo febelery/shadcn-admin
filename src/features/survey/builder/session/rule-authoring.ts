@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
-import { useBuilderStore } from '../store'
-import { hasRuleDraftChanges, type RuleDraftRequest } from './rule-authoring'
+import { useBuilderStore } from '../builder-session'
+import { hasRuleDraftChanges, type RuleDraftRequest } from './rule-draft'
 
 export type PendingRuleNavigation =
   | { type: 'begin'; request: RuleDraftRequest }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptySurvey } from '../../core/document-factory'
-import { createBuilderStore } from './index'
+import { createBuilderStore } from './store'
 
 describe('Builder rich text interface', () => {
   it('creates and updates structured content without exposing element fields', () => {

@@ -13,7 +13,7 @@ import type {
   RuleDraft,
   RuleDraftChange,
   RuleDraftRequest,
-} from './rule-authoring'
+} from './rule-draft'
 
 export interface BuilderState {
   document: SurveyDocument

@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { MousePointerClick, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useBuilderStore } from '../builder-session'
 import { BuilderGuidance } from '../edit/guidance'
+import { getRuleDraftIssues } from '../session/rule-draft'
 import { BuilderPanelHeader } from '../shared/panel-header'
-import { useBuilderStore } from '../store'
-import { getRuleDraftIssues } from '../store/rule-authoring'
 import type { FlowProjection } from './projection'
 import { RuleEditorSection } from './rule-editor'
 

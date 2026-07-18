@@ -11,8 +11,8 @@ import {
 } from '../../core/question-numbering'
 import type { SurveyElement } from '../../core/types'
 import { RichTextEditor } from '../../shared/rich-text-editor'
+import { useBuilderStore, useBuilderStoreApi } from '../builder-session'
 import { useIsPaletteDragging } from '../shared/dnd-provider'
-import { useBuilderStore, useBuilderStoreApi } from '../store'
 import { QuestionLogicBadges } from './logic/question-logic-badges'
 import {
   WorkspaceQuestionActions,

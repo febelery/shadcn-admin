@@ -8,9 +8,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { useBuilderStore } from '../store'
-import { buildRuleDraftPreviewDocument } from '../store/rule-authoring'
-import { useRuleAuthoring } from '../store/use-rule-authoring'
+import { useBuilderStore } from '../builder-session'
+import { useRuleAuthoring } from '../session/rule-authoring'
+import { buildRuleDraftPreviewDocument } from '../session/rule-draft'
 import { CenterPanel } from './center-panel'
 import { LeftPanel } from './left-panel'
 import { createFlowProjector } from './projection'

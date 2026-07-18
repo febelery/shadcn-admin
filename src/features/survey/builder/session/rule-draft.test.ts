@@ -8,7 +8,7 @@ import {
   deriveRuleDraftModel,
   getRuleDraftIssues,
   hasRuleDraftChanges,
-} from './rule-authoring'
+} from './rule-draft'
 
 function question(id: string, title: string): QuestionElement {
   return {

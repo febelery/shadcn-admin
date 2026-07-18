@@ -9,8 +9,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useBuilderStore, useBuilderStoreApi } from './store'
-import { hasRuleDraftChanges } from './store/rule-authoring'
+import { useBuilderStore, useBuilderStoreApi } from './builder-session'
+import { hasRuleDraftChanges } from './session/rule-draft'
 
 export function UnsavedChangesBlocker() {
   const store = useBuilderStoreApi()

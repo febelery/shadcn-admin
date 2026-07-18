@@ -24,7 +24,7 @@ import {
   getQuestionUiManifest,
   LAYOUT_MANIFESTS,
 } from '../../shared/question-ui-registry'
-import { useBuilderStoreApi } from '../store'
+import { useBuilderStoreApi } from '../builder-session'
 import {
   INSERT_DROP,
   PALETTE_DRAG,

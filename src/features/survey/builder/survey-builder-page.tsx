@@ -17,16 +17,16 @@ import {
   useSurveyDetail,
   useUpdateSurvey,
 } from '../query/hooks'
-import { EditWorkspace } from './edit/workspace'
-import { FlowWorkspace } from './flow/workspace'
 import {
   BuilderStoreProvider,
   createBuilderStore,
   useBuilderStore,
-} from './store'
-import { hasRuleDraftChanges } from './store/rule-authoring'
-import { RuleAuthoringProvider } from './store/rule-authoring-provider'
-import { useRuleAuthoring } from './store/use-rule-authoring'
+} from './builder-session'
+import { EditWorkspace } from './edit/workspace'
+import { FlowWorkspace } from './flow/workspace'
+import { useRuleAuthoring } from './session/rule-authoring'
+import { RuleAuthoringProvider } from './session/rule-authoring-provider'
+import { hasRuleDraftChanges } from './session/rule-draft'
 import { UnsavedChangesBlocker } from './unsaved-changes-blocker'
 
 type Props = { mode: 'create' } | { mode: 'edit'; surveyId: string }

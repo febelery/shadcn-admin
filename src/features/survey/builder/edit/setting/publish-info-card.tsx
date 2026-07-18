@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Item, ItemGroup, ItemTitle, ItemActions } from '@/components/ui/item'
-import { useBuilderStore } from '../../store'
+import { useBuilderStore } from '../../builder-session'
 
 export function PublishInfoCard() {
   const document = useBuilderStore((s) => s.document)

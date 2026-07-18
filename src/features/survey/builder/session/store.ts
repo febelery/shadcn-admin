@@ -15,7 +15,7 @@ import {
   cloneElement,
   collectQuestionIdsFromElement,
   insertAt,
-} from './helpers'
+} from './element-operations'
 import { resolveBuilderNavigation } from './navigation'
 import {
   applyRuleDraft,
@@ -23,8 +23,8 @@ import {
   changeRuleDraft,
   getRuleDraftIssues,
   hasRuleDraftChanges,
-} from './rule-authoring'
-import type { BuilderState } from './types'
+} from './rule-draft'
+import type { BuilderState } from './state'
 
 export function createBuilderStore(initialDocument: SurveyDocument) {
   const document = structuredClone(initialDocument)

@@ -7,7 +7,7 @@ import {
 } from '@/components/date-picker'
 import { DEFAULT_SUBMISSION } from '@/features/survey/core/document-factory'
 import type { SubmissionTimeWindow } from '../../../core/types'
-import { useBuilderStore } from '../../store'
+import { useBuilderStore } from '../../builder-session'
 import { InspectorSection } from '../inspector/panel'
 
 export function TimeWindowPanel() {

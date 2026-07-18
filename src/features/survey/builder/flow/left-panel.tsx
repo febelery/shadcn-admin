@@ -9,9 +9,9 @@ import {
 } from '@/components/ui/input-group'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ruleMatchesSearch } from '@/features/survey/core/logic/rule-meta'
+import { useBuilderStore } from '../builder-session'
+import { useRuleAuthoring } from '../session/rule-authoring'
 import { BuilderPanelHeader } from '../shared/panel-header'
-import { useBuilderStore } from '../store'
-import { useRuleAuthoring } from '../store/use-rule-authoring'
 import type { FlowProjection } from './projection'
 import { RulesList } from './rule-list'
 

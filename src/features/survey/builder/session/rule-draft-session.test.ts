@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { QuestionElement, SurveyDocument } from '../../core/types'
-import { createBuilderStore, type BuilderStore } from './index'
+import { createBuilderStore, type BuilderStore } from './store'
 
 function question(id: string, title: string): QuestionElement {
   return {

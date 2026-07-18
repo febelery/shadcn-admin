@@ -9,8 +9,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { getEditorSection } from '../../core/editor-section'
+import { useBuilderStore } from '../builder-session'
 import { BuilderDndProvider } from '../shared/dnd-provider'
-import { useBuilderStore } from '../store'
 import { BuilderWorkspacePanel } from './canvas-panel'
 import { InspectorPanel } from './inspector/panel'
 import { QuestionPalette } from './palette'

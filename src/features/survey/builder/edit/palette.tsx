@@ -39,9 +39,9 @@ import {
   QUESTION_UI_MANIFESTS,
   type QuestionUiManifest,
 } from '../../shared/question-ui-registry'
+import { useBuilderStore, useBuilderStoreApi } from '../builder-session'
 import { PALETTE_DRAG } from '../shared/dnd-types'
 import { BuilderPanelHeader } from '../shared/panel-header'
-import { useBuilderStore, useBuilderStoreApi } from '../store'
 
 type PaletteTypeId = QuestionType | 'divider' | 'rich_text'
 

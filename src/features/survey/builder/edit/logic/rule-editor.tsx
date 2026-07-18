@@ -19,12 +19,12 @@ import {
 import { Switch } from '@/components/ui/switch'
 import type { StaticIssue } from '../../../core/logic/analyzer'
 import type { RuleActionType } from '../../../core/types'
-import { useBuilderStore } from '../../store'
+import { useBuilderStore } from '../../builder-session'
+import { useRuleDraftEditor } from '../../session/rule-authoring'
 import {
   deriveRuleDraftModel,
   type RuleDraftChange,
-} from '../../store/rule-authoring'
-import { useRuleDraftEditor } from '../../store/use-rule-authoring'
+} from '../../session/rule-draft'
 import { BuilderGuidance } from '../guidance'
 import { ActionBuilder } from './action-builder'
 import { ConditionBuilder } from './condition-builder'

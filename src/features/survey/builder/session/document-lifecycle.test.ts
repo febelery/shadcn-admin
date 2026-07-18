@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptySurvey } from '../../core/document-factory'
-import { createBuilderStore } from './index'
+import { createBuilderStore } from './store'
 
 describe('Builder document lifecycle', () => {
   it('adopts the canonical published document', () => {

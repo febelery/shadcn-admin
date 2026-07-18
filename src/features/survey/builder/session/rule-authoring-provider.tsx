@@ -9,13 +9,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useBuilderStoreApi } from '../store'
-import { hasRuleDraftChanges } from './rule-authoring'
+import { useBuilderStoreApi } from '../builder-session'
 import {
   RuleAuthoringContext,
   type PendingRuleNavigation,
   type RuleAuthoringContextValue,
-} from './use-rule-authoring'
+} from './rule-authoring'
+import { hasRuleDraftChanges } from './rule-draft'
 
 export function RuleAuthoringProvider({ children }: { children: ReactNode }) {
   const store = useBuilderStoreApi()
