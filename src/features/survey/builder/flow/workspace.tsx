@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { GitBranch, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useMediaQuery } from '@/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -27,6 +28,13 @@ export function FlowWorkspace() {
   const logicMobilePanel = useBuilderStore((s) => s.logicMobilePanel)
   const navigate = useBuilderStore((s) => s.navigate)
   const { clearRuleFocus } = useRuleAuthoring()
+  const isCompactLayout = useMediaQuery('(max-width: 1023px)')
+
+  useEffect(() => {
+    if (!isCompactLayout && logicMobilePanel !== 'closed') {
+      navigate({ type: 'close-mobile-panel' })
+    }
+  }, [isCompactLayout, logicMobilePanel, navigate])
 
   return (
     <>
@@ -81,7 +89,7 @@ export function FlowWorkspace() {
       </div>
 
       <Sheet
-        open={logicMobilePanel === 'rules'}
+        open={isCompactLayout && logicMobilePanel === 'rules'}
         onOpenChange={(open) =>
           navigate({ type: open ? 'show-rule-list' : 'show-flow' })
         }
@@ -101,7 +109,7 @@ export function FlowWorkspace() {
       </Sheet>
 
       <Sheet
-        open={logicMobilePanel === 'editor'}
+        open={isCompactLayout && logicMobilePanel === 'editor'}
         onOpenChange={(open) => {
           if (open) navigate({ type: 'show-current-rule-editor' })
           else clearRuleFocus()
