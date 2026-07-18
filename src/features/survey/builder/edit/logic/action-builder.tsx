@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { RuleAction, RuleActionType } from '../../types'
+import type { RuleAction, RuleActionType } from '../../../core/types'
 import { useSurveyQuestionCatalog } from './use-survey-questions'
 
 const ACTION_OPTIONS: { value: RuleActionType; label: string }[] = [

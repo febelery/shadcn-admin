@@ -4,10 +4,11 @@ import { LayoutGrid, LayoutTemplate } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SurveyCoverHeader } from '@/features/survey/shared/survey-cover-header'
 import { getEditorSection } from '../../core/editor-section'
+import type { SurveyElement } from '../../core/types'
 import { useIsPaletteDragging } from '../shared/dnd-provider'
 import { BuilderPanelHeader } from '../shared/panel-header'
-import { LABEL_LIMITS, useBuilderStore } from '../store'
-import type { SurveyElement } from '../types'
+import { BUILDER_TEXT_LIMITS } from '../shared/text-limits'
+import { useBuilderStore } from '../store'
 import { WorkspaceAddFooter } from './add-footer'
 import { WorkspaceElementCard } from './element-card'
 import { BuilderGuidance } from './guidance'
@@ -43,7 +44,7 @@ const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
           value={meta.title}
           onChange={(title) => updateMeta({ title })}
           placeholder='未命名问卷'
-          maxLength={LABEL_LIMITS.surveyTitle}
+          maxLength={BUILDER_TEXT_LIMITS.surveyTitle}
           className={cn(titleClass, 'max-w-full min-w-0 wrap-break-word')}
         />
       }
@@ -53,7 +54,7 @@ const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
           onChange={(description) => updateMeta({ description })}
           placeholder='添加问卷说明（选填）'
           multiline
-          maxLength={LABEL_LIMITS.surveyDescription}
+          maxLength={BUILDER_TEXT_LIMITS.surveyDescription}
           className={cn(descriptionClass, 'max-w-full min-w-0')}
         />
       }

@@ -17,11 +17,14 @@ import {
 import '@xyflow/react/dist/style.css'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
-import { START_ID } from '../../core/logic/flow-graph'
+import {
+  START_ID,
+  type FlowGraphEdge,
+} from '../../core/logic/flow-graph'
 import { ruleMatchesSearch } from '../../core/logic/rule-meta'
+import type { Rule } from '../../core/types'
 import { useBuilderStore } from '../store'
 import { useRuleAuthoring } from '../store/use-rule-authoring'
-import type { Rule, FlowGraphEdge } from '../types'
 import './canvas.css'
 import { flowNodeDimensions } from './layout'
 import { GraphNode, type NodeData } from './nodes'

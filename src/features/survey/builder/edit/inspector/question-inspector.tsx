@@ -26,14 +26,14 @@ import {
   removeCascaderNode,
   updateCascaderNode,
 } from '@/features/survey/shared/cascader-adapters'
-import { LABEL_LIMITS } from '../../store'
 import type {
   QuestionConfig,
   QuestionConfigPatch,
   QuestionType,
   CascaderNode,
   QuestionElement,
-} from '../../types'
+} from '../../../core/types'
+import { BUILDER_TEXT_LIMITS } from '../../shared/text-limits'
 import { OptionEditor } from './option-editor'
 
 function InspectorFormField({
@@ -140,7 +140,7 @@ function CascaderTreeNodeRow({
           )}
           value={node.label}
           placeholder={depth === 0 ? '一级选项' : '子级选项'}
-          maxLength={LABEL_LIMITS.cascaderOption}
+          maxLength={BUILDER_TEXT_LIMITS.cascaderOption}
           onChange={(e) => handleLabelChange(e.target.value)}
         />
         <Button
@@ -832,7 +832,7 @@ const matrixInspector: InspectorAdapter = ({ el, patchConfig }) => (
   <>
     <OptionEditor
       label='矩阵行'
-      labelMaxLength={LABEL_LIMITS.matrixRow}
+      labelMaxLength={BUILDER_TEXT_LIMITS.matrixRow}
       options={(el.config.rows ?? []).map(({ id, label }) => ({ id, label }))}
       onChange={(rows) =>
         patchConfig({ rows: rows.map(({ id, label }) => ({ id, label })) })
@@ -840,7 +840,7 @@ const matrixInspector: InspectorAdapter = ({ el, patchConfig }) => (
     />
     <OptionEditor
       label='矩阵列'
-      labelMaxLength={LABEL_LIMITS.matrixCol}
+      labelMaxLength={BUILDER_TEXT_LIMITS.matrixColumn}
       options={(el.config.columns ?? []).map(({ id, label }) => ({
         id,
         label,
@@ -857,7 +857,7 @@ const likertInspector: InspectorAdapter = ({ el, patchConfig }) => (
   <>
     <OptionEditor
       label='陈述项'
-      labelMaxLength={LABEL_LIMITS.likertStatement}
+      labelMaxLength={BUILDER_TEXT_LIMITS.likertStatement}
       options={(el.config.statements ?? []).map(({ id, label }) => ({
         id,
         label,

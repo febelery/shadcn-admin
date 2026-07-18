@@ -8,12 +8,12 @@ import {
   partitionChoiceOptions,
   setOtherChoiceOptionEnabled,
 } from '@/features/survey/core/choice-other-option'
-import { LABEL_LIMITS } from '../../store'
 import type {
   ChoiceOption,
   QuestionConfigPatch,
   QuestionElement,
-} from '../../types'
+} from '../../../core/types'
+import { BUILDER_TEXT_LIMITS } from '../../shared/text-limits'
 import { InlineEditable } from '../inline-editable'
 import { useChoiceOptions } from './use-choice-options'
 
@@ -95,7 +95,7 @@ export function SurfaceChoiceList({
                 value={opt.label}
                 onChange={(label) => updateOptionLabel(opt.id, label)}
                 placeholder={`选项 ${index + 1}`}
-                maxLength={LABEL_LIMITS.choiceOption}
+                maxLength={BUILDER_TEXT_LIMITS.choiceOption}
                 inputRef={(element) => setEditorRef(opt.id, element)}
                 className='text-foreground placeholder:text-muted-foreground/50 min-w-0 text-sm leading-relaxed font-normal'
                 onKeyDown={handleOptionKeyDown(index, opt.id)}
@@ -166,7 +166,7 @@ export function SurfaceRankingList({
             value={opt.label}
             onChange={(label) => updateOptionLabel(opt.id, label)}
             placeholder={`选项 ${index + 1}`}
-            maxLength={LABEL_LIMITS.choiceOption}
+            maxLength={BUILDER_TEXT_LIMITS.choiceOption}
             className='placeholder:text-muted-foreground/50 max-w-full min-w-0 flex-1 text-sm leading-relaxed font-normal'
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {

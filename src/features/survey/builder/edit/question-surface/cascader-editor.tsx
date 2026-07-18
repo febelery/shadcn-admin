@@ -1,6 +1,6 @@
 import { Cascader } from '@/components/ui/cascader'
 import { cascaderNodesToOptions } from '@/features/survey/shared/cascader-adapters'
-import type { QuestionElement } from '../../types'
+import type { QuestionElement } from '../../../core/types'
 
 type Props = {
   question: QuestionElement

@@ -1,5 +1,5 @@
-import { clampText } from '../store'
-import type { ChoiceOption } from '../types'
+import type { ChoiceOption } from '../../core/types'
+import { limitText } from './text-limits'
 
 type ParseOptions = {
   labelMaxLength?: number
@@ -22,7 +22,7 @@ export function parseOptionLines(
     .map((line, i) => {
       const fallback = `选项 ${startIndex + i + 1}`
       const label =
-        clampText(line.split('\t')[0]?.trim() ?? '', labelMaxLength) || fallback
+        limitText(line.split('\t')[0]?.trim() ?? '', labelMaxLength) || fallback
       return {
         id: crypto.randomUUID(),
         label,

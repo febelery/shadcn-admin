@@ -17,13 +17,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import type { StaticIssue } from '../../../core/logic/analyzer'
+import type { RuleActionType } from '../../../core/types'
 import { useBuilderStore } from '../../store'
 import {
   deriveRuleDraftModel,
   type RuleDraftChange,
 } from '../../store/rule-authoring'
 import { useRuleDraftEditor } from '../../store/use-rule-authoring'
-import type { RuleActionType, StaticIssue } from '../../types'
 import { BuilderGuidance } from '../guidance'
 import { ActionBuilder } from './action-builder'
 import { ConditionBuilder } from './condition-builder'

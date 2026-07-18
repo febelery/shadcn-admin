@@ -1,12 +1,12 @@
 import { Circle, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { LABEL_LIMITS } from '../../store'
 import type {
   LikertStatement,
   QuestionConfigPatch,
   QuestionElement,
-} from '../../types'
+} from '../../../core/types'
+import { BUILDER_TEXT_LIMITS } from '../../shared/text-limits'
 import { InlineEditable } from '../inline-editable'
 
 type Props = {
@@ -80,7 +80,7 @@ export function SurfaceLikertEditor({ question, onConfigChange }: Props) {
                     }
                     placeholder='陈述句'
                     compact
-                    maxLength={LABEL_LIMITS.likertStatement}
+                    maxLength={BUILDER_TEXT_LIMITS.likertStatement}
                     className={cn('min-w-0 flex-1', 'text-xs leading-none')}
                   />
                   {statements.length > 1 ? (

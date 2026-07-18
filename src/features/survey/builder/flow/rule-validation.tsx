@@ -1,6 +1,6 @@
 import { AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { StaticIssue } from '../types'
+import type { StaticIssue } from '../../core/logic/analyzer'
 
 type Props = {
   issues: StaticIssue[]

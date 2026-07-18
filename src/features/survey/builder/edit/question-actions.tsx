@@ -9,8 +9,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import type { SurveyElement } from '../../core/types'
 import { useBuilderStoreApi } from '../store'
-import type { SurveyElement } from '../types'
 
 export type QuestionDragHandleProps = {
   setActivatorNodeRef: (node: HTMLElement | null) => void

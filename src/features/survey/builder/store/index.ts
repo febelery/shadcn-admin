@@ -9,7 +9,7 @@ import {
 import { applyQuestionConfigPatch } from '../../core/question-config'
 import { getQuestionDefinition } from '../../core/question-definitions'
 import { EMPTY_RICH_TEXT, parseRichTextContent } from '../../core/rich-text'
-import type { SurveyDocument, SurveyElement } from '../types'
+import type { SurveyDocument, SurveyElement } from '../../core/types'
 import {
   findSection,
   cloneElement,

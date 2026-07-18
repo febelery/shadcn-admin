@@ -1,5 +1,5 @@
+import type { SurveyDocument, SurveyElement } from '../../core/types'
 import { cloneCascaderNodes } from '../../shared/cascader-adapters'
-import type { SurveyDocument, SurveyElement } from '../types'
 
 export function findSection(document: SurveyDocument, sectionId: string) {
   return document.sections.find((s) => s.id === sectionId)

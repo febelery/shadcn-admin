@@ -13,14 +13,14 @@ import {
   SortableOverlay,
 } from '@/components/ui/sortable'
 import { Textarea } from '@/components/ui/textarea'
+import type { ChoiceOption } from '../../../core/types'
 import {
   OPTION_LINE_PRESETS,
   optionsToLines,
   parseOptionLines,
   sliceLinesForAppend,
 } from '../../shared/parse-option-lines'
-import { LABEL_LIMITS } from '../../store'
-import type { ChoiceOption } from '../../types'
+import { BUILDER_TEXT_LIMITS } from '../../shared/text-limits'
 
 type Props = {
   options: ChoiceOption[]
@@ -35,7 +35,7 @@ export function OptionEditor({
   options,
   onChange,
   label = '选项',
-  labelMaxLength = LABEL_LIMITS.choiceOption,
+  labelMaxLength = BUILDER_TEXT_LIMITS.choiceOption,
   enableBatch = true,
 }: Props) {
   const [batchOpen, setBatchOpen] = useState(false)

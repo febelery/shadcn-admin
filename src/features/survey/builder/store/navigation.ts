@@ -1,4 +1,4 @@
-import type { BuilderMode } from '../types'
+import type { BuilderMode } from '../../core/types'
 
 export type LogicMobilePanel = 'closed' | 'rules' | 'editor'
 

@@ -19,12 +19,12 @@ import { GripVertical, type LucideIcon } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import type { QuestionType } from '../../core/types'
 import {
   getQuestionUiManifest,
   LAYOUT_MANIFESTS,
 } from '../../shared/question-ui-registry'
 import { useBuilderStoreApi } from '../store'
-import type { QuestionType } from '../types'
 import {
   INSERT_DROP,
   PALETTE_DRAG,

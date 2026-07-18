@@ -32,15 +32,18 @@ import {
   matchesPaletteSearch,
 } from '@/features/survey/shared/question-type-hints'
 import { QuestionTypePreview } from '@/features/survey/shared/question-type-preview'
+import type { QuestionType } from '../../core/types'
 import {
   LAYOUT_MANIFESTS,
   QUESTION_CATEGORIES,
   QUESTION_UI_MANIFESTS,
+  type QuestionUiManifest,
 } from '../../shared/question-ui-registry'
 import { PALETTE_DRAG } from '../shared/dnd-types'
 import { BuilderPanelHeader } from '../shared/panel-header'
 import { useBuilderStore, useBuilderStoreApi } from '../store'
-import type { QuestionType, QuestionUiManifest, PaletteTypeId } from '../types'
+
+type PaletteTypeId = QuestionType | 'divider' | 'rich_text'
 
 type PaletteItem =
   | QuestionUiManifest

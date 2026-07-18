@@ -6,9 +6,10 @@ import {
   RULE_CATEGORY_LABEL,
 } from '@/features/survey/core/logic/rule-meta'
 import { summarizeRuleAction } from '@/features/survey/core/logic/rule-utils'
+import type { StaticIssue } from '../../core/logic/analyzer'
+import type { Rule } from '../../core/types'
 import { useBuilderStore } from '../store'
 import { useRuleAuthoring } from '../store/use-rule-authoring'
-import type { StaticIssue, Rule } from '../types'
 import { worstSeverity } from './issues/issue-utils'
 
 function RuleRow({

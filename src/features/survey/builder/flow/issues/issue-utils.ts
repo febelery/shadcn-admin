@@ -1,4 +1,4 @@
-import type { StaticIssue } from '../../types'
+import type { StaticIssue } from '../../../core/logic/analyzer'
 
 /** 按规则 ID 聚合 issue */
 export function groupIssuesByRule(

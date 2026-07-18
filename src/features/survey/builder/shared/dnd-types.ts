@@ -1,4 +1,4 @@
-import type { QuestionType } from '../types'
+import type { QuestionType } from '../../core/types'
 
 export const PALETTE_DRAG = 'palette-question'
 export const WORKSPACE_DROP = 'workspace-drop'

@@ -9,8 +9,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { partitionChoiceOptions } from '@/features/survey/core/choice-other-option'
-import { LABEL_LIMITS } from '../../store'
-import type { ChoiceOption, QuestionElement } from '../../types'
+import type { ChoiceOption, QuestionElement } from '../../../core/types'
+import { BUILDER_TEXT_LIMITS } from '../../shared/text-limits'
 import { InlineEditable } from '../inline-editable'
 import { useChoiceOptions } from './use-choice-options'
 
@@ -75,7 +75,7 @@ export function SurfaceDropdownEditor({ question, options, onChange }: Props) {
               value={opt.label}
               onChange={(label) => updateOptionLabel(opt.id, label)}
               placeholder={`选项 ${index + 1}`}
-              maxLength={LABEL_LIMITS.choiceOption}
+              maxLength={BUILDER_TEXT_LIMITS.choiceOption}
               inputRef={(element) => setEditorRef(opt.id, element)}
               className={cn(
                 'text-foreground border-border/60 min-w-0 rounded-md border border-dashed px-2 py-1',

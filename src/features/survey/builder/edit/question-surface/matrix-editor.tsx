@@ -1,13 +1,13 @@
 import { Circle, Square, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { LABEL_LIMITS } from '../../store'
 import type {
   MatrixColumn,
   MatrixRow,
   QuestionConfigPatch,
   QuestionElement,
-} from '../../types'
+} from '../../../core/types'
+import { BUILDER_TEXT_LIMITS } from '../../shared/text-limits'
 import { InlineEditable } from '../inline-editable'
 
 type Props = {
@@ -55,7 +55,7 @@ export function SurfaceMatrixEditor({ question, onConfigChange }: Props) {
                   }
                   placeholder='列'
                   compact
-                  maxLength={LABEL_LIMITS.matrixCol}
+                  maxLength={BUILDER_TEXT_LIMITS.matrixColumn}
                   className={cn(
                     'text-muted-foreground text-xs leading-relaxed',
                     'mx-auto text-center'
@@ -104,7 +104,7 @@ export function SurfaceMatrixEditor({ question, onConfigChange }: Props) {
                     }
                     placeholder='行'
                     compact
-                    maxLength={LABEL_LIMITS.matrixRow}
+                    maxLength={BUILDER_TEXT_LIMITS.matrixRow}
                     className={cn('min-w-0 flex-1', 'text-xs leading-none')}
                   />
                   {rows.length > 1 ? (

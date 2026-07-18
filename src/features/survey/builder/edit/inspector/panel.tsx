@@ -38,14 +38,14 @@ import {
 } from '@/features/survey/shared/question-type-hints'
 import { QuestionTypePreview } from '@/features/survey/shared/question-type-preview'
 import { getEditorSection } from '../../../core/editor-section'
-import { BuilderPanelHeader } from '../../shared/panel-header'
-import { useBuilderStore } from '../../store'
 import type {
   QuestionContentPatch,
   QuestionConfigPatch,
   QuestionElement,
   SurveyElement,
-} from '../../types'
+} from '../../../core/types'
+import { BuilderPanelHeader } from '../../shared/panel-header'
+import { useBuilderStore } from '../../store'
 import { BuilderGuidance } from '../guidance'
 import { EndPagePanel } from '../setting/end-page-panel'
 import { MetaCoverPanel } from '../setting/meta-cover-panel'

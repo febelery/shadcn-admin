@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import {
+  isSurveyNumberingEnabled,
+  isQuestionNumberVisible,
+} from '@/features/survey/core/question-numbering'
+import {
   questionBlockStack,
   questionBlockGridRequiredOnly,
   questionBlockContentCol,
@@ -11,19 +15,15 @@ import {
   questionNumberColumn,
   questionTitleText,
 } from '@/features/survey/shared/question-layout'
-import {
-  isSurveyNumberingEnabled,
-  isQuestionNumberVisible,
-} from '@/features/survey/core/question-numbering'
 import { QuestionRequiredMark } from '@/features/survey/shared/question-required-mark'
-import { LABEL_LIMITS } from '../../store'
 import type {
   QuestionContentPatch,
   QuestionConfigPatch,
   QuestionElement,
   QuestionNumberingMode,
   SurveyDefaultNumberingStyle,
-} from '../../types'
+} from '../../../core/types'
+import { BUILDER_TEXT_LIMITS } from '../../shared/text-limits'
 import { InlineEditable } from '../inline-editable'
 import { SurfaceQuestionNumberToggle } from './question-number-toggle'
 import { QuestionSurfaceBody } from './registry'
@@ -58,7 +58,7 @@ export function SurfaceQuestionBlock({
       value={question.title}
       onChange={(title) => onPatch({ title })}
       placeholder='请输入题目'
-      maxLength={LABEL_LIMITS.questionTitle}
+      maxLength={BUILDER_TEXT_LIMITS.questionTitle}
       className={`min-w-0 ${questionTitleText}`}
       autoFocus={selected && !question.title}
     />
@@ -72,7 +72,7 @@ export function SurfaceQuestionBlock({
       }
       placeholder='添加说明（选填）'
       multiline
-      maxLength={LABEL_LIMITS.questionDescription}
+      maxLength={BUILDER_TEXT_LIMITS.questionDescription}
       className={cn(
         'text-sm leading-relaxed',
         'text-muted-foreground min-h-[1.25em] max-w-full'

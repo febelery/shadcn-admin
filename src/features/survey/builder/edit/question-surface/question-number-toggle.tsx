@@ -14,7 +14,7 @@ import type {
   QuestionElement,
   QuestionNumberingMode,
   SurveyDefaultNumberingStyle,
-} from '../../types'
+} from '../../../core/types'
 
 /** 画布题号区点击 — 不触发题目选中 */
 export const QUESTION_NUMBER_TOGGLE_ATTR = 'data-question-number-toggle'

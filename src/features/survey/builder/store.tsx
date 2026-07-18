@@ -29,6 +29,5 @@ export function useBuilderStoreApi(): BuilderStore {
 }
 
 export { createBuilderStore }
-export { LABEL_LIMITS, clampText } from './store/constants'
 export type { BuilderStore } from './store/index'
 export type { BuilderState } from './store/types'

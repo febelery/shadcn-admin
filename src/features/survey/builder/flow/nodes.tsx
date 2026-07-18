@@ -1,8 +1,9 @@
 import { memo } from 'react'
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { cn } from '@/lib/utils'
+import type { FlowGraphNode } from '../../core/logic/flow-graph'
+import type { QuestionType } from '../../core/types'
 import { getQuestionUiManifest } from '../../shared/question-ui-registry'
-import type { FlowGraphNode, QuestionType } from '../types'
 
 export type NodeData = FlowGraphNode & {
   compact?: boolean

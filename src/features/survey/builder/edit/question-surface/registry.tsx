@@ -2,12 +2,12 @@ import { Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { FileUpload } from '@/components/file-upload'
 import { partitionChoiceOptions } from '@/features/survey/core/choice-other-option'
-import { LABEL_LIMITS } from '../../store'
 import type {
   QuestionConfigPatch,
   QuestionElement,
   QuestionType,
-} from '../../types'
+} from '../../../core/types'
+import { BUILDER_TEXT_LIMITS } from '../../shared/text-limits'
 import { InlineEditable } from '../inline-editable'
 import { SurfaceCascaderEditor } from './cascader-editor'
 import { SurfaceChoiceList, SurfaceRankingList } from './choice-list'
@@ -68,7 +68,7 @@ const inlineTextSurface: SurfaceAdapter = ({ question, onConfigChange }) => (
       value={question.config.placeholder ?? ''}
       onChange={(placeholder) => onConfigChange({ placeholder })}
       placeholder='请输入…'
-      maxLength={LABEL_LIMITS.placeholder}
+      maxLength={BUILDER_TEXT_LIMITS.placeholder}
       className={cn(
         'text-muted-foreground/80 max-w-full',
         'placeholder:text-muted-foreground/50 text-sm leading-relaxed font-normal'
@@ -107,7 +107,7 @@ const npsSurface: SurfaceAdapter = ({ question, onConfigChange }) => (
         value={question.config.npsLeftLabel ?? ''}
         onChange={(npsLeftLabel) => onConfigChange({ npsLeftLabel })}
         placeholder='完全不可能'
-        maxLength={LABEL_LIMITS.npsLabel}
+        maxLength={BUILDER_TEXT_LIMITS.npsLabel}
         className='max-w-[45%] min-w-0 flex-1 truncate'
         compact
       />
@@ -115,7 +115,7 @@ const npsSurface: SurfaceAdapter = ({ question, onConfigChange }) => (
         value={question.config.npsRightLabel ?? ''}
         onChange={(npsRightLabel) => onConfigChange({ npsRightLabel })}
         placeholder='非常可能'
-        maxLength={LABEL_LIMITS.npsLabel}
+        maxLength={BUILDER_TEXT_LIMITS.npsLabel}
         className='max-w-[45%] min-w-0 flex-1 truncate text-right'
         compact
       />

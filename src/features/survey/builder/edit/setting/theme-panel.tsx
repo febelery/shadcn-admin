@@ -25,11 +25,11 @@ import {
   SURVEY_NUMBERING_MODE_OPTIONS,
   SURVEY_NUMBERING_OPTIONS,
 } from '@/features/survey/shared/numbering-options'
-import { useBuilderStore } from '../../store'
 import type {
   QuestionNumberingMode,
   SurveyDefaultNumberingStyle,
-} from '../../types'
+} from '../../../core/types'
+import { useBuilderStore } from '../../store'
 import { InspectorSection } from '../inspector/panel'
 
 function NumberingStyleSelect({

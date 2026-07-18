@@ -1,12 +1,12 @@
 import type { RuleCategory } from '../../core/logic/rule-meta'
+import type { RichTextContent } from '../../core/rich-text'
 import type {
   SurveyDocument,
   QuestionContentPatch,
   QuestionConfigPatch,
-  RichTextContent,
   QuestionType,
   BuilderMode,
-} from '../types'
+} from '../../core/types'
 import type { BuilderNavigationIntent, LogicMobilePanel } from './navigation'
 import type {
   BeginRuleDraftResult,

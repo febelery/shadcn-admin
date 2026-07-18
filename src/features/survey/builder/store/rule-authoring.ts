@@ -15,6 +15,7 @@ import {
   createRuleAction,
   normalizeRulePriorities,
 } from '../../core/logic/rule-utils'
+import { getQuestionReferenceLabel } from '../../core/question-numbering'
 import type {
   QuestionElement,
   Rule,
@@ -23,7 +24,6 @@ import type {
   RuleCondition,
   SurveyDocument,
 } from '../../core/types'
-import { getQuestionReferenceLabel } from '../../core/question-numbering'
 
 export interface RuleDraft {
   kind: 'create' | 'edit'

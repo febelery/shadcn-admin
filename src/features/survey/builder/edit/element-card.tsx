@@ -9,10 +9,10 @@ import {
   getQuestionNumberingMode,
   getSurveyDefaultNumberingStyle,
 } from '../../core/question-numbering'
+import type { SurveyElement } from '../../core/types'
 import { RichTextEditor } from '../../shared/rich-text-editor'
 import { useIsPaletteDragging } from '../shared/dnd-provider'
 import { useBuilderStore, useBuilderStoreApi } from '../store'
-import type { SurveyElement } from '../types'
 import { QuestionLogicBadges } from './logic/question-logic-badges'
 import {
   WorkspaceQuestionActions,

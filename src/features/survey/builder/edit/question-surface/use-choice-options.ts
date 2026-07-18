@@ -4,7 +4,7 @@ import {
   partitionChoiceOptions,
   setOtherChoiceOptionEnabled,
 } from '@/features/survey/core/choice-other-option'
-import type { ChoiceOption } from '../../types'
+import type { ChoiceOption } from '../../../core/types'
 import type { InlineEditableElement } from '../inline-editable'
 
 type Options = {

@@ -1,6 +1,6 @@
 import type { ChangeEvent, KeyboardEvent } from 'react'
 import { cn } from '@/lib/utils'
-import { clampText } from '../store'
+import { limitText } from '../shared/text-limits'
 
 export type InlineEditableElement = HTMLInputElement | HTMLTextAreaElement
 
@@ -41,7 +41,7 @@ export function InlineEditable({
     onFocus,
     onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const next = maxLength
-        ? clampText(event.target.value, maxLength)
+        ? limitText(event.target.value, maxLength)
         : event.target.value
       onChange(next)
     },
