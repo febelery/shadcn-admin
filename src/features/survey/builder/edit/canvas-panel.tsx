@@ -13,10 +13,7 @@ import { WorkspaceElementCard } from './element-card'
 import { BuilderGuidance } from './guidance'
 import { InlineEditable } from './inline-editable'
 import { WorkspaceInsertSlot } from './insert-slot'
-import {
-  useScrollSelectedIntoWorkspace,
-  BUILDER_WORKSPACE_SCROLL_ATTR,
-} from './workspace-scroll'
+import { BUILDER_WORKSPACE_SCROLL_ATTR } from './workspace-scroll'
 
 const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
   const meta = useBuilderStore((s) => s.document.meta)
@@ -72,8 +69,6 @@ export function BuilderWorkspacePanel() {
   const sectionId = section.id
   const elements = section.elements
   const isPaletteDragging = useIsPaletteDragging()
-
-  useScrollSelectedIntoWorkspace({ selectedElementId })
 
   const renderElementCard = (el: SurveyElement) => {
     return (

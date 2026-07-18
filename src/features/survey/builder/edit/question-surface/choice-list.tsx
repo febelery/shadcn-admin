@@ -39,7 +39,7 @@ export function SurfaceChoiceList({
   } = question.config
 
   const {
-    setRowRef,
+    setEditorRef,
     updateOptionLabel,
     removeOption,
     insertOptionAfter,
@@ -65,12 +65,13 @@ export function SurfaceChoiceList({
   }
 
   const handleOptionKeyDown =
-    (index: number, id: string) => (e: KeyboardEvent<HTMLDivElement>) => {
+    (index: number, id: string) =>
+    (e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
         insertOptionAfter(index)
       }
-      if (e.key === 'Backspace' && (e.currentTarget.textContent ?? '') === '') {
+      if (e.key === 'Backspace' && e.currentTarget.value === '') {
         if (options.length > 1 && !isOtherOption(options[index]!)) {
           e.preventDefault()
           removeOption(id)
@@ -90,11 +91,7 @@ export function SurfaceChoiceList({
     <>
       <ul className={cn('list-none', layoutClass)}>
         {options.map((opt, index) => (
-          <li
-            key={opt.id}
-            ref={(el) => setRowRef(opt.id, el)}
-            className='group/option flex flex-col gap-1 py-0.5'
-          >
+          <li key={opt.id} className='group/option flex flex-col gap-1 py-0.5'>
             <div className='grid grid-cols-[1.25rem_1fr_1.75rem] items-center gap-x-3'>
               <Icon className='text-muted-foreground size-4.5 shrink-0 stroke-[1.5]' />
               <InlineEditable
@@ -102,6 +99,7 @@ export function SurfaceChoiceList({
                 onChange={(label) => updateOptionLabel(opt.id, label)}
                 placeholder={`选项 ${index + 1}`}
                 maxLength={LABEL_LIMITS.choiceOption}
+                inputRef={(element) => setEditorRef(opt.id, element)}
                 className='text-foreground placeholder:text-muted-foreground/50 min-w-0 text-sm leading-relaxed font-normal'
                 onKeyDown={handleOptionKeyDown(index, opt.id)}
               />

@@ -1,4 +1,4 @@
-import { memo, type CSSProperties, type ReactNode } from 'react'
+import { memo, useCallback, type CSSProperties, type ReactNode } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
@@ -20,7 +20,7 @@ import {
 } from './question-actions'
 import { SurfaceQuestionBlock } from './question-surface/question-block'
 import { QUESTION_NUMBER_TOGGLE_ATTR } from './question-surface/question-number-toggle'
-import { BUILDER_WORKSPACE_TARGET_ATTR } from './workspace-scroll'
+import { scrollIntoWorkspaceView } from './workspace-scroll'
 
 const QUESTION_REQUIRED_TOGGLE_ATTR = 'data-question-required-toggle'
 
@@ -52,10 +52,17 @@ function QuestionBlock({
   children: ReactNode
 }) {
   const store = useBuilderStoreApi()
+  const attachNode = useCallback(
+    (node: HTMLElement | null) => {
+      setNodeRef(node)
+      if (node && selected) scrollIntoWorkspaceView(node)
+    },
+    [selected, setNodeRef]
+  )
 
   return (
     <article
-      ref={setNodeRef}
+      ref={attachNode}
       style={style}
       className={cn(
         'group/question relative rounded-lg border border-transparent',
@@ -66,7 +73,6 @@ function QuestionBlock({
         dragging && 'opacity-40',
         dimmed && !dragging && 'opacity-35'
       )}
-      {...{ [BUILDER_WORKSPACE_TARGET_ATTR]: element.id }}
       onPointerDownCapture={(e) => {
         if (e.button !== 0) return
         const target = e.target as HTMLElement

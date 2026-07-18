@@ -6,13 +6,18 @@ import {
 } from '@/features/survey/core/choice-other-option'
 import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import type { ChoiceOption } from '../../types'
-import { focusInlineEditable } from '../inline-editable'
+import type { InlineEditableElement } from '../inline-editable'
 
 type Options = {
   options: ChoiceOption[]
   onChange: (options: ChoiceOption[]) => void
   allowOther?: boolean
   otherLabel?: string
+}
+
+function focusEditor(element: InlineEditableElement) {
+  element.focus()
+  element.setSelectionRange(element.value.length, element.value.length)
 }
 
 /** 画布选项列表：增删改标签与「其他」同步 */
@@ -24,20 +29,31 @@ export function useChoiceOptions({
 }: Options) {
   const resolvedOtherLabel = otherLabel ?? DEFAULT_OTHER_LABEL
 
-  const rowRefs = useRef<Map<string, HTMLLIElement>>(new Map())
+  const editorRefs = useRef<Map<string, InlineEditableElement>>(new Map())
+  const pendingFocusId = useRef<string | null>(null)
 
-  const setRowRef = useCallback((id: string, el: HTMLLIElement | null) => {
-    if (el) rowRefs.current.set(id, el)
-    else rowRefs.current.delete(id)
-  }, [])
+  const setEditorRef = useCallback(
+    (id: string, el: InlineEditableElement | null) => {
+      if (!el) {
+        editorRefs.current.delete(id)
+        return
+      }
+      editorRefs.current.set(id, el)
+      if (pendingFocusId.current === id) {
+        pendingFocusId.current = null
+        focusEditor(el)
+      }
+    },
+    []
+  )
 
   const focusRow = useCallback((id: string) => {
-    requestAnimationFrame(() => {
-      const row = rowRefs.current.get(id)
-      focusInlineEditable(
-        row?.querySelector('[contenteditable]') as HTMLElement | null
-      )
-    })
+    const editor = editorRefs.current.get(id)
+    if (editor) {
+      focusEditor(editor)
+      return
+    }
+    pendingFocusId.current = id
   }, [])
 
   const updateOptionLabel = useCallback(
@@ -95,8 +111,7 @@ export function useChoiceOptions({
   )
 
   return {
-    rowRefs,
-    setRowRef,
+    setEditorRef,
     updateOptionLabel,
     removeOption,
     insertOptionAfter,

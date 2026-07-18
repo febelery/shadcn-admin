@@ -26,7 +26,7 @@ export function SurfaceDropdownEditor({ question, options, onChange }: Props) {
   const regular = partitionChoiceOptions(options).regular
 
   const {
-    setRowRef,
+    setEditorRef,
     updateOptionLabel,
     removeOption,
     insertOptionAfter,
@@ -35,12 +35,13 @@ export function SurfaceDropdownEditor({ question, options, onChange }: Props) {
   } = useChoiceOptions({ options: regular, onChange })
 
   const handleOptionKeyDown =
-    (index: number, id: string) => (e: KeyboardEvent<HTMLDivElement>) => {
+    (index: number, id: string) =>
+    (e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
         insertOptionAfter(index)
       }
-      if (e.key === 'Backspace' && (e.currentTarget.textContent ?? '') === '') {
+      if (e.key === 'Backspace' && e.currentTarget.value === '') {
         if (regular.length > 1) {
           e.preventDefault()
           removeOption(id)
@@ -68,7 +69,6 @@ export function SurfaceDropdownEditor({ question, options, onChange }: Props) {
         {regular.map((opt: ChoiceOption, index: number) => (
           <li
             key={opt.id}
-            ref={(el) => setRowRef(opt.id, el)}
             className='group/option grid grid-cols-[1fr_1.75rem] items-center gap-x-2'
           >
             <InlineEditable
@@ -76,6 +76,7 @@ export function SurfaceDropdownEditor({ question, options, onChange }: Props) {
               onChange={(label) => updateOptionLabel(opt.id, label)}
               placeholder={`选项 ${index + 1}`}
               maxLength={LABEL_LIMITS.choiceOption}
+              inputRef={(element) => setEditorRef(opt.id, element)}
               className={cn(
                 'text-foreground border-border/60 min-w-0 rounded-md border border-dashed px-2 py-1',
                 'placeholder:text-muted-foreground/50 text-sm leading-relaxed font-normal'

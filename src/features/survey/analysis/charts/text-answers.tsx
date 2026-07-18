@@ -1,5 +1,6 @@
 import React from 'react'
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useDebouncedCallback } from '@/hooks/use-debounced-callback'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type {
@@ -59,23 +60,20 @@ function formatTextAnswer(text: string): string {
 
 export function TextAnswers({ analysis, surveyId, params }: TextAnswersProps) {
   const [searchTerm, setSearchTerm] = React.useState('')
-  const [currentPage, setCurrentPage] = React.useState(1)
-  const pageSize = 5 // 设置默认每页展示的回答条数
-
-  // 1. 延迟防抖的搜索词，防止输入框每敲一个字都向后端发请求
   const [debouncedSearch, setDebouncedSearch] = React.useState('')
-  React.useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchTerm)
-      setCurrentPage(1) // 搜索词变动时，重置为第一页
-    }, 300)
-    return () => clearTimeout(handler)
-  }, [searchTerm])
-
-  // 2. 当外部全局筛选条件变化时，重置本地翻页到第一页
-  React.useEffect(() => {
-    setCurrentPage(1)
-  }, [params])
+  const pageSize = 5
+  const pageScope = JSON.stringify([params ?? null, debouncedSearch])
+  const [pagination, setPagination] = React.useState({
+    scope: pageScope,
+    page: 1,
+  })
+  const currentPage = pagination.scope === pageScope ? pagination.page : 1
+  const commitSearch = useDebouncedCallback((value: string) => {
+    setDebouncedSearch(value)
+  }, 300)
+  const goToPage = (page: number) => {
+    setPagination({ scope: pageScope, page })
+  }
 
   const { data: pagedAnalysis, isFetching } = useSurveyQuestionAnalysis(
     surveyId,
@@ -107,7 +105,10 @@ export function TextAnswers({ analysis, surveyId, params }: TextAnswersProps) {
           <Input
             placeholder='输入关键字搜索回答...'
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value)
+              commitSearch(e.target.value)
+            }}
             className='h-9 pl-9 text-xs'
           />
         </div>
@@ -188,7 +189,7 @@ export function TextAnswers({ analysis, surveyId, params }: TextAnswersProps) {
               variant='outline'
               size='sm'
               className='h-8 px-2.5 text-xs'
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              onClick={() => goToPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1 || isFetching}
             >
               <ChevronLeft className='mr-1 h-3.5 w-3.5 shrink-0' />
@@ -198,9 +199,7 @@ export function TextAnswers({ analysis, surveyId, params }: TextAnswersProps) {
               variant='outline'
               size='sm'
               className='h-8 px-2.5 text-xs'
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-              }
+              onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages || isFetching}
             >
               下一页
