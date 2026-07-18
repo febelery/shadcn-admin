@@ -8,6 +8,7 @@ import {
 } from '../../core/logic/rule-utils'
 import { applyQuestionConfigPatch } from '../../core/question-config'
 import { getQuestionDefinition } from '../../core/question-definitions'
+import { EMPTY_RICH_TEXT, parseRichTextContent } from '../../core/rich-text'
 import type { SurveyDocument, SurveyElement } from '../types'
 import {
   findSection,
@@ -106,9 +107,9 @@ export function createBuilderStore(initialDocument: SurveyDocument) {
             kind === 'divider'
               ? { kind: 'divider', id: crypto.randomUUID() }
               : {
-                  kind: 'html_block',
+                  kind: 'rich_text',
                   id: crypto.randomUUID(),
-                  html: '<p>说明文字</p>',
+                  content: structuredClone(EMPTY_RICH_TEXT),
                 }
           insertAt(sec.elements, el, index)
           s.selectedSectionId = sectionId
@@ -167,12 +168,12 @@ export function createBuilderStore(initialDocument: SurveyDocument) {
           s.isDirty = true
         }),
 
-      updateHtmlBlock: (sectionId, elementId, patch) =>
+      updateRichTextContent: (sectionId, elementId, content) =>
         set((s) => {
           const sec = findSection(s.document, sectionId)
           const el = sec?.elements.find((e) => e.id === elementId)
-          if (el?.kind !== 'html_block') return
-          Object.assign(el, patch)
+          if (el?.kind !== 'rich_text') return
+          el.content = parseRichTextContent(content)
           s.isDirty = true
         }),
 

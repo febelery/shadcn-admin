@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { SURVEY_DOCUMENT_SCHEMA_VERSION } from './document-version'
 import { getQuestionConfigIssues } from './question-config'
+import { parseRichTextContent } from './rich-text'
 import { QUESTION_TYPES, type SurveyDocument } from './types'
 
 const ruleActionTypeValues = [
@@ -92,11 +93,24 @@ const surveyElementSchema: z.ZodType<unknown> = z.lazy(() =>
   z.discriminatedUnion('kind', [
     questionElementSchema,
     z.object({ kind: z.literal('divider'), id: z.string() }),
-    z.object({
-      kind: z.literal('html_block'),
-      id: z.string(),
-      html: z.string(),
-    }),
+    z
+      .object({
+        kind: z.literal('rich_text'),
+        id: z.string(),
+        content: z.unknown(),
+      })
+      .strict()
+      .superRefine((element, context) => {
+        try {
+          parseRichTextContent(element.content)
+        } catch (error) {
+          context.addIssue({
+            code: 'custom',
+            path: ['content'],
+            message: error instanceof Error ? error.message : '富文本内容无效',
+          })
+        }
+      }),
     z.object({
       kind: z.literal('panel'),
       id: z.string(),

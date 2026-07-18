@@ -59,7 +59,7 @@ function hasQuestionCreationUi(item: QuestionUiManifest): boolean {
 }
 
 function paletteData(item: PaletteRowItem) {
-  const isLayout = item.type === 'divider' || item.type === 'html_block'
+  const isLayout = item.type === 'divider' || item.type === 'rich_text'
   return {
     type: PALETTE_DRAG,
     questionType: isLayout ? undefined : (item.type as QuestionType),
@@ -99,7 +99,7 @@ function PaletteItemRow({
   disabled?: boolean
   onAdd: () => void
 }) {
-  const isLayout = item.type === 'divider' || item.type === 'html_block'
+  const isLayout = item.type === 'divider' || item.type === 'rich_text'
   const id = `palette-${isLayout ? 'l' : 'q'}-${item.type}`
   const Icon = item.icon
 
@@ -245,11 +245,11 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
 
   const addItem = (item: PaletteItem) => {
     if (!sectionId) return
-    const isLayout = item.type === 'divider' || item.type === 'html_block'
+    const isLayout = item.type === 'divider' || item.type === 'rich_text'
     if (isLayout) {
       store
         .getState()
-        .addLayout(sectionId, item.type as 'divider' | 'html_block')
+        .addLayout(sectionId, item.type as 'divider' | 'rich_text')
     } else {
       store.getState().addQuestion(sectionId, item.type as QuestionType)
     }

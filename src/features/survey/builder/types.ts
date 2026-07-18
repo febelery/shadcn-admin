@@ -21,7 +21,7 @@ export type {
   MatrixRow,
   SubmissionTimeWindow,
   QuestionNumberingMode,
-  HtmlBlockElement,
+  RichTextBlockElement,
   Section,
   SurveyMeta,
   ThemeConfig,
@@ -42,4 +42,5 @@ export type {
 export type { StaticIssue } from '../core/logic/analyzer'
 
 export type { QuestionUiManifest } from '../shared/question-ui-registry'
-export type PaletteTypeId = QuestionType | 'divider' | 'html_block'
+export type { RichTextContent } from '../core/rich-text'
+export type PaletteTypeId = QuestionType | 'divider' | 'rich_text'

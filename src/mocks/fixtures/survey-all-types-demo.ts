@@ -6,6 +6,7 @@ import {
 import { isPresenceConditionOperator } from '@/features/survey/core/logic/operators'
 import { createRuleAction } from '@/features/survey/core/logic/rule-utils'
 import { getQuestionDefinition } from '@/features/survey/core/question-definitions'
+import type { RichTextContent } from '@/features/survey/core/rich-text'
 import type {
   CascaderNode,
   ChoiceOption,
@@ -57,6 +58,16 @@ function divider(): SurveyElement {
   return { kind: 'divider', id: crypto.randomUUID() }
 }
 
+function richText(...paragraphs: string[]): RichTextContent {
+  return {
+    type: 'doc',
+    content: paragraphs.map((text) => ({
+      type: 'paragraph',
+      content: [{ type: 'text', text }],
+    })),
+  }
+}
+
 /** 生成「云岭精品酒店 · 住客体验调研」——覆盖全部题型，文案按真实业务场景编写 */
 export function createAllTypesDemoSurvey(): SurveyDocument {
   const document = createEmptySurvey('云岭精品酒店 · 住客体验调研')
@@ -77,11 +88,13 @@ export function createAllTypesDemoSurvey(): SurveyDocument {
       description: '请先阅读以下说明',
       elements: [
         {
-          kind: 'html_block',
+          kind: 'rich_text',
           id: crypto.randomUUID(),
-          html: `<p>尊敬的住客，您好！</p>
-<p>云岭精品酒店重视每一位客人的真实感受。本问卷用于了解您本次入住的整体体验，<strong>所有信息仅用于服务质量改进</strong>，不会对外公开。</p>
-<p>若您愿意留下联系方式，我们将在您下次入住时为您准备一份欢迎礼遇。</p>`,
+          content: richText(
+            '尊敬的住客，您好！',
+            '云岭精品酒店重视每一位客人的真实感受。本问卷用于了解您本次入住的整体体验，所有信息仅用于服务质量改进，不会对外公开。',
+            '若您愿意留下联系方式，我们将在您下次入住时为您准备一份欢迎礼遇。'
+          ),
         },
         divider(),
       ],

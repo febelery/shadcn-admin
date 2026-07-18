@@ -1,0 +1,42 @@
+import { describe, expect, it } from 'vitest'
+import { createEmptySurvey } from '../../core/document-factory'
+import { createBuilderStore } from './index'
+
+describe('Builder rich text interface', () => {
+  it('creates and updates structured content without exposing element fields', () => {
+    const document = createEmptySurvey()
+    const sectionId = document.sections[0].id
+    const store = createBuilderStore(document)
+    store.getState().addLayout(sectionId, 'rich_text')
+
+    const block = store.getState().document.sections[0].elements[0]
+    expect(block).toMatchObject({ kind: 'rich_text', content: { type: 'doc' } })
+
+    store.getState().updateRichTextContent(sectionId, block.id, {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: '更新后的说明' }],
+        },
+      ],
+    })
+
+    expect(store.getState().document.sections[0].elements[0]).toMatchObject({
+      kind: 'rich_text',
+      content: {
+        content: [
+          {
+            content: [{ text: '更新后的说明' }],
+          },
+        ],
+      },
+    })
+
+    expect(() =>
+      store.getState().updateRichTextContent(sectionId, block.id, {
+        type: 'script',
+      })
+    ).toThrow()
+  })
+})

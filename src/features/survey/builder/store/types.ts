@@ -3,7 +3,7 @@ import type {
   SurveyDocument,
   QuestionContentPatch,
   QuestionConfigPatch,
-  HtmlBlockElement,
+  RichTextContent,
   QuestionType,
   BuilderMode,
 } from '../types'
@@ -39,7 +39,7 @@ export interface BuilderState {
   addQuestion: (sectionId: string, type: QuestionType, index?: number) => void
   addLayout: (
     sectionId: string,
-    kind: 'divider' | 'html_block',
+    kind: 'divider' | 'rich_text',
     index?: number
   ) => void
   reorderElements: (sectionId: string, activeId: string, overId: string) => void
@@ -54,10 +54,10 @@ export interface BuilderState {
     elementId: string,
     patch: QuestionConfigPatch
   ) => void
-  updateHtmlBlock: (
+  updateRichTextContent: (
     sectionId: string,
     elementId: string,
-    patch: Partial<HtmlBlockElement>
+    content: RichTextContent
   ) => void
   removeElement: (sectionId: string, elementId: string) => void
   select: (sectionId: string | null, elementId?: string | null) => void

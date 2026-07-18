@@ -1,6 +1,6 @@
 import type { QuestionType } from '../core/types'
 
-export type PaletteTypeId = QuestionType | 'divider' | 'html_block'
+export type PaletteTypeId = QuestionType | 'divider' | 'rich_text'
 
 /** 题型库 / 帮助提示文案 */
 const QUESTION_TYPE_HINTS: Record<PaletteTypeId, string> = {
@@ -28,7 +28,7 @@ const QUESTION_TYPE_HINTS: Record<PaletteTypeId, string> = {
   file_upload: '上传图片或文档，可限制数量与大小。',
   signature: '手写签名，用于确认或协议场景。',
   divider: '分割线，区分章节，不收集答案。',
-  html_block: '富文本说明块，不收集答案。',
+  rich_text: '富文本说明块，不收集答案。',
 }
 
 /** 需要图示预览的复杂题型 */
@@ -77,7 +77,7 @@ const QUESTION_TYPE_KEYWORDS: Record<PaletteTypeId, string[]> = {
   file_upload: ['文件', 'upload', 'file'],
   signature: ['签名', 'signature', 'sign'],
   divider: ['分割', 'divider', 'separator', 'hr'],
-  html_block: ['富文本', 'html', 'richtext', '说明'],
+  rich_text: ['富文本', 'rich text', '说明'],
 }
 
 export function matchesPaletteSearch(

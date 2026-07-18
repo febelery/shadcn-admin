@@ -3,13 +3,13 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
-import { Textarea } from '@/components/ui/textarea'
 import {
   buildQuestionOrdinalMap,
   buildQuestionDisplayOrdinalMap,
   getQuestionNumberingMode,
   getSurveyDefaultNumberingStyle,
 } from '../../shared/question-numbering'
+import { RichTextEditor } from '../../shared/rich-text-editor'
 import { useIsPaletteDragging } from '../shared/dnd-provider'
 import { useBuilderStore, useBuilderStoreApi } from '../store'
 import type { SurveyElement } from '../types'
@@ -151,7 +151,7 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
     )
   }
 
-  if (element.kind === 'html_block') {
+  if (element.kind === 'rich_text') {
     return (
       <QuestionBlock
         sectionId={sectionId}
@@ -164,16 +164,14 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
         drag={drag}
       >
         <div data-surface-chrome className='min-w-0'>
-          {/* 将原本的 Editor 富文本编辑器改为普通的 Textarea 组件 */}
-          <Textarea
-            value={element.html}
-            onChange={(e) =>
-              store.getState().updateHtmlBlock(sectionId, element.id, {
-                html: e.target.value,
-              })
+          <RichTextEditor
+            content={element.content}
+            onChange={(content) =>
+              store
+                .getState()
+                .updateRichTextContent(sectionId, element.id, content)
             }
             placeholder='输入说明内容…'
-            className='min-h-0 resize-none border-none shadow-none focus-within:ring-0 focus-within:ring-offset-0'
           />
         </div>
       </QuestionBlock>

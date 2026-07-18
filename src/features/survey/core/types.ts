@@ -1,3 +1,5 @@
+import type { RichTextContent } from './rich-text'
+
 /** Canonical survey document. Text content is stored without locale wrappers. */
 
 export type SurveyStatus = 'draft' | 'published' | 'archived'
@@ -283,16 +285,16 @@ export interface DividerElement extends BaseElement {
   kind: 'divider'
 }
 
-export interface HtmlBlockElement extends BaseElement {
-  kind: 'html_block'
-  html: string
+export interface RichTextBlockElement extends BaseElement {
+  kind: 'rich_text'
+  content: RichTextContent
 }
 
 export type SurveyElement =
   | QuestionElement
   | PanelElement
   | DividerElement
-  | HtmlBlockElement
+  | RichTextBlockElement
 
 export interface Section {
   id: string

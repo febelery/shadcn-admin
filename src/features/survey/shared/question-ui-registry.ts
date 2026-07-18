@@ -90,7 +90,7 @@ export const LAYOUT_MANIFESTS = [
     icon: SeparatorHorizontal,
   },
   {
-    type: 'html_block' as const,
+    type: 'rich_text' as const,
     label: '富文本说明',
     category: '布局' as const,
     icon: AlignLeft,

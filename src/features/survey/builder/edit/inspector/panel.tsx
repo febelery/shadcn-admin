@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/collapsible'
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
@@ -218,7 +217,6 @@ function LayoutInspector({
   el: SurveyElement
 }) {
   const removeElement = useBuilderStore((s) => s.removeElement)
-  const updateHtmlBlock = useBuilderStore((s) => s.updateHtmlBlock)
 
   if (el.kind === 'divider') {
     return (
@@ -238,22 +236,9 @@ function LayoutInspector({
     )
   }
 
-  if (el.kind === 'html_block') {
+  if (el.kind === 'rich_text') {
     return (
       <div className='flex max-w-full min-w-0 flex-col gap-4 overflow-x-hidden'>
-        <div className='flex flex-col gap-1.5'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            说明内容
-          </Label>
-          {/* 将原本的 Editor 富文本编辑器改为普通的 Textarea 组件 */}
-          <Textarea
-            value={el.html}
-            onChange={(e) =>
-              updateHtmlBlock(sectionId, el.id, { html: e.target.value })
-            }
-            placeholder='输入说明内容…'
-          />
-        </div>
         <Button
           variant='destructive'
           size='sm'
@@ -319,7 +304,7 @@ export function InspectorPanel({ className }: Props = {}) {
                   <QuestionInspector sectionId={sectionId} el={selectedEl} />
                 )}
                 {(selectedEl?.kind === 'divider' ||
-                  selectedEl?.kind === 'html_block') && (
+                  selectedEl?.kind === 'rich_text') && (
                   <LayoutInspector sectionId={sectionId} el={selectedEl} />
                 )}
                 {!selectedEl && (

@@ -11,29 +11,24 @@ type Props = {
   descriptionSlot?: ReactNode
 }
 
-/** 纯色 / 图片头图统一高度 */
-
-function hasDescriptionHtml(html: string) {
-  return html.replace(/<[^>]*>/g, '').trim().length > 0
-}
-
-/** 问卷说明（富文本 HTML） */
+/** 问卷说明是纯文本；富文本由独立 rich_text block 承担。 */
 function SurveyDescription({
-  html,
+  text,
   className,
 }: {
-  html: string
+  text: string
   className?: string
 }) {
-  if (!hasDescriptionHtml(html)) return null
+  if (!text.trim()) return null
   return (
-    <div
+    <p
       className={cn(
-        'prose prose-sm mt-1.5 max-w-none text-sm leading-relaxed',
+        'mt-1.5 text-sm leading-relaxed whitespace-pre-wrap',
         className
       )}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    >
+      {text}
+    </p>
   )
 }
 
@@ -82,9 +77,9 @@ export function SurveyCoverHeader({
 
   const descriptionEl =
     descriptionSlot ??
-    (hasDescriptionHtml(meta.description) ? (
+    (meta.description.trim() ? (
       <SurveyDescription
-        html={meta.description}
+        text={meta.description}
         className='text-muted-foreground'
       />
     ) : null)
@@ -125,7 +120,7 @@ export function SurveyCoverHeader({
             descriptionEl
           ) : (
             <SurveyDescription
-              html={meta.description}
+              text={meta.description}
               className={cn(
                 hasImage
                   ? 'prose-invert text-white/90'
@@ -154,7 +149,7 @@ export function SurveyCoverHeader({
         descriptionEl
       ) : (
         <SurveyDescription
-          html={meta.description}
+          text={meta.description}
           className='prose-invert opacity-90'
         />
       )}

@@ -7,7 +7,7 @@ export const INSERT_DROP = 'workspace-insert'
 export type PaletteDragData = {
   type: typeof PALETTE_DRAG
   questionType?: QuestionType
-  layoutType?: 'divider' | 'html_block'
+  layoutType?: 'divider' | 'rich_text'
 }
 
 export type InsertDropData = {
