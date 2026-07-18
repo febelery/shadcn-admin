@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { serializeCondition } from '../../core/logic/condition-serializer'
 import type { QuestionElement, Rule, SurveySchema } from '../../core/types'
 import {
   applyRuleDraft,
   beginRuleDraft,
-  buildRuleDraftPreviewSchema,
+  buildRuleDraftPreviewDocument,
   changeRuleDraft,
   deriveRuleDraftModel,
   getRuleDraftIssues,
@@ -28,11 +27,7 @@ function existingRule(): Rule {
     name: '显示 2. 第二题',
     enabled: true,
     priority: 0,
-    when: serializeCondition({
-      source: 'q',
-      ref: 'q1',
-      operator: 'not_empty',
-    }),
+    condition: { questionId: 'q1', operator: 'not_empty' },
     action: { id: 'action-1', type: 'show', target: 'q2' },
   }
 }
@@ -83,7 +78,7 @@ describe('rule authoring', () => {
 
     expect(draft?.value).toMatchObject({
       name: '显示 2. 第二题',
-      when: '{q.q1} notEmpty',
+      condition: { questionId: 'q1', operator: 'not_empty' },
       action: { type: 'show', target: 'q2' },
     })
     expect(schema.rules).toEqual([])
@@ -115,11 +110,7 @@ describe('rule authoring', () => {
     })!
     const changed = changeRuleDraft(schema, draft, {
       type: 'condition',
-      when: serializeCondition({
-        source: 'q',
-        ref: 'q2',
-        operator: 'not_empty',
-      }),
+      condition: { questionId: 'q2', operator: 'not_empty' },
     })
     const model = deriveRuleDraftModel(schema, changed)
 
@@ -145,15 +136,18 @@ describe('rule authoring', () => {
     })!
     const invalid = changeRuleDraft(schema, draft, {
       type: 'condition',
-      when: '{q.missing} notEmpty',
+      condition: { questionId: 'missing', operator: 'not_empty' },
     })
-    const preview = buildRuleDraftPreviewSchema(schema, invalid)
+    const preview = buildRuleDraftPreviewDocument(schema, invalid)
 
-    expect(preview.rules[0].when).toBe('{q.missing} notEmpty')
-    expect(schema.rules[0].when).toBe('{q.q1} notEmpty')
+    expect(preview.rules[0].condition.questionId).toBe('missing')
+    expect(schema.rules[0].condition.questionId).toBe('q1')
     expect(getRuleDraftIssues(schema, invalid)).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ code: 'expr_ref', severity: 'error' }),
+        expect.objectContaining({
+          code: 'condition_question',
+          severity: 'error',
+        }),
       ])
     )
   })

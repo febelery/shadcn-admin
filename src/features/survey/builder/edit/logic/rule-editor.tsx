@@ -35,12 +35,11 @@ const RULE_TYPE_OPTIONS: { value: RuleActionType; label: string }[] = [
   { value: 'end', label: '结束问卷' },
 ]
 
-function AdvancedRuleSettings({
+function RuleSettings({
   ruleId,
   ruleName,
   generatedName,
   enabled,
-  expression,
   onRuleNameChange,
   onEnabledChange,
 }: {
@@ -48,7 +47,6 @@ function AdvancedRuleSettings({
   ruleName: string
   generatedName: string
   enabled: boolean
-  expression: string
   onRuleNameChange: (name: string) => void
   onEnabledChange: (enabled: boolean) => void
 }) {
@@ -63,9 +61,9 @@ function AdvancedRuleSettings({
           >
             <div className='flex min-w-0 items-center gap-2'>
               <span className='bg-muted text-muted-foreground flex h-5 min-w-7 items-center justify-center rounded px-1.5 text-[10px] leading-none font-semibold tracking-wide'>
-                ADV
+                SET
               </span>
-              <p className='text-xs leading-none font-medium'>高级</p>
+              <p className='text-xs leading-none font-medium'>设置</p>
             </div>
             <ChevronDown className='text-muted-foreground size-4 shrink-0 transition-transform group-data-[state=open]/rule-advanced:rotate-180' />
           </Button>
@@ -111,22 +109,6 @@ function AdvancedRuleSettings({
                   onRuleNameChange(next || generatedName)
                 }}
               />
-            </div>
-
-            <div className='grid min-w-0 grid-cols-[3.75rem_minmax(0,1fr)] items-start gap-2'>
-              <Label className='text-muted-foreground pt-2 text-[11px] leading-none'>
-                表达式
-              </Label>
-              <div className='min-w-0'>
-                <div className='mb-1.5 flex min-w-0 items-center justify-end'>
-                  <span className='border-border/70 text-muted-foreground rounded border px-1.5 py-0.5 text-[10px] leading-none'>
-                    只读
-                  </span>
-                </div>
-                <pre className='bg-muted/30 text-muted-foreground border-border/60 max-w-full overflow-x-auto rounded-md border px-2.5 py-2 font-mono text-[11px] leading-relaxed break-all whitespace-pre-wrap'>
-                  {expression || '未设置条件'}
-                </pre>
-              </div>
             </div>
           </div>
         </CollapsibleContent>
@@ -219,8 +201,10 @@ export function RuleEditorPanel({ className, ruleIssues }: Props) {
 
           <ConditionBuilder
             key={rule.id}
-            when={rule.when}
-            onWhenChange={(when) => change({ type: 'condition', when })}
+            condition={rule.condition}
+            onConditionChange={(condition) =>
+              change({ type: 'condition', condition })
+            }
             allowedSourceIds={model.allowedSourceIds}
             defaultSourceId={model.sourceId ?? model.allowedSourceIds[0]}
           />
@@ -233,12 +217,11 @@ export function RuleEditorPanel({ className, ruleIssues }: Props) {
             allowedTypes={[model.action.type]}
           />
 
-          <AdvancedRuleSettings
+          <RuleSettings
             ruleId={rule.id}
             ruleName={rule.name}
             generatedName={model.generatedName}
             enabled={rule.enabled}
-            expression={rule.when}
             onRuleNameChange={(name) => change({ type: 'name', name })}
             onEnabledChange={(enabled) => change({ type: 'enabled', enabled })}
           />

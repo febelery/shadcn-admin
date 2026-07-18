@@ -7,15 +7,16 @@ import {
   isQuestionNumberVisible,
 } from '../../shared/question-numbering'
 import { flattenQuestions } from '../schema-defaults'
-import type { QuestionElement, Rule, SurveySchema } from '../types'
-import {
-  extractQuestionRefsFromWhen,
-  tryParseSimpleCondition,
-} from './condition-serializer'
+import type {
+  QuestionElement,
+  Rule,
+  RuleCondition,
+  SurveySchema,
+} from '../types'
 
 export type FlowNodeKind = 'start' | 'end' | 'question'
 
-export type FlowEdgeKind = 'default' | 'jump' | 'branch' | 'visibility' | 'end'
+export type FlowEdgeKind = 'default' | 'jump' | 'visibility' | 'end'
 
 export interface FlowGraphNode {
   id: string
@@ -86,38 +87,22 @@ function operatorText(op: string) {
 
 function optionLabelForValue(
   question: QuestionElement | undefined,
-  value?: string
+  value?: string | number
 ) {
-  if (!question || !value) return truncateLabel(value ?? '')
-  const option = question.config.options?.find(
-    (opt) => opt.id === value || opt.label === value
-  )
-  return truncateLabel(option?.label ?? value)
+  const text = String(value ?? '')
+  if (!question || !text) return truncateLabel(text)
+  const option = question.config.options?.find((opt) => opt.id === text)
+  return truncateLabel(option?.label ?? text)
 }
 
-function summarizeConditionExpression(
-  when: string,
+function summarizeCondition(
+  condition: RuleCondition,
   sourceQuestion?: QuestionElement
 ): string {
-  const trimmed = when.trim()
-  if (!trimmed) return '始终'
-
-  const parsed = tryParseSimpleCondition(trimmed)
-  if (!parsed) return '复杂条件'
-  if (parsed.items.length === 0) return '始终'
-
-  const parts = parsed.items.map((item) => {
-    const opLabel = operatorText(item.operator)
-    if (item.operator === 'empty' || item.operator === 'not_empty') {
-      return opLabel
-    }
-    const value = optionLabelForValue(sourceQuestion, item.value)
-    return `${opLabel} ${value}`.trim()
-  })
-
-  if (parts.length === 1) return parts[0]
-  const joiner = parsed.logic === 'and' ? ' 且 ' : ' 或 '
-  return truncateLabel(parts.join(joiner), 24)
+  const operator = operatorText(condition.operator)
+  if (!('value' in condition)) return operator
+  const value = optionLabelForValue(sourceQuestion, condition.value)
+  return `${operator} ${value}`.trim()
 }
 
 /** 从 schema 构建流程图节点与边（仅题目，不含说明块/分割线等布局元素） */
@@ -125,9 +110,6 @@ export function buildFlowGraph(schema: SurveySchema): FlowGraph {
   const nodes: FlowGraphNode[] = []
   const edges: FlowGraphEdge[] = []
   const section = schema.sections[0]
-  if (!section) {
-    return { nodes, edges }
-  }
 
   const displayOrdinalMap = buildQuestionDisplayOrdinalMap(schema)
   const globalOrdinalMap = buildQuestionOrdinalMap(schema)
@@ -209,16 +191,12 @@ export function buildFlowGraph(schema: SurveySchema): FlowGraph {
   // 规则边
   for (const rule of schema.rules) {
     if (!rule.enabled) continue
-    const sourceRefs = extractQuestionRefsFromWhen(rule.when)
-    const sourceQId = sourceRefs[0]
+    const sourceQId = rule.condition.questionId
     if (!sourceQId) continue
     const sourceNodeId = nodeIdForElement(sourceQId)
     if (!nodeIds.includes(sourceNodeId)) continue
     const sourceQuestion = questionById.get(sourceQId)
-    const conditionLabel = summarizeConditionExpression(
-      rule.when,
-      sourceQuestion
-    )
+    const conditionLabel = summarizeCondition(rule.condition, sourceQuestion)
 
     const action = rule.action
     if (action.type === 'end') {
@@ -265,42 +243,7 @@ function ruleReferencesQuestionAsSource(
   rule: Rule,
   questionId: string
 ): boolean {
-  return extractQuestionRefsFromWhen(rule.when).includes(questionId)
-}
-
-/** 从 start 出发 BFS，标记可达的题目 ID */
-export function findReachableQuestionIds(schema: SurveySchema): Set<string> {
-  const graph = buildFlowGraph(schema)
-  const questions = flattenQuestions(schema)
-  if (questions.length === 0) return new Set()
-
-  const adj = new Map<string, string[]>()
-  for (const e of graph.edges) {
-    if (e.kind === 'visibility') continue
-    const list = adj.get(e.source) ?? []
-    list.push(e.target)
-    adj.set(e.source, list)
-  }
-
-  const reachable = new Set<string>()
-  const queue = [START_ID]
-  const seen = new Set<string>([START_ID])
-
-  while (queue.length) {
-    const cur = queue.shift()!
-    if (cur.startsWith('el:')) {
-      const elId = cur.slice(3)
-      const q = questions.find((x) => x.id === elId)
-      if (q) reachable.add(elId)
-    }
-    for (const next of adj.get(cur) ?? []) {
-      if (seen.has(next)) continue
-      seen.add(next)
-      queue.push(next)
-    }
-  }
-
-  return reachable
+  return rule.condition.questionId === questionId
 }
 
 export function layoutFlowGraphWithMeta(graph: FlowGraph) {

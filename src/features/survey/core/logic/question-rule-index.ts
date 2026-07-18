@@ -1,5 +1,4 @@
 import type { Rule } from '../types'
-import { extractQuestionRefsFromWhen } from './condition-serializer'
 import { ruleTargetsQuestion } from './rule-utils'
 
 export interface QuestionRuleSummary {
@@ -35,12 +34,9 @@ function buildQuestionRuleIndex(rules: Rule[]) {
 
   const index = new Map<string, QuestionRuleSummary>()
   for (const rule of rules) {
-    const sourceIds = new Set(extractQuestionRefsFromWhen(rule.when))
-    for (const questionId of sourceIds) {
-      const summary = ensureSummary(index, questionId)
-      summary.firstRuleId ??= rule.id
-      if (rule.enabled) summary.hasBranch = true
-    }
+    const sourceSummary = ensureSummary(index, rule.condition.questionId)
+    sourceSummary.firstRuleId ??= rule.id
+    if (rule.enabled) sourceSummary.hasBranch = true
 
     const targetId = rule.action.target
     if (!targetId || !ruleTargetsQuestion(rule, targetId)) continue

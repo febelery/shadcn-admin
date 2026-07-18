@@ -17,7 +17,6 @@ import {
 import '@xyflow/react/dist/style.css'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
-import { extractQuestionRefsFromWhen } from '../../core/logic/condition-serializer'
 import { flowNodeDimensions, START_ID } from '../../core/logic/flow-graph'
 import { ruleMatchesSearch } from '../../core/logic/rule-meta'
 import { useBuilderStore } from '../store'
@@ -100,7 +99,6 @@ function FlowRuleEdge({
                   edgeData?.kind === 'jump' && 'bg-primary',
                   edgeData?.kind === 'visibility' && 'bg-amber-600',
                   edgeData?.kind === 'end' && 'bg-blue-600',
-                  edgeData?.kind === 'branch' && 'bg-muted-foreground',
                   edgeData?.kind === 'default' && 'bg-muted-foreground'
                 )}
               />
@@ -246,7 +244,8 @@ function nodeMatchesSearch(
     const related = rules.some(
       (r) =>
         ruleMatchesSearch(r, query, questionTitles) &&
-        (r.when.includes(data.elementId!) || r.action.target === data.elementId)
+        (r.condition.questionId === data.elementId ||
+          r.action.target === data.elementId)
     )
     if (related) return true
   }
@@ -255,7 +254,7 @@ function nodeMatchesSearch(
 
 function ruleTouchesQuestion(rule: Rule, questionId: string) {
   return (
-    extractQuestionRefsFromWhen(rule.when).includes(questionId) ||
+    rule.condition.questionId === questionId ||
     rule.action.target === questionId
   )
 }
@@ -263,14 +262,12 @@ function ruleTouchesQuestion(rule: Rule, questionId: string) {
 function pickRuleForQuestion(rules: Rule[], questionId: string): string | null {
   const enabled = rules.filter((r) => r.enabled)
   const outgoing = enabled.find((r) => {
-    if (!extractQuestionRefsFromWhen(r.when).includes(questionId)) return false
+    if (r.condition.questionId !== questionId) return false
     return r.action.type === 'jump_to_question' || r.action.type === 'end'
   })
   if (outgoing) return outgoing.id
 
-  const sourceRule = enabled.find((r) =>
-    extractQuestionRefsFromWhen(r.when).includes(questionId)
-  )
+  const sourceRule = enabled.find((r) => r.condition.questionId === questionId)
   if (sourceRule) return sourceRule.id
 
   const targetRule = enabled.find((r) => r.action.target === questionId)

@@ -1,5 +1,5 @@
 import type { Rule, RuleActionType } from '../types'
-import { extractQuestionRefsFromWhen } from './condition-serializer'
+import { getRuleConditionValue } from './rule-condition'
 
 export type RuleCategory = 'visibility' | 'jump' | 'end' | 'other'
 
@@ -34,11 +34,15 @@ export function ruleMatchesSearch(
   if (!q.trim()) return true
   const needle = q.trim().toLowerCase()
   if (rule.name.toLowerCase().includes(needle)) return true
-  if (rule.when.toLowerCase().includes(needle)) return true
-  for (const ref of extractQuestionRefsFromWhen(rule.when)) {
-    const title = questionTitles.get(ref)
-    if (title?.toLowerCase().includes(needle)) return true
-  }
+  if (rule.condition.operator.includes(needle)) return true
+  if (
+    String(getRuleConditionValue(rule.condition) ?? '')
+      .toLowerCase()
+      .includes(needle)
+  )
+    return true
+  const sourceTitle = questionTitles.get(rule.condition.questionId)
+  if (sourceTitle?.toLowerCase().includes(needle)) return true
   if (
     rule.action.target &&
     questionTitles.get(rule.action.target)?.toLowerCase().includes(needle)

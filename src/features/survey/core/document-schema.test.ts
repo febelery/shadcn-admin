@@ -43,4 +43,38 @@ describe('parseSurveyDocument', () => {
       })
     ).toThrow()
   })
+
+  it('rejects the removed string DSL and between rule operator', () => {
+    const document = createEmptySurvey()
+    const baseRule = {
+      id: 'rule-1',
+      name: 'Rule',
+      enabled: true,
+      priority: 0,
+      action: { id: 'action-1', type: 'end' },
+    }
+
+    expect(() =>
+      parseSurveyDocument({
+        ...document,
+        rules: [{ ...baseRule, when: '{q.q1} notEmpty' }],
+      })
+    ).toThrow()
+    expect(() =>
+      parseSurveyDocument({
+        ...document,
+        rules: [
+          {
+            ...baseRule,
+            condition: {
+              questionId: 'q1',
+              operator: 'between',
+              value: 1,
+              value2: 2,
+            },
+          },
+        ],
+      })
+    ).toThrow()
+  })
 })

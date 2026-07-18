@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -16,25 +16,19 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  tryParseSimpleCondition,
-  serializeConditionGroup,
-} from '@/features/survey/core/logic/condition-serializer'
-import {
-  getOperatorsForQuestionType,
-  supportsVisualCondition,
+  getRuleOperatorsForQuestionType,
+  isPresenceConditionOperator,
 } from '@/features/survey/core/logic/operators'
 import type {
-  Condition,
-  ConditionGroup,
-  ConditionOperator,
   QuestionElement,
+  RuleCondition,
+  RuleConditionOperator,
 } from '../../types'
 import { useSurveyQuestionCatalog } from './use-survey-questions'
 
 type Props = {
-  when: string
-  onWhenChange: (when: string) => void
-  /** 限制可选条件题（如必须在目标题之前） */
+  condition: RuleCondition
+  onConditionChange: (condition: RuleCondition) => void
   allowedSourceIds?: string[]
   defaultSourceId?: string
 }
@@ -50,176 +44,66 @@ function FieldRow({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-function ConditionRow({
-  condition,
-  onChange,
-  allowedSourceIds,
-  defaultSourceId,
-}: {
-  condition: Condition
-  onChange: (c: Condition) => void
-  allowedSourceIds?: string[]
-  defaultSourceId?: string
-}) {
-  const { questionsById, selectOptions: sourceOptions } =
-    useSurveyQuestionCatalog(allowedSourceIds)
-
-  const effectiveRef =
-    sourceOptions.some((o) => o.id === condition.ref) || !defaultSourceId
-      ? condition.ref || defaultSourceId || ''
-      : defaultSourceId
-  const selectedQ = questionsById.get(effectiveRef)
-  const operators = selectedQ
-    ? getOperatorsForQuestionType(selectedQ.type)
-    : getOperatorsForQuestionType('text')
-  const opDef = operators.find((o) => o.value === condition.operator)
-
-  const pickSource = (id: string) => {
-    const q = questionsById.get(id)
-    const ops = q ? getOperatorsForQuestionType(q.type) : []
-    onChange({
-      ...condition,
-      ref: id,
-      operator: ops[0]?.value ?? 'eq',
-      value: '',
-    })
+function createCondition(
+  questionId: string,
+  operator: RuleConditionOperator,
+  current?: RuleCondition
+): RuleCondition {
+  if (isPresenceConditionOperator(operator)) {
+    return { questionId, operator }
   }
-
-  return (
-    <div className='flex max-w-full min-w-0 flex-col gap-2 overflow-hidden'>
-      <FieldRow label='题目'>
-        {sourceOptions.length === 0 ? (
-          <p className='bg-muted/30 text-muted-foreground rounded-md px-2.5 py-2 text-xs leading-relaxed'>
-            暂无可作为条件题的题目，请先添加支持规则的题型。
-          </p>
-        ) : (
-          <Select value={effectiveRef} onValueChange={pickSource}>
-            <SelectTrigger className='h-9'>
-              <SelectValue placeholder='选择条件题目' />
-            </SelectTrigger>
-            <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
-              {sourceOptions.map(({ id, label }) => (
-                <SelectItem key={id} value={id}>
-                  <span className='block max-w-full truncate'>{label}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </FieldRow>
-      {selectedQ && supportsVisualCondition(selectedQ.type) ? (
-        <>
-          <FieldRow label='关系'>
-            <Select
-              value={condition.operator}
-              onValueChange={(v) =>
-                onChange({
-                  ...condition,
-                  ref: effectiveRef,
-                  operator: v as ConditionOperator,
-                })
-              }
-            >
-              <SelectTrigger className='h-9'>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
-                {operators.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    <span className='block max-w-full truncate'>{o.label}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FieldRow>
-          {opDef?.needsValue ? (
-            <FieldRow label='值'>
-              {hasOptions(selectedQ) ? (
-                <Select
-                  value={condition.value ?? ''}
-                  onValueChange={(v) =>
-                    onChange({ ...condition, ref: effectiveRef, value: v })
-                  }
-                >
-                  <SelectTrigger className='h-9'>
-                    <SelectValue placeholder='选择选项' />
-                  </SelectTrigger>
-                  <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
-                    {(selectedQ.config.options ?? []).map((o) => (
-                      <SelectItem key={o.id} value={o.id}>
-                        <span className='block max-w-full truncate'>
-                          {o.label}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  className='h-9 min-w-0'
-                  value={condition.value ?? ''}
-                  onChange={(e) =>
-                    onChange({
-                      ...condition,
-                      ref: effectiveRef,
-                      value: e.target.value,
-                    })
-                  }
-                  placeholder='输入比较值'
-                />
-              )}
-            </FieldRow>
-          ) : null}
-        </>
-      ) : selectedQ ? (
-        <p className='text-muted-foreground bg-muted/30 rounded-md px-2.5 py-2 text-xs leading-relaxed'>
-          该题型暂不支持可视化条件，请使用下方高级表达式。
-        </p>
-      ) : null}
-    </div>
-  )
+  return {
+    questionId,
+    operator,
+    value: current && 'value' in current ? current.value : '',
+  }
 }
 
-function hasOptions(q: QuestionElement): boolean {
+function usesNumericValue(question: QuestionElement): boolean {
+  return ['number', 'rating', 'slider', 'nps'].includes(question.type)
+}
+
+function hasOptions(question: QuestionElement): boolean {
   return (
-    (q.type === 'single_choice' ||
-      q.type === 'dropdown' ||
-      q.type === 'multiple_choice') &&
-    (q.config.options?.length ?? 0) > 0
+    ['single_choice', 'dropdown', 'multiple_choice'].includes(question.type) &&
+    (question.config.options?.length ?? 0) > 0
   )
 }
 
 export function ConditionBuilder({
-  when,
-  onWhenChange,
+  condition,
+  onConditionChange,
   allowedSourceIds,
   defaultSourceId,
 }: Props) {
-  const parsed = tryParseSimpleCondition(when)
-  const isComplex = parsed === null
-  const [isAdvanced, setIsAdvanced] = useState(isComplex)
+  const { questionsById, selectOptions: sourceOptions } =
+    useSurveyQuestionCatalog(allowedSourceIds)
+  const questionId = sourceOptions.some(
+    (option) => option.id === condition.questionId
+  )
+    ? condition.questionId
+    : (defaultSourceId ?? sourceOptions[0]?.id ?? '')
+  const question = questionsById.get(questionId)
+  const operators = question
+    ? getRuleOperatorsForQuestionType(question.type)
+    : []
+  const activeOperator = operators.some(
+    (operator) => operator.value === condition.operator
+  )
+    ? condition.operator
+    : operators[0]?.value
+  const operatorDefinition = operators.find(
+    (operator) => operator.value === activeOperator
+  )
 
-  const group: ConditionGroup = parsed ?? {
-    logic: 'and',
-    items: [
-      {
-        source: 'q',
-        ref: defaultSourceId ?? '',
-        operator: 'eq',
-        value: '',
-      },
-    ],
-  }
-
-  const applyGroup = (next: ConditionGroup) => {
-    onWhenChange(serializeConditionGroup(next))
-  }
-
-  const item = group.items[0] ?? {
-    source: 'q' as const,
-    ref: defaultSourceId ?? '',
-    operator: 'eq' as ConditionOperator,
-    value: '',
+  const pickQuestion = (nextQuestionId: string) => {
+    const nextQuestion = questionsById.get(nextQuestionId)
+    const nextOperator = nextQuestion
+      ? getRuleOperatorsForQuestionType(nextQuestion.type)[0]?.value
+      : undefined
+    if (nextOperator) {
+      onConditionChange(createCondition(nextQuestionId, nextOperator))
+    }
   }
 
   return (
@@ -241,54 +125,111 @@ export function ConditionBuilder({
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className='overflow-hidden'>
-          <div className='space-y-3.5 border-t px-2.5 py-2.5'>
-            {isAdvanced ? (
-              <div className='space-y-2'>
-                <Label className='text-muted-foreground text-[10px] leading-none font-semibold'>
-                  高级逻辑表达式（支持手写条件）
-                </Label>
-                <textarea
-                  className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[60px] w-full rounded-md border px-3 py-2 font-mono text-xs leading-relaxed focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50'
-                  value={when}
-                  onChange={(e) => onWhenChange(e.target.value)}
-                  placeholder="例如: {q.questionId} eq 'value'"
-                />
-                {!isComplex ? (
-                  <Button
-                    type='button'
-                    variant='outline'
-                    size='sm'
-                    className='h-7 px-2 text-[10px]'
-                    onClick={() => setIsAdvanced(false)}
+          <div className='flex flex-col gap-2 border-t px-2.5 py-2.5'>
+            <FieldRow label='题目'>
+              {sourceOptions.length === 0 ? (
+                <p className='bg-muted/30 text-muted-foreground rounded-md px-2.5 py-2 text-xs leading-relaxed'>
+                  暂无可作为条件的题目
+                </p>
+              ) : (
+                <Select value={questionId} onValueChange={pickQuestion}>
+                  <SelectTrigger className='h-9'>
+                    <SelectValue placeholder='选择条件题目' />
+                  </SelectTrigger>
+                  <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
+                    {sourceOptions.map(({ id, label }) => (
+                      <SelectItem key={id} value={id}>
+                        <span className='block max-w-full truncate'>
+                          {label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </FieldRow>
+
+            {question && activeOperator ? (
+              <>
+                <FieldRow label='关系'>
+                  <Select
+                    value={activeOperator}
+                    onValueChange={(value) =>
+                      onConditionChange(
+                        createCondition(
+                          questionId,
+                          value as RuleConditionOperator,
+                          condition
+                        )
+                      )
+                    }
                   >
-                    切换为可视化配置
-                  </Button>
-                ) : (
-                  <p className='text-muted-foreground text-[10px] leading-normal'>
-                    当前表达式包含复杂复合逻辑，仅支持在高级表达式模式下编辑。
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className='space-y-2'>
-                <ConditionRow
-                  condition={item}
-                  onChange={(c) => applyGroup({ ...group, items: [c] })}
-                  allowedSourceIds={allowedSourceIds}
-                  defaultSourceId={defaultSourceId}
-                />
-                <div className='flex justify-end'>
-                  <Button
-                    type='button'
-                    variant='link'
-                    className='text-muted-foreground hover:text-foreground h-auto p-0 text-[10px] hover:no-underline'
-                    onClick={() => setIsAdvanced(true)}
-                  >
-                    切换到高级模式
-                  </Button>
-                </div>
-              </div>
-            )}
+                    <SelectTrigger className='h-9'>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
+                      {operators.map((operator) => (
+                        <SelectItem key={operator.value} value={operator.value}>
+                          {operator.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FieldRow>
+
+                {operatorDefinition?.needsValue && 'value' in condition ? (
+                  <FieldRow label='值'>
+                    {hasOptions(question) ? (
+                      <Select
+                        value={String(condition.value)}
+                        onValueChange={(value) =>
+                          onConditionChange({
+                            questionId,
+                            operator: activeOperator,
+                            value,
+                          })
+                        }
+                      >
+                        <SelectTrigger className='h-9'>
+                          <SelectValue placeholder='选择选项' />
+                        </SelectTrigger>
+                        <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
+                          {(question.config.options ?? []).map((option) => (
+                            <SelectItem key={option.id} value={option.id}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        type={
+                          question.type === 'date'
+                            ? 'date'
+                            : usesNumericValue(question)
+                              ? 'number'
+                              : 'text'
+                        }
+                        className='h-9 min-w-0'
+                        value={condition.value}
+                        onChange={(event) =>
+                          onConditionChange({
+                            questionId,
+                            operator: activeOperator,
+                            value: usesNumericValue(question)
+                              ? event.target.value === ''
+                                ? ''
+                                : event.target.valueAsNumber
+                              : event.target.value,
+                          })
+                        }
+                        placeholder='输入比较值'
+                      />
+                    )}
+                  </FieldRow>
+                ) : null}
+              </>
+            ) : null}
           </div>
         </CollapsibleContent>
       </section>

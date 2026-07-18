@@ -1,7 +1,6 @@
 import { Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { extractQuestionRefsFromWhen } from '@/features/survey/core/logic/condition-serializer'
 import {
   getRuleCategory,
   RULE_CATEGORY_LABEL,
@@ -30,7 +29,7 @@ function RuleRow({
   const action = rule.action
   const targetId = action.target ?? ''
   const targetLabel = questionTitles.get(targetId) ?? targetId.slice(0, 8)
-  const sourceId = extractQuestionRefsFromWhen(rule.when)[0]
+  const sourceId = rule.condition.questionId
   const sourceLabel = sourceId
     ? (questionTitles.get(sourceId) ?? sourceId.slice(0, 8))
     : ''

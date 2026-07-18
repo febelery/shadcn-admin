@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { Rule } from '../types'
-import { serializeCondition } from './condition-serializer'
 import { getQuestionRuleSummary } from './question-rule-index'
 
-const sourceCondition = serializeCondition({
-  source: 'q',
-  ref: 'source',
+const sourceCondition = {
+  questionId: 'source',
   operator: 'eq',
   value: 'yes',
-})
+} as const
 
 const rules: Rule[] = [
   {
@@ -16,7 +14,7 @@ const rules: Rule[] = [
     name: '停用条件',
     enabled: false,
     priority: 0,
-    when: sourceCondition,
+    condition: sourceCondition,
     action: { id: 'a1', type: 'end' },
   },
   {
@@ -24,7 +22,7 @@ const rules: Rule[] = [
     name: '显示目标',
     enabled: true,
     priority: 1,
-    when: sourceCondition,
+    condition: sourceCondition,
     action: { id: 'a2', type: 'show', target: 'target' },
   },
 ]

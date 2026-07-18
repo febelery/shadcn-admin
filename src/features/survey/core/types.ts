@@ -208,12 +208,39 @@ export interface RuleAction {
   value?: unknown
 }
 
+export type RulePresenceConditionOperator = 'empty' | 'not_empty'
+
+export type RuleValueConditionOperator =
+  | 'eq'
+  | 'neq'
+  | 'gt'
+  | 'gte'
+  | 'lt'
+  | 'lte'
+  | 'contains'
+  | 'not_contains'
+
+export type RuleConditionOperator =
+  | RulePresenceConditionOperator
+  | RuleValueConditionOperator
+
+export type RuleCondition =
+  | {
+      questionId: string
+      operator: RulePresenceConditionOperator
+    }
+  | {
+      questionId: string
+      operator: RuleValueConditionOperator
+      value: string | number
+    }
+
 export interface Rule {
   id: string
   name: string
   enabled: boolean
   priority: number
-  when: string
+  condition: RuleCondition
   action: RuleAction
 }
 

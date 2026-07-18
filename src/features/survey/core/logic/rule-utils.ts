@@ -1,11 +1,5 @@
-import { createQuestionId, flattenQuestions } from '../schema-defaults'
-import type { Rule, RuleAction, RuleActionType, SurveySchema } from '../types'
-import { extractQuestionRefsFromWhen } from './condition-serializer'
-
-type RuleWithLegacyActions = Omit<Rule, 'action'> & {
-  action?: RuleAction
-  actions?: RuleAction[]
-}
+import { createQuestionId } from '../schema-defaults'
+import type { Rule, RuleAction, RuleActionType } from '../types'
 
 export function createRuleId() {
   return createQuestionId()
@@ -21,7 +15,7 @@ export function createEmptyRule(priority = 0): Rule {
     name: '新规则',
     enabled: true,
     priority,
-    when: '',
+    condition: { questionId: '', operator: 'not_empty' },
     action: createRuleAction('show'),
   }
 }
@@ -44,7 +38,7 @@ export function ruleReferencesQuestionAsSource(
   rule: Rule,
   questionId: string
 ): boolean {
-  return extractQuestionRefsFromWhen(rule.when).includes(questionId)
+  return rule.condition.questionId === questionId
 }
 
 /** 规则是否以某题为动作目标 */
@@ -78,36 +72,6 @@ export function ruleReferencesAnyQuestion(
 
 export function normalizeRulePriorities(rules: Rule[]): Rule[] {
   return rules.map((rule, priority) => ({ ...rule, priority }))
-}
-
-function isActionStructurallyValid(
-  action: RuleAction,
-  questionIds: ReadonlySet<string>
-): boolean {
-  if (action.type === 'end') return true
-  if (ruleActionTargetsQuestion(action.type)) {
-    return !!action.target && questionIds.has(action.target)
-  }
-  return false
-}
-
-export function sanitizeRulesForSchema(schema: SurveySchema): Rule[] {
-  const questionIds = new Set(flattenQuestions(schema).map((q) => q.id))
-
-  const rules = (schema.rules as unknown as RuleWithLegacyActions[]).flatMap(
-    (rule) => {
-      const sourceRefs = extractQuestionRefsFromWhen(rule.when)
-      if (sourceRefs.some((id) => !questionIds.has(id))) return []
-
-      const action = rule.action ?? rule.actions?.[0]
-      if (!action || !isActionStructurallyValid(action, questionIds)) return []
-
-      const { actions: _legacyActions, action: _legacyAction, ...rest } = rule
-      return [{ ...rest, action }]
-    }
-  )
-
-  return normalizeRulePriorities(rules)
 }
 
 export function removeRulesReferencingQuestions(

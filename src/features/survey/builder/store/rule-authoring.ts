@@ -1,5 +1,4 @@
-import { analyseSurvey, type StaticIssue } from '../../core/expression/analyzer'
-import { extractQuestionRefsFromWhen } from '../../core/logic/condition-serializer'
+import { analyseSurvey, type StaticIssue } from '../../core/logic/analyzer'
 import { canUseQuestionAsRuleSource } from '../../core/logic/rule-capabilities'
 import {
   EDITABLE_RULE_ACTION_TYPES,
@@ -21,6 +20,7 @@ import type {
   Rule,
   RuleAction,
   RuleActionType,
+  RuleCondition,
   SurveySchema,
 } from '../../core/types'
 import { getQuestionReferenceLabel } from '../../shared/question-numbering'
@@ -41,7 +41,7 @@ export type BeginRuleDraftResult =
   | 'not-found'
 
 export type RuleDraftChange =
-  | { type: 'condition'; when: string }
+  | { type: 'condition'; condition: RuleCondition }
   | { type: 'action-type'; actionType: RuleActionType }
   | { type: 'action'; action: RuleAction }
   | { type: 'name'; name: string }
@@ -59,7 +59,11 @@ export interface RuleDraftModel {
 }
 
 function cloneRule(rule: Rule): Rule {
-  return { ...rule, action: { ...rule.action } }
+  return {
+    ...rule,
+    condition: { ...rule.condition },
+    action: { ...rule.action },
+  }
 }
 
 function getTargetLabel(
@@ -89,7 +93,7 @@ function createDefaultRule(schema: SurveySchema): Rule {
     (question) => question.id === source.id
   )
   const target = questions[sourceIndex + 1]
-  rule.when = `{q.${source.id}} notEmpty`
+  rule.condition = { questionId: source.id, operator: 'not_empty' }
   rule.action = target
     ? createRuleAction('show', target.id)
     : createRuleAction('end')
@@ -126,7 +130,7 @@ export function deriveRuleDraftModel(
   const rule = draft.value
   const allowedSourceIds = getRuleSourceQuestionIds(questions)
   const sourceId = resolveRuleSourceId(
-    rule.when,
+    rule.condition,
     allowedSourceIds,
     allowedSourceIds[0]
   )
@@ -136,7 +140,7 @@ export function deriveRuleDraftModel(
     questions,
     rules: schema.rules,
     currentRuleId: rule.id,
-    when: rule.when,
+    condition: rule.condition,
   })
   const availableActionTypes: RuleActionType[] =
     available.length > 0 ? available : ['end']
@@ -149,7 +153,7 @@ export function deriveRuleDraftModel(
     questions,
     rules: schema.rules,
     currentRuleId: rule.id,
-    when: rule.when,
+    condition: rule.condition,
   })
   const action = normalizeRuleAction({
     action: rule.action,
@@ -160,7 +164,7 @@ export function deriveRuleDraftModel(
     questions,
     rules: schema.rules,
     currentRuleId: rule.id,
-    when: rule.when,
+    condition: rule.condition,
   })
   const generatedName = getAutoRuleName(
     action.type,
@@ -216,13 +220,13 @@ export function changeRuleDraft(
   }
 
   const questions = flattenQuestions(schema)
-  let when = draft.value.when
+  let condition = draft.value.condition
   let requestedType = currentModel.action.type
   let requestedTarget = currentModel.action.target
   let baseAction = currentModel.action
 
   if (change.type === 'condition') {
-    when = change.when
+    condition = change.condition
   } else if (change.type === 'action-type') {
     requestedType = change.actionType
   } else {
@@ -231,11 +235,11 @@ export function changeRuleDraft(
     baseAction = change.action
   }
 
-  const nextSourceFromWhen = extractQuestionRefsFromWhen(when)[0]
+  const requestedSourceId = condition.questionId
   const sourceId =
-    nextSourceFromWhen &&
-    currentModel.allowedSourceIds.includes(nextSourceFromWhen)
-      ? nextSourceFromWhen
+    requestedSourceId &&
+    currentModel.allowedSourceIds.includes(requestedSourceId)
+      ? requestedSourceId
       : currentModel.allowedSourceIds[0]
   const nextAction = normalizeRuleAction({
     action: baseAction,
@@ -246,14 +250,14 @@ export function changeRuleDraft(
     questions,
     rules: schema.rules,
     currentRuleId: draft.value.id,
-    when,
+    condition,
   })
 
   return {
     ...draft,
     value: {
       ...draft.value,
-      when,
+      condition,
       action: nextAction,
       name: resolveRuleName(schema, draft, currentModel, nextAction),
     },
@@ -266,7 +270,7 @@ export function hasRuleDraftChanges(draft: RuleDraft | null): boolean {
   return JSON.stringify(draft.original) !== JSON.stringify(draft.value)
 }
 
-export function buildRuleDraftPreviewSchema(
+export function buildRuleDraftPreviewDocument(
   schema: SurveySchema,
   draft: RuleDraft
 ): SurveySchema {
@@ -283,7 +287,7 @@ export function getRuleDraftIssues(
   schema: SurveySchema,
   draft: RuleDraft
 ): StaticIssue[] {
-  const preview = buildRuleDraftPreviewSchema(schema, draft)
+  const preview = buildRuleDraftPreviewDocument(schema, draft)
   return analyseSurvey(preview).filter((issue) => {
     if (issue.ruleId === draft.value.id) return true
     return (

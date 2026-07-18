@@ -1,3 +1,4 @@
+import { isPresenceConditionOperator } from '@/features/survey/core/logic/operators'
 import { createRuleAction } from '@/features/survey/core/logic/rule-utils'
 import {
   createEmptySurvey,
@@ -10,6 +11,7 @@ import type {
   ChoiceOption,
   QuestionElement,
   RuleActionType,
+  RuleConditionOperator,
   QuestionType,
   SurveyElement,
   SurveySchema,
@@ -54,12 +56,6 @@ function q(
 
 function divider(): SurveyElement {
   return { kind: 'divider', id: createQuestionId() }
-}
-
-function valueExpr(value?: string | number) {
-  if (value === undefined) return ''
-  if (typeof value === 'number') return String(value)
-  return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
 }
 
 /** 生成「云岭精品酒店 · 住客体验调研」——覆盖全部题型，文案按真实业务场景编写 */
@@ -362,18 +358,19 @@ export function createAllTypesDemoSurvey(): SurveySchema {
   }: {
     name: string
     source: QuestionElement
-    op: string
+    op: RuleConditionOperator
     value?: string | number
     action: RuleActionType
     target?: QuestionElement
   }) => {
-    const rhs = valueExpr(value)
     survey.rules.push({
       id: createQuestionId(),
       name,
       enabled: true,
       priority: survey.rules.length,
-      when: `{q.${source.id}} ${op}${rhs ? ` ${rhs}` : ''}`,
+      condition: isPresenceConditionOperator(op)
+        ? { questionId: source.id, operator: op }
+        : { questionId: source.id, operator: op, value: value ?? '' },
       action: createRuleAction(action, target?.id),
     })
   }
@@ -395,7 +392,7 @@ export function createAllTypesDemoSurvey(): SurveySchema {
   addRule({
     name: 'OTA 预订跳到设施使用',
     source: booking,
-    op: '=',
+    op: 'eq',
     value: optionId(booking, 'OTA'),
     action: 'jump_to_question',
     target: facilities,
@@ -403,7 +400,7 @@ export function createAllTypesDemoSurvey(): SurveySchema {
   addRule({
     name: '其他预订渠道收集详细反馈',
     source: booking,
-    op: '=',
+    op: 'eq',
     value: optionId(booking, '其他'),
     action: 'show',
     target: feedback,
@@ -411,7 +408,7 @@ export function createAllTypesDemoSurvey(): SurveySchema {
   addRule({
     name: '长住客显示同行信息',
     source: nights,
-    op: '>=',
+    op: 'gte',
     value: 5,
     action: 'show',
     target: family,
@@ -435,7 +432,7 @@ export function createAllTypesDemoSurvey(): SurveySchema {
   addRule({
     name: '喜欢米线时收集偏好',
     source: breakfast,
-    op: '=',
+    op: 'eq',
     value: optionId(breakfast, '米线'),
     action: 'show',
     target: feedback,
@@ -443,7 +440,7 @@ export function createAllTypesDemoSurvey(): SurveySchema {
   addRule({
     name: '低评分显示改进建议',
     source: rating,
-    op: '<=',
+    op: 'lte',
     value: 2,
     action: 'show',
     target: feedback,
@@ -451,7 +448,7 @@ export function createAllTypesDemoSurvey(): SurveySchema {
   addRule({
     name: '高服务溢价意愿显示手机号',
     source: slider,
-    op: '>=',
+    op: 'gte',
     value: 50,
     action: 'show',
     target: phone,
@@ -459,7 +456,7 @@ export function createAllTypesDemoSurvey(): SurveySchema {
   addRule({
     name: '低 NPS 显示改进建议',
     source: nps,
-    op: '<=',
+    op: 'lte',
     value: 6,
     action: 'show',
     target: feedback,
@@ -467,21 +464,21 @@ export function createAllTypesDemoSurvey(): SurveySchema {
   addRule({
     name: '已填写称呼显示邮箱',
     source: guestName,
-    op: 'notEmpty',
+    op: 'not_empty',
     action: 'show',
     target: email,
   })
   addRule({
     name: '已留邮箱显示手机号',
     source: email,
-    op: 'notEmpty',
+    op: 'not_empty',
     action: 'show',
     target: phone,
   })
   addRule({
     name: '已留手机号显示社交链接',
     source: phone,
-    op: 'notEmpty',
+    op: 'not_empty',
     action: 'show',
     target: url,
   })

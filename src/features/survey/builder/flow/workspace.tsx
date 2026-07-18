@@ -9,7 +9,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { useBuilderStore } from '../store'
-import { buildRuleDraftPreviewSchema } from '../store/rule-authoring'
+import { buildRuleDraftPreviewDocument } from '../store/rule-authoring'
 import { useRuleAuthoring } from '../store/use-rule-authoring'
 import { CenterPanel } from './center-panel'
 import { LeftPanel } from './left-panel'
@@ -27,21 +27,21 @@ export function FlowWorkspace() {
   const [project] = useState(createFlowProjector)
   const [projectPreview] = useState(createFlowProjector)
   const projection = useMemo(() => project(document), [document, project])
-  const previewSchema = useMemo(
+  const previewDocument = useMemo(
     () =>
-      ruleDraft ? buildRuleDraftPreviewSchema(document, ruleDraft) : document,
+      ruleDraft ? buildRuleDraftPreviewDocument(document, ruleDraft) : document,
     [document, ruleDraft]
   )
   const canvasProjection = useMemo(() => {
     if (!ruleDraft) return projection
-    const preview = projectPreview(previewSchema)
+    const preview = projectPreview(previewDocument)
     return {
       ...preview,
       // 草稿只叠加边，不参与正式拓扑布局和视口失效。
       layout: projection.layout,
       topologyKey: projection.topologyKey,
     }
-  }, [previewSchema, projection, ruleDraft, projectPreview])
+  }, [previewDocument, projection, ruleDraft, projectPreview])
 
   return (
     <>

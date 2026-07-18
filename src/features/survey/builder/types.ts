@@ -12,6 +12,8 @@ export type {
   QuestionConfig,
   RuleAction,
   RuleActionType,
+  RuleCondition,
+  RuleConditionOperator,
   QuestionType,
   MatrixColumn,
   MatrixRow,
@@ -28,13 +30,6 @@ export type {
 } from '../core/types'
 
 export type {
-  Condition,
-  ConditionGroup,
-} from '../core/logic/condition-serializer'
-
-export type { ConditionOperator } from '../core/logic/operators'
-
-export type {
   FlowGraph,
   FlowGraphNode,
   FlowGraphEdge,
@@ -42,7 +37,7 @@ export type {
   FlowEdgeKind,
 } from '../core/logic/flow-graph'
 
-export type { StaticIssue } from '../core/expression/analyzer'
+export type { StaticIssue } from '../core/logic/analyzer'
 
 export type { QuestionManifest } from '../shared/question-registry'
 export type PaletteTypeId = QuestionType | 'divider' | 'html_block'

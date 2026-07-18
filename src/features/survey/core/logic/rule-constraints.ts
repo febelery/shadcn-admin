@@ -3,9 +3,10 @@ import type {
   Rule,
   RuleAction,
   RuleActionType,
+  RuleCondition,
 } from '../types'
-import { extractQuestionRefsFromWhen } from './condition-serializer'
 import { canUseQuestionAsRuleSource } from './rule-capabilities'
+import { areRuleConditionsEqual } from './rule-condition'
 
 export const EDITABLE_RULE_ACTION_TYPES = [
   'show',
@@ -33,13 +34,12 @@ export function getRuleSourceQuestionIds(
 }
 
 export function resolveRuleSourceId(
-  when: string,
+  condition: RuleCondition,
   allowedSourceIds: readonly string[],
   fallbackSourceId?: string
 ): string | undefined {
-  const sourceFromWhen = extractQuestionRefsFromWhen(when)[0]
-  if (sourceFromWhen && allowedSourceIds.includes(sourceFromWhen)) {
-    return sourceFromWhen
+  if (allowedSourceIds.includes(condition.questionId)) {
+    return condition.questionId
   }
   if (fallbackSourceId && allowedSourceIds.includes(fallbackSourceId)) {
     return fallbackSourceId
@@ -61,16 +61,15 @@ export function getQuestionIdsAfter(
 export function getNavigationTargetLock(
   rules: Rule[],
   currentRuleId: string,
-  when: string
+  condition: RuleCondition
 ): NavigationTargetLock | null {
-  const source = extractQuestionRefsFromWhen(when)[0]
+  const source = condition.questionId
   if (!source) return null
 
   const targetKeys = new Set<string>()
   for (const rule of rules) {
     if (rule.id === currentRuleId || !rule.enabled) continue
-    if (rule.when.trim() !== when.trim()) continue
-    if (extractQuestionRefsFromWhen(rule.when)[0] !== source) continue
+    if (!areRuleConditionsEqual(rule.condition, condition)) continue
 
     const nav = rule.action
     if (nav.type !== 'jump_to_question' && nav.type !== 'end') continue
@@ -88,26 +87,20 @@ export function getRuleTargetQuestionIds({
   questions,
   rules = [],
   currentRuleId = '',
-  when = '',
+  condition,
 }: {
   type: RuleActionType
   sourceId?: string
   questions: QuestionElement[]
   rules?: Rule[]
   currentRuleId?: string
-  when?: string
+  condition: RuleCondition
 }): string[] {
   const laterIds = getQuestionIdsAfter(questions, sourceId)
 
-  if (type === 'show') return laterIds
-  if (type === 'hide') {
-    return laterIds.filter((id) => {
-      const q = questions.find((item) => item.id === id)
-      return q && !q.required
-    })
-  }
+  if (type === 'show' || type === 'hide') return laterIds
   if (type === 'jump_to_question') {
-    const lock = getNavigationTargetLock(rules, currentRuleId, when)
+    const lock = getNavigationTargetLock(rules, currentRuleId, condition)
     if (lock?.type === 'end') return []
     if (lock?.type === 'question') {
       return laterIds.includes(lock.target) ? [lock.target] : []
@@ -123,19 +116,19 @@ export function canUseRuleActionType({
   questions,
   rules,
   currentRuleId,
-  when,
+  condition,
 }: {
   type: RuleActionType
   sourceId?: string
   questions: QuestionElement[]
   rules?: Rule[]
   currentRuleId?: string
-  when?: string
+  condition: RuleCondition
 }): boolean {
   if (!sourceId) return false
   if (type === 'end') {
     return (
-      getNavigationTargetLock(rules ?? [], currentRuleId ?? '', when ?? '')
+      getNavigationTargetLock(rules ?? [], currentRuleId ?? '', condition)
         ?.type !== 'question'
     )
   }
@@ -146,7 +139,7 @@ export function canUseRuleActionType({
       questions,
       rules,
       currentRuleId,
-      when,
+      condition,
     }).length > 0
   )
 }
@@ -157,14 +150,14 @@ export function getAvailableRuleActionTypes({
   questions,
   rules,
   currentRuleId,
-  when,
+  condition,
 }: {
   requestedTypes?: readonly RuleActionType[]
   sourceId?: string
   questions: QuestionElement[]
   rules?: Rule[]
   currentRuleId?: string
-  when?: string
+  condition: RuleCondition
 }): EditableRuleActionType[] {
   return requestedTypes.filter(isEditableRuleActionType).filter((type) =>
     canUseRuleActionType({
@@ -173,7 +166,7 @@ export function getAvailableRuleActionTypes({
       questions,
       rules,
       currentRuleId,
-      when,
+      condition,
     })
   )
 }
@@ -187,7 +180,7 @@ export function normalizeRuleAction({
   questions,
   rules,
   currentRuleId,
-  when,
+  condition,
 }: {
   action: RuleAction
   requestedType: RuleActionType
@@ -197,7 +190,7 @@ export function normalizeRuleAction({
   questions: QuestionElement[]
   rules?: Rule[]
   currentRuleId?: string
-  when?: string
+  condition: RuleCondition
 }): RuleAction {
   const available = getAvailableRuleActionTypes({
     requestedTypes: fallbackTypes,
@@ -205,7 +198,7 @@ export function normalizeRuleAction({
     questions,
     rules,
     currentRuleId,
-    when,
+    condition,
   })
   const type = available.includes(requestedType as EditableRuleActionType)
     ? requestedType
@@ -216,7 +209,7 @@ export function normalizeRuleAction({
     questions,
     rules,
     currentRuleId,
-    when,
+    condition,
   })
   const target =
     type === 'end'

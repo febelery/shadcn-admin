@@ -1,4 +1,4 @@
-import { analyseSurvey, type StaticIssue } from '../../core/expression/analyzer'
+import { analyseSurvey, type StaticIssue } from '../../core/logic/analyzer'
 import {
   buildFlowGraph,
   layoutFlowGraphWithMeta,

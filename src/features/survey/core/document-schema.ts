@@ -43,6 +43,27 @@ const ruleActionSchema = z.object({
   value: z.unknown().optional(),
 })
 
+const ruleConditionSchema = z.union([
+  z.object({
+    questionId: z.string().min(1),
+    operator: z.enum(['empty', 'not_empty']),
+  }),
+  z.object({
+    questionId: z.string().min(1),
+    operator: z.enum([
+      'eq',
+      'neq',
+      'gt',
+      'gte',
+      'lt',
+      'lte',
+      'contains',
+      'not_contains',
+    ]),
+    value: z.union([z.string(), z.number()]),
+  }),
+])
+
 const questionElementSchema = z.object({
   kind: z.literal('question'),
   id: z.string(),
@@ -138,7 +159,7 @@ const surveyDocumentSchema = z.object({
       name: z.string(),
       enabled: z.boolean(),
       priority: z.number(),
-      when: z.string(),
+      condition: ruleConditionSchema,
       action: ruleActionSchema,
     })
   ),

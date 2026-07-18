@@ -1,4 +1,4 @@
-import type { QuestionElement } from '../types'
+import type { QuestionElement, RuleCondition } from '../types'
 import type { ConditionOperator } from './operators'
 
 /** 判定回答是否为空 */
@@ -23,6 +23,10 @@ export function normalizeAnswerValue(
   ) {
     const num = Number(value)
     return Number.isFinite(num) ? num : value
+  }
+  if (question.type === 'date') {
+    const timestamp = Date.parse(String(value))
+    return Number.isNaN(timestamp) ? value : timestamp
   }
   return String(value)
 }
@@ -52,8 +56,12 @@ export function evaluateCondition(
   }
 
   if (typeof normalizedAnswer === 'number') {
-    const expected = Number(value)
-    const expected2 = Number(value2)
+    const normalizeExpected = (candidate: unknown) =>
+      question.type === 'date'
+        ? Date.parse(String(candidate))
+        : Number(candidate)
+    const expected = normalizeExpected(value)
+    const expected2 = normalizeExpected(value2)
     if (!Number.isFinite(expected)) return false
     switch (operator) {
       case 'eq':
@@ -93,4 +101,17 @@ export function evaluateCondition(
     default:
       return false
   }
+}
+
+export function evaluateRuleCondition(
+  answer: unknown,
+  question: QuestionElement,
+  condition: RuleCondition
+): boolean {
+  return evaluateCondition(
+    answer,
+    question,
+    condition.operator,
+    'value' in condition ? condition.value : undefined
+  )
 }

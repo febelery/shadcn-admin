@@ -1,5 +1,9 @@
 import { getQuestionDefinition } from '../question-definitions'
-import type { QuestionType } from '../types'
+import type {
+  QuestionType,
+  RuleConditionOperator,
+  RulePresenceConditionOperator,
+} from '../types'
 
 export type ConditionOperator =
   | 'eq'
@@ -58,7 +62,9 @@ const NUMBER_OPS: OperatorDef[] = [
 ]
 
 /** 按题型返回可用条件运算符 */
-export function getOperatorsForQuestionType(type: QuestionType): OperatorDef[] {
+export function getSegmentOperatorsForQuestionType(
+  type: QuestionType
+): OperatorDef[] {
   switch (getQuestionDefinition(type).operatorProfile) {
     case 'choice':
       return CHOICE_OPS
@@ -87,21 +93,23 @@ export function getOperatorsForQuestionType(type: QuestionType): OperatorDef[] {
   }
 }
 
-/** 是否支持可视化条件构建（MVP 题型） */
-export function supportsVisualCondition(type: QuestionType): boolean {
-  return getQuestionDefinition(type).ruleSource
+export function getRuleOperatorsForQuestionType(
+  type: QuestionType
+): (OperatorDef & { value: RuleConditionOperator })[] {
+  return getSegmentOperatorsForQuestionType(type).filter(
+    (operator): operator is OperatorDef & { value: RuleConditionOperator } =>
+      isRuleConditionOperator(operator.value)
+  )
 }
 
-export const OPERATOR_TO_EXPR: Record<ConditionOperator, string> = {
-  eq: '=',
-  neq: '!=',
-  gt: '>',
-  gte: '>=',
-  lt: '<',
-  lte: '<=',
-  contains: 'contains',
-  not_contains: 'not contains',
-  empty: 'empty',
-  not_empty: 'notEmpty',
-  between: 'between',
+export function isRuleConditionOperator(
+  operator: ConditionOperator
+): operator is RuleConditionOperator {
+  return operator !== 'between'
+}
+
+export function isPresenceConditionOperator(
+  operator: RuleConditionOperator
+): operator is RulePresenceConditionOperator {
+  return operator === 'empty' || operator === 'not_empty'
 }

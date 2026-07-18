@@ -95,7 +95,7 @@ describe('builder rule authoring interface', () => {
     store.getState().beginRuleDraft({ type: 'new' })
     store.getState().changeRuleDraft({
       type: 'condition',
-      when: '{q.missing} notEmpty',
+      condition: { questionId: 'missing', operator: 'not_empty' },
     })
 
     expect(store.getState().applyRuleDraft()).toBe(false)

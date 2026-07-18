@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { serializeCondition } from '../../core/logic/condition-serializer'
 import type { QuestionElement, Rule, SurveySchema } from '../../core/types'
 import { createFlowProjector } from './projection'
 
@@ -25,11 +24,7 @@ function rule(overrides: Partial<Rule> = {}): Rule {
     name: '跳到第二题',
     enabled: true,
     priority: 0,
-    when: serializeCondition({
-      source: 'q',
-      ref: 'q1',
-      operator: 'not_empty',
-    }),
+    condition: { questionId: 'q1', operator: 'not_empty' },
     action: {
       id: 'action-1',
       type: 'jump_to_question',
@@ -138,12 +133,11 @@ describe('createFlowProjector', () => {
     const schema = survey()
     const before = project(schema)
     const changedRule = rule({
-      when: serializeCondition({
-        source: 'q',
-        ref: 'q1',
+      condition: {
+        questionId: 'q1',
         operator: 'eq',
         value: 'q1-yes',
-      }),
+      },
     })
     const after = project({ ...schema, rules: [changedRule] })
 
@@ -171,7 +165,7 @@ describe('createFlowProjector', () => {
     expect(projection.issuesByRule.get('rule-1')).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          code: 'jump_question_target',
+          code: 'action_target',
           severity: 'error',
         }),
       ])

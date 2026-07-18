@@ -3,7 +3,7 @@ import type {
   SegmentConditionOperator,
   SegmentDefinition,
 } from '@/features/survey/core/analysis-types'
-import { getOperatorsForQuestionType } from '@/features/survey/core/logic/operators'
+import { getSegmentOperatorsForQuestionType } from '@/features/survey/core/logic/operators'
 import { isChoiceQuestionType } from '@/features/survey/core/question-capabilities'
 import type {
   QuestionElement,
@@ -64,7 +64,7 @@ export function createSegment(index: number): SegmentDefinition {
 export function getOperators(
   question: QuestionElement
 ): SegmentConditionOperator[] {
-  return getOperatorsForQuestionType(question.type).map(
+  return getSegmentOperatorsForQuestionType(question.type).map(
     (o) => o.value as SegmentConditionOperator
   )
 }

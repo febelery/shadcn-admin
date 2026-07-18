@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { parseSurveyDocument } from '../core/document-schema'
-import { analyseSurvey } from '../core/expression/analyzer'
+import { analyseSurvey } from '../core/logic/analyzer'
 import { createEmptySurvey } from '../core/schema-defaults'
 import type { SurveySchema } from '../core/types'
 import {

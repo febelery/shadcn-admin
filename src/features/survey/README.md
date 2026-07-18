@@ -16,4 +16,6 @@
 
 规则与问卷结构是事实来源，流程图是派生视图。规则编辑使用显式草稿事务；未来 XYFlow 连线只创建规则草稿意图。
 
+规则条件持久化为 `condition.questionId/operator/value`，不保存或解析字符串 DSL。规则能力必须同时覆盖文档 schema、创作 UI、静态分析和填写端求值。
+
 填写运行时位于独立 consumer app。开发期 HTTP 实现在 `src/mocks/handlers/survey.ts`。
