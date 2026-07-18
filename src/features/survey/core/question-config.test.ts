@@ -82,6 +82,12 @@ describe('question config module', () => {
     ).toThrow()
   })
 
+  it('rejects the removed datetime mode without an instant contract', () => {
+    expect(() =>
+      parseQuestionConfig('date', { dateMode: 'datetime' })
+    ).toThrow()
+  })
+
   it('keeps multiple-choice limits within the edited option set', () => {
     const multipleChoice = createQuestion('multiple_choice')
     multipleChoice.config.maxSelect = 2

@@ -120,7 +120,6 @@ interface QuestionConfigFields {
   minLength?: number
   maxLength?: number
   textareaRows?: number
-  dateMode?: 'date' | 'datetime'
   minDate?: string
   maxDate?: string
   npsLeftLabel?: string
@@ -145,7 +144,6 @@ type TextConfig = {
 }
 
 type DateConfig = {
-  dateMode?: 'date' | 'datetime'
   minDate?: string
   maxDate?: string
   placeholder?: string

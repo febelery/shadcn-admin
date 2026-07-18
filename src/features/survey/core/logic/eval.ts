@@ -1,12 +1,6 @@
+import { isAnswerEmpty } from '../answer-validation'
 import type { QuestionElement, RuleCondition } from '../types'
 import type { ConditionOperator } from './operators'
-
-/** 判定回答是否为空 */
-export function isEmptyAnswer(value: unknown): boolean {
-  if (value === undefined || value === null || value === '') return true
-  if (Array.isArray(value)) return value.length === 0
-  return false
-}
 
 /** 统一规范化回答值（例如处理数值型、数组型等） */
 export function normalizeAnswerValue(
@@ -39,9 +33,9 @@ export function evaluateCondition(
   value: unknown,
   value2?: unknown
 ): boolean {
-  if (operator === 'empty') return isEmptyAnswer(answer)
-  if (operator === 'not_empty') return !isEmptyAnswer(answer)
-  if (isEmptyAnswer(answer)) return false
+  if (operator === 'empty') return isAnswerEmpty(answer)
+  if (operator === 'not_empty') return !isAnswerEmpty(answer)
+  if (isAnswerEmpty(answer)) return false
 
   const normalizedAnswer = normalizeAnswerValue(question, answer)
 

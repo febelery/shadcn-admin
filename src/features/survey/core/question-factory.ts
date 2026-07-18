@@ -59,7 +59,7 @@ const QUESTION_FACTORIES: QuestionFactoryMap = {
     baseQuestion('textarea', '多行文本', { placeholder: '请输入' }),
   number: () => baseQuestion('number', '数字题', {}),
   email: () => baseQuestion('email', '邮箱', {}),
-  phone: () => baseQuestion('phone', '手机号', {}),
+  phone: () => baseQuestion('phone', '电话号码', {}),
   url: () => baseQuestion('url', '网址', {}),
   date: () => baseQuestion('date', '日期', {}),
   date_range: () => baseQuestion('date_range', '日期范围', {}),

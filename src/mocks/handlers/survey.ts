@@ -18,6 +18,7 @@ import type {
   SurveySegmentAnalysisResult,
   SegmentDefinition,
 } from '@/features/survey/core/analysis-types'
+import { validateQuestionAnswer } from '@/features/survey/core/answer-validation'
 import {
   countQuestions,
   flattenQuestions,
@@ -638,7 +639,16 @@ function seedSurveyRecords(surveyId: string, document: SurveyDocument) {
     (_, index) => {
       const answers: Record<string, unknown> = {}
       for (const question of questions) {
-        answers[question.id] = buildSampleAnswer(question, index)
+        const answer = buildSampleAnswer(question, index)
+        const validation = validateQuestionAnswer(question, answer, {
+          visible: true,
+        })
+        if (!validation.valid) {
+          throw new Error(
+            `Mock answer violates ${question.type} contract: ${JSON.stringify(validation.issues)}`
+          )
+        }
+        answers[question.id] = answer
       }
       const dayOffset = dayOffsets[index]
       const completed = new Date(Date.now() - dayOffset * 24 * 60 * 60 * 1000)

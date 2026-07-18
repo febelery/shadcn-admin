@@ -137,7 +137,7 @@ export function createAllTypesDemoSurvey(): SurveyDocument {
       },
     }),
     q('date', '您的入住日期是？', {
-      config: { dateMode: 'date' },
+      config: {},
     }),
     q('date_range', '若计划再次入住，您偏好的时段是？', {
       config: {

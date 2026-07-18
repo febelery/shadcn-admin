@@ -129,7 +129,6 @@ const numberRangeSchema = z
 
 const dateSchema = z
   .object({
-    dateMode: z.enum(['date', 'datetime']).optional(),
     minDate: z.iso.date().optional(),
     maxDate: z.iso.date().optional(),
     placeholder: z.string().optional(),

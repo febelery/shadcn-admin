@@ -499,25 +499,6 @@ export function DateInspectorFields({
 }) {
   return (
     <InspectorFormGroup title='日期设置'>
-      <div className='flex flex-col gap-1'>
-        <Label className='text-muted-foreground text-xs font-medium'>
-          精度
-        </Label>
-        <Select
-          value={config.dateMode ?? 'date'}
-          onValueChange={(v) =>
-            patchConfig({ dateMode: v as 'date' | 'datetime' })
-          }
-        >
-          <SelectTrigger className={cn('h-8', 'text-xs leading-none')}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='date'>仅日期</SelectItem>
-            <SelectItem value='datetime'>日期 + 时间</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
       <div className='grid grid-cols-2 gap-2'>
         <div className='flex flex-col gap-1'>
           <Label className='text-muted-foreground text-xs font-medium'>

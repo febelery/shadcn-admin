@@ -12,7 +12,7 @@ const QUESTION_TYPE_LABELS = {
   textarea: '多行文本',
   number: '数字',
   email: '邮箱',
-  phone: '手机号',
+  phone: '电话号码',
   url: '网址',
   date: '日期',
   date_range: '日期范围',

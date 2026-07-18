@@ -22,7 +22,7 @@
 
 当前文档契约是单页 `elements[]`，不保存没有创作界面的 page/section 占位结构。需要多页时，必须先建立完整的页面创作与跨页导航模型。`schemaVersion` 表示文档格式，`revision` 表示发布修订，两者不可复用。
 
-`document-schema.ts` 严格拒绝未知持久化字段；`document-identities.ts` 保证 element、rule 与 action 在各自命名空间内唯一。重复身份不能进入 Builder。没有稳定答案身份或完整运行时契约的 fill-in、signature、file upload、dynamic panel、variable、字符串 validator、presentation 与 extensions 不属于当前文档。
+`document-schema.ts` 严格拒绝未知持久化字段；`document-identities.ts` 保证 element、rule 与 action 在各自命名空间内唯一。重复身份不能进入 Builder。`answer-validation.ts` 是题目答案语义的唯一可执行接口，规则空值判断与 Mock 记录不能各自定义另一套答案含义。没有稳定答案身份或完整运行时契约的 fill-in、signature、file upload、dynamic panel、variable、字符串 validator、presentation 与 extensions 不属于当前文档。
 
 题型与 config 通过 `QuestionConfigByType` 判别联合建模。`question-config.ts` 统一负责持久化解析、字段所有权和依赖数值的原子归一化；Store 不直接合并任意 config。
 
@@ -36,6 +36,6 @@
 
 规则条件持久化为 `condition.questionId/operator/value`，不保存或解析字符串 DSL。规则能力必须同时覆盖文档 schema、创作 UI、静态分析和填写端求值。
 
-选择、排序、级联、矩阵与 Likert 答案使用稳定 ID，label 仅用于展示。完整约定见 `core/ANSWER-CONTRACT.md`。
+选择、排序、级联、矩阵与 Likert 答案使用稳定 ID，label 仅用于展示。日期题只保存 ISO calendar date；没有独立 instant 与 timezone 契约时不提供 datetime。完整约定见 `core/ANSWER-CONTRACT.md`。
 
 填写运行时位于独立 consumer app。开发期 HTTP 实现在 `src/mocks/handlers/survey.ts`。
