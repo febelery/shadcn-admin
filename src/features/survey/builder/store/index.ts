@@ -5,11 +5,12 @@ import {
   normalizeRulePriorities,
   removeRulesReferencingQuestions,
 } from '../../core/logic/rule-utils'
+import { applyQuestionConfigPatch } from '../../core/question-config'
+import { getQuestionDefinition } from '../../core/question-definitions'
 import {
   createQuestionId,
   DEFAULT_SUBMISSION,
 } from '../../core/schema-defaults'
-import { getQuestionManifest } from '../../shared/question-registry'
 import type { SurveySchema, SurveyElement } from '../types'
 import {
   findSection,
@@ -92,9 +93,8 @@ export function createBuilderStore(initialDocument: SurveySchema) {
       addQuestion: (sectionId, type, index) =>
         set((s) => {
           const sec = findSection(s.document, sectionId)
-          const manifest = getQuestionManifest(type)
-          if (!sec || !manifest) return
-          const el = manifest.create()
+          if (!sec) return
+          const el = getQuestionDefinition(type).create()
           insertAt(sec.elements, el, index)
           s.selectedSectionId = sectionId
           s.selectedElementId = el.id
@@ -157,7 +157,7 @@ export function createBuilderStore(initialDocument: SurveySchema) {
           const sec = findSection(s.document, sectionId)
           const el = sec?.elements.find((e) => e.id === elementId)
           if (el?.kind !== 'question') return
-          Object.assign(el.config, patch)
+          el.config = applyQuestionConfigPatch(el, patch)
           s.isDirty = true
         }),
 

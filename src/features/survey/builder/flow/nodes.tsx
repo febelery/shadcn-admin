@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { cn } from '@/lib/utils'
-import { getQuestionManifest } from '../../shared/question-registry'
+import { getQuestionUiManifest } from '../../shared/question-ui-registry'
 import type { FlowGraphNode, QuestionType } from '../types'
 
 export type NodeData = FlowGraphNode & {
@@ -75,7 +75,7 @@ export const GraphNode = memo(function GraphNode({
   }
 
   const manifest = data.questionType
-    ? getQuestionManifest(data.questionType as QuestionType)
+    ? getQuestionUiManifest(data.questionType as QuestionType)
     : undefined
   const statusText = data.hasError ? '错误' : data.hasWarn ? '警告' : null
 

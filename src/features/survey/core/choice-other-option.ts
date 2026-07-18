@@ -19,19 +19,19 @@ export function partitionChoiceOptions(options: ChoiceOption[]) {
   return { regular, other }
 }
 
-/** 根据开关同步「其他」选项 */
-export function syncOtherChoiceOption(
+/** 设置选项列表是否包含「其他」自填项。 */
+export function setOtherChoiceOptionEnabled(
   options: ChoiceOption[],
-  allowOther: boolean,
-  otherLabel = DEFAULT_OTHER_LABEL
+  enabled: boolean,
+  label = DEFAULT_OTHER_LABEL
 ): ChoiceOption[] {
   const { regular, other } = partitionChoiceOptions(options)
-  if (!allowOther) return regular
+  if (!enabled) return regular
   return [
     ...regular,
     other ?? {
       id: createQuestionId(),
-      label: otherLabel,
+      label,
       isOther: true,
     },
   ]

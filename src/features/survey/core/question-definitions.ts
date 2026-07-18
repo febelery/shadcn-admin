@@ -1,5 +1,5 @@
 import { createQuestionId } from './schema-defaults'
-import type { QuestionElement, QuestionType } from './types'
+import type { QuestionConfig, QuestionElement, QuestionType } from './types'
 
 export type QuestionCategory = '选择' | '输入' | '评价' | '结构' | '媒体'
 export type QuestionFamily =
@@ -17,8 +17,8 @@ export type OperatorProfile =
   | 'date'
   | 'none'
 
-export interface QuestionDefinition {
-  type: QuestionType
+export interface QuestionDefinition<Type extends QuestionType = QuestionType> {
+  type: Type
   label: string
   category: QuestionCategory
   family: QuestionFamily
@@ -27,14 +27,14 @@ export interface QuestionDefinition {
   operatorProfile: OperatorProfile
   ruleSource: boolean
   ruleSourceUnavailableReason?: string
-  create: () => QuestionElement
+  create: () => QuestionElement<Type>
 }
 
-function baseQuestion(
-  type: QuestionType,
+function baseQuestion<Type extends QuestionType>(
+  type: Type,
   title: string,
-  config: QuestionElement['config'] = {}
-): QuestionElement {
+  config: QuestionConfig<Type>
+): QuestionElement<Type> {
   return {
     kind: 'question',
     id: createQuestionId(),
@@ -42,7 +42,7 @@ function baseQuestion(
     title,
     required: false,
     config,
-  }
+  } as QuestionElement<Type>
 }
 
 const defaultOptions = () => [
@@ -197,7 +197,7 @@ export const QUESTION_DEFINITIONS = [
     inspectorDefaultOpen: false,
     operatorProfile: 'number',
     ruleSource: true,
-    create: () => baseQuestion('number', '数字题'),
+    create: () => baseQuestion('number', '数字题', {}),
   },
   {
     type: 'email',
@@ -208,7 +208,7 @@ export const QUESTION_DEFINITIONS = [
     inspectorDefaultOpen: false,
     operatorProfile: 'text',
     ruleSource: true,
-    create: () => baseQuestion('email', '邮箱'),
+    create: () => baseQuestion('email', '邮箱', {}),
   },
   {
     type: 'phone',
@@ -219,7 +219,7 @@ export const QUESTION_DEFINITIONS = [
     inspectorDefaultOpen: false,
     operatorProfile: 'text',
     ruleSource: true,
-    create: () => baseQuestion('phone', '手机号'),
+    create: () => baseQuestion('phone', '手机号', {}),
   },
   {
     type: 'url',
@@ -230,7 +230,7 @@ export const QUESTION_DEFINITIONS = [
     inspectorDefaultOpen: false,
     operatorProfile: 'text',
     ruleSource: true,
-    create: () => baseQuestion('url', '网址'),
+    create: () => baseQuestion('url', '网址', {}),
   },
   {
     type: 'date',
@@ -241,7 +241,7 @@ export const QUESTION_DEFINITIONS = [
     inspectorDefaultOpen: false,
     operatorProfile: 'date',
     ruleSource: true,
-    create: () => baseQuestion('date', '日期'),
+    create: () => baseQuestion('date', '日期', {}),
   },
   {
     type: 'date_range',
@@ -252,7 +252,7 @@ export const QUESTION_DEFINITIONS = [
     inspectorDefaultOpen: false,
     operatorProfile: 'none',
     ruleSource: false,
-    create: () => baseQuestion('date_range', '日期范围'),
+    create: () => baseQuestion('date_range', '日期范围', {}),
   },
   {
     type: 'fill_in',
@@ -264,7 +264,7 @@ export const QUESTION_DEFINITIONS = [
     operatorProfile: 'none',
     ruleSource: false,
     ruleSourceUnavailableReason: unsupported.fill,
-    create: () => baseQuestion('fill_in', '姓名（）年龄（）'),
+    create: () => baseQuestion('fill_in', '姓名___，年龄___', {}),
   },
   {
     type: 'rating',
@@ -300,8 +300,6 @@ export const QUESTION_DEFINITIONS = [
     ruleSource: true,
     create: () =>
       baseQuestion('nps', '您有多大可能向他人推荐我们？', {
-        scaleMin: 0,
-        scaleMax: 10,
         npsLeftLabel: '完全不可能',
         npsRightLabel: '非常可能',
       }),
@@ -364,7 +362,7 @@ export const QUESTION_DEFINITIONS = [
     operatorProfile: 'none',
     ruleSource: false,
     ruleSourceUnavailableReason: unsupported.signature,
-    create: () => baseQuestion('signature', '签名'),
+    create: () => baseQuestion('signature', '签名', {}),
   },
 ] as const satisfies readonly QuestionDefinition[]
 
@@ -372,8 +370,14 @@ const definitionByType = new Map(
   QUESTION_DEFINITIONS.map((item) => [item.type, item])
 )
 
-export function getQuestionDefinition(type: QuestionType): QuestionDefinition {
+export function getQuestionDefinition<Type extends QuestionType>(
+  type: Type
+): QuestionDefinition<Type> {
   const definition = definitionByType.get(type)
   if (!definition) throw new Error(`未注册题型：${type}`)
-  return definition
+  return definition as QuestionDefinition<Type>
+}
+
+export function getQuestionTypeLabel(type: QuestionType): string {
+  return getQuestionDefinition(type).label
 }

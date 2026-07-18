@@ -6,11 +6,15 @@ import {
   DEFAULT_OTHER_LABEL,
   isOtherOption,
   partitionChoiceOptions,
-  syncOtherChoiceOption,
+  setOtherChoiceOptionEnabled,
 } from '@/features/survey/core/choice-other-option'
 import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import { LABEL_LIMITS } from '../../store'
-import type { ChoiceOption, QuestionConfig, QuestionElement } from '../../types'
+import type {
+  ChoiceOption,
+  QuestionConfigPatch,
+  QuestionElement,
+} from '../../types'
 import { InlineEditable } from '../inline-editable'
 import { useChoiceOptions } from './use-choice-options'
 
@@ -19,8 +23,8 @@ type Props = {
   mode: 'single' | 'multiple'
   options: ChoiceOption[]
   onChange: (options: ChoiceOption[]) => void
-  onConfigChange?: (patch: Partial<QuestionConfig>) => void
-  showAllowOther?: boolean
+  onConfigChange?: (patch: QuestionConfigPatch) => void
+  showOtherOptionToggle?: boolean
 }
 
 /** 单选 / 多选 — 画布选项列表 */
@@ -30,13 +34,11 @@ export function SurfaceChoiceList({
   options,
   onChange,
   onConfigChange,
-  showAllowOther = false,
+  showOtherOptionToggle = false,
 }: Props) {
-  const {
-    allowOther = false,
-    otherLabel = DEFAULT_OTHER_LABEL,
-    optionLayout,
-  } = question.config
+  const { optionLayout } = question.config
+  const otherOption = partitionChoiceOptions(options).other
+  const otherEnabled = otherOption !== undefined
 
   const {
     setEditorRef,
@@ -48,18 +50,14 @@ export function SurfaceChoiceList({
   } = useChoiceOptions({
     options,
     onChange,
-    allowOther,
-    otherLabel,
   })
 
-  const toggleAllowOther = () => {
-    const on = !allowOther
+  const toggleOtherOption = () => {
     onConfigChange?.({
-      allowOther: on,
-      options: syncOtherChoiceOption(
-        partitionChoiceOptions(options).regular,
-        on,
-        otherLabel
+      options: setOtherChoiceOptionEnabled(
+        options,
+        !otherEnabled,
+        DEFAULT_OTHER_LABEL
       ),
     })
   }
@@ -130,12 +128,12 @@ export function SurfaceChoiceList({
           </button>
         </li>
       </ul>
-      {showAllowOther && onConfigChange ? (
+      {showOtherOptionToggle && onConfigChange ? (
         <label className='text-muted-foreground flex cursor-pointer items-center gap-2 text-sm leading-relaxed'>
           <Checkbox
-            checked={allowOther}
+            checked={otherEnabled}
             data-surface-chrome
-            onCheckedChange={() => toggleAllowOther()}
+            onCheckedChange={toggleOtherOption}
           />
           允许「其他」自填
         </label>

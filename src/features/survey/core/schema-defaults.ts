@@ -1,4 +1,4 @@
-import { SURVEY_DOCUMENT_SCHEMA_VERSION } from './document-schema'
+import { SURVEY_DOCUMENT_SCHEMA_VERSION } from './document-version'
 import type {
   SubmissionConfig,
   SurveySchema,

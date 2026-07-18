@@ -1,33 +1,7 @@
 import { z } from 'zod'
-import type { SurveySchema } from './types'
-
-export const SURVEY_DOCUMENT_SCHEMA_VERSION = 1
-
-const questionTypeValues = [
-  'single_choice',
-  'multiple_choice',
-  'dropdown',
-  'ranking',
-  'matrix_single',
-  'matrix_multiple',
-  'cascader',
-  'text',
-  'textarea',
-  'number',
-  'email',
-  'phone',
-  'url',
-  'date',
-  'date_range',
-  'fill_in',
-  'rating',
-  'slider',
-  'nps',
-  'likert',
-  'dynamic_panel',
-  'file_upload',
-  'signature',
-] as const
+import { SURVEY_DOCUMENT_SCHEMA_VERSION } from './document-version'
+import { getQuestionConfigIssues } from './question-config'
+import { QUESTION_TYPES, type SurveySchema } from './types'
 
 const ruleActionTypeValues = [
   'show',
@@ -64,20 +38,55 @@ const ruleConditionSchema = z.union([
   }),
 ])
 
-const questionElementSchema = z.object({
-  kind: z.literal('question'),
-  id: z.string(),
-  type: z.enum(questionTypeValues),
-  title: z.string(),
-  description: z.string().optional(),
-  required: z.boolean(),
-  numbering: z
-    .object({
-      show: z.boolean().optional(),
-    })
-    .optional(),
-  config: z.record(z.string(), z.unknown()),
-})
+const questionElementSchema = z
+  .object({
+    kind: z.literal('question'),
+    id: z.string(),
+    type: z.enum(QUESTION_TYPES),
+    title: z.string(),
+    description: z.string().optional(),
+    required: z.boolean(),
+    numbering: z
+      .object({
+        show: z.boolean().optional(),
+      })
+      .optional(),
+    config: z.unknown(),
+  })
+  .strict()
+  .superRefine((question, context) => {
+    for (const issue of getQuestionConfigIssues(
+      question.type,
+      question.config
+    )) {
+      context.addIssue({
+        code: 'custom',
+        path: ['config', ...issue.path],
+        message: issue.message,
+      })
+    }
+
+    if (
+      question.type === 'dynamic_panel' &&
+      question.config &&
+      typeof question.config === 'object' &&
+      'templateElements' in question.config &&
+      Array.isArray(question.config.templateElements)
+    ) {
+      question.config.templateElements.forEach((element, index) => {
+        const result = surveyElementSchema.safeParse(element)
+        if (!result.success) {
+          for (const issue of result.error.issues) {
+            context.addIssue({
+              code: 'custom',
+              path: ['config', 'templateElements', index, ...issue.path],
+              message: issue.message,
+            })
+          }
+        }
+      })
+    }
+  })
 
 const surveyElementSchema: z.ZodType<unknown> = z.lazy(() =>
   z.discriminatedUnion('kind', [

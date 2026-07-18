@@ -24,10 +24,9 @@ import {
 } from 'lucide-react'
 import {
   QUESTION_DEFINITIONS,
-  getQuestionDefinition,
   type QuestionCategory,
 } from '../core/question-definitions'
-import type { QuestionElement, QuestionType } from '../core/types'
+import type { QuestionType } from '../core/types'
 
 export const QUESTION_CATEGORIES = [
   '选择',
@@ -64,26 +63,23 @@ const ICONS: Record<QuestionType, LucideIcon> = {
   signature: PenLine,
 }
 
-export interface QuestionManifest {
+export interface QuestionUiManifest {
   type: QuestionType
   label: string
   category: QuestionCategory
   icon: LucideIcon
-  create: () => QuestionElement
 }
 
-export const QUESTION_MANIFESTS: QuestionManifest[] = QUESTION_DEFINITIONS.map(
-  (definition) => ({
+export const QUESTION_UI_MANIFESTS: QuestionUiManifest[] =
+  QUESTION_DEFINITIONS.map((definition) => ({
     type: definition.type,
     label: definition.label,
     category: definition.category,
     icon: ICONS[definition.type],
-    create: definition.create,
-  })
-)
+  }))
 
 const manifestByType = new Map(
-  QUESTION_MANIFESTS.map((item) => [item.type, item])
+  QUESTION_UI_MANIFESTS.map((item) => [item.type, item])
 )
 
 export const LAYOUT_MANIFESTS = [
@@ -101,10 +97,6 @@ export const LAYOUT_MANIFESTS = [
   },
 ]
 
-export function getQuestionManifest(type: QuestionType) {
+export function getQuestionUiManifest(type: QuestionType) {
   return manifestByType.get(type)
-}
-
-export function getQuestionTypeLabel(type: QuestionType): string {
-  return getQuestionDefinition(type).label
 }

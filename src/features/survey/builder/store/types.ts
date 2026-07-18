@@ -1,8 +1,8 @@
 import type { RuleCategory } from '../../core/logic/rule-meta'
 import type {
   SurveySchema,
-  QuestionElement,
-  QuestionConfig,
+  QuestionContentPatch,
+  QuestionConfigPatch,
   HtmlBlockElement,
   QuestionType,
   BuilderMode,
@@ -47,12 +47,12 @@ export interface BuilderState {
   updateQuestion: (
     sectionId: string,
     elementId: string,
-    patch: Partial<QuestionElement>
+    patch: QuestionContentPatch
   ) => void
   updateQuestionConfig: (
     sectionId: string,
     elementId: string,
-    patch: Partial<QuestionConfig>
+    patch: QuestionConfigPatch
   ) => void
   updateHtmlBlock: (
     sectionId: string,

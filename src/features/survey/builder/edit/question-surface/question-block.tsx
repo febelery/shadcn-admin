@@ -18,6 +18,8 @@ import {
 import { QuestionRequiredMark } from '@/features/survey/shared/question-required-mark'
 import { LABEL_LIMITS } from '../../store'
 import type {
+  QuestionContentPatch,
+  QuestionConfigPatch,
   QuestionElement,
   QuestionNumberingMode,
   SurveyDefaultNumberingStyle,
@@ -33,8 +35,8 @@ type Props = {
   numberingMode: QuestionNumberingMode
   surveyDefaultNumbering: SurveyDefaultNumberingStyle
   selected: boolean
-  onPatch: (patch: Partial<QuestionElement>) => void
-  onConfigChange: (patch: Partial<QuestionElement['config']>) => void
+  onPatch: (patch: QuestionContentPatch) => void
+  onConfigChange: (patch: QuestionConfigPatch) => void
 }
 
 /** 题目作答区 Surface：试卷式悬挂缩进，说明/选项与标题左缘对齐 */

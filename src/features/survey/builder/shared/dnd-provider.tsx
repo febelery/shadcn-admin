@@ -20,9 +20,9 @@ import { motion, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
-  getQuestionManifest,
+  getQuestionUiManifest,
   LAYOUT_MANIFESTS,
-} from '../../shared/question-registry'
+} from '../../shared/question-ui-registry'
 import { useBuilderStoreApi } from '../store'
 import type { QuestionType } from '../types'
 import {
@@ -128,7 +128,7 @@ export function BuilderDndProvider({ sectionId, children }: Props) {
     const data = event.active.data.current as PaletteDragData | undefined
     if (data?.type === PALETTE_DRAG) {
       if (data.questionType) {
-        const m = getQuestionManifest(data.questionType as QuestionType)
+        const m = getQuestionUiManifest(data.questionType as QuestionType)
         if (m) {
           setActiveDrag({ kind: 'palette', label: m.label, icon: m.icon })
           return

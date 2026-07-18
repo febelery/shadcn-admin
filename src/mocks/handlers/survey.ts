@@ -92,7 +92,7 @@ function computeSingleQuestionAnalysis(
     if (otherCount > 0) {
       optionAnalyses.push({
         optionId: '__unknown__',
-        label: q.config.otherLabel || '其他',
+        label: '未识别选项',
         count: otherCount,
         percentage:
           answerCount > 0 ? Number((otherCount / answerCount).toFixed(4)) : 0,
@@ -217,7 +217,7 @@ function computeSingleQuestionAnalysis(
         answerCount > 0 ? Number((otherCount / answerCount).toFixed(4)) : 0
 
       top10.push({
-        label: q.config.otherLabel || '其他',
+        label: '其他路径',
         count: otherCount,
         percentage: otherPercentage,
       })

@@ -26,13 +26,13 @@ import {
   getInspectorSectionTitle,
   inspectorSectionDefaultOpen,
 } from '@/features/survey/core/question-capabilities'
+import { getQuestionTypeLabel } from '@/features/survey/core/question-definitions'
 import {
   getSurveyDefaultNumberingStyle,
   isSurveyNumberingEnabled,
   isQuestionNumberVisible,
   SURVEY_NUMBERING_OPTIONS,
 } from '@/features/survey/shared/question-numbering'
-import { getQuestionTypeLabel } from '@/features/survey/shared/question-registry'
 import {
   getQuestionTypeHint,
   hasQuestionTypePreview,
@@ -41,7 +41,12 @@ import { QuestionTypePreview } from '@/features/survey/shared/question-type-prev
 import { getEditorSection } from '../../../core/editor-schema'
 import { BuilderPanelHeader } from '../../shared/panel-header'
 import { useBuilderStore } from '../../store'
-import type { SurveyElement, QuestionElement } from '../../types'
+import type {
+  QuestionContentPatch,
+  QuestionConfigPatch,
+  QuestionElement,
+  SurveyElement,
+} from '../../types'
 import { BuilderGuidance } from '../guidance'
 import { EndPagePanel } from '../setting/end-page-panel'
 import { MetaCoverPanel } from '../setting/meta-cover-panel'
@@ -66,9 +71,8 @@ function QuestionInspector({
   const updateQuestionConfig = useBuilderStore((s) => s.updateQuestionConfig)
   const removeElement = useBuilderStore((s) => s.removeElement)
 
-  const patch = (p: Partial<QuestionElement>) =>
-    updateQuestion(sectionId, el.id, p)
-  const patchConfig = (p: Partial<QuestionElement['config']>) =>
+  const patch = (p: QuestionContentPatch) => updateQuestion(sectionId, el.id, p)
+  const patchConfig = (p: QuestionConfigPatch) =>
     updateQuestionConfig(sectionId, el.id, p)
 
   const typeLabel = getQuestionTypeLabel(el.type)

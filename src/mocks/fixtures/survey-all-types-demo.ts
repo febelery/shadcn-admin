@@ -1,5 +1,6 @@
 import { isPresenceConditionOperator } from '@/features/survey/core/logic/operators'
 import { createRuleAction } from '@/features/survey/core/logic/rule-utils'
+import { getQuestionDefinition } from '@/features/survey/core/question-definitions'
 import {
   createEmptySurvey,
   createQuestionId,
@@ -16,7 +17,6 @@ import type {
   SurveyElement,
   SurveySchema,
 } from '@/features/survey/core/types'
-import { getQuestionManifest } from '@/features/survey/shared/question-registry'
 
 /** 列表中固定的演示问卷 ID，便于从列表点进编辑测试 */
 export const DEMO_SURVEY_ID = 'a1111111-1111-4111-8111-111111111111'
@@ -39,19 +39,19 @@ function cascaderNode(label: string, children?: CascaderNode[]): CascaderNode {
   }
 }
 
-function q(
-  type: QuestionType,
+function q<Type extends QuestionType>(
+  type: Type,
   title: string,
-  patch?: Partial<QuestionElement>
-): QuestionElement {
-  const base = getQuestionManifest(type)!.create()
+  patch?: Partial<QuestionElement<Type>>
+): QuestionElement<Type> {
+  const base = getQuestionDefinition(type).create()
   return {
     ...base,
     title,
     description: patch?.description,
     required: patch?.required ?? base.required,
     config: { ...base.config, ...patch?.config },
-  }
+  } as QuestionElement<Type>
 }
 
 function divider(): SurveyElement {
@@ -102,7 +102,6 @@ export function createAllTypesDemoSurvey(): SurveySchema {
               opt('朋友推荐 / 社交媒体'),
               opt('其他', true),
             ],
-            allowOther: true,
           },
         }),
         q('dropdown', '您本次入住房型是？', {
@@ -233,8 +232,6 @@ export function createAllTypesDemoSurvey(): SurveySchema {
         q('nps', '您有多大可能向朋友或同事推荐云岭精品酒店？', {
           required: true,
           config: {
-            scaleMin: 0,
-            scaleMax: 10,
             npsLeftLabel: '完全不可能',
             npsRightLabel: '非常可能',
           },

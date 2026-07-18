@@ -5,11 +5,13 @@ export type {
   SurveySchema,
   SurveyElement,
   QuestionElement,
+  QuestionContentPatch,
   ChoiceOption,
   SurveyDefaultNumberingStyle,
   LikertStatement,
   Rule,
   QuestionConfig,
+  QuestionConfigPatch,
   RuleAction,
   RuleActionType,
   RuleCondition,
@@ -39,5 +41,5 @@ export type {
 
 export type { StaticIssue } from '../core/logic/analyzer'
 
-export type { QuestionManifest } from '../shared/question-registry'
+export type { QuestionUiManifest } from '../shared/question-ui-registry'
 export type PaletteTypeId = QuestionType | 'divider' | 'html_block'

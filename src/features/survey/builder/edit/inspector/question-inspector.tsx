@@ -17,7 +17,7 @@ import {
   DEFAULT_OTHER_LABEL,
   DEFAULT_OTHER_PLACEHOLDER,
   partitionChoiceOptions,
-  syncOtherChoiceOption,
+  setOtherChoiceOptionEnabled,
 } from '@/features/survey/core/choice-other-option'
 import { isChoiceQuestionType } from '@/features/survey/core/question-capabilities'
 import {
@@ -29,6 +29,7 @@ import {
 import { LABEL_LIMITS } from '../../store'
 import type {
   QuestionConfig,
+  QuestionConfigPatch,
   QuestionType,
   CascaderNode,
   QuestionElement,
@@ -228,7 +229,7 @@ function CascaderTreeEditor({
   )
 }
 
-type PatchConfig = (p: Partial<QuestionConfig>) => void
+type PatchConfig = (p: QuestionConfigPatch) => void
 
 export function ChoiceInspectorFields({
   type,
@@ -241,23 +242,26 @@ export function ChoiceInspectorFields({
 }) {
   // 已使用静态导入的 Choice 工具方法和常量
 
-  const allowOther = config.allowOther ?? false
-  const otherLabel = config.otherLabel ?? DEFAULT_OTHER_LABEL
-  const { regular } = partitionChoiceOptions(config.options ?? [])
+  const { regular, other } = partitionChoiceOptions(config.options ?? [])
+  const otherEnabled = other !== undefined
+  const otherLabel = other?.label ?? DEFAULT_OTHER_LABEL
 
   const setOptions = (nextRegular: typeof regular) => {
     patchConfig({
-      options: syncOtherChoiceOption(nextRegular, allowOther, otherLabel),
+      options: setOtherChoiceOptionEnabled(
+        nextRegular,
+        otherEnabled,
+        otherLabel
+      ),
     })
   }
 
-  const setAllowOther = (on: boolean) => {
+  const setOtherOptionEnabled = (enabled: boolean) => {
     patchConfig({
-      allowOther: on,
-      options: syncOtherChoiceOption(
+      options: setOtherChoiceOptionEnabled(
         config.options ?? [],
-        on,
-        config.otherLabel ?? DEFAULT_OTHER_LABEL
+        enabled,
+        DEFAULT_OTHER_LABEL
       ),
     })
   }
@@ -280,11 +284,13 @@ export function ChoiceInspectorFields({
               </Label>
               <Switch
                 id='allow-other'
-                checked={allowOther}
-                onCheckedChange={(c) => setAllowOther(!!c)}
+                checked={otherEnabled}
+                onCheckedChange={(checked) =>
+                  setOtherOptionEnabled(Boolean(checked))
+                }
               />
             </div>
-            {allowOther && (
+            {otherEnabled && (
               <>
                 <div className='flex flex-col gap-1'>
                   <Label className='text-muted-foreground text-xs font-medium'>
@@ -295,11 +301,8 @@ export function ChoiceInspectorFields({
                     onChange={(e) => {
                       const label = e.target.value
                       patchConfig({
-                        otherLabel: label,
-                        options: syncOtherChoiceOption(
-                          partitionChoiceOptions(config.options ?? []).regular,
-                          true,
-                          label
+                        options: (config.options ?? []).map((option) =>
+                          option.isOther ? { ...option, label } : option
                         ),
                       })
                     }}
@@ -810,7 +813,7 @@ export function CascaderInspectorFields({
 type QuestionInspectorConfigProps = {
   type: QuestionType
   el: QuestionElement
-  patchConfig: (p: Partial<QuestionConfig>) => void
+  patchConfig: (p: QuestionConfigPatch) => void
 }
 
 type InspectorAdapter = (props: QuestionInspectorConfigProps) => React.ReactNode

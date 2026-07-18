@@ -60,30 +60,33 @@ export interface SurveyVariable {
   default?: string | number | boolean
 }
 
-export type QuestionType =
-  | 'single_choice'
-  | 'multiple_choice'
-  | 'dropdown'
-  | 'ranking'
-  | 'matrix_single'
-  | 'matrix_multiple'
-  | 'cascader'
-  | 'text'
-  | 'textarea'
-  | 'number'
-  | 'email'
-  | 'phone'
-  | 'url'
-  | 'date'
-  | 'date_range'
-  | 'fill_in'
-  | 'rating'
-  | 'slider'
-  | 'nps'
-  | 'likert'
-  | 'dynamic_panel'
-  | 'file_upload'
-  | 'signature'
+export const QUESTION_TYPES = [
+  'single_choice',
+  'multiple_choice',
+  'dropdown',
+  'ranking',
+  'matrix_single',
+  'matrix_multiple',
+  'cascader',
+  'text',
+  'textarea',
+  'number',
+  'email',
+  'phone',
+  'url',
+  'date',
+  'date_range',
+  'fill_in',
+  'rating',
+  'slider',
+  'nps',
+  'likert',
+  'dynamic_panel',
+  'file_upload',
+  'signature',
+] as const
+
+export type QuestionType = (typeof QUESTION_TYPES)[number]
 
 export interface ChoiceOption {
   id: string
@@ -113,11 +116,8 @@ export interface LikertStatement {
   label: string
 }
 
-/**
- * 题目 config（扁平结构，便于 patch / 表单绑定）。
- */
-export interface QuestionConfig {
-  options?: ChoiceOption[]
+interface QuestionConfigFields {
+  options: ChoiceOption[]
   rows?: MatrixRow[]
   columns?: MatrixColumn[]
   cascaderOptions?: CascaderNode[]
@@ -126,8 +126,6 @@ export interface QuestionConfig {
   scaleMax?: number
   minSelect?: number
   maxSelect?: number
-  allowOther?: boolean
-  otherLabel?: string
   otherPlaceholder?: string
   randomizeOptions?: boolean
   optionLayout?: 'vertical' | 'horizontal'
@@ -153,19 +151,126 @@ export interface QuestionConfig {
   addLabel?: string
 }
 
+type StrictQuestionConfig<Config extends Partial<QuestionConfigFields>> =
+  Config & {
+    [Key in Exclude<keyof QuestionConfigFields, keyof Config>]?: never
+  }
+
+type ChoiceConfig = {
+  options: ChoiceOption[]
+  otherPlaceholder?: string
+  randomizeOptions?: boolean
+  optionLayout?: 'vertical' | 'horizontal'
+}
+
+type TextConfig = {
+  placeholder?: string
+  minLength?: number
+  maxLength?: number
+}
+
+type DateConfig = {
+  dateMode?: 'date' | 'datetime'
+  minDate?: string
+  maxDate?: string
+  placeholder?: string
+}
+
+export interface QuestionConfigByType {
+  single_choice: StrictQuestionConfig<ChoiceConfig>
+  multiple_choice: StrictQuestionConfig<
+    ChoiceConfig & { minSelect?: number; maxSelect?: number }
+  >
+  dropdown: StrictQuestionConfig<
+    Pick<ChoiceConfig, 'options' | 'randomizeOptions'> & {
+      placeholder?: string
+    }
+  >
+  ranking: StrictQuestionConfig<
+    Pick<ChoiceConfig, 'options' | 'randomizeOptions'>
+  >
+  matrix_single: StrictQuestionConfig<{
+    rows: MatrixRow[]
+    columns: MatrixColumn[]
+  }>
+  matrix_multiple: StrictQuestionConfig<{
+    rows: MatrixRow[]
+    columns: MatrixColumn[]
+  }>
+  cascader: StrictQuestionConfig<{
+    cascaderOptions: CascaderNode[]
+    placeholder?: string
+  }>
+  text: StrictQuestionConfig<TextConfig>
+  textarea: StrictQuestionConfig<TextConfig & { textareaRows?: number }>
+  number: StrictQuestionConfig<{
+    placeholder?: string
+    minValue?: number
+    maxValue?: number
+    step?: number
+  }>
+  email: StrictQuestionConfig<TextConfig>
+  phone: StrictQuestionConfig<TextConfig>
+  url: StrictQuestionConfig<TextConfig>
+  date: StrictQuestionConfig<DateConfig>
+  date_range: StrictQuestionConfig<DateConfig>
+  fill_in: StrictQuestionConfig<Record<never, never>>
+  rating: StrictQuestionConfig<{ starCount: number }>
+  slider: StrictQuestionConfig<{
+    minValue: number
+    maxValue: number
+    step: number
+  }>
+  nps: StrictQuestionConfig<{
+    npsLeftLabel?: string
+    npsRightLabel?: string
+  }>
+  likert: StrictQuestionConfig<{
+    statements: LikertStatement[]
+    scaleMin: number
+    scaleMax: number
+  }>
+  dynamic_panel: StrictQuestionConfig<{
+    templateElements: SurveyElement[]
+    minItems: number
+    maxItems: number
+    addLabel?: string
+  }>
+  file_upload: StrictQuestionConfig<{
+    acceptTypes?: string[]
+    maxCount: number
+    maxSize: number
+  }>
+  signature: StrictQuestionConfig<Record<never, never>>
+}
+
+export type QuestionConfig<Type extends QuestionType = QuestionType> =
+  QuestionConfigByType[Type]
+
+export type QuestionConfigPatch<Type extends QuestionType = QuestionType> =
+  Type extends QuestionType ? Partial<QuestionConfigByType[Type]> : never
+
 export interface BaseElement {
   id: string
 }
 
-export interface QuestionElement extends BaseElement {
+interface QuestionElementBase<Type extends QuestionType> extends BaseElement {
   kind: 'question'
-  type: QuestionType
+  type: Type
   title: string
   description?: string
   required: boolean
   numbering?: QuestionNumbering
-  config: QuestionConfig
+  config: QuestionConfig<Type>
 }
+
+export type QuestionElement<Type extends QuestionType = QuestionType> = {
+  [Question in Type]: QuestionElementBase<Question>
+}[Type]
+
+export type QuestionContentPatch = Partial<
+  Pick<QuestionElement, 'title' | 'description' | 'required' | 'numbering'>
+>
 
 export interface PanelElement extends BaseElement {
   kind: 'panel'

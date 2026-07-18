@@ -1,0 +1,1 @@
+export const SURVEY_DOCUMENT_SCHEMA_VERSION = 1

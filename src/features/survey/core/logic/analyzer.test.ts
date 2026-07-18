@@ -5,20 +5,19 @@ import { analyseSurvey } from './analyzer'
 
 function question(
   id: string,
-  type: QuestionElement['type'],
+  type: 'single_choice' | 'text',
   required = false
 ): QuestionElement {
-  return {
-    id,
-    kind: 'question',
-    type,
-    title: id,
-    required,
-    config:
-      type === 'single_choice'
-        ? { options: [{ id: 'yes', label: 'Yes' }] }
-        : {},
-  }
+  return type === 'single_choice'
+    ? {
+        id,
+        kind: 'question',
+        type,
+        title: id,
+        required,
+        config: { options: [{ id: 'yes', label: 'Yes' }] },
+      }
+    : { id, kind: 'question', type, title: id, required, config: {} }
 }
 
 function rule(condition: RuleCondition, action: Rule['action']): Rule {

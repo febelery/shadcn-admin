@@ -3,12 +3,17 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import { LABEL_LIMITS } from '../../store'
-import type { MatrixColumn, MatrixRow, QuestionElement } from '../../types'
+import type {
+  MatrixColumn,
+  MatrixRow,
+  QuestionConfigPatch,
+  QuestionElement,
+} from '../../types'
 import { InlineEditable } from '../inline-editable'
 
 type Props = {
   question: QuestionElement
-  onConfigChange: (patch: Partial<QuestionElement['config']>) => void
+  onConfigChange: (patch: QuestionConfigPatch) => void
 }
 
 export function SurfaceMatrixEditor({ question, onConfigChange }: Props) {

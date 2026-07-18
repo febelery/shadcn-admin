@@ -3,7 +3,11 @@ import { cn } from '@/lib/utils'
 import { FileUpload } from '@/components/file-upload'
 import { partitionChoiceOptions } from '@/features/survey/core/choice-other-option'
 import { LABEL_LIMITS } from '../../store'
-import type { QuestionConfig, QuestionElement, QuestionType } from '../../types'
+import type {
+  QuestionConfigPatch,
+  QuestionElement,
+  QuestionType,
+} from '../../types'
 import { InlineEditable } from '../inline-editable'
 import { SurfaceCascaderEditor } from './cascader-editor'
 import { SurfaceChoiceList, SurfaceRankingList } from './choice-list'
@@ -14,7 +18,7 @@ import { SurfaceMatrixEditor } from './matrix-editor'
 
 type SurfaceProps = {
   question: QuestionElement
-  onConfigChange: (patch: Partial<QuestionConfig>) => void
+  onConfigChange: (patch: QuestionConfigPatch) => void
 }
 
 type SurfaceAdapter = (props: SurfaceProps) => React.ReactNode
@@ -30,7 +34,7 @@ function choiceSurface(mode: 'single' | 'multiple'): SurfaceAdapter {
         options={other ? [...regular, other] : regular}
         onChange={(next) => onConfigChange({ options: next })}
         onConfigChange={onConfigChange}
-        showAllowOther
+        showOtherOptionToggle
       />
     )
   }

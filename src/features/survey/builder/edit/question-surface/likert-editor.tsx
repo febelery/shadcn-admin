@@ -3,12 +3,16 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { createQuestionId } from '@/features/survey/core/schema-defaults'
 import { LABEL_LIMITS } from '../../store'
-import type { LikertStatement, QuestionElement } from '../../types'
+import type {
+  LikertStatement,
+  QuestionConfigPatch,
+  QuestionElement,
+} from '../../types'
 import { InlineEditable } from '../inline-editable'
 
 type Props = {
   question: QuestionElement
-  onConfigChange: (patch: Partial<QuestionElement['config']>) => void
+  onConfigChange: (patch: QuestionConfigPatch) => void
 }
 
 /** 根据最小/最大分值生成量表列 */
