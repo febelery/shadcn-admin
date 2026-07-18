@@ -60,7 +60,7 @@ function QuestionInspector({
   el: QuestionElement
 }) {
   const surveyStyle = useBuilderStore((s) =>
-    s.schema ? getSurveyDefaultNumberingStyle(s.schema) : 'decimal'
+    getSurveyDefaultNumberingStyle(s.document)
   )
   const updateQuestion = useBuilderStore((s) => s.updateQuestion)
   const updateQuestionConfig = useBuilderStore((s) => s.updateQuestionConfig)
@@ -270,38 +270,16 @@ type Props = {
 }
 
 export function InspectorPanel({ className }: Props = {}) {
-  const hasSchema = useBuilderStore((s) => !!s.schema)
   const inspectorTab = useBuilderStore((s) => s.inspectorTab)
   const setInspectorTab = useBuilderStore((s) => s.setInspectorTab)
 
-  const sectionId = useBuilderStore((s) =>
-    s.schema
-      ? (getEditorSection(s.schema)?.id ?? s.selectedSectionId)
-      : s.selectedSectionId
-  )
+  const sectionId = useBuilderStore((s) => getEditorSection(s.document).id)
 
   const selectedEl = useBuilderStore((s) => {
-    if (!s.schema || !s.selectedElementId) return undefined
-    const section = getEditorSection(s.schema)
-    return section?.elements.find((e) => e.id === s.selectedElementId)
+    if (!s.selectedElementId) return undefined
+    const section = getEditorSection(s.document)
+    return section.elements.find((e) => e.id === s.selectedElementId)
   })
-  if (!hasSchema || !sectionId) {
-    return (
-      <div
-        className={cn(
-          'flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden',
-          className
-        )}
-      >
-        <BuilderPanelHeader icon={Settings2} title='属性' />
-        <div className='bg-background text-foreground flex min-h-0 min-w-0 flex-1 flex-col'>
-          <p className='text-muted-foreground p-4 text-sm leading-relaxed'>
-            加载中…
-          </p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div

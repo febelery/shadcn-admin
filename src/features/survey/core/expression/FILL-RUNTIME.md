@@ -75,5 +75,5 @@ warn 级（不可达题、显隐冲突）不阻断发布，填写端可按契约
 
 ## 版本
 
-- Schema `version: "1"` 起支持 `jump_to_question`
+- Schema `schemaVersion: 1` 支持 `jump_to_question`
 - 多节跳转不再保留在当前 Schema 契约内；需要多节能力时应先恢复 section 编辑模型，再扩展规则动作。

@@ -20,9 +20,11 @@ import type {
   SurveySegmentAnalysisResult,
   SegmentDefinition,
 } from '@/features/survey/core/analysis-types'
+import { parseSurveyDocument } from '@/features/survey/core/document-schema'
 import { evaluateCondition } from '@/features/survey/core/logic/eval'
 import {
   countQuestions,
+  createQuestionId,
   createEmptySurvey,
   flattenQuestions,
 } from '@/features/survey/core/schema-defaults'
@@ -1017,37 +1019,37 @@ export const surveyHandlers = [
 
   http.post('/api/survey', async ({ request }) => {
     await sleep(150)
-    const body = (await request.json()) as { title?: string }
-    const schema = createEmptySurvey(body.title || '未命名问卷')
-    detailMap.set(schema.id, schema)
-    recordMap.set(schema.id, [])
-    syncListFromDetail(schema)
-    return HttpResponse.json({ id: schema.id })
+    const document = parseSurveyDocument(await request.json())
+    document.id = createQuestionId()
+    detailMap.set(document.id, document)
+    recordMap.set(document.id, [])
+    syncListFromDetail(document)
+    return HttpResponse.json(document)
   }),
 
   http.get('/api/survey/:id', async ({ params }) => {
     await sleep(150)
     const id = params.id as string
-    let schema = detailMap.get(id)
-    if (!schema) {
+    let document = detailMap.get(id)
+    if (!document) {
       // 未知 ID：返回全题型演示副本，便于直接打开编辑 URL 测试
-      schema = createAllTypesDemoSurvey()
-      schema.id = id
-      detailMap.set(id, schema)
-      syncListFromDetail(schema)
-      seedRecord(id, schema)
+      document = createAllTypesDemoSurvey()
+      document.id = id
+      detailMap.set(id, document)
+      syncListFromDetail(document)
+      seedRecord(id, document)
     }
-    return HttpResponse.json(schema)
+    return HttpResponse.json(document)
   }),
 
   http.put('/api/survey/:id', async ({ params, request }) => {
     await sleep(200)
     const id = params.id as string
-    const data = (await request.json()) as SurveySchema
-    data.id = id
-    detailMap.set(id, data)
-    syncListFromDetail(data)
-    return new HttpResponse(null, { status: 204 })
+    const document = parseSurveyDocument(await request.json())
+    document.id = id
+    detailMap.set(id, document)
+    syncListFromDetail(document)
+    return HttpResponse.json(document)
   }),
 
   http.delete('/api/survey/:id', async ({ params }) => {
@@ -1074,18 +1076,14 @@ export const surveyHandlers = [
 
   http.post('/api/survey/:id/publish', async ({ params }) => {
     const id = params.id as string
-    const schema = detailMap.get(id)
-    if (!schema) return new HttpResponse(null, { status: 404 })
-    schema.status = 'published'
-    schema.version = String(Number(schema.version) + 1)
-    schema.slug = schema.slug || faker.lorem.slug()
-    schema.publishedAt = new Date().toISOString()
-    syncListFromDetail(schema)
-    return HttpResponse.json({
-      slug: schema.slug,
-      version: schema.version,
-      publishedAt: schema.publishedAt,
-    })
+    const document = detailMap.get(id)
+    if (!document) return new HttpResponse(null, { status: 404 })
+    document.status = 'published'
+    document.revision += 1
+    document.slug = document.slug || faker.lorem.slug()
+    document.publishedAt = new Date().toISOString()
+    syncListFromDetail(document)
+    return HttpResponse.json(document)
   }),
 
   http.get('/api/survey/:id/analysis', async ({ params, request }) => {

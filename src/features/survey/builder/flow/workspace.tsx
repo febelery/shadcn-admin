@@ -19,26 +19,21 @@ import { RightPanel } from './right-panel'
 const desktopOnly = 'hidden lg:flex'
 
 export function FlowWorkspace() {
-  const schema = useBuilderStore((s) => s.schema)
+  const document = useBuilderStore((s) => s.document)
   const ruleDraft = useBuilderStore((s) => s.ruleDraft)
   const logicMobilePanel = useBuilderStore((s) => s.logicMobilePanel)
   const navigate = useBuilderStore((s) => s.navigate)
   const { clearRuleFocus } = useRuleAuthoring()
   const [project] = useState(createFlowProjector)
   const [projectPreview] = useState(createFlowProjector)
-  const projection = useMemo(
-    () => (schema ? project(schema) : null),
-    [schema, project]
-  )
+  const projection = useMemo(() => project(document), [document, project])
   const previewSchema = useMemo(
     () =>
-      schema && ruleDraft
-        ? buildRuleDraftPreviewSchema(schema, ruleDraft)
-        : schema,
-    [schema, ruleDraft]
+      ruleDraft ? buildRuleDraftPreviewSchema(document, ruleDraft) : document,
+    [document, ruleDraft]
   )
   const canvasProjection = useMemo(() => {
-    if (!previewSchema || !projection || !ruleDraft) return projection
+    if (!ruleDraft) return projection
     const preview = projectPreview(previewSchema)
     return {
       ...preview,

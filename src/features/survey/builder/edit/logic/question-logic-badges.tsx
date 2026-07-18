@@ -6,8 +6,6 @@ import { getQuestionRuleSummary } from '@/features/survey/core/logic/question-ru
 import { useBuilderStore } from '../../store'
 import { useRuleAuthoring } from '../../store/use-rule-authoring'
 
-const EMPTY_RULES: never[] = []
-
 type Props = {
   questionId: string
   className?: string
@@ -15,9 +13,7 @@ type Props = {
 
 export function QuestionLogicBadges({ questionId, className }: Props) {
   const { firstRuleId, hasVisibility, hasBranch } = useBuilderStore(
-    useShallow((s) =>
-      getQuestionRuleSummary(s.schema?.rules ?? EMPTY_RULES, questionId)
-    )
+    useShallow((s) => getQuestionRuleSummary(s.document.rules, questionId))
   )
   const { openRule } = useRuleAuthoring()
 

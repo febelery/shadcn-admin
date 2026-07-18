@@ -27,8 +27,11 @@ export function useSurveyList(params?: QueryParams) {
 export function useCreateSurvey() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (title: string) => createSurvey(title),
-    onSuccess: () => qc.invalidateQueries({ queryKey: surveyKeys.lists() }),
+    mutationFn: createSurvey,
+    onSuccess: (document) => {
+      qc.setQueryData(surveyKeys.detail(document.id), document)
+      qc.invalidateQueries({ queryKey: surveyKeys.lists() })
+    },
   })
 }
 
@@ -58,9 +61,9 @@ export function usePublishSurvey() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: publishSurvey,
-    onSuccess: (_, id) => {
+    onSuccess: (document, id) => {
+      qc.setQueryData(surveyKeys.detail(id), document)
       qc.invalidateQueries({ queryKey: surveyKeys.lists() })
-      qc.invalidateQueries({ queryKey: surveyKeys.detail(id) })
     },
   })
 }
@@ -78,8 +81,8 @@ export function useUpdateSurvey() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: SurveySchema }) =>
       updateSurvey(id, data),
-    onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: surveyKeys.detail(id) })
+    onSuccess: (document, { id }) => {
+      qc.setQueryData(surveyKeys.detail(id), document)
       qc.invalidateQueries({ queryKey: surveyKeys.lists() })
     },
   })

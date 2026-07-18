@@ -122,12 +122,12 @@ function LocalColorPicker({
 }
 
 export function ThemePanel() {
-  const schema = useBuilderStore((s) => s.schema)
+  const document = useBuilderStore((s) => s.document)
   const updateMeta = useBuilderStore((s) => s.updateMeta)
   const updateTheme = useBuilderStore((s) => s.updateTheme)
 
-  const meta = schema!.meta
-  const primaryColor = schema!.theme.primaryColor
+  const meta = document.meta
+  const primaryColor = document.theme.primaryColor
 
   const numberingStyle = meta.defaultQuestionNumbering ?? 'decimal'
   const numberingMode = meta.questionNumberingMode ?? 'global'

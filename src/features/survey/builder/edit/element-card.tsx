@@ -92,19 +92,17 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
   selected,
 }: Props) {
   const store = useBuilderStoreApi()
-  const globalOrdinal = useBuilderStore((s) =>
-    s.schema ? (buildQuestionOrdinalMap(s.schema).get(element.id) ?? 1) : 1
+  const globalOrdinal = useBuilderStore(
+    (s) => buildQuestionOrdinalMap(s.document).get(element.id) ?? 1
   )
-  const displayOrdinal = useBuilderStore((s) =>
-    s.schema
-      ? (buildQuestionDisplayOrdinalMap(s.schema).get(element.id) ?? null)
-      : null
+  const displayOrdinal = useBuilderStore(
+    (s) => buildQuestionDisplayOrdinalMap(s.document).get(element.id) ?? null
   )
   const numberingMode = useBuilderStore((s) =>
-    s.schema ? getQuestionNumberingMode(s.schema) : 'global'
+    getQuestionNumberingMode(s.document)
   )
   const surveyDefaultNumbering = useBuilderStore((s) =>
-    s.schema ? getSurveyDefaultNumberingStyle(s.schema) : 'decimal'
+    getSurveyDefaultNumberingStyle(s.document)
   )
 
   const {

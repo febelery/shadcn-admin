@@ -16,7 +16,8 @@ function question(id: string, title: string): QuestionElement {
 function survey(): SurveySchema {
   return {
     id: 'survey-1',
-    version: '4',
+    schemaVersion: 1,
+    revision: 0,
     status: 'draft',
     meta: {
       title: '测试问卷',
@@ -62,10 +63,10 @@ describe('builder rule authoring interface', () => {
       isDirty: false,
       builderMode: 'flow',
     })
-    expect(store.getState().schema?.rules).toEqual([])
+    expect(store.getState().document.rules).toEqual([])
 
     expect(store.getState().applyRuleDraft()).toBe(true)
-    expect(store.getState().schema?.rules).toHaveLength(1)
+    expect(store.getState().document.rules).toHaveLength(1)
     expect(store.getState().isDirty).toBe(true)
   })
 
@@ -73,7 +74,7 @@ describe('builder rule authoring interface', () => {
     store.getState().beginRuleDraft({ type: 'new' })
     store.getState().discardRuleDraft()
 
-    expect(store.getState().schema?.rules).toEqual([])
+    expect(store.getState().document.rules).toEqual([])
     expect(store.getState()).toMatchObject({
       ruleDraft: null,
       editingRuleId: null,
@@ -87,7 +88,7 @@ describe('builder rule authoring interface', () => {
     expect(store.getState().beginRuleDraft({ type: 'new' })).toBe(
       'confirmation-required'
     )
-    expect(store.getState().schema?.rules).toEqual([])
+    expect(store.getState().document.rules).toEqual([])
   })
 
   it('refuses to apply a draft with blocking validation issues', () => {
@@ -98,7 +99,7 @@ describe('builder rule authoring interface', () => {
     })
 
     expect(store.getState().applyRuleDraft()).toBe(false)
-    expect(store.getState().schema?.rules).toEqual([])
+    expect(store.getState().document.rules).toEqual([])
     expect(store.getState().isDirty).toBe(false)
   })
 
@@ -107,7 +108,7 @@ describe('builder rule authoring interface', () => {
 
     store.getState().updateMeta({ title: '会话一' })
 
-    expect(store.getState().schema?.meta.title).toBe('会话一')
-    expect(other.getState().schema?.meta.title).toBe('测试问卷')
+    expect(store.getState().document.meta.title).toBe('会话一')
+    expect(other.getState().document.meta.title).toBe('测试问卷')
   })
 })

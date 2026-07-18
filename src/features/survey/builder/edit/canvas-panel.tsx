@@ -19,10 +19,9 @@ import {
 } from './workspace-scroll'
 
 const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
-  const meta = useBuilderStore((s) => s.schema?.meta)
-  const theme = useBuilderStore((s) => s.schema?.theme)
+  const meta = useBuilderStore((s) => s.document.meta)
+  const theme = useBuilderStore((s) => s.document.theme)
   const updateMeta = useBuilderStore((s) => s.updateMeta)
-  if (!meta || !theme) return null
 
   const hasCoverImage = Boolean(meta.cover)
   const onLightText =
@@ -66,29 +65,15 @@ const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
 })
 
 export function BuilderWorkspacePanel() {
-  const schema = useBuilderStore((s) => s.schema)
-  const selectedSectionId = useBuilderStore((s) => s.selectedSectionId)
+  const document = useBuilderStore((s) => s.document)
   const selectedElementId = useBuilderStore((s) => s.selectedElementId)
 
-  const section = schema ? getEditorSection(schema) : undefined
-  const sectionId = section?.id ?? selectedSectionId
-  const elements = section?.elements ?? []
+  const section = getEditorSection(document)
+  const sectionId = section.id
+  const elements = section.elements
   const isPaletteDragging = useIsPaletteDragging()
 
   useScrollSelectedIntoWorkspace({ selectedElementId })
-
-  if (!schema || !sectionId) {
-    return (
-      <div className='flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden'>
-        <BuilderPanelHeader icon={LayoutTemplate} title='题目' />
-        <BuilderGuidance
-          className='flex flex-1 flex-col items-center justify-center gap-1.5 py-20 text-center'
-          title='暂无可用页面'
-          description='问卷 data 异常或尚未初始化，请刷新后重试。'
-        />
-      </div>
-    )
-  }
 
   const renderElementCard = (el: SurveyElement) => {
     return (

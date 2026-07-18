@@ -154,7 +154,7 @@ export function BuilderDndProvider({ sectionId, children }: Props) {
 
     const activeData = active.data.current as PaletteDragData | undefined
     const store = storeApi.getState()
-    const section = store.schema?.sections.find((s) => s.id === sectionId)
+    const section = store.document.sections.find((s) => s.id === sectionId)
     if (!section) return
 
     if (activeData?.type === PALETTE_DRAG) {

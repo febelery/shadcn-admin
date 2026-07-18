@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { parseSurveyDocument } from '../core/document-schema'
 import { analyseSurvey } from '../core/expression/analyzer'
 import { createEmptySurvey } from '../core/schema-defaults'
 import type { SurveySchema } from '../core/types'
-import { validateSurveySchema } from '../core/validators'
 import {
   useCreateSurvey,
   usePublishSurvey,
@@ -42,24 +42,23 @@ function formatSchemaValidationError(err: unknown): string {
   return '问卷数据结构校验失败'
 }
 
-function assertValidPayload(payload: SurveySchema): boolean {
+function parseValidDocument(document: SurveySchema): SurveySchema | null {
   try {
-    validateSurveySchema(payload)
-    return true
+    return parseSurveyDocument(document)
   } catch (err) {
     toast.error(formatSchemaValidationError(err))
-    return false
+    return null
   }
 }
 
 function SurveyBuilderSession({
-  initialSchema,
+  initialDocument,
   props,
 }: {
-  initialSchema: SurveySchema
+  initialDocument: SurveySchema
   props: Props
 }) {
-  const [store] = useState(() => createBuilderStore(initialSchema))
+  const [store] = useState(() => createBuilderStore(initialDocument))
 
   return (
     <BuilderStoreProvider store={store}>
@@ -77,10 +76,10 @@ function SurveyBuilderContent({ props }: { props: Props }) {
   const { mutateAsync: save, isPending: saving } = useUpdateSurvey()
   const { mutateAsync: publish, isPending: publishing } = usePublishSurvey()
 
-  const surveyTitle = useBuilderStore((s) => s.schema?.meta.title ?? '')
+  const surveyTitle = useBuilderStore((s) => s.document.meta.title)
   const isDirty = useBuilderStore((s) => s.isDirty)
-  const markSaved = useBuilderStore((s) => s.markSaved)
-  const getSchemaForSave = useBuilderStore((s) => s.getSchemaForSave)
+  const adoptDocument = useBuilderStore((s) => s.adoptDocument)
+  const getDocumentSnapshot = useBuilderStore((s) => s.getDocumentSnapshot)
   const builderMode = useBuilderStore((s) => s.builderMode)
   const hasUnappliedRuleDraft = useBuilderStore((s) =>
     hasRuleDraftChanges(s.ruleDraft)
@@ -89,20 +88,16 @@ function SurveyBuilderContent({ props }: { props: Props }) {
   const { leaveToEdit } = useRuleAuthoring()
   const updateMeta = useBuilderStore((s) => s.updateMeta)
 
-  const persistPayload = async (payload: SurveySchema): Promise<string> => {
+  const persistDocument = async (
+    document: SurveySchema
+  ): Promise<SurveySchema> => {
     if (isCreate) {
-      const { id } = await create(payload.meta.title)
-      const persisted = { ...payload, id }
-      await save({ id, data: persisted })
-      await router.navigate({
-        to: '/survey/$id/edit',
-        params: { id },
-        replace: true,
-      })
-      return id
+      return create(document)
     }
-    await save({ id: surveyId!, data: { ...payload, id: surveyId! } })
-    return surveyId!
+    return save({
+      id: surveyId!,
+      data: { ...document, id: surveyId! },
+    })
   }
 
   const handleSave = async () => {
@@ -110,11 +105,18 @@ function SurveyBuilderContent({ props }: { props: Props }) {
       toast.error('请先应用或取消当前规则草稿')
       return
     }
-    const payload = getSchemaForSave()
-    if (!payload || !assertValidPayload(payload)) return
-    await persistPayload(payload)
-    markSaved()
+    const document = parseValidDocument(getDocumentSnapshot())
+    if (!document) return
+    const persisted = await persistDocument(document)
+    adoptDocument(persisted)
     toast.success(isCreate ? '问卷已创建' : '已保存')
+    if (isCreate) {
+      await router.navigate({
+        to: '/survey/$id/edit',
+        params: { id: persisted.id },
+        replace: true,
+      })
+    }
   }
 
   const handlePublish = async () => {
@@ -126,17 +128,17 @@ function SurveyBuilderContent({ props }: { props: Props }) {
       toast.error('请先保存问卷后再发布')
       return
     }
-    const payload = getSchemaForSave()
-    if (!payload || !assertValidPayload(payload)) return
-    const issues = analyseSurvey(payload).filter((i) => i.severity === 'error')
+    const document = parseValidDocument(getDocumentSnapshot())
+    if (!document) return
+    const issues = analyseSurvey(document).filter((i) => i.severity === 'error')
     if (issues.length) {
       toast.error(issues[0].message)
       return
     }
-    await save({ id: surveyId!, data: { ...payload, id: surveyId! } })
-    const res = await publish(surveyId!)
-    markSaved()
-    toast.success(`已发布，访问标识：${res.slug}`)
+    await save({ id: surveyId!, data: { ...document, id: surveyId! } })
+    const published = await publish(surveyId!)
+    adoptDocument(published)
+    toast.success(`已发布，访问标识：${published.slug}`)
   }
 
   const saveDisabled =
@@ -267,13 +269,13 @@ export function SurveyBuilderPage(props: Props) {
     )
   }
 
-  const initialSchema = isCreate ? emptySurvey : data
-  if (!initialSchema) return null
+  const initialDocument = isCreate ? emptySurvey : data
+  if (!initialDocument) return null
 
   return (
     <SurveyBuilderSession
-      key={isCreate ? 'create' : initialSchema.id}
-      initialSchema={initialSchema}
+      key={isCreate ? 'create' : initialDocument.id}
+      initialDocument={initialDocument}
       props={props}
     />
   )

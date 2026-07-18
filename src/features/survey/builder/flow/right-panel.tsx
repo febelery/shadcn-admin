@@ -22,12 +22,12 @@ type Props = {
  */
 export function RightPanel({ projection, className }: Props) {
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
-  const schema = useBuilderStore((s) => s.schema)
+  const document = useBuilderStore((s) => s.document)
   const ruleDraft = useBuilderStore((s) => s.ruleDraft)
 
   const draftIssues = useMemo(
-    () => (schema && ruleDraft ? getRuleDraftIssues(schema, ruleDraft) : []),
-    [schema, ruleDraft]
+    () => (ruleDraft ? getRuleDraftIssues(document, ruleDraft) : []),
+    [document, ruleDraft]
   )
   const ruleIssues = ruleDraft
     ? draftIssues

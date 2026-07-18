@@ -40,7 +40,8 @@ function existingRule(): Rule {
 function survey(rules: Rule[] = [existingRule()]): SurveySchema {
   return {
     id: 'survey-1',
-    version: '4',
+    schemaVersion: 1,
+    revision: 0,
     status: 'draft',
     meta: {
       title: '测试问卷',

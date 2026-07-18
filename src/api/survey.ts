@@ -5,6 +5,7 @@ import type {
   QuestionAnalysis,
   SurveySegmentAnalysisResult,
 } from '@/features/survey/core/analysis-types'
+import { parseSurveyDocument } from '@/features/survey/core/document-schema'
 import type {
   SurveyListItem,
   SurveyRecordItem,
@@ -35,18 +36,30 @@ export async function listSurvey(
   return data
 }
 
-export async function createSurvey(title: string): Promise<{ id: string }> {
-  const { data } = await axios.post(SURVEY_API.create, { title })
-  return data
+export async function createSurvey(
+  document: SurveySchema
+): Promise<SurveySchema> {
+  const { data } = await axios.post(
+    SURVEY_API.create,
+    parseSurveyDocument(document)
+  )
+  return parseSurveyDocument(data)
 }
 
 export async function getSurveyDetail(id: string): Promise<SurveySchema> {
   const { data } = await axios.get(SURVEY_API.detail(id))
-  return data
+  return parseSurveyDocument(data)
 }
 
-export async function updateSurvey(id: string, schema: SurveySchema) {
-  await axios.put(SURVEY_API.update(id), schema)
+export async function updateSurvey(
+  id: string,
+  document: SurveySchema
+): Promise<SurveySchema> {
+  const { data } = await axios.put(
+    SURVEY_API.update(id),
+    parseSurveyDocument(document)
+  )
+  return parseSurveyDocument(data)
 }
 
 export async function deleteSurvey(id: string) {
@@ -60,13 +73,9 @@ export async function updateSurveyStatus(
   await axios.patch(SURVEY_API.status(id), { status })
 }
 
-export async function publishSurvey(id: string) {
-  const { data } = await axios.post<{
-    slug: string
-    version: string
-    publishedAt: string
-  }>(SURVEY_API.publish(id))
-  return data
+export async function publishSurvey(id: string): Promise<SurveySchema> {
+  const { data } = await axios.post(SURVEY_API.publish(id))
+  return parseSurveyDocument(data)
 }
 
 /** 获取问卷答题/填写记录 */

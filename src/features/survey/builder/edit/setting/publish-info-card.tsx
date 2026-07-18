@@ -4,9 +4,9 @@ import { Item, ItemGroup, ItemTitle, ItemActions } from '@/components/ui/item'
 import { useBuilderStore } from '../../store'
 
 export function PublishInfoCard() {
-  const schema = useBuilderStore((s) => s.schema)
+  const document = useBuilderStore((s) => s.document)
 
-  if (!schema?.slug) return null
+  if (!document.slug) return null
 
   return (
     <Card className='gap-0 py-0 shadow-sm'>
@@ -31,13 +31,13 @@ export function PublishInfoCard() {
                   'bg-muted rounded px-1.5 py-0.5'
                 )}
               >
-                {schema.slug}
+                {document.slug}
               </code>
             </ItemActions>
           </Item>
           <Item size='sm' className='justify-between rounded-none px-0 py-1.5'>
             <ItemTitle className='text-muted-foreground text-xs font-normal'>
-              版本
+              修订
             </ItemTitle>
             <ItemActions>
               <code
@@ -46,7 +46,7 @@ export function PublishInfoCard() {
                   'bg-muted rounded px-1.5 py-0.5'
                 )}
               >
-                v{schema.version}
+                r{document.revision}
               </code>
             </ItemActions>
           </Item>

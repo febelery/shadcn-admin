@@ -21,11 +21,7 @@ const desktopOnly = 'hidden lg:flex'
 export function EditWorkspace() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [inspectorOpen, setInspectorOpen] = useState(false)
-  const sectionId = useBuilderStore((s) =>
-    s.schema
-      ? (getEditorSection(s.schema)?.id ?? s.selectedSectionId)
-      : s.selectedSectionId
-  )
+  const sectionId = useBuilderStore((s) => getEditorSection(s.document).id)
 
   return (
     <BuilderDndProvider sectionId={sectionId}>

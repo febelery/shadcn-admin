@@ -16,7 +16,7 @@ import type {
 } from './rule-authoring'
 
 export interface BuilderState {
-  schema: SurveySchema | null
+  document: SurveySchema
   selectedSectionId: string | null
   selectedElementId: string | null
   isDirty: boolean
@@ -61,9 +61,8 @@ export interface BuilderState {
   ) => void
   removeElement: (sectionId: string, elementId: string) => void
   select: (sectionId: string | null, elementId?: string | null) => void
-  markSaved: () => void
-  /** 保存/发布用的已迁移 schema */
-  getSchemaForSave: () => SurveySchema | null
+  adoptDocument: (document: SurveySchema) => void
+  getDocumentSnapshot: () => SurveySchema
 
   // 流程与规则相关操作
   navigate: (intent: BuilderNavigationIntent) => void

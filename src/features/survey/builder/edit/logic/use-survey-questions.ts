@@ -11,17 +11,10 @@ type SurveyQuestionCatalog = {
 
 /** 规则编辑器使用的题目目录：一次订阅提供查找索引与选择器文案。 */
 export function useSurveyQuestionCatalog(filterIds?: string[]) {
-  const schema = useBuilderStore((s) => s.schema)
+  const document = useBuilderStore((s) => s.document)
 
   return useMemo<SurveyQuestionCatalog>(() => {
-    if (!schema) {
-      return {
-        questionsById: new Map(),
-        selectOptions: [],
-      }
-    }
-
-    const questions = flattenQuestions(schema)
+    const questions = flattenQuestions(document)
     const questionsById = new Map(
       questions.map((question) => [question.id, question])
     )
@@ -33,8 +26,8 @@ export function useSurveyQuestionCatalog(filterIds?: string[]) {
       questionsById,
       selectOptions: list.map((question) => ({
         id: question.id,
-        label: getQuestionReferenceLabel(question, schema),
+        label: getQuestionReferenceLabel(question, document),
       })),
     }
-  }, [schema, filterIds])
+  }, [document, filterIds])
 }

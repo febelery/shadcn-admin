@@ -141,11 +141,11 @@ type Props = {
 }
 
 export function RuleEditorPanel({ className, ruleIssues }: Props) {
-  const schema = useBuilderStore((s) => s.schema)
+  const document = useBuilderStore((s) => s.document)
   const { draft, hasChanges, changeDraft, applyDraft, cancelDraft } =
     useRuleDraftEditor()
 
-  if (!schema || !draft) {
+  if (!draft) {
     return (
       <div
         className={cn(
@@ -167,7 +167,7 @@ export function RuleEditorPanel({ className, ruleIssues }: Props) {
     )
   }
 
-  const model = deriveRuleDraftModel(schema, draft)
+  const model = deriveRuleDraftModel(document, draft)
   const rule = draft.value
   const hasBlockingIssues = ruleIssues.some(
     (issue) => issue.severity === 'error'

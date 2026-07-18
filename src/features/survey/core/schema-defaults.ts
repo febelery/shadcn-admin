@@ -1,3 +1,4 @@
+import { SURVEY_DOCUMENT_SCHEMA_VERSION } from './document-schema'
 import type {
   SubmissionConfig,
   SurveySchema,
@@ -47,7 +48,8 @@ export function createSection(overrides?: Partial<Section>): Section {
 export function createEmptySurvey(title = '未命名问卷'): SurveySchema {
   return {
     id: createQuestionId(),
-    version: '4',
+    schemaVersion: SURVEY_DOCUMENT_SCHEMA_VERSION,
+    revision: 0,
     status: 'draft',
     meta: { ...DEFAULT_META, title },
     presentation: { type: 'scroll' },

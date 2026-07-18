@@ -11,9 +11,9 @@ import type { SubmissionTimeWindow } from '../../types'
 import { InspectorSection } from '../inspector/panel'
 
 export function TimeWindowPanel() {
-  const schema = useBuilderStore((s) => s.schema)
+  const document = useBuilderStore((s) => s.document)
   const updateSubmission = useBuilderStore((s) => s.updateSubmission)
-  const timeWindow = schema!.submission.timeWindow
+  const timeWindow = document.submission.timeWindow
 
   const tw: SubmissionTimeWindow = {
     ...DEFAULT_SUBMISSION.timeWindow!,

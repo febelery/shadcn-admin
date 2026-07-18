@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import type { SurveySchema } from './types'
 
+export const SURVEY_DOCUMENT_SCHEMA_VERSION = 1
+
 const questionTypeValues = [
   'single_choice',
   'multiple_choice',
@@ -75,9 +77,17 @@ const surveyElementSchema: z.ZodType<unknown> = z.lazy(() =>
   ])
 )
 
-const surveySchemaZod = z.object({
+const sectionSchema = z.object({
   id: z.string(),
-  version: z.string(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  elements: z.array(surveyElementSchema),
+})
+
+const surveyDocumentSchema = z.object({
+  id: z.string(),
+  schemaVersion: z.literal(SURVEY_DOCUMENT_SCHEMA_VERSION),
+  revision: z.number().int().nonnegative(),
   status: z.enum(['draft', 'published', 'archived']),
   slug: z.string().optional(),
   publishedAt: z.string().optional(),
@@ -121,14 +131,7 @@ const surveySchemaZod = z.object({
       default: z.union([z.string(), z.number(), z.boolean()]).optional(),
     })
   ),
-  sections: z.array(
-    z.object({
-      id: z.string(),
-      title: z.string().optional(),
-      description: z.string().optional(),
-      elements: z.array(surveyElementSchema),
-    })
-  ),
+  sections: z.tuple([sectionSchema]),
   rules: z.array(
     z.object({
       id: z.string(),
@@ -151,6 +154,6 @@ const surveySchemaZod = z.object({
   extensions: z.record(z.string(), z.unknown()).optional(),
 })
 
-export function validateSurveySchema(data: unknown): SurveySchema {
-  return surveySchemaZod.parse(data) as SurveySchema
+export function parseSurveyDocument(data: unknown): SurveySchema {
+  return surveyDocumentSchema.parse(data) as SurveySchema
 }

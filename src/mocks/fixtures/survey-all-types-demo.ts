@@ -76,7 +76,7 @@ export function createAllTypesDemoSurvey(): SurveySchema {
   survey.meta.endDescription =
     '您的反馈已收到，期待再次为您服务。退房时可至前台领取一份手冲咖啡券。'
 
-  survey.sections = [
+  const demoSections = [
     createSection({
       title: '开始之前',
       description: '请先阅读以下说明',
@@ -329,6 +329,13 @@ export function createAllTypesDemoSurvey(): SurveySchema {
           required: true,
         }),
       ],
+    }),
+  ]
+
+  survey.sections = [
+    createSection({
+      title: '全部题型演示',
+      elements: demoSections.flatMap((section) => section.elements),
     }),
   ]
 

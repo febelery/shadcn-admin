@@ -261,7 +261,10 @@ export interface SubmissionConfig {
 
 export interface SurveySchema {
   id: string
-  version: string
+  /** 持久化文档格式版本；只随文档契约变更。 */
+  schemaVersion: 1
+  /** 发布修订号；每次成功发布后递增。 */
+  revision: number
   status: SurveyStatus
   slug?: string
   publishedAt?: string
@@ -269,7 +272,7 @@ export interface SurveySchema {
   presentation: PresentationMode
   theme: ThemeConfig
   variables: SurveyVariable[]
-  sections: Section[]
+  sections: [Section]
   rules: Rule[]
   validators: CrossFieldValidator[]
   submission: SubmissionConfig

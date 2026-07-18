@@ -6,10 +6,6 @@ import {
   removeRulesReferencingQuestions,
 } from '../../core/logic/rule-utils'
 import {
-  migrateSurveySchema,
-  prepareSurveySchemaForSave,
-} from '../../core/migrate'
-import {
   createQuestionId,
   DEFAULT_SUBMISSION,
 } from '../../core/schema-defaults'
@@ -31,12 +27,12 @@ import {
 } from './rule-authoring'
 import type { BuilderState } from './types'
 
-export function createBuilderStore(initialSchema: SurveySchema) {
-  const schema = migrateSurveySchema(initialSchema)
+export function createBuilderStore(initialDocument: SurveySchema) {
+  const document = structuredClone(initialDocument)
   return createStore<BuilderState>()(
     immer((set, get) => ({
-      schema,
-      selectedSectionId: getEditorSectionId(schema),
+      document,
+      selectedSectionId: getEditorSectionId(document),
       selectedElementId: null,
       isDirty: false,
 
@@ -54,22 +50,19 @@ export function createBuilderStore(initialSchema: SurveySchema) {
 
       updateMeta: (patch) =>
         set((s) => {
-          if (!s.schema) return
-          Object.assign(s.schema.meta, patch)
+          Object.assign(s.document.meta, patch)
           s.isDirty = true
         }),
 
       updateTheme: (patch) =>
         set((s) => {
-          if (!s.schema?.theme) return
-          Object.assign(s.schema.theme, patch)
+          Object.assign(s.document.theme, patch)
           s.isDirty = true
         }),
 
       updateSubmission: (patch) =>
         set((s) => {
-          if (!s.schema) return
-          const sub = s.schema.submission
+          const sub = s.document.submission
           if (patch.timeWindow) {
             sub.timeWindow = {
               ...DEFAULT_SUBMISSION.timeWindow,
@@ -98,7 +91,7 @@ export function createBuilderStore(initialSchema: SurveySchema) {
 
       addQuestion: (sectionId, type, index) =>
         set((s) => {
-          const sec = s.schema && findSection(s.schema, sectionId)
+          const sec = findSection(s.document, sectionId)
           const manifest = getQuestionManifest(type)
           if (!sec || !manifest) return
           const el = manifest.create()
@@ -110,7 +103,7 @@ export function createBuilderStore(initialSchema: SurveySchema) {
 
       addLayout: (sectionId, kind, index) =>
         set((s) => {
-          const sec = s.schema && findSection(s.schema, sectionId)
+          const sec = findSection(s.document, sectionId)
           if (!sec) return
           const el: SurveyElement =
             kind === 'divider'
@@ -128,7 +121,7 @@ export function createBuilderStore(initialSchema: SurveySchema) {
 
       reorderElements: (sectionId, activeId, overId) =>
         set((s) => {
-          const sec = s.schema && findSection(s.schema, sectionId)
+          const sec = findSection(s.document, sectionId)
           if (!sec || activeId === overId) return
           const oldIndex = sec.elements.findIndex((e) => e.id === activeId)
           const newIndex = sec.elements.findIndex((e) => e.id === overId)
@@ -140,7 +133,7 @@ export function createBuilderStore(initialSchema: SurveySchema) {
 
       duplicateElement: (sectionId, elementId) =>
         set((s) => {
-          const sec = s.schema && findSection(s.schema, sectionId)
+          const sec = findSection(s.document, sectionId)
           if (!sec) return
           const idx = sec.elements.findIndex((e) => e.id === elementId)
           if (idx === -1) return
@@ -152,7 +145,7 @@ export function createBuilderStore(initialSchema: SurveySchema) {
 
       updateQuestion: (sectionId, elementId, patch) =>
         set((s) => {
-          const sec = s.schema && findSection(s.schema, sectionId)
+          const sec = findSection(s.document, sectionId)
           const el = sec?.elements.find((e) => e.id === elementId)
           if (el?.kind !== 'question') return
           Object.assign(el, patch)
@@ -161,7 +154,7 @@ export function createBuilderStore(initialSchema: SurveySchema) {
 
       updateQuestionConfig: (sectionId, elementId, patch) =>
         set((s) => {
-          const sec = s.schema && findSection(s.schema, sectionId)
+          const sec = findSection(s.document, sectionId)
           const el = sec?.elements.find((e) => e.id === elementId)
           if (el?.kind !== 'question') return
           Object.assign(el.config, patch)
@@ -170,7 +163,7 @@ export function createBuilderStore(initialSchema: SurveySchema) {
 
       updateHtmlBlock: (sectionId, elementId, patch) =>
         set((s) => {
-          const sec = s.schema && findSection(s.schema, sectionId)
+          const sec = findSection(s.document, sectionId)
           const el = sec?.elements.find((e) => e.id === elementId)
           if (el?.kind !== 'html_block') return
           Object.assign(el, patch)
@@ -179,15 +172,15 @@ export function createBuilderStore(initialSchema: SurveySchema) {
 
       removeElement: (sectionId, elementId) =>
         set((s) => {
-          const schema = s.schema
-          const sec = schema && findSection(schema, sectionId)
+          const document = s.document
+          const sec = findSection(document, sectionId)
           if (!sec) return
           const removed = sec.elements.find((e) => e.id === elementId)
           if (!removed) return
           const removedQuestionIds = collectQuestionIdsFromElement(removed)
           sec.elements = sec.elements.filter((e) => e.id !== elementId)
-          schema.rules = removeRulesReferencingQuestions(
-            schema.rules,
+          document.rules = removeRulesReferencingQuestions(
+            document.rules,
             removedQuestionIds
           )
           if (s.selectedElementId === elementId) s.selectedElementId = null
@@ -197,12 +190,20 @@ export function createBuilderStore(initialSchema: SurveySchema) {
       select: (sectionId, elementId = null) =>
         set({ selectedSectionId: sectionId, selectedElementId: elementId }),
 
-      markSaved: () => set({ isDirty: false }),
+      adoptDocument: (document) =>
+        set((s) => {
+          const activeRuleId = s.ruleDraft?.value.id
+          s.document = structuredClone(document)
+          s.ruleDraft = activeRuleId
+            ? beginRuleDraft(document, {
+                type: 'existing',
+                ruleId: activeRuleId,
+              })
+            : null
+          s.isDirty = false
+        }),
 
-      getSchemaForSave: (): SurveySchema | null => {
-        const { schema } = get()
-        return schema ? prepareSurveySchemaForSave(schema) : null
-      },
+      getDocumentSnapshot: () => structuredClone(get().document),
 
       navigate: (intent) =>
         set((s) => {
@@ -241,7 +242,6 @@ export function createBuilderStore(initialSchema: SurveySchema) {
 
       beginRuleDraft: (request, options) => {
         const state = get()
-        if (!state.schema) return 'not-found'
         if (
           state.ruleDraft &&
           request.type === 'existing' &&
@@ -262,7 +262,7 @@ export function createBuilderStore(initialSchema: SurveySchema) {
           return 'confirmation-required'
         }
 
-        const draft = beginRuleDraft(state.schema, request)
+        const draft = beginRuleDraft(state.document, request)
         if (!draft) return 'not-found'
         set((s) => {
           s.ruleDraft = draft
@@ -278,31 +278,31 @@ export function createBuilderStore(initialSchema: SurveySchema) {
       },
 
       changeRuleDraft: (change) => {
-        const { schema, ruleDraft } = get()
-        if (!schema || !ruleDraft) return
-        set({ ruleDraft: changeRuleDraft(schema, ruleDraft, change) })
+        const { document, ruleDraft } = get()
+        if (!ruleDraft) return
+        set({ ruleDraft: changeRuleDraft(document, ruleDraft, change) })
       },
 
       applyRuleDraft: () => {
-        const { schema, ruleDraft } = get()
-        if (!schema || !ruleDraft) return false
+        const { document, ruleDraft } = get()
+        if (!ruleDraft) return false
         if (
-          getRuleDraftIssues(schema, ruleDraft).some(
+          getRuleDraftIssues(document, ruleDraft).some(
             (issue) => issue.severity === 'error'
           )
         ) {
           return false
         }
 
-        const rules = applyRuleDraft(schema.rules, ruleDraft)
-        const committedSchema = { ...schema, rules }
-        const cleanDraft = beginRuleDraft(committedSchema, {
+        const rules = applyRuleDraft(document.rules, ruleDraft)
+        const committedDocument = { ...document, rules }
+        const cleanDraft = beginRuleDraft(committedDocument, {
           type: 'existing',
           ruleId: ruleDraft.value.id,
         })
         set((s) => {
-          if (!s.schema || !cleanDraft) return
-          s.schema.rules = rules
+          if (!cleanDraft) return
+          s.document.rules = rules
           s.ruleDraft = cleanDraft
           s.isDirty = true
         })
@@ -320,10 +320,9 @@ export function createBuilderStore(initialSchema: SurveySchema) {
 
       removeRule: (ruleId) =>
         set((s) => {
-          if (!s.schema) return
-          const nextRules = s.schema.rules.filter((r) => r.id !== ruleId)
-          if (nextRules.length === s.schema.rules.length) return
-          s.schema.rules = normalizeRulePriorities(nextRules)
+          const nextRules = s.document.rules.filter((r) => r.id !== ruleId)
+          if (nextRules.length === s.document.rules.length) return
+          s.document.rules = normalizeRulePriorities(nextRules)
           if (s.ruleDraft?.value.id === ruleId) {
             s.ruleDraft = null
           }

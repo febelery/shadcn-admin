@@ -11,9 +11,9 @@ import type {
 import { InspectorSection } from '../inspector/panel'
 
 export function SubmissionPanel() {
-  const schema = useBuilderStore((s) => s.schema)
+  const document = useBuilderStore((s) => s.document)
   const updateSubmission = useBuilderStore((s) => s.updateSubmission)
-  const submission = schema!.submission
+  const submission = document.submission
 
   const sub: SubmissionConfig = {
     ...DEFAULT_SUBMISSION,

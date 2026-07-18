@@ -5,11 +5,11 @@ import { useBuilderStore } from '../../store'
 import { InspectorSection } from '../inspector/panel'
 
 export function EndPagePanel() {
-  const schema = useBuilderStore((s) => s.schema)
+  const document = useBuilderStore((s) => s.document)
   const updateMeta = useBuilderStore((s) => s.updateMeta)
 
-  const endTitle = schema?.meta.endTitle ?? ''
-  const endDescription = schema?.meta.endDescription ?? ''
+  const endTitle = document.meta.endTitle
+  const endDescription = document.meta.endDescription
 
   return (
     <InspectorSection

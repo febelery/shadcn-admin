@@ -279,9 +279,9 @@ function CoverColorPicker({
 }
 
 export function MetaCoverPanel() {
-  const schema = useBuilderStore((s) => s.schema)
+  const document = useBuilderStore((s) => s.document)
   const updateMeta = useBuilderStore((s) => s.updateMeta)
-  const meta = schema!.meta
+  const meta = document.meta
 
   return (
     <InspectorSection title='头图与展示' description='封面、说明与提交按钮'>
