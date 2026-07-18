@@ -3,19 +3,12 @@ import { getDocumentIdentityIssues } from './document-identities'
 import { SURVEY_DOCUMENT_SCHEMA_VERSION } from './document-version'
 import { getQuestionConfigIssues } from './question-config'
 import { parseRichTextContent } from './rich-text'
-import { QUESTION_TYPES, type SurveyDocument } from './types'
-
-const ruleActionTypeValues = [
-  'show',
-  'hide',
-  'jump_to_question',
-  'end',
-] as const
+import { QUESTION_TYPES, RULE_ACTION_TYPES, type SurveyDocument } from './types'
 
 const ruleActionSchema = z
   .object({
     id: z.string().min(1),
-    type: z.enum(ruleActionTypeValues),
+    type: z.enum(RULE_ACTION_TYPES),
     target: z.string().optional(),
   })
   .strict()

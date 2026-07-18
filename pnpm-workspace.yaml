@@ -4,3 +4,6 @@ minimumReleaseAgeExclude:
   - '@faker-js/faker@10.5.0'
   - lucide-react@1.21.0
   - react-image-crop@11.1.2
+  - '@tanstack/router-cli@1.167.21'
+  - '@tanstack/router-generator@1.167.21'
+  - '@tanstack/router-plugin@1.168.22'

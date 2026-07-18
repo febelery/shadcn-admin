@@ -19,7 +19,8 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import type { StaticIssue } from '../../core/logic/analyzer'
-import type { RuleActionType } from '../../core/types'
+import { actionTypeLabel } from '../../core/logic/rule-meta'
+import { isRuleActionType, RULE_ACTION_TYPES } from '../../core/types'
 import { useBuilderStore } from '../builder-session'
 import { BuilderGuidance } from '../edit/guidance'
 import { useRuleDraftEditor } from '../session/rule-authoring'
@@ -29,13 +30,6 @@ import {
 } from '../session/rule-draft'
 import { ActionBuilder } from './action-builder'
 import { ConditionBuilder } from './condition-builder'
-
-const RULE_TYPE_OPTIONS: { value: RuleActionType; label: string }[] = [
-  { value: 'show', label: '显示题目' },
-  { value: 'hide', label: '隐藏题目' },
-  { value: 'jump_to_question', label: '跳转到题目' },
-  { value: 'end', label: '结束问卷' },
-]
 
 function RuleSettings({
   ruleId,
@@ -184,22 +178,25 @@ export function RuleEditorPanel({
             </Label>
             <Select
               value={model.action.type}
-              onValueChange={(value) =>
+              onValueChange={(value) => {
+                if (!isRuleActionType(value)) return
                 change({
                   type: 'action-type',
-                  actionType: value as RuleActionType,
+                  actionType: value,
                 })
-              }
+              }}
             >
               <SelectTrigger className='h-9'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
-                {RULE_TYPE_OPTIONS.filter((o) =>
-                  model.availableActionTypes.includes(o.value)
-                ).map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    <span className='block max-w-full truncate'>{o.label}</span>
+                {RULE_ACTION_TYPES.filter((type) =>
+                  model.availableActionTypes.includes(type)
+                ).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    <span className='block max-w-full truncate'>
+                      {actionTypeLabel(type)}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>

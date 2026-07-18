@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select'
 import {
   getRuleOperatorsForQuestionType,
+  isRuleConditionOperator,
   isPresenceConditionOperator,
 } from '@/features/survey/core/logic/operators'
 import type {
@@ -154,15 +155,12 @@ export function ConditionBuilder({
                 <FieldRow label='关系'>
                   <Select
                     value={activeOperator}
-                    onValueChange={(value) =>
+                    onValueChange={(value) => {
+                      if (!isRuleConditionOperator(value)) return
                       onConditionChange(
-                        createCondition(
-                          questionId,
-                          value as RuleConditionOperator,
-                          condition
-                        )
+                        createCondition(questionId, value, condition)
                       )
-                    }
+                    }}
                   >
                     <SelectTrigger className='h-9'>
                       <SelectValue />

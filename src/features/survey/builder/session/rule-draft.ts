@@ -2,7 +2,6 @@ import { flattenQuestions } from '../../core/document-elements'
 import { analyseSurvey, type StaticIssue } from '../../core/logic/analyzer'
 import { canUseQuestionAsRuleSource } from '../../core/logic/rule-capabilities'
 import {
-  EDITABLE_RULE_ACTION_TYPES,
   getAutoRuleName,
   getAvailableRuleActionTypes,
   getRuleSourceQuestionIds,
@@ -12,6 +11,7 @@ import {
 } from '../../core/logic/rule-constraints'
 import { createEmptyRule, createRuleAction } from '../../core/logic/rule-utils'
 import { getQuestionReferenceLabel } from '../../core/question-numbering'
+import { RULE_ACTION_TYPES } from '../../core/types'
 import type {
   QuestionElement,
   Rule,
@@ -121,7 +121,7 @@ export function beginRuleDraft(
 export function deriveRuleDraftModel(
   document: SurveyDocument,
   draft: RuleDraft,
-  requestedActionTypes: readonly RuleActionType[] = EDITABLE_RULE_ACTION_TYPES
+  requestedActionTypes: readonly RuleActionType[] = RULE_ACTION_TYPES
 ): RuleDraftModel {
   const questions = flattenQuestions(document)
   const rule = draft.value
@@ -237,7 +237,7 @@ export function changeRuleDraft(
   document: SurveyDocument,
   draft: RuleDraft,
   change: RuleDraftChange,
-  requestedActionTypes: readonly RuleActionType[] = EDITABLE_RULE_ACTION_TYPES
+  requestedActionTypes: readonly RuleActionType[] = RULE_ACTION_TYPES
 ): RuleDraft {
   const currentModel = deriveRuleDraftModel(
     document,

@@ -113,9 +113,9 @@ export function getRuleOperatorsForQuestionType(
 }
 
 export function isRuleConditionOperator(
-  operator: ConditionOperator
+  operator: string
 ): operator is RuleConditionOperator {
-  return operator !== 'between'
+  return isConditionOperator(operator) && operator !== 'between'
 }
 
 export function isPresenceConditionOperator(

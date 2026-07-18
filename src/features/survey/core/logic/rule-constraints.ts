@@ -5,27 +5,12 @@ import type {
   RuleActionType,
   RuleCondition,
 } from '../types'
+import { RULE_ACTION_TYPES } from '../types'
 import { canUseQuestionAsRuleSource } from './rule-capabilities'
 import { areRuleConditionsEqual } from './rule-condition'
 
-export const EDITABLE_RULE_ACTION_TYPES = [
-  'show',
-  'hide',
-  'jump_to_question',
-  'end',
-] as const satisfies readonly RuleActionType[]
-
-export type EditableRuleActionType = (typeof EDITABLE_RULE_ACTION_TYPES)[number]
-
 export type NavigationTargetLock =
-  | { type: 'end' }
-  | { type: 'question'; target: string }
-
-export function isEditableRuleActionType(
-  type: RuleActionType
-): type is EditableRuleActionType {
-  return EDITABLE_RULE_ACTION_TYPES.includes(type as EditableRuleActionType)
-}
+  { type: 'end' } | { type: 'question'; target: string }
 
 export function getRuleSourceQuestionIds(
   questions: QuestionElement[]
@@ -145,7 +130,7 @@ export function canUseRuleActionType({
 }
 
 export function getAvailableRuleActionTypes({
-  requestedTypes = EDITABLE_RULE_ACTION_TYPES,
+  requestedTypes = RULE_ACTION_TYPES,
   sourceId,
   questions,
   rules,
@@ -158,8 +143,8 @@ export function getAvailableRuleActionTypes({
   rules?: Rule[]
   currentRuleId?: string
   condition: RuleCondition
-}): EditableRuleActionType[] {
-  return requestedTypes.filter(isEditableRuleActionType).filter((type) =>
+}): RuleActionType[] {
+  return requestedTypes.filter((type) =>
     canUseRuleActionType({
       type,
       sourceId,
@@ -175,7 +160,7 @@ export function normalizeRuleAction({
   action,
   requestedType,
   requestedTarget,
-  fallbackTypes = EDITABLE_RULE_ACTION_TYPES,
+  fallbackTypes = RULE_ACTION_TYPES,
   sourceId,
   questions,
   rules,
@@ -200,7 +185,7 @@ export function normalizeRuleAction({
     currentRuleId,
     condition,
   })
-  const type = available.includes(requestedType as EditableRuleActionType)
+  const type = available.includes(requestedType)
     ? requestedType
     : (available[0] ?? 'end')
   const targetIds = getRuleTargetQuestionIds({

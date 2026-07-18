@@ -14,15 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { RuleAction, RuleActionType } from '../../core/types'
+import { actionTypeLabel } from '../../core/logic/rule-meta'
+import {
+  isRuleActionType,
+  RULE_ACTION_TYPES,
+  type RuleAction,
+  type RuleActionType,
+} from '../../core/types'
 import { useSurveyQuestionCatalog } from './use-survey-questions'
-
-const ACTION_OPTIONS: { value: RuleActionType; label: string }[] = [
-  { value: 'show', label: '显示题目' },
-  { value: 'hide', label: '隐藏题目' },
-  { value: 'jump_to_question', label: '跳转到题目' },
-  { value: 'end', label: '结束问卷' },
-]
 
 type Props = {
   action: RuleAction
@@ -59,10 +58,8 @@ export function ActionBuilder({
     return targetOptions.find((o) => o.id === selectedId)?.label
   }, [action.target, defaultTargetId, targetOptions])
 
-  const actionOptions = allowedTypes
-    ? ACTION_OPTIONS.filter((o) => allowedTypes.includes(o.value))
-    : ACTION_OPTIONS
-  const showActionSelect = actionOptions.length !== 1
+  const actionTypes = allowedTypes ?? RULE_ACTION_TYPES
+  const showActionSelect = actionTypes.length !== 1
 
   const needsTarget =
     action.type === 'show' ||
@@ -94,25 +91,26 @@ export function ActionBuilder({
               <FieldRow label='动作'>
                 <Select
                   value={action.type}
-                  onValueChange={(v) =>
+                  onValueChange={(value) => {
+                    if (!isRuleActionType(value)) return
                     onChange({
                       ...action,
-                      type: v as RuleActionType,
+                      type: value,
                       target:
-                        v === 'end'
+                        value === 'end'
                           ? undefined
                           : (action.target ?? defaultTargetId),
                     })
-                  }
+                  }}
                 >
                   <SelectTrigger className='h-9'>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
-                    {actionOptions.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
+                    {actionTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
                         <span className='block max-w-full truncate'>
-                          {o.label}
+                          {actionTypeLabel(type)}
                         </span>
                       </SelectItem>
                     ))}

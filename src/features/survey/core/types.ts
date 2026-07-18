@@ -262,7 +262,20 @@ export interface RichTextBlockElement extends BaseElement {
 export type SurveyElement =
   QuestionElement | DividerElement | RichTextBlockElement
 
-export type RuleActionType = 'show' | 'hide' | 'jump_to_question' | 'end'
+export const RULE_ACTION_TYPES = [
+  'show',
+  'hide',
+  'jump_to_question',
+  'end',
+] as const
+
+export type RuleActionType = (typeof RULE_ACTION_TYPES)[number]
+
+const RULE_ACTION_TYPE_SET = new Set<string>(RULE_ACTION_TYPES)
+
+export function isRuleActionType(value: unknown): value is RuleActionType {
+  return typeof value === 'string' && RULE_ACTION_TYPE_SET.has(value)
+}
 
 /** 设计器顶栏模式：编辑内容 / 流程图 */
 export type BuilderMode = 'edit' | 'flow'
