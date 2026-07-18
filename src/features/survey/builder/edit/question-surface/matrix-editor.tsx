@@ -44,23 +44,42 @@ export function SurfaceMatrixEditor({ question, onConfigChange }: Props) {
             <th className='p-1' />
             {cols.map((c) => (
               <th key={c.id} className='overflow-hidden p-1 font-normal'>
-                <InlineEditable
-                  value={c.label}
-                  onChange={(label) =>
-                    setCols(
-                      cols.map((col) =>
-                        col.id === c.id ? { ...col, label } : col
+                <div className='group/column flex min-w-0 items-center gap-0.5'>
+                  <InlineEditable
+                    value={c.label}
+                    onChange={(label) =>
+                      setCols(
+                        cols.map((col) =>
+                          col.id === c.id ? { ...col, label } : col
+                        )
                       )
-                    )
-                  }
-                  placeholder='列'
-                  compact
-                  maxLength={BUILDER_TEXT_LIMITS.matrixColumn}
-                  className={cn(
-                    'text-muted-foreground text-xs leading-relaxed',
-                    'mx-auto text-center'
-                  )}
-                />
+                    }
+                    placeholder='列'
+                    compact
+                    maxLength={BUILDER_TEXT_LIMITS.matrixColumn}
+                    className={cn(
+                      'text-muted-foreground min-w-0 flex-1 text-xs leading-relaxed',
+                      'text-center'
+                    )}
+                  />
+                  {cols.length > 1 ? (
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='icon'
+                      className='text-destructive size-6 shrink-0 opacity-0 group-hover/column:opacity-100'
+                      data-surface-chrome
+                      aria-label='删除列'
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        setCols(cols.filter((col) => col.id !== c.id))
+                      }}
+                    >
+                      <Trash2 className='size-3' />
+                    </Button>
+                  ) : null}
+                </div>
               </th>
             ))}
             <th className='p-1'>

@@ -55,6 +55,11 @@ describe('question config module', () => {
 
     expect(next).toMatchObject({ minValue: 100, maxValue: 101, step: 1 })
     expect(() => parseQuestionConfig('slider', next)).not.toThrow()
+
+    const likert = createQuestion('likert')
+    const scale = applyQuestionConfigPatch(likert, { scaleMax: 20 })
+    expect(scale).toMatchObject({ scaleMin: 11, scaleMax: 20 })
+    expect(() => parseQuestionConfig('likert', scale)).not.toThrow()
   })
 
   it('rejects config fields owned by another question type', () => {
@@ -64,6 +69,16 @@ describe('question config module', () => {
       applyQuestionConfigPatch(rating, {
         placeholder: 'not supported',
       } as never)
+    ).toThrow()
+  })
+
+  it('rejects Likert scales wider than the supported visual model', () => {
+    expect(() =>
+      parseQuestionConfig('likert', {
+        statements: [{ id: 'statement', label: '陈述' }],
+        scaleMin: 1,
+        scaleMax: 11,
+      })
     ).toThrow()
   })
 

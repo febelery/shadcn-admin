@@ -227,8 +227,16 @@ const questionConfigSchemas = {
       scaleMax: z.number().int(),
     })
     .strict()
-    .refine((config) => config.scaleMin < config.scaleMax, {
-      message: '最小分值必须小于最大分值',
+    .superRefine((config, context) => {
+      if (config.scaleMin >= config.scaleMax) {
+        context.addIssue({
+          code: 'custom',
+          message: '最小分值必须小于最大分值',
+        })
+      }
+      if (config.scaleMax - config.scaleMin > 9) {
+        context.addIssue({ code: 'custom', message: '量表最多包含 10 个分值' })
+      }
     }),
 } satisfies Record<QuestionType, z.ZodType>
 
@@ -283,6 +291,15 @@ function normalizeConfigPatch(
   ) {
     if ('scaleMin' in patch) config.scaleMax = config.scaleMin + 1
     else config.scaleMin = config.scaleMax - 1
+  }
+  if (
+    type === 'likert' &&
+    typeof config.scaleMin === 'number' &&
+    typeof config.scaleMax === 'number' &&
+    config.scaleMax - config.scaleMin > 9
+  ) {
+    if ('scaleMin' in patch) config.scaleMax = config.scaleMin + 9
+    else config.scaleMin = config.scaleMax - 9
   }
   if (type === 'multiple_choice' && Array.isArray(config.options)) {
     const available = config.options.length
