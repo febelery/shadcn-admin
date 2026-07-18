@@ -19,11 +19,7 @@ import {
   partitionChoiceOptions,
   syncOtherChoiceOption,
 } from '@/features/survey/core/choice-other-option'
-import {
-  isChoiceQuestionType,
-  isMatrixQuestionType,
-  isTextInputQuestionType,
-} from '@/features/survey/core/question-capabilities'
+import { isChoiceQuestionType } from '@/features/survey/core/question-capabilities'
 import {
   createCascaderNode,
   addCascaderChild,
@@ -817,200 +813,191 @@ type QuestionInspectorConfigProps = {
   patchConfig: (p: Partial<QuestionConfig>) => void
 }
 
-/** 题型 → 检查器配置区（唯一注册点） */
-export function QuestionTypeInspectorFields({
-  type,
-  el,
-  patchConfig,
-}: QuestionInspectorConfigProps) {
-  // 已使用静态导入的题型判断函数
+type InspectorAdapter = (props: QuestionInspectorConfigProps) => React.ReactNode
 
-  if (isChoiceQuestionType(type)) {
-    return (
-      <ChoiceInspectorFields
-        type={type}
-        config={el.config}
-        patchConfig={patchConfig}
+const choiceInspector: InspectorAdapter = ({ type, el, patchConfig }) => (
+  <ChoiceInspectorFields
+    type={type}
+    config={el.config}
+    patchConfig={patchConfig}
+  />
+)
+const cascaderInspector: InspectorAdapter = ({ el, patchConfig }) => (
+  <CascaderInspectorFields config={el.config} patchConfig={patchConfig} />
+)
+const matrixInspector: InspectorAdapter = ({ el, patchConfig }) => (
+  <>
+    <OptionEditor
+      label='矩阵行'
+      labelMaxLength={LABEL_LIMITS.matrixRow}
+      options={(el.config.rows ?? []).map(({ id, label }) => ({ id, label }))}
+      onChange={(rows) =>
+        patchConfig({ rows: rows.map(({ id, label }) => ({ id, label })) })
+      }
+    />
+    <OptionEditor
+      label='矩阵列'
+      labelMaxLength={LABEL_LIMITS.matrixCol}
+      options={(el.config.columns ?? []).map(({ id, label }) => ({
+        id,
+        label,
+      }))}
+      onChange={(columns) =>
+        patchConfig({
+          columns: columns.map(({ id, label }) => ({ id, label })),
+        })
+      }
+    />
+  </>
+)
+const likertInspector: InspectorAdapter = ({ el, patchConfig }) => (
+  <>
+    <OptionEditor
+      label='陈述项'
+      labelMaxLength={LABEL_LIMITS.likertStatement}
+      options={(el.config.statements ?? []).map(({ id, label }) => ({
+        id,
+        label,
+      }))}
+      onChange={(items) =>
+        patchConfig({
+          statements: items.map(({ id, label }) => ({ id, label })),
+        })
+      }
+    />
+    <InspectorFormField label='最小分值'>
+      <Input
+        type='number'
+        className='h-9'
+        value={el.config.scaleMin ?? 1}
+        onChange={(event) =>
+          patchConfig({ scaleMin: Number(event.target.value) })
+        }
       />
-    )
-  }
-
-  if (type === 'cascader') {
-    return (
-      <CascaderInspectorFields config={el.config} patchConfig={patchConfig} />
-    )
-  }
-
-  if (isMatrixQuestionType(type)) {
-    return (
-      <>
-        <OptionEditor
-          label='矩阵行'
-          labelMaxLength={LABEL_LIMITS.matrixRow}
-          options={(el.config.rows ?? []).map((r) => ({
-            id: r.id,
-            label: r.label,
-          }))}
-          onChange={(rows) =>
-            patchConfig({
-              rows: rows.map((o) => ({ id: o.id, label: o.label })),
-            })
-          }
-        />
-        <OptionEditor
-          label='矩阵列'
-          labelMaxLength={LABEL_LIMITS.matrixCol}
-          options={(el.config.columns ?? []).map((c) => ({
-            id: c.id,
-            label: c.label,
-          }))}
-          onChange={(columns) =>
-            patchConfig({
-              columns: columns.map((o) => ({ id: o.id, label: o.label })),
-            })
-          }
-        />
-      </>
-    )
-  }
-
-  if (type === 'likert') {
-    return (
-      <>
-        <OptionEditor
-          label='陈述项'
-          labelMaxLength={LABEL_LIMITS.likertStatement}
-          options={(el.config.statements ?? []).map((s) => ({
-            id: s.id,
-            label: s.label,
-          }))}
-          onChange={(items) =>
-            patchConfig({
-              statements: items.map((o) => ({ id: o.id, label: o.label })),
-            })
-          }
-        />
-        <InspectorFormField label='最小分值'>
-          <Input
-            type='number'
-            className='h-9'
-            value={el.config.scaleMin ?? 1}
-            onChange={(e) => patchConfig({ scaleMin: Number(e.target.value) })}
-          />
-        </InspectorFormField>
-        <InspectorFormField label='最大分值'>
-          <Input
-            type='number'
-            className='h-9'
-            value={el.config.scaleMax ?? 5}
-            onChange={(e) => patchConfig({ scaleMax: Number(e.target.value) })}
-          />
-        </InspectorFormField>
-      </>
-    )
-  }
-
-  if (type === 'rating') {
-    return (
-      <InspectorFormField label='星级数量'>
-        <Input
-          type='number'
-          className='h-9'
-          min={1}
-          max={10}
-          value={el.config.starCount ?? 5}
-          onChange={(e) => patchConfig({ starCount: Number(e.target.value) })}
-        />
-      </InspectorFormField>
-    )
-  }
-
-  if (type === 'slider') {
-    return (
-      <SliderInspectorFields config={el.config} patchConfig={patchConfig} />
-    )
-  }
-
-  if (type === 'nps') {
-    return <NpsInspectorFields config={el.config} patchConfig={patchConfig} />
-  }
-
-  if (type === 'dynamic_panel') {
-    return (
-      <>
-        <InspectorFormField label='最少条数'>
-          <Input
-            type='number'
-            className='h-9'
-            value={el.config.minItems ?? 1}
-            onChange={(e) => patchConfig({ minItems: Number(e.target.value) })}
-          />
-        </InspectorFormField>
-        <InspectorFormField label='最多条数'>
-          <Input
-            type='number'
-            className='h-9'
-            value={el.config.maxItems ?? 5}
-            onChange={(e) => patchConfig({ maxItems: Number(e.target.value) })}
-          />
-        </InspectorFormField>
-        <InspectorFormField label='添加按钮文案'>
-          <Input
-            className='h-9'
-            value={el.config.addLabel ?? '添加一项'}
-            onChange={(e) => patchConfig({ addLabel: e.target.value })}
-          />
-        </InspectorFormField>
-      </>
-    )
-  }
-
-  if (isTextInputQuestionType(type)) {
-    return (
-      <TextInputInspectorFields
-        type={type}
-        config={el.config}
-        patchConfig={patchConfig}
+    </InspectorFormField>
+    <InspectorFormField label='最大分值'>
+      <Input
+        type='number'
+        className='h-9'
+        value={el.config.scaleMax ?? 5}
+        onChange={(event) =>
+          patchConfig({ scaleMax: Number(event.target.value) })
+        }
       />
-    )
-  }
+    </InspectorFormField>
+  </>
+)
+const ratingInspector: InspectorAdapter = ({ el, patchConfig }) => (
+  <InspectorFormField label='星级数量'>
+    <Input
+      type='number'
+      className='h-9'
+      min={1}
+      max={10}
+      value={el.config.starCount ?? 5}
+      onChange={(event) =>
+        patchConfig({ starCount: Number(event.target.value) })
+      }
+    />
+  </InspectorFormField>
+)
+const sliderInspector: InspectorAdapter = ({ el, patchConfig }) => (
+  <SliderInspectorFields config={el.config} patchConfig={patchConfig} />
+)
+const npsInspector: InspectorAdapter = ({ el, patchConfig }) => (
+  <NpsInspectorFields config={el.config} patchConfig={patchConfig} />
+)
+const dynamicPanelInspector: InspectorAdapter = ({ el, patchConfig }) => (
+  <>
+    <InspectorFormField label='最少条数'>
+      <Input
+        type='number'
+        className='h-9'
+        value={el.config.minItems ?? 1}
+        onChange={(event) =>
+          patchConfig({ minItems: Number(event.target.value) })
+        }
+      />
+    </InspectorFormField>
+    <InspectorFormField label='最多条数'>
+      <Input
+        type='number'
+        className='h-9'
+        value={el.config.maxItems ?? 5}
+        onChange={(event) =>
+          patchConfig({ maxItems: Number(event.target.value) })
+        }
+      />
+    </InspectorFormField>
+    <InspectorFormField label='添加按钮文案'>
+      <Input
+        className='h-9'
+        value={el.config.addLabel ?? '添加一项'}
+        onChange={(event) => patchConfig({ addLabel: event.target.value })}
+      />
+    </InspectorFormField>
+  </>
+)
+const textInspector: InspectorAdapter = ({ type, el, patchConfig }) => (
+  <TextInputInspectorFields
+    type={type}
+    config={el.config}
+    patchConfig={patchConfig}
+  />
+)
+const numberInspector: InspectorAdapter = ({ el, patchConfig }) => (
+  <NumberInspectorFields config={el.config} patchConfig={patchConfig} />
+)
+const dateInspector: InspectorAdapter = ({ el, patchConfig }) => (
+  <DateInspectorFields config={el.config} patchConfig={patchConfig} />
+)
+const fillInInspector: InspectorAdapter = () => (
+  <InspectorFormGroup title='填空说明'>
+    <p className='text-muted-foreground text-xs leading-relaxed'>
+      在<strong>题目标题</strong>
+      中用连续下划线表示填空位，例如：「我叫___，今年___岁」。作答端将按顺序展示输入框。
+    </p>
+  </InspectorFormGroup>
+)
+const signatureInspector: InspectorAdapter = () => (
+  <InspectorFormGroup title='签名说明'>
+    <p className='text-muted-foreground text-xs leading-relaxed'>
+      填写端提供手写签名区域；无需额外配置项。
+    </p>
+  </InspectorFormGroup>
+)
+const fileUploadInspector: InspectorAdapter = ({ el, patchConfig }) => (
+  <FileUploadInspectorFields config={el.config} patchConfig={patchConfig} />
+)
 
-  if (type === 'number') {
-    return (
-      <NumberInspectorFields config={el.config} patchConfig={patchConfig} />
-    )
-  }
+const INSPECTOR_ADAPTERS: Record<QuestionType, InspectorAdapter> = {
+  single_choice: choiceInspector,
+  multiple_choice: choiceInspector,
+  dropdown: choiceInspector,
+  ranking: choiceInspector,
+  matrix_single: matrixInspector,
+  matrix_multiple: matrixInspector,
+  cascader: cascaderInspector,
+  text: textInspector,
+  textarea: textInspector,
+  email: textInspector,
+  phone: textInspector,
+  url: textInspector,
+  number: numberInspector,
+  date: dateInspector,
+  date_range: dateInspector,
+  fill_in: fillInInspector,
+  rating: ratingInspector,
+  slider: sliderInspector,
+  nps: npsInspector,
+  likert: likertInspector,
+  dynamic_panel: dynamicPanelInspector,
+  file_upload: fileUploadInspector,
+  signature: signatureInspector,
+}
 
-  if (type === 'date' || type === 'date_range') {
-    return <DateInspectorFields config={el.config} patchConfig={patchConfig} />
-  }
-
-  if (type === 'fill_in') {
-    return (
-      <InspectorFormGroup title='填空说明'>
-        <p className='text-muted-foreground text-xs leading-relaxed'>
-          在<strong>题目标题</strong>
-          中用连续下划线表示填空位，例如：「我叫___，今年___岁」。作答端将按顺序展示输入框。
-        </p>
-      </InspectorFormGroup>
-    )
-  }
-
-  if (type === 'signature') {
-    return (
-      <InspectorFormGroup title='签名说明'>
-        <p className='text-muted-foreground text-xs leading-relaxed'>
-          填写端提供手写签名区域；无需额外配置项。
-        </p>
-      </InspectorFormGroup>
-    )
-  }
-
-  if (type === 'file_upload') {
-    return (
-      <FileUploadInspectorFields config={el.config} patchConfig={patchConfig} />
-    )
-  }
-
-  return null
+export function QuestionTypeInspectorFields(
+  props: QuestionInspectorConfigProps
+) {
+  return INSPECTOR_ADAPTERS[props.type](props)
 }

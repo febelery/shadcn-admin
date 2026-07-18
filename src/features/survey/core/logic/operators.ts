@@ -1,5 +1,5 @@
+import { getQuestionDefinition } from '../question-definitions'
 import type { QuestionType } from '../types'
-import { canUseQuestionTypeAsRuleSource } from './rule-capabilities'
 
 export type ConditionOperator =
   | 'eq'
@@ -59,23 +59,14 @@ const NUMBER_OPS: OperatorDef[] = [
 
 /** 按题型返回可用条件运算符 */
 export function getOperatorsForQuestionType(type: QuestionType): OperatorDef[] {
-  switch (type) {
-    case 'single_choice':
-    case 'dropdown':
+  switch (getQuestionDefinition(type).operatorProfile) {
+    case 'choice':
       return CHOICE_OPS
-    case 'multiple_choice':
+    case 'multi':
       return MULTI_OPS
     case 'text':
-    case 'textarea':
-    case 'email':
-    case 'phone':
-    case 'url':
-    case 'fill_in':
       return TEXT_OPS
     case 'number':
-    case 'rating':
-    case 'slider':
-    case 'nps':
       return NUMBER_OPS
     case 'date':
       return NUMBER_OPS.filter((o) =>
@@ -98,7 +89,7 @@ export function getOperatorsForQuestionType(type: QuestionType): OperatorDef[] {
 
 /** 是否支持可视化条件构建（MVP 题型） */
 export function supportsVisualCondition(type: QuestionType): boolean {
-  return canUseQuestionTypeAsRuleSource(type)
+  return getQuestionDefinition(type).ruleSource
 }
 
 export const OPERATOR_TO_EXPR: Record<ConditionOperator, string> = {
