@@ -22,11 +22,8 @@ import {
   Type,
   type LucideIcon,
 } from 'lucide-react'
-import {
-  QUESTION_DEFINITIONS,
-  type QuestionCategory,
-} from '../core/question-definitions'
-import type { QuestionType } from '../core/types'
+import { QUESTION_TYPES, type QuestionType } from '../core/types'
+import { getQuestionTypeLabel } from './question-type-labels'
 
 export const QUESTION_CATEGORIES = [
   '选择',
@@ -37,31 +34,10 @@ export const QUESTION_CATEGORIES = [
   '布局',
 ] as const
 
-const ICONS: Record<QuestionType, LucideIcon> = {
-  single_choice: CircleDot,
-  multiple_choice: CheckSquare,
-  dropdown: ChevronDown,
-  ranking: ListOrdered,
-  matrix_single: Table,
-  matrix_multiple: Grid3x3,
-  cascader: GitBranch,
-  text: Type,
-  textarea: AlignLeft,
-  number: Hash,
-  email: Mail,
-  phone: Phone,
-  url: Link,
-  date: Calendar,
-  date_range: Calendar,
-  fill_in: TextCursorInput,
-  rating: Star,
-  slider: SlidersHorizontal,
-  nps: Hash,
-  likert: Table,
-  dynamic_panel: Layers,
-  file_upload: FileUp,
-  signature: PenLine,
-}
+export type QuestionCategory = Exclude<
+  (typeof QUESTION_CATEGORIES)[number],
+  '布局'
+>
 
 export interface QuestionUiManifest {
   type: QuestionType
@@ -70,16 +46,38 @@ export interface QuestionUiManifest {
   icon: LucideIcon
 }
 
-export const QUESTION_UI_MANIFESTS: QuestionUiManifest[] =
-  QUESTION_DEFINITIONS.map((definition) => ({
-    type: definition.type,
-    label: definition.label,
-    category: definition.category,
-    icon: ICONS[definition.type],
-  }))
+const QUESTION_UI_METADATA = {
+  single_choice: { category: '选择', icon: CircleDot },
+  multiple_choice: { category: '选择', icon: CheckSquare },
+  dropdown: { category: '选择', icon: ChevronDown },
+  ranking: { category: '选择', icon: ListOrdered },
+  matrix_single: { category: '选择', icon: Table },
+  matrix_multiple: { category: '选择', icon: Grid3x3 },
+  cascader: { category: '选择', icon: GitBranch },
+  text: { category: '输入', icon: Type },
+  textarea: { category: '输入', icon: AlignLeft },
+  number: { category: '输入', icon: Hash },
+  email: { category: '输入', icon: Mail },
+  phone: { category: '输入', icon: Phone },
+  url: { category: '输入', icon: Link },
+  date: { category: '输入', icon: Calendar },
+  date_range: { category: '输入', icon: Calendar },
+  fill_in: { category: '输入', icon: TextCursorInput },
+  rating: { category: '评价', icon: Star },
+  slider: { category: '评价', icon: SlidersHorizontal },
+  nps: { category: '评价', icon: Hash },
+  likert: { category: '评价', icon: Table },
+  dynamic_panel: { category: '结构', icon: Layers },
+  file_upload: { category: '媒体', icon: FileUp },
+  signature: { category: '媒体', icon: PenLine },
+} satisfies Record<QuestionType, Omit<QuestionUiManifest, 'type' | 'label'>>
 
-const manifestByType = new Map(
-  QUESTION_UI_MANIFESTS.map((item) => [item.type, item])
+export const QUESTION_UI_MANIFESTS: QuestionUiManifest[] = QUESTION_TYPES.map(
+  (type) => ({
+    type,
+    label: getQuestionTypeLabel(type),
+    ...QUESTION_UI_METADATA[type],
+  })
 )
 
 export const LAYOUT_MANIFESTS = [
@@ -97,6 +95,10 @@ export const LAYOUT_MANIFESTS = [
   },
 ]
 
-export function getQuestionUiManifest(type: QuestionType) {
-  return manifestByType.get(type)
+export function getQuestionUiManifest(type: QuestionType): QuestionUiManifest {
+  return {
+    type,
+    label: getQuestionTypeLabel(type),
+    ...QUESTION_UI_METADATA[type],
+  }
 }

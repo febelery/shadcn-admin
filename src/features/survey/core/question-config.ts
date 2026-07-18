@@ -6,6 +6,17 @@ import type {
   QuestionType,
 } from './types'
 
+const QUESTION_TYPES_WITH_OPTIONS = new Set<QuestionType>([
+  'single_choice',
+  'multiple_choice',
+  'dropdown',
+  'ranking',
+])
+
+export function questionUsesOptions(type: QuestionType): boolean {
+  return QUESTION_TYPES_WITH_OPTIONS.has(type)
+}
+
 const idLabelSchema = z
   .object({
     id: z.string().min(1),

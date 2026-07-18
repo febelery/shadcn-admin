@@ -1,25 +1,23 @@
 import { createAllTypesDemoSurvey } from '@/mocks/fixtures/survey-all-types-demo'
 import { describe, expect, it } from 'vitest'
+import { createEmptySurvey } from './document-factory'
 import { parseSurveyDocument } from './document-schema'
 import {
   applyQuestionConfigPatch,
   parseQuestionConfig,
 } from './question-config'
-import {
-  QUESTION_DEFINITIONS,
-  getQuestionDefinition,
-} from './question-definitions'
-import { createEmptySurvey } from './document-factory'
+import { createQuestion } from './question-factory'
+import { QUESTION_TYPES } from './types'
 
 describe('question config module', () => {
   it('owns valid defaults for every registered question type', () => {
-    for (const definition of QUESTION_DEFINITIONS) {
-      const question = definition.create()
+    for (const type of QUESTION_TYPES) {
+      const question = createQuestion(type)
       expect(() =>
         parseQuestionConfig(question.type, question.config)
       ).not.toThrow()
 
-      const document = createEmptySurvey(definition.label)
+      const document = createEmptySurvey(type)
       document.sections[0].elements = [question]
       expect(() => parseSurveyDocument(document)).not.toThrow()
     }
@@ -49,9 +47,7 @@ describe('question config module', () => {
   })
 
   it('normalizes dependent values as one edit transaction', () => {
-    const slider = QUESTION_DEFINITIONS.find(
-      (definition) => definition.type === 'slider'
-    )!.create()
+    const slider = createQuestion('slider')
     const next = applyQuestionConfigPatch(slider, { minValue: 100 })
 
     expect(next).toMatchObject({ minValue: 100, maxValue: 101, step: 1 })
@@ -59,9 +55,7 @@ describe('question config module', () => {
   })
 
   it('rejects config fields owned by another question type', () => {
-    const signature = QUESTION_DEFINITIONS.find(
-      (definition) => definition.type === 'signature'
-    )!.create()
+    const signature = createQuestion('signature')
 
     expect(() =>
       applyQuestionConfigPatch(signature, {
@@ -85,7 +79,7 @@ describe('question config module', () => {
   })
 
   it('keeps multiple-choice limits within the edited option set', () => {
-    const multipleChoice = getQuestionDefinition('multiple_choice').create()
+    const multipleChoice = createQuestion('multiple_choice')
     multipleChoice.config.maxSelect = 2
 
     const next = applyQuestionConfigPatch(multipleChoice, {

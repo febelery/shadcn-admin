@@ -2,12 +2,13 @@
 
 问卷设计、规则创作、发布、记录与分析。
 
-- `core/`：`SurveyDocument`、题型定义、规则语义、静态分析与 Zod 解码
+- `core/`：`SurveyDocument`、合法题目工厂、规则语义、静态分析与 Zod 解码
 - `builder/store/`：单个 Builder 会话的文档、编辑焦点、规则草稿与 dirty 状态
 - `builder/edit/`：题目画布、题型 Surface、Inspector 与问卷设置
 - `builder/flow/`：从文档派生的流程投影、规则列表与规则编辑入口
 - `builder/shared/`：编辑和流程模式共同使用的 DnD 与面板组件
-- `shared/question-ui-registry.ts`：题型图标与 palette adapter，不参与文档 mutation
+- `shared/question-type-labels.ts`：无图标依赖的题型展示名称，供分析和 Builder 复用
+- `shared/question-ui-registry.ts`：Palette 分类与图标，不参与文档 mutation 或规则能力判定
 - `query/`：React Query hooks 与缓存 key；HTTP adapter 位于 `src/api/survey.ts`
 - `list/`、`record/`、`analysis/`：管理端查询视图
 
@@ -22,6 +23,8 @@
 `document-schema.ts` 严格拒绝未知持久化字段；`document-identities.ts` 保证 section、element、rule、action、variable 与 validator 在各自命名空间内唯一。重复身份不能进入 Builder。
 
 题型与 config 通过 `QuestionConfigByType` 判别联合建模。`question-config.ts` 统一负责持久化解析、字段所有权和依赖数值的原子归一化；Store 不直接合并任意 config。
+
+`core/question-factory.ts` 只创建具有合法默认配置的题目；规则条件能力由 `core/logic/rule-capabilities.ts` 拥有；Palette 和 Inspector 元数据分别留在其 UI 模块。三者不能重新合并为通用题型注册表。
 
 规则与问卷结构是事实来源，流程图是派生视图。`core/logic/flow-graph.ts` 只构建领域节点和规则边，`builder/flow/layout.ts` 才负责 Dagre 坐标；规则编辑使用显式草稿事务，未来 XYFlow 连线只创建规则草稿意图。
 

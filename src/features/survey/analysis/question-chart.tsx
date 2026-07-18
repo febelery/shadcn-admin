@@ -4,12 +4,12 @@ import { AlertCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getQuestionTypeLabel } from '@/features/survey/core/question-definitions'
+import { getQuestionNumberPrefix } from '@/features/survey/core/question-numbering'
 import type {
   QuestionElement,
   SurveyDocument,
 } from '@/features/survey/core/types'
-import { getQuestionNumberPrefix } from '@/features/survey/core/question-numbering'
+import { getQuestionTypeLabel } from '@/features/survey/shared/question-type-labels'
 import { useSurveyQuestionAnalysis } from '../query/hooks'
 import { ChoiceChart } from './charts/choice-chart'
 import { LikertChart } from './charts/likert-chart'

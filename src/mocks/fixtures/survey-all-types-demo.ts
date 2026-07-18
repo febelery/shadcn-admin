@@ -5,7 +5,7 @@ import {
 } from '@/features/survey/core/document-factory'
 import { isPresenceConditionOperator } from '@/features/survey/core/logic/operators'
 import { createRuleAction } from '@/features/survey/core/logic/rule-utils'
-import { getQuestionDefinition } from '@/features/survey/core/question-definitions'
+import { createQuestion } from '@/features/survey/core/question-factory'
 import type { RichTextContent } from '@/features/survey/core/rich-text'
 import type {
   CascaderNode,
@@ -44,7 +44,7 @@ function q<Type extends QuestionType>(
   title: string,
   patch?: Partial<QuestionElement<Type>>
 ): QuestionElement<Type> {
-  const base = getQuestionDefinition(type).create()
+  const base = createQuestion(type)
   return {
     ...base,
     title,

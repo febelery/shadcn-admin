@@ -1,9 +1,9 @@
-import { getQuestionDefinition } from '../question-definitions'
 import type {
   QuestionType,
   RuleConditionOperator,
   RulePresenceConditionOperator,
 } from '../types'
+import { getRuleOperatorProfile } from './rule-capabilities'
 
 export type ConditionOperator =
   | 'eq'
@@ -65,10 +65,10 @@ const NUMBER_OPS: OperatorDef[] = [
 export function getSegmentOperatorsForQuestionType(
   type: QuestionType
 ): OperatorDef[] {
-  switch (getQuestionDefinition(type).operatorProfile) {
+  switch (getRuleOperatorProfile(type)) {
     case 'choice':
       return CHOICE_OPS
-    case 'multi':
+    case 'multiple-choice':
       return MULTI_OPS
     case 'text':
       return TEXT_OPS

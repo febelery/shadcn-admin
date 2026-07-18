@@ -7,7 +7,7 @@ import {
   removeRulesReferencingQuestions,
 } from '../../core/logic/rule-utils'
 import { applyQuestionConfigPatch } from '../../core/question-config'
-import { getQuestionDefinition } from '../../core/question-definitions'
+import { createQuestion } from '../../core/question-factory'
 import { EMPTY_RICH_TEXT, parseRichTextContent } from '../../core/rich-text'
 import type { SurveyDocument, SurveyElement } from '../../core/types'
 import {
@@ -92,7 +92,7 @@ export function createBuilderStore(initialDocument: SurveyDocument) {
         set((s) => {
           const sec = findSection(s.document, sectionId)
           if (!sec) return
-          const el = getQuestionDefinition(type).create()
+          const el = createQuestion(type)
           insertAt(sec.elements, el, index)
           s.selectedSectionId = sectionId
           s.selectedElementId = el.id

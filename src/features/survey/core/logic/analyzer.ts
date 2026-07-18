@@ -1,8 +1,10 @@
 import { flattenQuestions } from '../document-elements'
-import { getQuestionDefinition } from '../question-definitions'
 import type { QuestionElement, RuleCondition, SurveyDocument } from '../types'
 import { getRuleOperatorsForQuestionType } from './operators'
-import { canUseQuestionAsRuleSource } from './rule-capabilities'
+import {
+  canUseQuestionAsRuleSource,
+  getRuleOperatorProfile,
+} from './rule-capabilities'
 import { getRuleConditionKey } from './rule-condition'
 import { ruleActionTargetsQuestion } from './rule-utils'
 
@@ -25,8 +27,8 @@ function conditionValueIssue(
   if (!('value' in condition)) return null
   if (condition.value === '') return '比较值不能为空'
 
-  const profile = getQuestionDefinition(question.type).operatorProfile
-  if (profile === 'choice' || profile === 'multi') {
+  const profile = getRuleOperatorProfile(question.type)
+  if (profile === 'choice' || profile === 'multiple-choice') {
     const optionExists = question.config.options?.some(
       (option) => option.id === condition.value
     )

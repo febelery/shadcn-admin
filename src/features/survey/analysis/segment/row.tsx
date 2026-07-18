@@ -29,7 +29,7 @@ import type {
   SegmentCondition,
   SegmentConditionOperator,
 } from '@/features/survey/core/analysis-types'
-import { isChoiceQuestionType } from '@/features/survey/core/question-capabilities'
+import { questionUsesOptions } from '@/features/survey/core/question-config'
 import type { QuestionElement } from '@/features/survey/core/types'
 import {
   getOperators,
@@ -127,7 +127,7 @@ export const SegmentRow = React.memo(function SegmentRow({
   const operators = question ? getOperators(question) : []
 
   // 本地根据题型判定字段类型分类，简化原有 getFieldKind 抽象
-  const isChoice = isChoiceQuestionType(question?.type ?? 'single_choice')
+  const isChoice = questionUsesOptions(question?.type ?? 'single_choice')
   const isMulti = question?.type === 'multiple_choice'
   const isNumber =
     question?.type === 'number' ||

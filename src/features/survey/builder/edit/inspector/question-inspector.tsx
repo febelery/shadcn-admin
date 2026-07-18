@@ -19,7 +19,7 @@ import {
   partitionChoiceOptions,
   setOtherChoiceOptionEnabled,
 } from '@/features/survey/core/choice-other-option'
-import { isChoiceQuestionType } from '@/features/survey/core/question-capabilities'
+import { questionUsesOptions } from '@/features/survey/core/question-config'
 import {
   createCascaderNode,
   addCascaderChild,
@@ -391,7 +391,7 @@ export function ChoiceInspectorFields({
           </div>
         )}
 
-        {isChoiceQuestionType(type) && (
+        {questionUsesOptions(type) && (
           <div className='flex items-center gap-2'>
             <Checkbox
               id='randomize'

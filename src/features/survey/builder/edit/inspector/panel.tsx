@@ -22,11 +22,6 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import {
-  getInspectorSectionTitle,
-  inspectorSectionDefaultOpen,
-} from '@/features/survey/core/question-capabilities'
-import { getQuestionTypeLabel } from '@/features/survey/core/question-definitions'
-import {
   getSurveyDefaultNumberingStyle,
   isSurveyNumberingEnabled,
   isQuestionNumberVisible,
@@ -36,6 +31,7 @@ import {
   getQuestionTypeHint,
   hasQuestionTypePreview,
 } from '@/features/survey/shared/question-type-hints'
+import { getQuestionTypeLabel } from '@/features/survey/shared/question-type-labels'
 import { QuestionTypePreview } from '@/features/survey/shared/question-type-preview'
 import { getEditorSection } from '../../../core/editor-section'
 import type {
@@ -54,6 +50,7 @@ import { SubmissionPanel } from '../setting/submission-panel'
 import { ThemePanel } from '../setting/theme-panel'
 import { TimeWindowPanel } from '../setting/time-window-panel'
 import { QuestionTypeInspectorFields } from './question-inspector'
+import { getQuestionInspectorSection } from './question-inspector-section'
 
 // 题目属性配置面板组件
 function QuestionInspector({
@@ -63,6 +60,7 @@ function QuestionInspector({
   sectionId: string
   el: QuestionElement
 }) {
+  const inspectorSection = getQuestionInspectorSection(el.type)
   const surveyStyle = useBuilderStore((s) =>
     getSurveyDefaultNumberingStyle(s.document)
   )
@@ -183,9 +181,9 @@ function QuestionInspector({
       </InspectorSection>
 
       <InspectorSection
-        title={getInspectorSectionTitle(el.type)}
+        title={inspectorSection.title}
         description='本题专属配置'
-        defaultOpen={inspectorSectionDefaultOpen(el.type)}
+        defaultOpen={inspectorSection.defaultOpen}
       >
         <QuestionTypeInspectorFields
           type={el.type}

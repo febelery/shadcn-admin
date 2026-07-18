@@ -1,21 +1,49 @@
-import { getQuestionDefinition } from '../question-definitions'
 import type { QuestionElement, QuestionType } from '../types'
 
-export function canUseQuestionTypeAsRuleSource(type: QuestionType): boolean {
-  return getQuestionDefinition(type).ruleSource
+export type RuleOperatorProfile =
+  'choice' | 'multiple-choice' | 'text' | 'number' | 'date' | 'none'
+
+const RULE_OPERATOR_PROFILES = {
+  single_choice: 'choice',
+  multiple_choice: 'multiple-choice',
+  dropdown: 'choice',
+  ranking: 'none',
+  matrix_single: 'none',
+  matrix_multiple: 'none',
+  cascader: 'none',
+  text: 'text',
+  textarea: 'text',
+  number: 'number',
+  email: 'text',
+  phone: 'text',
+  url: 'text',
+  date: 'date',
+  date_range: 'none',
+  fill_in: 'none',
+  rating: 'number',
+  slider: 'number',
+  nps: 'number',
+  likert: 'none',
+  dynamic_panel: 'none',
+  file_upload: 'none',
+  signature: 'none',
+} satisfies Record<QuestionType, RuleOperatorProfile>
+
+export function getRuleOperatorProfile(
+  type: QuestionType
+): RuleOperatorProfile {
+  return RULE_OPERATOR_PROFILES[type]
 }
 
-export function canUseQuestionAsRuleSource(q: QuestionElement): boolean {
-  if (!canUseQuestionTypeAsRuleSource(q.type)) return false
-  if (getQuestionDefinition(q.type).family === 'choice') {
-    return (q.config.options?.length ?? 0) > 0
+export function canUseQuestionTypeAsRuleSource(type: QuestionType): boolean {
+  return getRuleOperatorProfile(type) !== 'none'
+}
+
+export function canUseQuestionAsRuleSource(question: QuestionElement): boolean {
+  const profile = getRuleOperatorProfile(question.type)
+  if (profile === 'none') return false
+  if (profile === 'choice' || profile === 'multiple-choice') {
+    return (question.config.options?.length ?? 0) > 0
   }
   return true
-}
-
-export function ruleSourceUnavailableReason(type: QuestionType): string {
-  return (
-    getQuestionDefinition(type).ruleSourceUnavailableReason ??
-    '该题型当前不能作为条件题。'
-  )
 }

@@ -4,12 +4,12 @@ import type {
   SegmentDefinition,
 } from '@/features/survey/core/analysis-types'
 import { getSegmentOperatorsForQuestionType } from '@/features/survey/core/logic/operators'
-import { isChoiceQuestionType } from '@/features/survey/core/question-capabilities'
+import { questionUsesOptions } from '@/features/survey/core/question-config'
+import { getQuestionNumberPrefix } from '@/features/survey/core/question-numbering'
 import type {
   QuestionElement,
   SurveyDocument,
 } from '@/features/survey/core/types'
-import { getQuestionNumberPrefix } from '@/features/survey/core/question-numbering'
 
 export type FieldKind = 'choice' | 'multi' | 'number' | 'text'
 
@@ -109,7 +109,7 @@ export function getDefaultValue(
   operator: SegmentConditionOperator
 ): string | undefined {
   if (!operatorNeedsValue(operator)) return undefined
-  if (isChoiceQuestionType(question.type)) {
+  if (questionUsesOptions(question.type)) {
     return question.config?.options?.[0]?.id ?? ''
   }
   return ''
@@ -160,7 +160,7 @@ export function getSelectionDescription(
   if (condition.operator === 'between') {
     return `${value} 到 ${String(condition.value2 ?? '')}`
   }
-  if (isChoiceQuestionType(question.type)) {
+  if (questionUsesOptions(question.type)) {
     const label =
       question.config.options?.find((option) => option.id === value)?.label ??
       value
