@@ -77,7 +77,7 @@ function SurveyBuilderContent({ props }: { props: Props }) {
   const { mutateAsync: save, isPending: saving } = useUpdateSurvey()
   const { mutateAsync: publish, isPending: publishing } = usePublishSurvey()
 
-  const schema = useBuilderStore((s) => s.schema)
+  const surveyTitle = useBuilderStore((s) => s.schema?.meta.title ?? '')
   const isDirty = useBuilderStore((s) => s.isDirty)
   const markSaved = useBuilderStore((s) => s.markSaved)
   const getSchemaForSave = useBuilderStore((s) => s.getSchemaForSave)
@@ -161,7 +161,7 @@ function SurveyBuilderContent({ props }: { props: Props }) {
               'placeholder:text-muted-foreground/50 text-base leading-none font-semibold tracking-tight',
               'min-w-0 flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 sm:max-w-md'
             )}
-            value={schema?.meta.title ?? ''}
+            value={surveyTitle}
             placeholder='问卷标题'
             onChange={(e) => updateMeta({ title: e.target.value })}
           />

@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, memo } from 'react'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { LayoutGrid, LayoutTemplate } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -6,8 +6,7 @@ import { SurveyCoverHeader } from '@/features/survey/shared/survey-cover-header'
 import { getEditorSection } from '../../core/editor-schema'
 import { useIsPaletteDragging } from '../shared/dnd-provider'
 import { BuilderPanelHeader } from '../shared/panel-header'
-import { useBuilderStore } from '../store'
-import { LABEL_LIMITS } from '../store'
+import { LABEL_LIMITS, useBuilderStore } from '../store'
 import type { SurveyElement } from '../types'
 import { WorkspaceAddFooter } from './add-footer'
 import { WorkspaceElementCard } from './element-card'
@@ -19,11 +18,11 @@ import {
   BUILDER_WORKSPACE_SCROLL_ATTR,
 } from './workspace-scroll'
 
-function WorkspaceSurveyCover() {
-  const schema = useBuilderStore((s) => s.schema)
+const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
+  const meta = useBuilderStore((s) => s.schema?.meta)
+  const theme = useBuilderStore((s) => s.schema?.theme)
   const updateMeta = useBuilderStore((s) => s.updateMeta)
-  if (!schema) return null
-  const { meta, theme } = schema
+  if (!meta || !theme) return null
 
   const hasCoverImage = Boolean(meta.cover)
   const onLightText =
@@ -64,7 +63,7 @@ function WorkspaceSurveyCover() {
       }
     />
   )
-}
+})
 
 export function BuilderWorkspacePanel() {
   const schema = useBuilderStore((s) => s.schema)

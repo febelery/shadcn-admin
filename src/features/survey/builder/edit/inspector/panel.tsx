@@ -27,11 +27,11 @@ import {
   inspectorSectionDefaultOpen,
 } from '@/features/survey/core/question-capabilities'
 import {
+  getSurveyDefaultNumberingStyle,
   isSurveyNumberingEnabled,
   isQuestionNumberVisible,
   SURVEY_NUMBERING_OPTIONS,
 } from '@/features/survey/shared/question-numbering'
-import { getSurveyDefaultNumberingStyle } from '@/features/survey/shared/question-numbering'
 import { getQuestionTypeLabel } from '@/features/survey/shared/question-registry'
 import {
   getQuestionTypeHint,
@@ -269,9 +269,8 @@ type Props = {
   className?: string
 }
 
-// 右侧属性面板，直接从 EditContext 中读取状态，不再直接依赖全局 Store
 export function InspectorPanel({ className }: Props = {}) {
-  const schema = useBuilderStore((s) => s.schema)
+  const hasSchema = useBuilderStore((s) => !!s.schema)
   const inspectorTab = useBuilderStore((s) => s.inspectorTab)
   const setInspectorTab = useBuilderStore((s) => s.setInspectorTab)
 
@@ -286,8 +285,6 @@ export function InspectorPanel({ className }: Props = {}) {
     const section = getEditorSection(s.schema)
     return section?.elements.find((e) => e.id === s.selectedElementId)
   })
-  const hasSchema = !!schema
-
   if (!hasSchema || !sectionId) {
     return (
       <div
