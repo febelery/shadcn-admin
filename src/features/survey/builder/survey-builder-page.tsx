@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { createEmptySurvey } from '../core/document-factory'
 import { parseSurveyDocument } from '../core/document-schema'
 import { analyseSurvey } from '../core/logic/analyzer'
-import { createEmptySurvey } from '../core/document-factory'
 import type { SurveyDocument } from '../core/types'
 import {
   useCreateSurvey,
@@ -25,7 +25,9 @@ import {
   useBuilderStore,
 } from './store'
 import { hasRuleDraftChanges } from './store/rule-authoring'
+import { RuleAuthoringProvider } from './store/rule-authoring-provider'
 import { useRuleAuthoring } from './store/use-rule-authoring'
+import { UnsavedChangesBlocker } from './unsaved-changes-blocker'
 
 type Props = { mode: 'create' } | { mode: 'edit'; surveyId: string }
 
@@ -62,7 +64,9 @@ function SurveyBuilderSession({
 
   return (
     <BuilderStoreProvider store={store}>
-      <SurveyBuilderContent props={props} />
+      <RuleAuthoringProvider>
+        <SurveyBuilderContent props={props} />
+      </RuleAuthoringProvider>
     </BuilderStoreProvider>
   )
 }
@@ -146,6 +150,7 @@ function SurveyBuilderContent({ props }: { props: Props }) {
 
   return (
     <div className='bg-background flex h-svh flex-col antialiased'>
+      <UnsavedChangesBlocker />
       <header
         className={cn(
           'border-border bg-background/80 supports-backdrop-filter:bg-background/70 flex h-14 shrink-0 items-center gap-3 border-b px-4 backdrop-blur-sm',
