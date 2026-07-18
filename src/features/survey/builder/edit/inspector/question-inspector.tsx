@@ -1,790 +1,108 @@
-import { CornerDownRight, Plus, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import type { QuestionConfigPatch, QuestionElement } from '../../../core/types'
+import { CascaderInspectorFields } from './question-fields/cascader-fields'
+import { ChoiceInspectorFields } from './question-fields/choice-fields'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { questionUsesOptions } from '@/features/survey/core/question-config'
+  DateInspectorFields,
+  NumberInspectorFields,
+  TextInputInspectorFields,
+} from './question-fields/input-fields'
+import { MatrixInspectorFields } from './question-fields/matrix-fields'
 import {
-  createCascaderNode,
-  addCascaderChild,
-  removeCascaderNode,
-  updateCascaderNode,
-} from '@/features/survey/shared/cascader-adapters'
-import type {
-  QuestionConfig,
-  QuestionConfigPatch,
-  QuestionType,
-  CascaderNode,
-  QuestionElement,
-} from '../../../core/types'
-import { BUILDER_TEXT_LIMITS } from '../../shared/text-limits'
-import { OptionEditor } from './option-editor'
+  LikertInspectorFields,
+  NpsInspectorFields,
+  RatingInspectorFields,
+  SliderInspectorFields,
+} from './question-fields/scale-fields'
 
-function InspectorFormField({
-  label,
-  htmlFor,
-  hint,
-  children,
-}: {
-  label: string
-  htmlFor?: string
-  hint?: string
-  children: React.ReactNode
-}) {
-  return (
-    <Field className='gap-1.5'>
-      <FieldLabel
-        htmlFor={htmlFor}
-        className='text-muted-foreground text-xs font-medium'
-      >
-        {label}
-      </FieldLabel>
-      {children}
-      {hint ? (
-        <FieldDescription className='text-muted-foreground text-xs leading-relaxed'>
-          {hint}
-        </FieldDescription>
-      ) : null}
-    </Field>
-  )
+type Props = {
+  question: QuestionElement
+  onConfigChange: (patch: QuestionConfigPatch) => void
 }
 
-function InspectorFormGroup({
-  title,
-  description,
-  children,
-}: {
-  title: string
-  description?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className='border-border/60 bg-muted/20 flex flex-col gap-3 rounded-lg border p-3.5'>
-      <div className='flex flex-col gap-0.5'>
-        <p className='text-muted-foreground text-xs font-medium'>{title}</p>
-        {description ? (
-          <p className='text-muted-foreground text-xs leading-relaxed'>
-            {description}
-          </p>
-        ) : null}
-      </div>
-      <div className='flex flex-col gap-3'>{children}</div>
-    </div>
-  )
-}
-
-type NodeRowProps = {
-  node: CascaderNode
-  depth: number
-  rootCount: number
-  onChange: (nodes: CascaderNode[]) => void
-  allNodes: CascaderNode[]
-}
-
-function CascaderTreeNodeRow({
-  node,
-  depth,
-  rootCount,
-  onChange,
-  allNodes,
-}: NodeRowProps) {
-  // 仅使用静态导入的 Cascader 工具方法，无需从 Context 解构
-
-  const childCount = node.children?.length ?? 0
-  const canDelete = depth > 0 || rootCount > 1
-
-  const handleLabelChange = (label: string) => {
-    onChange(updateCascaderNode(allNodes, node.id, { label }))
+/** 题型专属 Inspector 的唯一分派入口。 */
+export function QuestionTypeInspectorFields({
+  question,
+  onConfigChange,
+}: Props) {
+  switch (question.type) {
+    case 'single_choice':
+    case 'multiple_choice':
+    case 'dropdown':
+    case 'ranking':
+      return (
+        <ChoiceInspectorFields
+          question={question}
+          onConfigChange={onConfigChange}
+        />
+      )
+    case 'matrix_single':
+    case 'matrix_multiple':
+      return (
+        <MatrixInspectorFields
+          question={question}
+          onConfigChange={onConfigChange}
+        />
+      )
+    case 'cascader':
+      return (
+        <CascaderInspectorFields
+          question={question}
+          onConfigChange={onConfigChange}
+        />
+      )
+    case 'text':
+    case 'textarea':
+    case 'email':
+    case 'phone':
+    case 'url':
+      return (
+        <TextInputInspectorFields
+          question={question}
+          onConfigChange={onConfigChange}
+        />
+      )
+    case 'number':
+      return (
+        <NumberInspectorFields
+          question={question}
+          onConfigChange={onConfigChange}
+        />
+      )
+    case 'date':
+    case 'date_range':
+      return (
+        <DateInspectorFields
+          question={question}
+          onConfigChange={onConfigChange}
+        />
+      )
+    case 'rating':
+      return (
+        <RatingInspectorFields
+          question={question}
+          onConfigChange={onConfigChange}
+        />
+      )
+    case 'slider':
+      return (
+        <SliderInspectorFields
+          question={question}
+          onConfigChange={onConfigChange}
+        />
+      )
+    case 'nps':
+      return (
+        <NpsInspectorFields
+          question={question}
+          onConfigChange={onConfigChange}
+        />
+      )
+    case 'likert':
+      return (
+        <LikertInspectorFields
+          question={question}
+          onConfigChange={onConfigChange}
+        />
+      )
   }
-
-  const handleAddChild = () => {
-    const child = createCascaderNode(`子级 ${childCount + 1}`)
-    onChange(addCascaderChild(allNodes, node.id, child))
-  }
-
-  const handleDelete = () => {
-    onChange(removeCascaderNode(allNodes, node.id))
-  }
-
-  return (
-    <>
-      <div
-        className='bg-muted/30 flex items-center gap-1 rounded-md border px-1 py-1'
-        style={{ marginInlineStart: depth * 16 }}
-      >
-        {depth > 0 ? (
-          <CornerDownRight className='text-muted-foreground size-3.5 shrink-0' />
-        ) : (
-          <span className='size-3.5 shrink-0' />
-        )}
-        <Input
-          className={cn(
-            'h-8 min-w-0 flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0',
-            'text-xs leading-none'
-          )}
-          value={node.label}
-          placeholder={depth === 0 ? '一级选项' : '子级选项'}
-          maxLength={BUILDER_TEXT_LIMITS.cascaderOption}
-          onChange={(e) => handleLabelChange(e.target.value)}
-        />
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon'
-          className='size-7 shrink-0'
-          aria-label='添加子级'
-          onClick={handleAddChild}
-        >
-          <Plus className='size-3.5' />
-        </Button>
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon'
-          className='size-7 shrink-0'
-          disabled={!canDelete}
-          aria-label='删除选项'
-          onClick={handleDelete}
-        >
-          <Trash2 className='size-3.5' />
-        </Button>
-      </div>
-      {node.children?.map((child) => (
-        <CascaderTreeNodeRow
-          key={child.id}
-          node={child}
-          depth={depth + 1}
-          rootCount={rootCount}
-          onChange={onChange}
-          allNodes={allNodes}
-        />
-      ))}
-    </>
-  )
-}
-
-function CascaderTreeEditor({
-  nodes,
-  onChange,
-}: {
-  nodes: CascaderNode[]
-  onChange: (nodes: CascaderNode[]) => void
-}) {
-  // 已使用静态导入的 createCascaderNode
-
-  const handleAddRoot = () => {
-    onChange([...nodes, createCascaderNode(`一级 ${nodes.length + 1}`)])
-  }
-
-  return (
-    <div className='flex flex-col gap-2'>
-      <div className='flex items-center justify-between gap-2'>
-        <Label className='text-muted-foreground text-xs font-medium'>
-          级联选项
-        </Label>
-        <Button
-          type='button'
-          variant='ghost'
-          size='sm'
-          className={cn('h-7', 'text-xs leading-none')}
-          onClick={handleAddRoot}
-        >
-          <Plus className='mr-1 size-3.5' />
-          添加一级
-        </Button>
-      </div>
-
-      <div className='flex flex-col gap-1.5'>
-        {nodes.map((node) => (
-          <CascaderTreeNodeRow
-            key={node.id}
-            node={node}
-            depth={0}
-            rootCount={nodes.length}
-            onChange={onChange}
-            allNodes={nodes}
-          />
-        ))}
-      </div>
-      <p className='text-muted-foreground text-xs leading-relaxed'>
-        点击 + 为当前项添加子级；末级节点即为可选项叶子。
-      </p>
-    </div>
-  )
-}
-
-type PatchConfig = (p: QuestionConfigPatch) => void
-
-export function ChoiceInspectorFields({
-  type,
-  config,
-  patchConfig,
-}: {
-  type: QuestionType
-  config: QuestionConfig
-  patchConfig: PatchConfig
-}) {
-  return (
-    <>
-      <OptionEditor
-        options={config.options ?? []}
-        onChange={(options) => patchConfig({ options })}
-      />
-
-      <InspectorFormGroup title='选项行为'>
-        {type === 'multiple_choice' && (
-          <div className='grid grid-cols-2 gap-2'>
-            <div className='flex flex-col gap-1'>
-              <Label className='text-muted-foreground text-xs font-medium'>
-                最少选择
-              </Label>
-              <Input
-                type='number'
-                min={0}
-                value={config.minSelect ?? ''}
-                placeholder='不限'
-                onChange={(e) =>
-                  patchConfig({
-                    minSelect: e.target.value
-                      ? Number(e.target.value)
-                      : undefined,
-                  })
-                }
-              />
-            </div>
-            <div className='flex flex-col gap-1'>
-              <Label className='text-muted-foreground text-xs font-medium'>
-                最多选择
-              </Label>
-              <Input
-                type='number'
-                min={1}
-                value={config.maxSelect ?? ''}
-                placeholder='不限'
-                onChange={(e) =>
-                  patchConfig({
-                    maxSelect: e.target.value
-                      ? Number(e.target.value)
-                      : undefined,
-                  })
-                }
-              />
-            </div>
-          </div>
-        )}
-
-        {(['single_choice', 'multiple_choice'] as QuestionType[]).includes(
-          type
-        ) && (
-          <div className='flex flex-col gap-1'>
-            <Label className='text-muted-foreground text-xs font-medium'>
-              选项排列
-            </Label>
-            <Select
-              value={config.optionLayout ?? 'vertical'}
-              onValueChange={(v) =>
-                patchConfig({
-                  optionLayout: v as 'vertical' | 'horizontal',
-                })
-              }
-            >
-              <SelectTrigger className={cn('h-8', 'text-xs leading-none')}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='vertical'>纵向</SelectItem>
-                <SelectItem value='horizontal'>横向</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {questionUsesOptions(type) && (
-          <div className='flex items-center gap-2'>
-            <Checkbox
-              id='randomize'
-              checked={config.randomizeOptions ?? false}
-              onCheckedChange={(c) => patchConfig({ randomizeOptions: !!c })}
-            />
-            <Label
-              htmlFor='randomize'
-              className='text-muted-foreground text-xs font-medium'
-            >
-              作答时随机打乱选项顺序
-            </Label>
-          </div>
-        )}
-
-        {type === 'dropdown' && (
-          <div className='flex flex-col gap-1'>
-            <Label className='text-muted-foreground text-xs font-medium'>
-              下拉占位文案
-            </Label>
-            <Input
-              value={config.placeholder ?? '请选择'}
-              onChange={(e) => patchConfig({ placeholder: e.target.value })}
-            />
-          </div>
-        )}
-      </InspectorFormGroup>
-    </>
-  )
-}
-
-export function TextInputInspectorFields({
-  type,
-  config,
-  patchConfig,
-}: {
-  type: QuestionType
-  config: QuestionConfig
-  patchConfig: PatchConfig
-}) {
-  return (
-    <InspectorFormGroup title='输入设置'>
-      <div className='flex flex-col gap-1'>
-        <Label className='text-muted-foreground text-xs font-medium'>
-          占位提示
-        </Label>
-        <Input
-          value={config.placeholder ?? ''}
-          onChange={(e) => patchConfig({ placeholder: e.target.value })}
-        />
-      </div>
-      {type === 'textarea' && (
-        <>
-          <div className='grid grid-cols-2 gap-2'>
-            <div className='flex flex-col gap-1'>
-              <Label className='text-muted-foreground text-xs font-medium'>
-                显示行数
-              </Label>
-              <Input
-                type='number'
-                min={2}
-                max={20}
-                value={config.textareaRows ?? 4}
-                onChange={(e) =>
-                  patchConfig({ textareaRows: Number(e.target.value) })
-                }
-              />
-            </div>
-            <div className='flex flex-col gap-1'>
-              <Label className='text-muted-foreground text-xs font-medium'>
-                最大字数
-              </Label>
-              <Input
-                type='number'
-                min={1}
-                value={config.maxLength ?? ''}
-                placeholder='不限'
-                onChange={(e) =>
-                  patchConfig({
-                    maxLength: e.target.value
-                      ? Number(e.target.value)
-                      : undefined,
-                  })
-                }
-              />
-            </div>
-          </div>
-        </>
-      )}
-      {type === 'text' && (
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            最大字数
-          </Label>
-          <Input
-            type='number'
-            min={1}
-            value={config.maxLength ?? ''}
-            placeholder='不限'
-            onChange={(e) =>
-              patchConfig({
-                maxLength: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
-          />
-        </div>
-      )}
-    </InspectorFormGroup>
-  )
-}
-
-export function NumberInspectorFields({
-  config,
-  patchConfig,
-}: {
-  config: QuestionConfig
-  patchConfig: PatchConfig
-}) {
-  return (
-    <InspectorFormGroup title='数字范围'>
-      <div className='flex flex-col gap-1'>
-        <Label className='text-muted-foreground text-xs font-medium'>
-          占位提示
-        </Label>
-        <Input
-          value={config.placeholder ?? ''}
-          onChange={(e) => patchConfig({ placeholder: e.target.value })}
-        />
-      </div>
-      <div className='grid grid-cols-3 gap-2'>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            最小值
-          </Label>
-          <Input
-            type='number'
-            value={config.minValue ?? ''}
-            placeholder='不限'
-            onChange={(e) =>
-              patchConfig({
-                minValue: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
-          />
-        </div>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            最大值
-          </Label>
-          <Input
-            type='number'
-            value={config.maxValue ?? ''}
-            placeholder='不限'
-            onChange={(e) =>
-              patchConfig({
-                maxValue: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
-          />
-        </div>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            步长
-          </Label>
-          <Input
-            type='number'
-            min={0}
-            value={config.step ?? ''}
-            placeholder='1'
-            onChange={(e) =>
-              patchConfig({
-                step: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
-          />
-        </div>
-      </div>
-    </InspectorFormGroup>
-  )
-}
-
-export function DateInspectorFields({
-  config,
-  patchConfig,
-}: {
-  config: QuestionConfig
-  patchConfig: PatchConfig
-}) {
-  return (
-    <InspectorFormGroup title='日期设置'>
-      <div className='grid grid-cols-2 gap-2'>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            最早日期
-          </Label>
-          <Input
-            type='date'
-            value={config.minDate?.slice(0, 10) ?? ''}
-            onChange={(e) =>
-              patchConfig({ minDate: e.target.value || undefined })
-            }
-          />
-        </div>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            最晚日期
-          </Label>
-          <Input
-            type='date'
-            value={config.maxDate?.slice(0, 10) ?? ''}
-            onChange={(e) =>
-              patchConfig({ maxDate: e.target.value || undefined })
-            }
-          />
-        </div>
-      </div>
-      <div className='flex flex-col gap-1'>
-        <Label className='text-muted-foreground text-xs font-medium'>
-          占位提示
-        </Label>
-        <Input
-          value={config.placeholder ?? ''}
-          onChange={(e) => patchConfig({ placeholder: e.target.value })}
-        />
-      </div>
-    </InspectorFormGroup>
-  )
-}
-
-export function SliderInspectorFields({
-  config,
-  patchConfig,
-}: {
-  config: QuestionConfig
-  patchConfig: PatchConfig
-}) {
-  return (
-    <InspectorFormGroup title='滑块范围'>
-      <div className='grid grid-cols-3 gap-2'>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            最小值
-          </Label>
-          <Input
-            type='number'
-            value={config.minValue ?? 0}
-            onChange={(e) => patchConfig({ minValue: Number(e.target.value) })}
-          />
-        </div>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            最大值
-          </Label>
-          <Input
-            type='number'
-            value={config.maxValue ?? 100}
-            onChange={(e) => patchConfig({ maxValue: Number(e.target.value) })}
-          />
-        </div>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            步长
-          </Label>
-          <Input
-            type='number'
-            min={0}
-            value={config.step ?? 1}
-            onChange={(e) => patchConfig({ step: Number(e.target.value) })}
-          />
-        </div>
-      </div>
-    </InspectorFormGroup>
-  )
-}
-
-export function NpsInspectorFields({
-  config,
-  patchConfig,
-}: {
-  config: QuestionConfig
-  patchConfig: PatchConfig
-}) {
-  return (
-    <InspectorFormGroup title='NPS 量表'>
-      <p className='text-muted-foreground text-xs leading-relaxed'>
-        标准 NPS 为 0–10 分；可自定义两端说明文案。
-      </p>
-      <div className='grid grid-cols-2 gap-2'>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            左侧说明（低分）
-          </Label>
-          <Input
-            value={config.npsLeftLabel ?? '完全不可能'}
-            onChange={(e) => patchConfig({ npsLeftLabel: e.target.value })}
-          />
-        </div>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            右侧说明（高分）
-          </Label>
-          <Input
-            value={config.npsRightLabel ?? '非常可能'}
-            onChange={(e) => patchConfig({ npsRightLabel: e.target.value })}
-          />
-        </div>
-      </div>
-    </InspectorFormGroup>
-  )
-}
-
-export function CascaderInspectorFields({
-  config,
-  patchConfig,
-}: {
-  config: QuestionConfig
-  patchConfig: PatchConfig
-}) {
-  const roots = config.cascaderOptions ?? []
-
-  return (
-    <>
-      <CascaderTreeEditor
-        nodes={roots}
-        onChange={(next) => patchConfig({ cascaderOptions: next })}
-      />
-      <InspectorFormGroup title='级联设置'>
-        <InspectorFormField label='占位提示'>
-          <Input
-            value={config.placeholder ?? '请选择'}
-            onChange={(e) => patchConfig({ placeholder: e.target.value })}
-          />
-        </InspectorFormField>
-      </InspectorFormGroup>
-    </>
-  )
-}
-
-type QuestionInspectorConfigProps = {
-  type: QuestionType
-  el: QuestionElement
-  patchConfig: (p: QuestionConfigPatch) => void
-}
-
-type InspectorAdapter = (props: QuestionInspectorConfigProps) => React.ReactNode
-
-const choiceInspector: InspectorAdapter = ({ type, el, patchConfig }) => (
-  <ChoiceInspectorFields
-    type={type}
-    config={el.config}
-    patchConfig={patchConfig}
-  />
-)
-const cascaderInspector: InspectorAdapter = ({ el, patchConfig }) => (
-  <CascaderInspectorFields config={el.config} patchConfig={patchConfig} />
-)
-const matrixInspector: InspectorAdapter = ({ el, patchConfig }) => (
-  <>
-    <OptionEditor
-      label='矩阵行'
-      labelMaxLength={BUILDER_TEXT_LIMITS.matrixRow}
-      options={(el.config.rows ?? []).map(({ id, label }) => ({ id, label }))}
-      onChange={(rows) =>
-        patchConfig({ rows: rows.map(({ id, label }) => ({ id, label })) })
-      }
-    />
-    <OptionEditor
-      label='矩阵列'
-      labelMaxLength={BUILDER_TEXT_LIMITS.matrixColumn}
-      options={(el.config.columns ?? []).map(({ id, label }) => ({
-        id,
-        label,
-      }))}
-      onChange={(columns) =>
-        patchConfig({
-          columns: columns.map(({ id, label }) => ({ id, label })),
-        })
-      }
-    />
-  </>
-)
-const likertInspector: InspectorAdapter = ({ el, patchConfig }) => (
-  <>
-    <OptionEditor
-      label='陈述项'
-      labelMaxLength={BUILDER_TEXT_LIMITS.likertStatement}
-      options={(el.config.statements ?? []).map(({ id, label }) => ({
-        id,
-        label,
-      }))}
-      onChange={(items) =>
-        patchConfig({
-          statements: items.map(({ id, label }) => ({ id, label })),
-        })
-      }
-    />
-    <InspectorFormField label='最小分值'>
-      <Input
-        type='number'
-        className='h-9'
-        value={el.config.scaleMin ?? 1}
-        onChange={(event) =>
-          patchConfig({ scaleMin: Number(event.target.value) })
-        }
-      />
-    </InspectorFormField>
-    <InspectorFormField label='最大分值'>
-      <Input
-        type='number'
-        className='h-9'
-        value={el.config.scaleMax ?? 5}
-        onChange={(event) =>
-          patchConfig({ scaleMax: Number(event.target.value) })
-        }
-      />
-    </InspectorFormField>
-  </>
-)
-const ratingInspector: InspectorAdapter = ({ el, patchConfig }) => (
-  <InspectorFormField label='星级数量'>
-    <Input
-      type='number'
-      className='h-9'
-      min={1}
-      max={10}
-      value={el.config.starCount ?? 5}
-      onChange={(event) =>
-        patchConfig({ starCount: Number(event.target.value) })
-      }
-    />
-  </InspectorFormField>
-)
-const sliderInspector: InspectorAdapter = ({ el, patchConfig }) => (
-  <SliderInspectorFields config={el.config} patchConfig={patchConfig} />
-)
-const npsInspector: InspectorAdapter = ({ el, patchConfig }) => (
-  <NpsInspectorFields config={el.config} patchConfig={patchConfig} />
-)
-const textInspector: InspectorAdapter = ({ type, el, patchConfig }) => (
-  <TextInputInspectorFields
-    type={type}
-    config={el.config}
-    patchConfig={patchConfig}
-  />
-)
-const numberInspector: InspectorAdapter = ({ el, patchConfig }) => (
-  <NumberInspectorFields config={el.config} patchConfig={patchConfig} />
-)
-const dateInspector: InspectorAdapter = ({ el, patchConfig }) => (
-  <DateInspectorFields config={el.config} patchConfig={patchConfig} />
-)
-
-const INSPECTOR_ADAPTERS: Record<QuestionType, InspectorAdapter> = {
-  single_choice: choiceInspector,
-  multiple_choice: choiceInspector,
-  dropdown: choiceInspector,
-  ranking: choiceInspector,
-  matrix_single: matrixInspector,
-  matrix_multiple: matrixInspector,
-  cascader: cascaderInspector,
-  text: textInspector,
-  textarea: textInspector,
-  email: textInspector,
-  phone: textInspector,
-  url: textInspector,
-  number: numberInspector,
-  date: dateInspector,
-  date_range: dateInspector,
-  rating: ratingInspector,
-  slider: sliderInspector,
-  nps: npsInspector,
-  likert: likertInspector,
-}
-
-export function QuestionTypeInspectorFields(
-  props: QuestionInspectorConfigProps
-) {
-  return INSPECTOR_ADAPTERS[props.type](props)
 }

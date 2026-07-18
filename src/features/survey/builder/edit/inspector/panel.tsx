@@ -178,9 +178,8 @@ function QuestionInspector({ el }: { el: QuestionElement }) {
         defaultOpen={inspectorSection.defaultOpen}
       >
         <QuestionTypeInspectorFields
-          type={el.type}
-          el={el}
-          patchConfig={patchConfig}
+          question={el}
+          onConfigChange={patchConfig}
         />
       </InspectorSection>
 
