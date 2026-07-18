@@ -84,6 +84,7 @@ export function LeftPanel({ projection, className }: Props) {
           >
             <RulesList
               rules={filteredRules}
+              questionTitles={questionTitles}
               issuesByRule={projection?.issuesByRule}
             />
           </div>

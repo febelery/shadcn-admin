@@ -1,13 +1,12 @@
 import { Eye, GitBranch } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import {
-  getRulesForQuestion,
-  ruleReferencesQuestionAsSource,
-} from '@/features/survey/core/logic/rule-utils'
+import { getQuestionRuleSummary } from '@/features/survey/core/logic/question-rule-index'
 import { useBuilderStore } from '../../store'
 import { useRuleAuthoring } from '../../store/use-rule-authoring'
-import type { Rule } from '../../types'
+
+const EMPTY_RULES: never[] = []
 
 type Props = {
   questionId: string
@@ -15,40 +14,22 @@ type Props = {
 }
 
 export function QuestionLogicBadges({ questionId, className }: Props) {
-  const schema = useBuilderStore((s) => s.schema)
+  const { firstRuleId, hasVisibility, hasBranch } = useBuilderStore(
+    useShallow((s) =>
+      getQuestionRuleSummary(s.schema?.rules ?? EMPTY_RULES, questionId)
+    )
+  )
   const { openRule } = useRuleAuthoring()
 
-  const rules = schema?.rules ?? []
-
-  const hasVisibilityRules = (rulesList: Rule[], qId: string) => {
-    return rulesList.some(
-      (r) =>
-        r.enabled &&
-        (r.action.type === 'show' || r.action.type === 'hide') &&
-        r.action.target === qId
-    )
-  }
-
-  const hasBranchRules = (rulesList: Rule[], qId: string) => {
-    return rulesList.some(
-      (r) => r.enabled && ruleReferencesQuestionAsSource(r, qId)
-    )
-  }
-
-  const vis = hasVisibilityRules(rules, questionId)
-  const branch = hasBranchRules(rules, questionId)
-  const related = getRulesForQuestion(rules, questionId)
-
-  if (!vis && !branch) return null
+  if (!hasVisibility && !hasBranch) return null
 
   const openInFlow = () => {
-    const first = related[0]
-    if (first) openRule(first.id)
+    if (firstRuleId) openRule(firstRuleId)
   }
 
   return (
     <div className={cn('flex gap-1', className)}>
-      {vis ? (
+      {hasVisibility ? (
         <Button
           type='button'
           variant='secondary'
@@ -63,7 +44,7 @@ export function QuestionLogicBadges({ questionId, className }: Props) {
           显隐
         </Button>
       ) : null}
-      {branch ? (
+      {hasBranch ? (
         <Button
           type='button'
           variant='secondary'

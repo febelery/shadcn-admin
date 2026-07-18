@@ -7,7 +7,6 @@ import {
   RULE_CATEGORY_LABEL,
 } from '@/features/survey/core/logic/rule-meta'
 import { summarizeRuleAction } from '@/features/survey/core/logic/rule-utils'
-import { useQuestionLabel } from '../edit/logic/use-survey-questions'
 import { useBuilderStore } from '../store'
 import { useRuleAuthoring } from '../store/use-rule-authoring'
 import type { StaticIssue, Rule } from '../types'
@@ -17,19 +16,24 @@ function RuleRow({
   rule,
   selected,
   ruleIssues,
+  questionTitles,
   onSelect,
 }: {
   rule: Rule
   selected: boolean
   ruleIssues?: StaticIssue[]
+  questionTitles: ReadonlyMap<string, string>
   onSelect: () => void
 }) {
   const removeRule = useBuilderStore((s) => s.removeRule)
   const category = getRuleCategory(rule)
   const action = rule.action
-  const targetLabel = useQuestionLabel(action.target ?? '')
+  const targetId = action.target ?? ''
+  const targetLabel = questionTitles.get(targetId) ?? targetId.slice(0, 8)
   const sourceId = extractQuestionRefsFromWhen(rule.when)[0]
-  const sourceLabel = useQuestionLabel(sourceId ?? '')
+  const sourceLabel = sourceId
+    ? (questionTitles.get(sourceId) ?? sourceId.slice(0, 8))
+    : ''
   const severity = ruleIssues?.length ? worstSeverity(ruleIssues) : null
   const actionText = summarizeRuleAction(
     action,
@@ -129,10 +133,11 @@ function RuleRow({
 
 type Props = {
   rules: Rule[]
+  questionTitles: ReadonlyMap<string, string>
   issuesByRule?: Map<string, StaticIssue[]>
 }
 
-export function RulesList({ rules, issuesByRule }: Props) {
+export function RulesList({ rules, questionTitles, issuesByRule }: Props) {
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
   const { openRule } = useRuleAuthoring()
 
@@ -155,6 +160,7 @@ export function RulesList({ rules, issuesByRule }: Props) {
                 rule={r}
                 selected={editingRuleId === r.id}
                 ruleIssues={issuesByRule?.get(r.id)}
+                questionTitles={questionTitles}
                 onSelect={() => openRule(r.id)}
               />
             </li>
