@@ -246,13 +246,6 @@ const questionConfigSchemas = {
     .refine((config) => config.scaleMin < config.scaleMax, {
       message: '最小分值必须小于最大分值',
     }),
-  file_upload: z
-    .object({
-      acceptTypes: z.array(z.string().min(1)).optional(),
-      maxCount: z.number().int().positive(),
-      maxSize: z.number().positive(),
-    })
-    .strict(),
 } satisfies Record<QuestionType, z.ZodType>
 
 function normalizeRange(
@@ -325,13 +318,6 @@ function normalizeConfigPatch(
       20,
       Math.max(2, Math.round(config.textareaRows))
     )
-  }
-  if (type === 'file_upload') {
-    if (typeof config.maxCount === 'number') {
-      config.maxCount = Math.max(1, Math.round(config.maxCount))
-    }
-    if (typeof config.maxSize === 'number')
-      config.maxSize = Math.max(1, config.maxSize)
   }
 }
 

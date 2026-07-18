@@ -70,7 +70,6 @@ export const QUESTION_TYPES = [
   'slider',
   'nps',
   'likert',
-  'file_upload',
 ] as const
 
 export type QuestionType = (typeof QUESTION_TYPES)[number]
@@ -129,9 +128,6 @@ interface QuestionConfigFields {
   maxDate?: string
   npsLeftLabel?: string
   npsRightLabel?: string
-  acceptTypes?: string[]
-  maxCount?: number
-  maxSize?: number
 }
 
 type StrictQuestionConfig<Config extends Partial<QuestionConfigFields>> =
@@ -211,11 +207,6 @@ export interface QuestionConfigByType {
     statements: LikertStatement[]
     scaleMin: number
     scaleMax: number
-  }>
-  file_upload: StrictQuestionConfig<{
-    acceptTypes?: string[]
-    maxCount: number
-    maxSize: number
   }>
 }
 

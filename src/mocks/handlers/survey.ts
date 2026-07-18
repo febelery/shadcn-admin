@@ -956,9 +956,6 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
       )
     }
 
-    case 'file_upload':
-      return ['营业执照.pdf', '开票资料.png']
-
     default:
       return '示例回答'
   }

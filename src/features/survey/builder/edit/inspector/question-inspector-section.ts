@@ -25,7 +25,6 @@ const QUESTION_INSPECTOR_SECTIONS = {
   slider: { title: '滑块', defaultOpen: false },
   nps: { title: 'NPS', defaultOpen: false },
   likert: { title: '量表', defaultOpen: false },
-  file_upload: { title: '文件上传', defaultOpen: false },
 } satisfies Record<QuestionType, QuestionInspectorSection>
 
 export function getQuestionInspectorSection(

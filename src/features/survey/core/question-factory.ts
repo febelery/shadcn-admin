@@ -81,8 +81,6 @@ const QUESTION_FACTORIES: QuestionFactoryMap = {
       scaleMin: 1,
       scaleMax: 5,
     }),
-  file_upload: () =>
-    baseQuestion('file_upload', '上传文件', { maxCount: 3, maxSize: 10 }),
 }
 
 export function createQuestion<Type extends QuestionType>(

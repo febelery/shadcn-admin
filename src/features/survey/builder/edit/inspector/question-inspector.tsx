@@ -722,67 +722,6 @@ export function NpsInspectorFields({
   )
 }
 
-export function FileUploadInspectorFields({
-  config,
-  patchConfig,
-}: {
-  config: QuestionConfig
-  patchConfig: PatchConfig
-}) {
-  const acceptStr = (config.acceptTypes ?? []).join(', ')
-  return (
-    <InspectorFormGroup title='上传限制'>
-      <div className='grid grid-cols-2 gap-2'>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            最多文件数
-          </Label>
-          <Input
-            type='number'
-            min={1}
-            value={config.maxCount ?? 3}
-            onChange={(e) => patchConfig({ maxCount: Number(e.target.value) })}
-          />
-        </div>
-        <div className='flex flex-col gap-1'>
-          <Label className='text-muted-foreground text-xs font-medium'>
-            单文件 MB 上限
-          </Label>
-          <Input
-            type='number'
-            min={1}
-            value={config.maxSize ?? 10}
-            onChange={(e) => patchConfig({ maxSize: Number(e.target.value) })}
-          />
-        </div>
-      </div>
-      <div className='flex flex-col gap-1'>
-        <Label className='text-muted-foreground text-xs font-medium'>
-          允许类型
-        </Label>
-        <Input
-          value={acceptStr}
-          placeholder='image/*, .pdf, .docx'
-          onChange={(e) => {
-            const raw = e.target.value.trim()
-            patchConfig({
-              acceptTypes: raw
-                ? raw
-                    .split(',')
-                    .map((s) => s.trim())
-                    .filter(Boolean)
-                : undefined,
-            })
-          }}
-        />
-        <p className='text-muted-foreground text-xs leading-relaxed'>
-          逗号分隔，如 image/* 或 .pdf
-        </p>
-      </div>
-    </InspectorFormGroup>
-  )
-}
-
 export function CascaderInspectorFields({
   config,
   patchConfig,
@@ -923,9 +862,6 @@ const numberInspector: InspectorAdapter = ({ el, patchConfig }) => (
 const dateInspector: InspectorAdapter = ({ el, patchConfig }) => (
   <DateInspectorFields config={el.config} patchConfig={patchConfig} />
 )
-const fileUploadInspector: InspectorAdapter = ({ el, patchConfig }) => (
-  <FileUploadInspectorFields config={el.config} patchConfig={patchConfig} />
-)
 
 const INSPECTOR_ADAPTERS: Record<QuestionType, InspectorAdapter> = {
   single_choice: choiceInspector,
@@ -947,7 +883,6 @@ const INSPECTOR_ADAPTERS: Record<QuestionType, InspectorAdapter> = {
   slider: sliderInspector,
   nps: npsInspector,
   likert: likertInspector,
-  file_upload: fileUploadInspector,
 }
 
 export function QuestionTypeInspectorFields(

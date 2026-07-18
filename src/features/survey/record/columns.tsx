@@ -122,7 +122,6 @@ function getQuestionCellMeta(question: QuestionElement) {
       }
     case 'multiple_choice':
     case 'cascader':
-    case 'file_upload':
       return {
         variant: 'multi-select' as const,
         options: getChoiceOptions(question),
@@ -171,8 +170,7 @@ function getQuestionColumnSize(question: QuestionElement) {
   if (
     question.type === 'multiple_choice' ||
     question.type === 'ranking' ||
-    question.type === 'cascader' ||
-    question.type === 'file_upload'
+    question.type === 'cascader'
   ) {
     return 220
   }
@@ -198,13 +196,6 @@ function getChoiceOptions(question: QuestionElement) {
         ...flatten(node.children ?? []),
       ])
     return flatten(question.config.cascaderOptions ?? [])
-  }
-
-  if (question.type === 'file_upload') {
-    return ['营业执照.pdf', '开票资料.png'].map((value) => ({
-      label: value,
-      value,
-    }))
   }
 
   return []
@@ -233,7 +224,7 @@ function formatAnswerForGrid(
     return toStringArray(answer)
   }
 
-  if (question.type === 'cascader' || question.type === 'file_upload') {
+  if (question.type === 'cascader') {
     return toStringArray(answer)
   }
 

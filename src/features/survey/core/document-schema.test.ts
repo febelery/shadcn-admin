@@ -113,7 +113,7 @@ describe('parseSurveyDocument', () => {
         ],
       })
     ).toThrow()
-    for (const removedType of ['fill_in', 'signature']) {
+    for (const removedType of ['fill_in', 'signature', 'file_upload']) {
       expect(() =>
         parseSurveyDocument({
           ...document,

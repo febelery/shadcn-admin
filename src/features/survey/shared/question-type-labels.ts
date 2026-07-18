@@ -20,7 +20,6 @@ const QUESTION_TYPE_LABELS = {
   slider: '滑块',
   nps: 'NPS 净推荐值',
   likert: '李克特量表',
-  file_upload: '文件上传',
 } satisfies Record<QuestionType, string>
 
 export function getQuestionTypeLabel(type: QuestionType): string {

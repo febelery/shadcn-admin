@@ -23,7 +23,6 @@ const QUESTION_TYPE_HINTS: Record<PaletteTypeId, string> = {
   slider: '拖动滑块选择数值。',
   nps: '0–10 分推荐意愿量表（净推荐值 NPS）。',
   likert: '多条陈述 × 同意度选项，用于态度、满意度调研。',
-  file_upload: '上传图片或文档，可限制数量与大小。',
   divider: '分割线，区分章节，不收集答案。',
   rich_text: '富文本说明块，不收集答案。',
 }
@@ -67,7 +66,6 @@ const QUESTION_TYPE_KEYWORDS: Record<PaletteTypeId, string[]> = {
   slider: ['滑块', 'slider', 'range'],
   nps: ['nps', '净推荐', 'net promoter'],
   likert: ['李克特', 'likert', 'scale'],
-  file_upload: ['文件', 'upload', 'file'],
   divider: ['分割', 'divider', 'separator', 'hr'],
   rich_text: ['富文本', 'rich text', '说明'],
 }

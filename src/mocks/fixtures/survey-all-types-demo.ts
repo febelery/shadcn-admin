@@ -270,16 +270,6 @@ export function createAllTypesDemoSurvey(): SurveyDocument {
         maxLength: 1000,
       },
     }),
-
-    // 其他材料
-    q('file_upload', '如需开具增值税专用发票，请上传营业执照或开票资料', {
-      description: '支持 JPG、PNG、PDF，单个文件不超过 10MB',
-      config: {
-        maxCount: 2,
-        maxSize: 10,
-        acceptTypes: ['image/*', 'application/pdf'],
-      },
-    }),
   ]
 
   const questions = flattenQuestions(document)

@@ -4,7 +4,6 @@ import {
   CheckSquare,
   ChevronDown,
   CircleDot,
-  FileUp,
   GitBranch,
   Grid3x3,
   Hash,
@@ -22,13 +21,7 @@ import {
 import { QUESTION_TYPES, type QuestionType } from '../core/types'
 import { getQuestionTypeLabel } from './question-type-labels'
 
-export const QUESTION_CATEGORIES = [
-  '选择',
-  '输入',
-  '评价',
-  '媒体',
-  '布局',
-] as const
+export const QUESTION_CATEGORIES = ['选择', '输入', '评价', '布局'] as const
 
 export type QuestionCategory = Exclude<
   (typeof QUESTION_CATEGORIES)[number],
@@ -62,7 +55,6 @@ const QUESTION_UI_METADATA = {
   slider: { category: '评价', icon: SlidersHorizontal },
   nps: { category: '评价', icon: Hash },
   likert: { category: '评价', icon: Table },
-  file_upload: { category: '媒体', icon: FileUp },
 } satisfies Record<QuestionType, Omit<QuestionUiManifest, 'type' | 'label'>>
 
 export const QUESTION_UI_MANIFESTS: QuestionUiManifest[] = QUESTION_TYPES.map(

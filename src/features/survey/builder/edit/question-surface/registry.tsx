@@ -1,6 +1,5 @@
 import { Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { FileUpload } from '@/components/file-upload'
 import { partitionChoiceOptions } from '@/features/survey/core/choice-other-option'
 import type {
   QuestionConfigPatch,
@@ -144,22 +143,6 @@ const dateSurface: SurfaceAdapter = ({ question }) => (
   </div>
 )
 
-const fileUploadSurface: SurfaceAdapter = ({ question }) => {
-  const { acceptTypes, maxCount = 3, maxSize = 10 } = question.config
-  return (
-    <FileUpload
-      validation={{
-        accept: acceptTypes?.length ? acceptTypes : undefined,
-        maxFiles: Math.max(1, maxCount),
-        maxSize: Math.max(1, maxSize) * 1024 * 1024,
-      }}
-      view='list'
-      disabled
-      className='pointer-events-none'
-    />
-  )
-}
-
 const matrixSurface: SurfaceAdapter = ({ question, onConfigChange }) => (
   <SurfaceMatrixEditor question={question} onConfigChange={onConfigChange} />
 )
@@ -189,7 +172,6 @@ const SURFACE_ADAPTERS: Record<QuestionType, SurfaceAdapter> = {
   slider: sliderSurface,
   nps: npsSurface,
   likert: likertSurface,
-  file_upload: fileUploadSurface,
 }
 
 export function QuestionSurfaceBody(props: SurfaceProps) {

@@ -23,7 +23,6 @@ const RULE_OPERATOR_PROFILES = {
   slider: 'number',
   nps: 'number',
   likert: 'none',
-  file_upload: 'none',
 } satisfies Record<QuestionType, RuleOperatorProfile>
 
 export function getRuleOperatorProfile(
