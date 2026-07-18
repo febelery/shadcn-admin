@@ -910,37 +910,6 @@ const sliderInspector: InspectorAdapter = ({ el, patchConfig }) => (
 const npsInspector: InspectorAdapter = ({ el, patchConfig }) => (
   <NpsInspectorFields config={el.config} patchConfig={patchConfig} />
 )
-const dynamicPanelInspector: InspectorAdapter = ({ el, patchConfig }) => (
-  <>
-    <InspectorFormField label='最少条数'>
-      <Input
-        type='number'
-        className='h-9'
-        value={el.config.minItems ?? 1}
-        onChange={(event) =>
-          patchConfig({ minItems: Number(event.target.value) })
-        }
-      />
-    </InspectorFormField>
-    <InspectorFormField label='最多条数'>
-      <Input
-        type='number'
-        className='h-9'
-        value={el.config.maxItems ?? 5}
-        onChange={(event) =>
-          patchConfig({ maxItems: Number(event.target.value) })
-        }
-      />
-    </InspectorFormField>
-    <InspectorFormField label='添加按钮文案'>
-      <Input
-        className='h-9'
-        value={el.config.addLabel ?? '添加一项'}
-        onChange={(event) => patchConfig({ addLabel: event.target.value })}
-      />
-    </InspectorFormField>
-  </>
-)
 const textInspector: InspectorAdapter = ({ type, el, patchConfig }) => (
   <TextInputInspectorFields
     type={type}
@@ -994,7 +963,6 @@ const INSPECTOR_ADAPTERS: Record<QuestionType, InspectorAdapter> = {
   slider: sliderInspector,
   nps: npsInspector,
   likert: likertInspector,
-  dynamic_panel: dynamicPanelInspector,
   file_upload: fileUploadInspector,
   signature: signatureInspector,
 }

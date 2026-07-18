@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createEmptySurvey, createSection } from './document-factory'
+import { createEmptySurvey } from './document-factory'
 import { parseSurveyDocument } from './document-schema'
 
 describe('parseSurveyDocument', () => {
@@ -16,7 +16,7 @@ describe('parseSurveyDocument', () => {
     expect(() =>
       parseSurveyDocument({
         ...document,
-        schemaVersion: 2,
+        schemaVersion: 3,
       })
     ).toThrow()
     expect(() =>
@@ -33,13 +33,13 @@ describe('parseSurveyDocument', () => {
     ).toThrow()
   })
 
-  it('rejects unsupported pages instead of flattening them', () => {
+  it('rejects removed section containers instead of flattening them', () => {
     const document = createEmptySurvey()
 
     expect(() =>
       parseSurveyDocument({
         ...document,
-        sections: [...document.sections, createSection()],
+        sections: [{ id: 'legacy-section', elements: [] }],
       })
     ).toThrow()
   })
@@ -54,14 +54,11 @@ describe('parseSurveyDocument', () => {
       required: false,
       config: {},
     }
-    document.sections[0].elements = [
-      firstQuestion,
-      { ...firstQuestion, title: '第二题' },
-    ]
+    document.elements = [firstQuestion, { ...firstQuestion, title: '第二题' }]
 
     expect(() => parseSurveyDocument(document)).toThrow(/element ID/)
 
-    document.sections[0].elements = []
+    document.elements = []
     document.rules = [
       {
         id: 'duplicate-rule',
@@ -92,9 +89,74 @@ describe('parseSurveyDocument', () => {
     expect(() =>
       parseSurveyDocument({
         ...document,
-        submission: { ...document.submission, unsupported: true },
+        submissionPolicy: {
+          ...document.submissionPolicy,
+          unsupported: true,
+        },
       })
     ).toThrow()
+  })
+
+  it('rejects removed placeholder capabilities', () => {
+    const document = createEmptySurvey()
+
+    expect(() => parseSurveyDocument({ ...document, submission: {} })).toThrow()
+    expect(() => parseSurveyDocument({ ...document, variables: [] })).toThrow()
+    expect(() => parseSurveyDocument({ ...document, validators: [] })).toThrow()
+    expect(() => parseSurveyDocument({ ...document, extensions: {} })).toThrow()
+    expect(() =>
+      parseSurveyDocument({
+        ...document,
+        elements: [
+          {
+            kind: 'panel',
+            id: 'legacy-panel',
+            elements: [],
+          },
+        ],
+      })
+    ).toThrow()
+    expect(() =>
+      parseSurveyDocument({
+        ...document,
+        elements: [
+          {
+            kind: 'question',
+            id: 'legacy-dynamic-panel',
+            type: 'dynamic_panel',
+            title: '重复组',
+            required: false,
+            config: { templateElements: [], minItems: 0, maxItems: 1 },
+          },
+        ],
+      })
+    ).toThrow()
+  })
+
+  it('validates the submission policy', () => {
+    const document = createEmptySurvey()
+
+    expect(() =>
+      parseSurveyDocument({
+        ...document,
+        submissionPolicy: { totalLimit: 0 },
+      })
+    ).toThrow()
+    expect(() =>
+      parseSurveyDocument({
+        ...document,
+        submissionPolicy: { opensAt: 'not-a-date' },
+      })
+    ).toThrow()
+    expect(() =>
+      parseSurveyDocument({
+        ...document,
+        submissionPolicy: {
+          opensAt: '2026-07-19T12:00:00.000Z',
+          closesAt: '2026-07-18T12:00:00.000Z',
+        },
+      })
+    ).toThrow(/结束时间/)
   })
 
   it('rejects the removed string DSL and between rule operator', () => {

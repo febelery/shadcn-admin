@@ -15,17 +15,19 @@
 
 持久化边界：HTTP 返回值必须经 `parseSurveyDocument()` 解码。create、update、publish 均返回完整规范文档，Builder 通过 `adoptDocument()` 接管服务端事实；不能仅切换 dirty 或局部回填发布字段。
 
-`document-factory.ts` 只负责默认文档与 section 创建；`document-elements.ts` 负责递归题目遍历。文档实体 ID 直接使用浏览器原生 `crypto.randomUUID()`，不增加透传包装。
+`document-factory.ts` 只负责默认文档；`document-elements.ts` 负责从单页 `elements[]` 派生题目序列。文档实体 ID 直接使用浏览器原生 `crypto.randomUUID()`，不增加透传包装。
 
 `core/question-numbering.ts` 只包含文档序号计算与缓存；`shared/numbering-options.ts` 只包含 UI 下拉文案和 CSS class，core 不反向依赖 shared。
 
-当前文档契约明确只支持一个 `section`，不接受静默合并。`schemaVersion` 表示文档格式，`revision` 表示发布修订，两者不可复用。
+当前文档契约是单页 `elements[]`，不保存没有创作界面的 page/section 占位结构。需要多页时，必须先建立完整的页面创作与跨页导航模型。`schemaVersion` 表示文档格式，`revision` 表示发布修订，两者不可复用。
 
-`document-schema.ts` 严格拒绝未知持久化字段；`document-identities.ts` 保证 section、element、rule、action、variable 与 validator 在各自命名空间内唯一。重复身份不能进入 Builder。
+`document-schema.ts` 严格拒绝未知持久化字段；`document-identities.ts` 保证 element、rule 与 action 在各自命名空间内唯一。重复身份不能进入 Builder。没有完整创作和运行时契约的 variable、字符串 validator、dynamic panel、presentation 与 extensions 不属于当前文档。
 
 题型与 config 通过 `QuestionConfigByType` 判别联合建模。`question-config.ts` 统一负责持久化解析、字段所有权和依赖数值的原子归一化；Store 不直接合并任意 config。
 
 `core/question-factory.ts` 只创建具有合法默认配置的题目；规则条件能力由 `core/logic/rule-capabilities.ts` 拥有；Palette 和 Inspector 元数据分别留在其 UI 模块。三者不能重新合并为通用题型注册表。
+
+`submissionPolicy` 使用一套扁平配额语言：`totalLimit`、`dailyLimit`、`perUserLimit`、`dailyPerUserLimit` 与 `perDeviceLimit`。字段存在即生效，字段缺失即不限制；不保存 `enabled`、`oncePerUser` 或 `0 表示无限` 等重复状态。`opensAt` 与 `closesAt` 持久化为 UTC instant，不能保存依赖浏览器时区解释的本地时间。
 
 规则与问卷结构是事实来源，流程图是派生视图。`core/logic/flow-graph.ts` 只构建领域节点和规则边，`builder/flow/layout.ts` 才负责 Dagre 坐标；规则编辑使用显式草稿事务，未来 XYFlow 连线只创建规则草稿意图。
 

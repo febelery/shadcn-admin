@@ -25,13 +25,11 @@ import { scrollIntoWorkspaceView } from './workspace-scroll'
 const QUESTION_REQUIRED_TOGGLE_ATTR = 'data-question-required-toggle'
 
 type Props = {
-  sectionId: string
   element: SurveyElement
   selected: boolean
 }
 
 function QuestionBlock({
-  sectionId,
   element,
   selected,
   dimmed,
@@ -41,7 +39,6 @@ function QuestionBlock({
   drag,
   children,
 }: {
-  sectionId: string
   element: SurveyElement
   selected: boolean
   dimmed: boolean
@@ -78,12 +75,11 @@ function QuestionBlock({
         const target = e.target as HTMLElement
         if (target.closest(`[${QUESTION_REQUIRED_TOGGLE_ATTR}]`)) return
         if (target.closest(`[${QUESTION_NUMBER_TOGGLE_ATTR}]`)) return
-        store.getState().select(sectionId, element.id)
+        store.getState().selectElement(element.id)
       }}
     >
       <div className='min-w-0 px-3.5 py-3 pr-11'>{children}</div>
       <WorkspaceQuestionActions
-        sectionId={sectionId}
         element={element}
         selected={selected}
         drag={drag}
@@ -93,7 +89,6 @@ function QuestionBlock({
 }
 
 export const WorkspaceElementCard = memo(function WorkspaceElementCard({
-  sectionId,
   element,
   selected,
 }: Props) {
@@ -137,7 +132,6 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
   if (element.kind === 'divider') {
     return (
       <QuestionBlock
-        sectionId={sectionId}
         element={element}
         selected={selected}
         dimmed={dimmed}
@@ -154,7 +148,6 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
   if (element.kind === 'rich_text') {
     return (
       <QuestionBlock
-        sectionId={sectionId}
         element={element}
         selected={selected}
         dimmed={dimmed}
@@ -167,9 +160,7 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
           <RichTextEditor
             content={element.content}
             onChange={(content) =>
-              store
-                .getState()
-                .updateRichTextContent(sectionId, element.id, content)
+              store.getState().updateRichTextContent(element.id, content)
             }
             placeholder='输入说明内容…'
           />
@@ -178,33 +169,8 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
     )
   }
 
-  if (element.kind === 'panel') {
-    return (
-      <QuestionBlock
-        sectionId={sectionId}
-        element={element}
-        selected={selected}
-        dimmed={dimmed}
-        dragging={isDragging}
-        setNodeRef={setNodeRef}
-        style={style}
-        drag={drag}
-      >
-        <p className='text-muted-foreground text-sm leading-relaxed'>
-          {element.title?.trim() || '题目分组'}
-          <span className='text-muted-foreground ml-1.5 text-xs leading-relaxed opacity-70'>
-            （{element.elements.length} 项）
-          </span>
-        </p>
-      </QuestionBlock>
-    )
-  }
-
-  if (element.kind !== 'question') return null
-
   return (
     <QuestionBlock
-      sectionId={sectionId}
       element={element}
       selected={selected}
       dimmed={dimmed}
@@ -221,11 +187,9 @@ export const WorkspaceElementCard = memo(function WorkspaceElementCard({
         numberingMode={numberingMode}
         surveyDefaultNumbering={surveyDefaultNumbering}
         selected={selected}
-        onPatch={(patch) =>
-          store.getState().updateQuestion(sectionId, element.id, patch)
-        }
+        onPatch={(patch) => store.getState().updateQuestion(element.id, patch)}
         onConfigChange={(patch) =>
-          store.getState().updateQuestionConfig(sectionId, element.id, patch)
+          store.getState().updateQuestionConfig(element.id, patch)
         }
       />
     </QuestionBlock>

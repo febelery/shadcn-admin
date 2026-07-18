@@ -5,14 +5,13 @@ import { createBuilderStore } from './store'
 describe('Builder rich text interface', () => {
   it('creates and updates structured content without exposing element fields', () => {
     const document = createEmptySurvey()
-    const sectionId = document.sections[0].id
     const store = createBuilderStore(document)
-    store.getState().addLayout(sectionId, 'rich_text')
+    store.getState().addLayout('rich_text')
 
-    const block = store.getState().document.sections[0].elements[0]
+    const block = store.getState().document.elements[0]
     expect(block).toMatchObject({ kind: 'rich_text', content: { type: 'doc' } })
 
-    store.getState().updateRichTextContent(sectionId, block.id, {
+    store.getState().updateRichTextContent(block.id, {
       type: 'doc',
       content: [
         {
@@ -22,7 +21,7 @@ describe('Builder rich text interface', () => {
       ],
     })
 
-    expect(store.getState().document.sections[0].elements[0]).toMatchObject({
+    expect(store.getState().document.elements[0]).toMatchObject({
       kind: 'rich_text',
       content: {
         content: [
@@ -34,7 +33,7 @@ describe('Builder rich text interface', () => {
     })
 
     expect(() =>
-      store.getState().updateRichTextContent(sectionId, block.id, {
+      store.getState().updateRichTextContent(block.id, {
         type: 'script',
       })
     ).toThrow()

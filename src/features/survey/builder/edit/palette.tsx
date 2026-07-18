@@ -2,7 +2,6 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import { ChevronRight, LayoutGrid, Search, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -39,7 +38,7 @@ import {
   QUESTION_UI_MANIFESTS,
   type QuestionUiManifest,
 } from '../../shared/question-ui-registry'
-import { useBuilderStore, useBuilderStoreApi } from '../builder-session'
+import { useBuilderStoreApi } from '../builder-session'
 import { PALETTE_DRAG } from '../shared/dnd-types'
 import { BuilderPanelHeader } from '../shared/panel-header'
 
@@ -54,11 +53,6 @@ type PaletteRowItem = {
   label: string
   icon: LucideIcon
   category: string
-}
-
-function hasQuestionCreationUi(item: QuestionUiManifest): boolean {
-  // dynamic_panel 尚未提供模板编辑器，因此不提供新建入口。
-  return item.type !== 'dynamic_panel'
 }
 
 function paletteData(item: PaletteRowItem) {
@@ -220,13 +214,9 @@ type Props = {
 export function QuestionPalette({ className, onNavigate }: Props = {}) {
   const store = useBuilderStoreApi()
   const [query, setQuery] = useState('')
-  const sectionId = useBuilderStore((s) => s.selectedSectionId)
-  const disabled = !sectionId
 
   const filtered = useMemo(() => {
-    const questionManifests = QUESTION_UI_MANIFESTS.filter(
-      hasQuestionCreationUi
-    )
+    const questionManifests = QUESTION_UI_MANIFESTS
     const match = (item: PaletteItem) => matchesPaletteSearch(item, query)
 
     const byCategory = (cat: string) =>
@@ -247,14 +237,11 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
   }, [query])
 
   const addItem = (item: PaletteItem) => {
-    if (!sectionId) return
     const isLayout = item.type === 'divider' || item.type === 'rich_text'
     if (isLayout) {
-      store
-        .getState()
-        .addLayout(sectionId, item.type as 'divider' | 'rich_text')
+      store.getState().addLayout(item.type as 'divider' | 'rich_text')
     } else {
-      store.getState().addQuestion(sectionId, item.type as QuestionType)
+      store.getState().addQuestion(item.type as QuestionType)
     }
     onNavigate?.()
   }
@@ -263,7 +250,6 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
     <PaletteItemRow
       key={`${item.type}-${item.label}`}
       item={toRowItem(item)}
-      disabled={disabled}
       onAdd={() => addItem(item)}
     />
   )
@@ -298,16 +284,6 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
 
           <ScrollArea className='min-h-0 flex-1'>
             <CommandList className='max-h-none px-0 py-2'>
-              {disabled ? (
-                <div className='px-2 pb-2'>
-                  <Alert className='py-2.5'>
-                    <AlertDescription className='text-muted-foreground text-xs leading-relaxed'>
-                      请先在画布选中页面，再添加题型
-                    </AlertDescription>
-                  </Alert>
-                </div>
-              ) : null}
-
               {filtered.total === 0 ? (
                 <CommandEmpty className='text-muted-foreground text-xs leading-relaxed'>
                   无匹配题型

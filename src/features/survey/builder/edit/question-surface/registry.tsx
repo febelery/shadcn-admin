@@ -179,15 +179,6 @@ const cascaderSurface: SurfaceAdapter = ({ question }) => (
 const fillInSurface: SurfaceAdapter = ({ question }) => (
   <SurfaceFillInPreview title={question.title} />
 )
-const dynamicPanelSurface: SurfaceAdapter = ({ question }) => (
-  <p className='text-muted-foreground/70 text-sm leading-relaxed'>
-    重复组 · {question.config.minItems ?? 1}–{question.config.maxItems ?? 5} 条
-    {(question.config.templateElements?.length ?? 0) > 0
-      ? ` · 模板 ${question.config.templateElements!.length} 项`
-      : ''}
-  </p>
-)
-
 const SURFACE_ADAPTERS: Record<QuestionType, SurfaceAdapter> = {
   single_choice: choiceSurface('single'),
   multiple_choice: choiceSurface('multiple'),
@@ -209,7 +200,6 @@ const SURFACE_ADAPTERS: Record<QuestionType, SurfaceAdapter> = {
   slider: sliderSurface,
   nps: npsSurface,
   likert: likertSurface,
-  dynamic_panel: dynamicPanelSurface,
   file_upload: fileUploadSurface,
   signature: signatureSurface,
 }

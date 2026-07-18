@@ -6,12 +6,10 @@ import { useActiveDrag } from '../shared/dnd-provider'
 import { INSERT_DROP } from '../shared/dnd-types'
 
 type Props = {
-  sectionId: string
   index: number
 }
 
 export const WorkspaceInsertSlot = memo(function WorkspaceInsertSlot({
-  sectionId,
   index,
 }: Props) {
   const reducedMotion = useReducedMotion()
@@ -19,8 +17,8 @@ export const WorkspaceInsertSlot = memo(function WorkspaceInsertSlot({
   const isPaletteDrag = activeDrag?.kind === 'palette'
 
   const { setNodeRef, isOver } = useDroppable({
-    id: `workspace-insert-${sectionId}-${index}`,
-    data: { type: INSERT_DROP, sectionId, index },
+    id: `workspace-insert-${index}`,
+    data: { type: INSERT_DROP, index },
     disabled: !isPaletteDrag,
   })
 

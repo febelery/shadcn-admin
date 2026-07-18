@@ -97,19 +97,13 @@ function DragHandleButton({
 }
 
 type Props = {
-  sectionId: string
   element: SurveyElement
   selected: boolean
   drag: QuestionDragHandleProps
 }
 
 /** 题目块右侧：拖拽 + 复制 + 删除 */
-export function WorkspaceQuestionActions({
-  sectionId,
-  element,
-  selected,
-  drag,
-}: Props) {
+export function WorkspaceQuestionActions({ element, selected, drag }: Props) {
   const store = useBuilderStoreApi()
   return (
     <div
@@ -136,9 +130,7 @@ export function WorkspaceQuestionActions({
         <ActionDivider />
         <ActionButton
           label='复制'
-          onClick={() =>
-            store.getState().duplicateElement(sectionId, element.id)
-          }
+          onClick={() => store.getState().duplicateElement(element.id)}
         >
           <Copy className='size-3 shrink-0 stroke-2' />
         </ActionButton>
@@ -146,7 +138,7 @@ export function WorkspaceQuestionActions({
         <ActionButton
           label='删除'
           destructive
-          onClick={() => store.getState().removeElement(sectionId, element.id)}
+          onClick={() => store.getState().removeElement(element.id)}
         >
           <Trash2 className='size-3 shrink-0 stroke-2' />
         </ActionButton>

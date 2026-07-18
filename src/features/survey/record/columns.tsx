@@ -1,11 +1,11 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { getFilterFn } from '@/lib/data-grid-filters'
+import { getQuestionReferenceLabel } from '../core/question-numbering'
 import type {
   QuestionElement,
   SurveyRecordItem,
   SurveyDocument,
 } from '../core/types'
-import { getQuestionReferenceLabel } from '../core/question-numbering'
 
 export type SurveyRecordGridRow = SurveyRecordItem
 
@@ -151,7 +151,6 @@ function getQuestionCellMeta(question: QuestionElement) {
     case 'matrix_single':
     case 'matrix_multiple':
     case 'likert':
-    case 'dynamic_panel':
     case 'ranking':
     case 'date_range':
       return {
@@ -169,7 +168,6 @@ function getQuestionColumnSize(question: QuestionElement) {
     question.type === 'matrix_single' ||
     question.type === 'matrix_multiple' ||
     question.type === 'likert' ||
-    question.type === 'dynamic_panel' ||
     question.type === 'textarea'
   ) {
     return 300
@@ -285,12 +283,6 @@ function formatAnswerForGrid(
           )?.label ?? statementId
         return `${statementLabel}: ${formatInlineValue(value)}`
       })
-      .join(' | ')
-  }
-
-  if (question.type === 'dynamic_panel' && Array.isArray(answer)) {
-    return answer
-      .map((row, index) => `${index + 1}. ${formatInlineValue(row)}`)
       .join(' | ')
   }
 

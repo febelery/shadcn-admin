@@ -12,6 +12,5 @@ export type PaletteDragData = {
 
 export type InsertDropData = {
   type: typeof INSERT_DROP
-  sectionId: string
   index: number
 }

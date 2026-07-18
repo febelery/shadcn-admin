@@ -39,7 +39,7 @@ function createTestDocument(
 ): SurveyDocument {
   return {
     id: 'survey-1',
-    schemaVersion: 1,
+    schemaVersion: 2,
     revision: 0,
     status: 'draft',
     meta: {
@@ -52,22 +52,14 @@ function createTestDocument(
       defaultQuestionNumbering: 'decimal',
       questionNumberingMode: 'global',
     },
-    presentation: { type: 'scroll' },
     theme: {
       primaryColor: '#000000',
       backgroundColor: '#ffffff',
       borderRadius: '0.5rem',
     },
-    variables: [],
-    sections: [
-      {
-        id: 'section-1',
-        elements: [question('q1', '第一题'), question('q2', '第二题')],
-      },
-    ],
+    elements: [question('q1', '第一题'), question('q2', '第二题')],
     rules: [rule()],
-    validators: [],
-    submission: {},
+    submissionPolicy: {},
     ...overrides,
   }
 }
@@ -87,7 +79,7 @@ describe('createFlowProjector', () => {
     const after = project({
       ...document,
       theme: { ...document.theme, primaryColor: '#2563eb' },
-      submission: { oncePerDevice: true },
+      submissionPolicy: { perDeviceLimit: 1 },
     })
 
     expect(after).toBe(before)
@@ -97,18 +89,12 @@ describe('createFlowProjector', () => {
     const project = createFlowProjector()
     const document = createTestDocument()
     const before = project(document)
-    const firstSection = document.sections[0]
-    const firstQuestion = firstSection.elements[0] as QuestionElement
+    const firstQuestion = document.elements[0] as QuestionElement
     const after = project({
       ...document,
-      sections: [
-        {
-          ...firstSection,
-          elements: [
-            { ...firstQuestion, title: '修改后的第一题' },
-            ...firstSection.elements.slice(1),
-          ],
-        },
+      elements: [
+        { ...firstQuestion, title: '修改后的第一题' },
+        ...document.elements.slice(1),
       ],
     })
 

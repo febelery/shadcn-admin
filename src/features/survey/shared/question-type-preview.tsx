@@ -16,8 +16,6 @@ export function QuestionTypePreview({ type }: { type: PaletteTypeId }) {
       return <CascaderPreview />
     case 'ranking':
       return <RankingPreview />
-    case 'dynamic_panel':
-      return <DynamicPanelPreview />
     case 'fill_in':
       return <FillInPreview />
     default:
@@ -153,25 +151,6 @@ function RankingPreview() {
           <span className='flex-1 truncate'>{l}</span>
         </div>
       ))}
-    </div>
-  )
-}
-
-function DynamicPanelPreview() {
-  return (
-    <div className='flex flex-col gap-1'>
-      {[1, 2].map((n) => (
-        <div
-          key={n}
-          className='bg-muted/50 rounded-md border px-2 py-1.5 text-[10px]'
-        >
-          <span className='text-muted-foreground'>条目 {n}</span>
-          <div className='bg-background mt-1 h-3 rounded-sm border' />
-        </div>
-      ))}
-      <div className='text-muted-foreground border border-dashed py-0.5 text-center text-[9px]'>
-        + 添加
-      </div>
     </div>
   )
 }

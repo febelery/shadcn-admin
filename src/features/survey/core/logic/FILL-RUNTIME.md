@@ -29,7 +29,7 @@ Admin 设计器校验规则结构与语义；**规则求值、显隐、跳题导
 1. `jump_to_question`：当前题提交/下一题时，若存在匹配规则，导航至 `target` 题目（必须在条件题之后）
 2. `end`：进入结束页，提交当前已填答案
 3. 跳题**不自动 hide** 被跳过的题目；导航引擎应计算「下一道**可见**题」
-4. 默认顺序：按 `sections[].elements` 扁平顺序（与 `flattenQuestions` 一致），跳过不可见题
+4. 默认顺序：按 `elements[]` 顺序（与 `flattenQuestions` 一致），跳过不可见题
 
 ### 下一题算法（伪代码）
 
@@ -70,5 +70,5 @@ function getNextQuestion(currentId, answers, document):
 
 ## 版本
 
-- Schema `schemaVersion: 1` 支持 `jump_to_question`
-- 多节跳转不再保留在当前 Schema 契约内；需要多节能力时应先恢复 section 编辑模型，再扩展规则动作。
+- Schema `schemaVersion: 2` 支持 `jump_to_question`
+- 当前 Schema 是单页元素序列；需要多页能力时应先增加完整页面创作模型，再扩展跨页跳转。

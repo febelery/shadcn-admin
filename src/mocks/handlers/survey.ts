@@ -959,24 +959,6 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
       )
     }
 
-    case 'dynamic_panel':
-      return Array.from({ length: 2 }, (_, itemIndex) =>
-        Object.fromEntries(
-          (question.config.templateElements ?? [])
-            .filter(
-              (element): element is QuestionElement =>
-                element.kind === 'question'
-            )
-            .map((nestedQuestion, nestedIndex) => [
-              nestedQuestion.id,
-              buildSampleAnswer(
-                nestedQuestion,
-                seed + itemIndex + nestedIndex + 1
-              ),
-            ])
-        )
-      )
-
     case 'file_upload':
       return ['营业执照.pdf', '开票资料.png']
 

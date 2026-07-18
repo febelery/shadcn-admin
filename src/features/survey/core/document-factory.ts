@@ -1,5 +1,5 @@
 import { SURVEY_DOCUMENT_SCHEMA_VERSION } from './document-version'
-import type { Section, SubmissionConfig, SurveyDocument } from './types'
+import type { SurveyDocument } from './types'
 
 const DEFAULT_THEME = {
   primaryColor: '#000000',
@@ -20,21 +20,6 @@ export const DEFAULT_META = {
   questionNumberingMode: 'global' as const,
 }
 
-export const DEFAULT_SUBMISSION: SubmissionConfig = {
-  timeWindow: { enabled: false },
-  quota: { enabled: false, total: 1000 },
-  rateLimit: { enabled: false },
-}
-
-export function createSection(overrides?: Partial<Section>): Section {
-  return {
-    id: crypto.randomUUID(),
-    title: '',
-    elements: [],
-    ...overrides,
-  }
-}
-
 export function createEmptySurvey(title = '未命名问卷'): SurveyDocument {
   return {
     id: crypto.randomUUID(),
@@ -42,13 +27,9 @@ export function createEmptySurvey(title = '未命名问卷'): SurveyDocument {
     revision: 0,
     status: 'draft',
     meta: { ...DEFAULT_META, title },
-    presentation: { type: 'scroll' },
     theme: { ...DEFAULT_THEME },
-    variables: [],
-    sections: [createSection()],
+    elements: [],
     rules: [],
-    validators: [],
-    submission: structuredClone(DEFAULT_SUBMISSION),
-    extensions: {},
+    submissionPolicy: {},
   }
 }

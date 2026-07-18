@@ -82,13 +82,6 @@ const QUESTION_FACTORIES: QuestionFactoryMap = {
       scaleMin: 1,
       scaleMax: 5,
     }),
-  dynamic_panel: () =>
-    baseQuestion('dynamic_panel', '重复填写组', {
-      minItems: 1,
-      maxItems: 5,
-      addLabel: '添加一项',
-      templateElements: [],
-    }),
   file_upload: () =>
     baseQuestion('file_upload', '上传文件', { maxCount: 3, maxSize: 10 }),
   signature: () => baseQuestion('signature', '签名', {}),

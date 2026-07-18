@@ -18,7 +18,7 @@ describe('question config module', () => {
       ).not.toThrow()
 
       const document = createEmptySurvey(type)
-      document.sections[0].elements = [question]
+      document.elements = [question]
       expect(() => parseSurveyDocument(document)).not.toThrow()
     }
   })

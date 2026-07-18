@@ -249,17 +249,6 @@ const questionConfigSchemas = {
     .refine((config) => config.scaleMin < config.scaleMax, {
       message: '最小分值必须小于最大分值',
     }),
-  dynamic_panel: z
-    .object({
-      templateElements: z.array(z.unknown()),
-      minItems: z.number().int().nonnegative(),
-      maxItems: z.number().int().positive(),
-      addLabel: z.string().optional(),
-    })
-    .strict()
-    .refine((config) => config.minItems <= config.maxItems, {
-      message: '最少条数不能大于最多条数',
-    }),
   file_upload: z
     .object({
       acceptTypes: z.array(z.string().min(1)).optional(),
@@ -292,8 +281,6 @@ function normalizeConfigPatch(
   normalizeRange(config, patch, 'minLength', 'maxLength')
   normalizeRange(config, patch, 'minSelect', 'maxSelect')
   normalizeRange(config, patch, 'scaleMin', 'scaleMax')
-  normalizeRange(config, patch, 'minItems', 'maxItems')
-
   if (
     typeof config.minDate === 'string' &&
     typeof config.maxDate === 'string' &&

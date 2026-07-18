@@ -33,7 +33,7 @@ function rule(condition: RuleCondition, action: Rule['action']): Rule {
 
 function documentWith(ruleValue: Rule) {
   const document = createEmptySurvey()
-  document.sections[0].elements = [
+  document.elements = [
     question('source', 'single_choice'),
     question('target', 'text', true),
   ]

@@ -4,8 +4,6 @@ import type { RichTextContent } from './rich-text'
 
 export type SurveyStatus = 'draft' | 'published' | 'archived'
 
-export type PresentationMode = { type: 'scroll' }
-
 export type CoverType = 'none' | 'color' | 'image'
 
 export type SurveyDefaultNumberingStyle =
@@ -52,16 +50,6 @@ export interface ThemeConfig {
   fontFamily?: string
 }
 
-export type VariableSource = 'url' | 'hidden' | 'literal'
-
-export interface SurveyVariable {
-  id: string
-  name: string
-  type: 'string' | 'number' | 'boolean'
-  source: VariableSource
-  default?: string | number | boolean
-}
-
 export const QUESTION_TYPES = [
   'single_choice',
   'multiple_choice',
@@ -83,7 +71,6 @@ export const QUESTION_TYPES = [
   'slider',
   'nps',
   'likert',
-  'dynamic_panel',
   'file_upload',
   'signature',
 ] as const
@@ -147,10 +134,6 @@ interface QuestionConfigFields {
   acceptTypes?: string[]
   maxCount?: number
   maxSize?: number
-  templateElements?: SurveyElement[]
-  minItems?: number
-  maxItems?: number
-  addLabel?: string
 }
 
 type StrictQuestionConfig<Config extends Partial<QuestionConfigFields>> =
@@ -232,12 +215,6 @@ export interface QuestionConfigByType {
     scaleMin: number
     scaleMax: number
   }>
-  dynamic_panel: StrictQuestionConfig<{
-    templateElements: SurveyElement[]
-    minItems: number
-    maxItems: number
-    addLabel?: string
-  }>
   file_upload: StrictQuestionConfig<{
     acceptTypes?: string[]
     maxCount: number
@@ -274,13 +251,6 @@ export type QuestionContentPatch = Partial<
   Pick<QuestionElement, 'title' | 'description' | 'required' | 'numbering'>
 >
 
-export interface PanelElement extends BaseElement {
-  kind: 'panel'
-  title?: string
-  collapsible?: boolean
-  elements: SurveyElement[]
-}
-
 export interface DividerElement extends BaseElement {
   kind: 'divider'
 }
@@ -291,17 +261,7 @@ export interface RichTextBlockElement extends BaseElement {
 }
 
 export type SurveyElement =
-  | QuestionElement
-  | PanelElement
-  | DividerElement
-  | RichTextBlockElement
-
-export interface Section {
-  id: string
-  title?: string
-  description?: string
-  elements: SurveyElement[]
-}
+  QuestionElement | DividerElement | RichTextBlockElement
 
 export type RuleActionType = 'show' | 'hide' | 'jump_to_question' | 'end'
 
@@ -317,18 +277,10 @@ export interface RuleAction {
 export type RulePresenceConditionOperator = 'empty' | 'not_empty'
 
 export type RuleValueConditionOperator =
-  | 'eq'
-  | 'neq'
-  | 'gt'
-  | 'gte'
-  | 'lt'
-  | 'lte'
-  | 'contains'
-  | 'not_contains'
+  'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'contains' | 'not_contains'
 
 export type RuleConditionOperator =
-  | RulePresenceConditionOperator
-  | RuleValueConditionOperator
+  RulePresenceConditionOperator | RuleValueConditionOperator
 
 export type RuleCondition =
   | {
@@ -350,66 +302,38 @@ export interface Rule {
   action: RuleAction
 }
 
-export interface CrossFieldValidator {
-  id: string
-  fields: string[]
-  rule: string
-  message: string
-}
-
-export interface SubmissionQuota {
-  enabled: boolean
-  /** 问卷总回收份数上限 */
-  total: number
-}
-
-export interface SubmissionTimeWindow {
-  enabled: boolean
-  /** 本地时间 yyyy-MM-dd'T'HH:mm:ss */
-  startAt?: string
-  endAt?: string
-}
-
-export interface SubmissionRateLimit {
-  enabled: boolean
-  /** 每人累计最多提交次数（0 表示不限制） */
-  maxPerUser?: number
-  /** 每人每天最多提交次数 */
-  maxPerUserPerDay?: number
-  /** 问卷每天总回收份数上限 */
-  maxPerDay?: number
-}
-
-export interface SubmissionConfig {
-  quota?: SubmissionQuota
-  timeWindow?: SubmissionTimeWindow
-  rateLimit?: SubmissionRateLimit
-  /** 每设备仅可提交一次 */
-  oncePerDevice?: boolean
-  /** 每用户仅可提交一次（需登录态，由填写端实现） */
-  oncePerUser?: boolean
-  /** 访问密码，空则不校验 */
-  password?: string
+export interface SubmissionPolicy {
+  /** 问卷累计提交上限 */
+  totalLimit?: number
+  /** 问卷每天提交上限 */
+  dailyLimit?: number
+  /** 每位用户累计提交上限 */
+  perUserLimit?: number
+  /** 每位用户每天提交上限 */
+  dailyPerUserLimit?: number
+  /** 每台设备累计提交上限 */
+  perDeviceLimit?: number
+  /** ISO 8601 UTC instant */
+  opensAt?: string
+  closesAt?: string
+  /** 访问密码；字段不存在时不校验 */
+  accessPassword?: string
 }
 
 export interface SurveyDocument {
   id: string
   /** 持久化文档格式版本；只随文档契约变更。 */
-  schemaVersion: 1
+  schemaVersion: 2
   /** 发布修订号；每次成功发布后递增。 */
   revision: number
   status: SurveyStatus
   slug?: string
   publishedAt?: string
   meta: SurveyMeta
-  presentation: PresentationMode
   theme: ThemeConfig
-  variables: SurveyVariable[]
-  sections: [Section]
+  elements: SurveyElement[]
   rules: Rule[]
-  validators: CrossFieldValidator[]
-  submission: SubmissionConfig
-  extensions?: Record<string, unknown>
+  submissionPolicy: SubmissionPolicy
 }
 
 export interface SurveyListItem {

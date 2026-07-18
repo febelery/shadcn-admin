@@ -38,4 +38,23 @@ describe('Builder document lifecycle', () => {
 
     expect(store.getState().document.meta.title).toBe('Original')
   })
+
+  it('removes optional submission policy fields when they are cleared', () => {
+    const store = createBuilderStore(createEmptySurvey())
+
+    store.getState().updateSubmissionPolicy({
+      totalLimit: 100,
+      perUserLimit: 2,
+      accessPassword: 'secret',
+    })
+    store.getState().updateSubmissionPolicy({
+      totalLimit: undefined,
+      accessPassword: undefined,
+    })
+
+    expect(store.getState().document.submissionPolicy).toEqual({
+      perUserLimit: 2,
+    })
+    expect(store.getState().isDirty).toBe(true)
+  })
 })

@@ -3,7 +3,6 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { LayoutGrid, LayoutTemplate } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SurveyCoverHeader } from '@/features/survey/shared/survey-cover-header'
-import { getEditorSection } from '../../core/editor-section'
 import type { SurveyElement } from '../../core/types'
 import { useBuilderStore } from '../builder-session'
 import { useIsPaletteDragging } from '../shared/dnd-provider'
@@ -66,15 +65,12 @@ export function BuilderWorkspacePanel() {
   const document = useBuilderStore((s) => s.document)
   const selectedElementId = useBuilderStore((s) => s.selectedElementId)
 
-  const section = getEditorSection(document)
-  const sectionId = section.id
-  const elements = section.elements
+  const elements = document.elements
   const isPaletteDragging = useIsPaletteDragging()
 
   const renderElementCard = (el: SurveyElement) => {
     return (
       <WorkspaceElementCard
-        sectionId={sectionId}
         element={el}
         selected={selectedElementId === el.id}
       />
@@ -104,7 +100,7 @@ export function BuilderWorkspacePanel() {
               )}
 
               {elements.length === 0 && isPaletteDragging && (
-                <WorkspaceInsertSlot sectionId={sectionId} index={0} />
+                <WorkspaceInsertSlot index={0} />
               )}
 
               <SortableContext
@@ -114,10 +110,7 @@ export function BuilderWorkspacePanel() {
                 <div className='flex flex-col gap-1'>
                   {elements.map((el, index) => (
                     <Fragment key={el.id}>
-                      <WorkspaceInsertSlot
-                        sectionId={sectionId}
-                        index={index}
-                      />
+                      <WorkspaceInsertSlot index={index} />
                       {renderElementCard(el)}
                     </Fragment>
                   ))}
@@ -125,17 +118,11 @@ export function BuilderWorkspacePanel() {
               </SortableContext>
 
               {elements.length > 0 && (
-                <WorkspaceInsertSlot
-                  sectionId={sectionId}
-                  index={elements.length}
-                />
+                <WorkspaceInsertSlot index={elements.length} />
               )}
 
               {elements.length > 0 ? (
-                <WorkspaceAddFooter
-                  sectionId={sectionId}
-                  highlight={isPaletteDragging}
-                />
+                <WorkspaceAddFooter highlight={isPaletteDragging} />
               ) : null}
             </div>
           </div>

@@ -17,7 +17,6 @@ import type {
 
 export interface BuilderState {
   document: SurveyDocument
-  selectedSectionId: string | null
   selectedElementId: string | null
   isDirty: boolean
 
@@ -35,32 +34,18 @@ export interface BuilderState {
 
   updateMeta: (patch: Partial<SurveyDocument['meta']>) => void
   updateTheme: (patch: Partial<SurveyDocument['theme']>) => void
-  updateSubmission: (patch: Partial<SurveyDocument['submission']>) => void
-  addQuestion: (sectionId: string, type: QuestionType, index?: number) => void
-  addLayout: (
-    sectionId: string,
-    kind: 'divider' | 'rich_text',
-    index?: number
+  updateSubmissionPolicy: (
+    change: Partial<SurveyDocument['submissionPolicy']>
   ) => void
-  reorderElements: (sectionId: string, activeId: string, overId: string) => void
-  duplicateElement: (sectionId: string, elementId: string) => void
-  updateQuestion: (
-    sectionId: string,
-    elementId: string,
-    patch: QuestionContentPatch
-  ) => void
-  updateQuestionConfig: (
-    sectionId: string,
-    elementId: string,
-    patch: QuestionConfigPatch
-  ) => void
-  updateRichTextContent: (
-    sectionId: string,
-    elementId: string,
-    content: RichTextContent
-  ) => void
-  removeElement: (sectionId: string, elementId: string) => void
-  select: (sectionId: string | null, elementId?: string | null) => void
+  addQuestion: (type: QuestionType, index?: number) => void
+  addLayout: (kind: 'divider' | 'rich_text', index?: number) => void
+  reorderElements: (activeId: string, overId: string) => void
+  duplicateElement: (elementId: string) => void
+  updateQuestion: (elementId: string, patch: QuestionContentPatch) => void
+  updateQuestionConfig: (elementId: string, patch: QuestionConfigPatch) => void
+  updateRichTextContent: (elementId: string, content: RichTextContent) => void
+  removeElement: (elementId: string) => void
+  selectElement: (elementId: string | null) => void
   adoptDocument: (document: SurveyDocument) => void
   getDocumentSnapshot: () => SurveyDocument
 

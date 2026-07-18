@@ -102,11 +102,10 @@ const workspaceCollisionDetection: CollisionDetection = (args) => {
 }
 
 type Props = {
-  sectionId: string | null
   children: ReactNode
 }
 
-export function BuilderDndProvider({ sectionId, children }: Props) {
+export function BuilderDndProvider({ children }: Props) {
   const storeApi = useBuilderStoreApi()
   const [activeDrag, setActiveDrag] = useState<ActiveDrag>(null)
 
@@ -152,41 +151,36 @@ export function BuilderDndProvider({ sectionId, children }: Props) {
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     resetDragState()
-    if (!over || !sectionId) return
+    if (!over) return
 
     const activeData = active.data.current as PaletteDragData | undefined
     const store = storeApi.getState()
-    const section = store.document.sections.find((s) => s.id === sectionId)
-    if (!section) return
+    const elements = store.document.elements
 
     if (activeData?.type === PALETTE_DRAG) {
       const overData = over.data.current as InsertDropData | undefined
       const overId = String(over.id)
-      let index = section.elements.length
+      let index = elements.length
 
       if (overData?.type === INSERT_DROP) {
         index = overData.index
-      } else if (!overId.startsWith('workspace-drop-')) {
-        const overIndex = section.elements.findIndex((e) => e.id === overId)
+      } else if (overId !== 'workspace-drop') {
+        const overIndex = elements.findIndex((e) => e.id === overId)
         if (overIndex >= 0) index = overIndex
       }
 
       if (activeData.questionType) {
-        store.addQuestion(
-          sectionId,
-          activeData.questionType as QuestionType,
-          index
-        )
+        store.addQuestion(activeData.questionType as QuestionType, index)
       } else if (activeData.layoutType) {
-        store.addLayout(sectionId, activeData.layoutType, index)
+        store.addLayout(activeData.layoutType, index)
       }
       return
     }
 
     const activeId = String(active.id)
     const overId = String(over.id)
-    if (activeId !== overId && !overId.startsWith('workspace-drop-')) {
-      store.reorderElements(sectionId, activeId, overId)
+    if (activeId !== overId && overId !== 'workspace-drop') {
+      store.reorderElements(activeId, overId)
     }
   }
 

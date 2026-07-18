@@ -8,8 +8,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { getEditorSection } from '../../core/editor-section'
-import { useBuilderStore } from '../builder-session'
 import { BuilderDndProvider } from '../shared/dnd-provider'
 import { BuilderWorkspacePanel } from './canvas-panel'
 import { InspectorPanel } from './inspector/panel'
@@ -21,10 +19,8 @@ const desktopOnly = 'hidden lg:flex'
 export function EditWorkspace() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [inspectorOpen, setInspectorOpen] = useState(false)
-  const sectionId = useBuilderStore((s) => getEditorSection(s.document).id)
-
   return (
-    <BuilderDndProvider sectionId={sectionId}>
+    <BuilderDndProvider>
       <div className='flex min-h-0 flex-1 overflow-hidden'>
         <aside
           className={cn(

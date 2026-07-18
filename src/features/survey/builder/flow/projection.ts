@@ -98,7 +98,7 @@ function buildStats(questions: QuestionElement[], rules: Rule[]) {
 export function createFlowProjector() {
   let previousDocument: SurveyDocument | null = null
   let previousProjection: FlowProjection | null = null
-  let previousSections: SurveyDocument['sections'] | null = null
+  let previousElements: SurveyDocument['elements'] | null = null
   let previousRules: SurveyDocument['rules'] | null = null
   let previousEndTitle: string | undefined
   let previousNumberingStyle: SurveyDocument['meta']['defaultQuestionNumbering']
@@ -112,7 +112,7 @@ export function createFlowProjector() {
     }
 
     const hasSameProjectionInputs =
-      document.sections === previousSections &&
+      document.elements === previousElements &&
       document.rules === previousRules &&
       document.meta.endTitle === previousEndTitle &&
       document.meta.defaultQuestionNumbering === previousNumberingStyle &&
@@ -158,7 +158,7 @@ export function createFlowProjector() {
 
     previousDocument = document
     previousProjection = projection
-    previousSections = document.sections
+    previousElements = document.elements
     previousRules = document.rules
     previousEndTitle = document.meta.endTitle
     previousNumberingStyle = document.meta.defaultQuestionNumbering

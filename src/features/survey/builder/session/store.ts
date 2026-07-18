@@ -1,7 +1,5 @@
 import { createStore } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import { DEFAULT_SUBMISSION } from '../../core/document-factory'
-import { getEditorSectionId } from '../../core/editor-section'
 import {
   normalizeRulePriorities,
   removeRulesReferencingQuestions,
@@ -11,7 +9,6 @@ import { createQuestion } from '../../core/question-factory'
 import { EMPTY_RICH_TEXT, parseRichTextContent } from '../../core/rich-text'
 import type { SurveyDocument, SurveyElement } from '../../core/types'
 import {
-  findSection,
   cloneElement,
   collectQuestionIdsFromElement,
   insertAt,
@@ -31,7 +28,6 @@ export function createBuilderStore(initialDocument: SurveyDocument) {
   return createStore<BuilderState>()(
     immer((set, get) => ({
       document,
-      selectedSectionId: getEditorSectionId(document),
       selectedElementId: null,
       isDirty: false,
 
@@ -59,50 +55,29 @@ export function createBuilderStore(initialDocument: SurveyDocument) {
           s.isDirty = true
         }),
 
-      updateSubmission: (patch) =>
+      updateSubmissionPolicy: (change) =>
         set((s) => {
-          const sub = s.document.submission
-          if (patch.timeWindow) {
-            sub.timeWindow = {
-              ...DEFAULT_SUBMISSION.timeWindow,
-              ...sub.timeWindow,
-              ...patch.timeWindow,
+          Object.assign(s.document.submissionPolicy, change)
+          for (const key of Object.keys(
+            change
+          ) as (keyof SurveyDocument['submissionPolicy'])[]) {
+            if (change[key] === undefined) {
+              delete s.document.submissionPolicy[key]
             }
           }
-          if (patch.quota) {
-            sub.quota = {
-              ...DEFAULT_SUBMISSION.quota,
-              ...sub.quota,
-              ...patch.quota,
-            }
-          }
-          if (patch.rateLimit) {
-            sub.rateLimit = {
-              ...DEFAULT_SUBMISSION.rateLimit,
-              ...sub.rateLimit,
-              ...patch.rateLimit,
-            }
-          }
-          const { timeWindow, quota, rateLimit, ...rest } = patch
-          Object.assign(sub, rest)
           s.isDirty = true
         }),
 
-      addQuestion: (sectionId, type, index) =>
+      addQuestion: (type, index) =>
         set((s) => {
-          const sec = findSection(s.document, sectionId)
-          if (!sec) return
           const el = createQuestion(type)
-          insertAt(sec.elements, el, index)
-          s.selectedSectionId = sectionId
+          insertAt(s.document.elements, el, index)
           s.selectedElementId = el.id
           s.isDirty = true
         }),
 
-      addLayout: (sectionId, kind, index) =>
+      addLayout: (kind, index) =>
         set((s) => {
-          const sec = findSection(s.document, sectionId)
-          if (!sec) return
           const el: SurveyElement =
             kind === 'divider'
               ? { kind: 'divider', id: crypto.randomUUID() }
@@ -111,81 +86,75 @@ export function createBuilderStore(initialDocument: SurveyDocument) {
                   id: crypto.randomUUID(),
                   content: structuredClone(EMPTY_RICH_TEXT),
                 }
-          insertAt(sec.elements, el, index)
-          s.selectedSectionId = sectionId
+          insertAt(s.document.elements, el, index)
           s.selectedElementId = el.id
           s.isDirty = true
         }),
 
-      reorderElements: (sectionId, activeId, overId) =>
+      reorderElements: (activeId, overId) =>
         set((s) => {
-          const sec = findSection(s.document, sectionId)
-          if (!sec || activeId === overId) return
-          const oldIndex = sec.elements.findIndex((e) => e.id === activeId)
-          const newIndex = sec.elements.findIndex((e) => e.id === overId)
+          if (activeId === overId) return
+          const elements = s.document.elements
+          const oldIndex = elements.findIndex((e) => e.id === activeId)
+          const newIndex = elements.findIndex((e) => e.id === overId)
           if (oldIndex === -1 || newIndex === -1) return
-          const [moved] = sec.elements.splice(oldIndex, 1)
-          sec.elements.splice(newIndex, 0, moved)
+          const [moved] = elements.splice(oldIndex, 1)
+          elements.splice(newIndex, 0, moved)
           s.isDirty = true
         }),
 
-      duplicateElement: (sectionId, elementId) => {
-        const sourceSection = findSection(get().document, sectionId)
-        const source = sourceSection?.elements.find(
+      duplicateElement: (elementId) => {
+        const source = get().document.elements.find(
           (element) => element.id === elementId
         )
         if (!source) return
         const copy = cloneElement(source)
 
         set((s) => {
-          const section = findSection(s.document, sectionId)
-          if (!section) return
-          const sourceIndex = section.elements.findIndex(
+          const elements = s.document.elements
+          const sourceIndex = elements.findIndex(
             (element) => element.id === elementId
           )
           if (sourceIndex === -1) return
-          section.elements.splice(sourceIndex + 1, 0, copy)
+          elements.splice(sourceIndex + 1, 0, copy)
           s.selectedElementId = copy.id
           s.isDirty = true
         })
       },
 
-      updateQuestion: (sectionId, elementId, patch) =>
+      updateQuestion: (elementId, patch) =>
         set((s) => {
-          const sec = findSection(s.document, sectionId)
-          const el = sec?.elements.find((e) => e.id === elementId)
+          const el = s.document.elements.find((e) => e.id === elementId)
           if (el?.kind !== 'question') return
           Object.assign(el, patch)
           s.isDirty = true
         }),
 
-      updateQuestionConfig: (sectionId, elementId, patch) =>
+      updateQuestionConfig: (elementId, patch) =>
         set((s) => {
-          const sec = findSection(s.document, sectionId)
-          const el = sec?.elements.find((e) => e.id === elementId)
+          const el = s.document.elements.find((e) => e.id === elementId)
           if (el?.kind !== 'question') return
           el.config = applyQuestionConfigPatch(el, patch)
           s.isDirty = true
         }),
 
-      updateRichTextContent: (sectionId, elementId, content) =>
+      updateRichTextContent: (elementId, content) =>
         set((s) => {
-          const sec = findSection(s.document, sectionId)
-          const el = sec?.elements.find((e) => e.id === elementId)
+          const el = s.document.elements.find((e) => e.id === elementId)
           if (el?.kind !== 'rich_text') return
           el.content = parseRichTextContent(content)
           s.isDirty = true
         }),
 
-      removeElement: (sectionId, elementId) =>
+      removeElement: (elementId) =>
         set((s) => {
           const document = s.document
-          const sec = findSection(document, sectionId)
-          if (!sec) return
-          const removed = sec.elements.find((e) => e.id === elementId)
+          const removed = document.elements.find((e) => e.id === elementId)
           if (!removed) return
           const removedQuestionIds = collectQuestionIdsFromElement(removed)
-          sec.elements = sec.elements.filter((e) => e.id !== elementId)
+          document.elements = document.elements.filter(
+            (e) => e.id !== elementId
+          )
           document.rules = removeRulesReferencingQuestions(
             document.rules,
             removedQuestionIds
@@ -194,8 +163,7 @@ export function createBuilderStore(initialDocument: SurveyDocument) {
           s.isDirty = true
         }),
 
-      select: (sectionId, elementId = null) =>
-        set({ selectedSectionId: sectionId, selectedElementId: elementId }),
+      selectElement: (elementId) => set({ selectedElementId: elementId }),
 
       adoptDocument: (document) =>
         set((s) => {

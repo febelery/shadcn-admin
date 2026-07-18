@@ -8,7 +8,6 @@ import {
   GitBranch,
   Grid3x3,
   Hash,
-  Layers,
   Link,
   ListOrdered,
   Mail,
@@ -29,7 +28,6 @@ export const QUESTION_CATEGORIES = [
   '选择',
   '输入',
   '评价',
-  '结构',
   '媒体',
   '布局',
 ] as const
@@ -67,7 +65,6 @@ const QUESTION_UI_METADATA = {
   slider: { category: '评价', icon: SlidersHorizontal },
   nps: { category: '评价', icon: Hash },
   likert: { category: '评价', icon: Table },
-  dynamic_panel: { category: '结构', icon: Layers },
   file_upload: { category: '媒体', icon: FileUp },
   signature: { category: '媒体', icon: PenLine },
 } satisfies Record<QuestionType, Omit<QuestionUiManifest, 'type' | 'label'>>

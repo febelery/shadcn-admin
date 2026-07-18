@@ -44,34 +44,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 const AM_VALUE = 0
 const PM_VALUE = 1
 
-/** 本地时间字符串：yyyy-MM-dd'T'HH:mm:ss */
-export type LocalDateTimeString = string
-
-const LOCAL_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss"
-const LOCAL_DATETIME_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/
-
-export function formatLocalDateTime(date: Date): LocalDateTimeString {
-  return format(date, LOCAL_DATETIME_FORMAT)
-}
-
-export function parseLocalDateTime(
-  value?: LocalDateTimeString
-): Date | undefined {
-  if (!value) return undefined
-  const match = LOCAL_DATETIME_RE.exec(value)
-  if (!match) return undefined
-  const date = new Date(
-    Number(match[1]),
-    Number(match[2]) - 1,
-    Number(match[3]),
-    Number(match[4]),
-    Number(match[5]),
-    Number(match[6]),
-    0
-  )
-  return Number.isNaN(date.getTime()) ? undefined : date
-}
-
 export type DatePickerCalendarProps = Omit<
   React.ComponentProps<typeof Calendar>,
   'mode'

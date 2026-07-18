@@ -35,7 +35,7 @@ function existingRule(): Rule {
 function createTestDocument(rules: Rule[] = [existingRule()]): SurveyDocument {
   return {
     id: 'survey-1',
-    schemaVersion: 1,
+    schemaVersion: 2,
     revision: 0,
     status: 'draft',
     meta: {
@@ -48,26 +48,18 @@ function createTestDocument(rules: Rule[] = [existingRule()]): SurveyDocument {
       defaultQuestionNumbering: 'decimal',
       questionNumberingMode: 'global',
     },
-    presentation: { type: 'scroll' },
     theme: {
       primaryColor: '#000',
       backgroundColor: '#fff',
       borderRadius: '0.5rem',
     },
-    variables: [],
-    sections: [
-      {
-        id: 'section-1',
-        elements: [
-          question('q1', '第一题'),
-          question('q2', '第二题'),
-          question('q3', '第三题'),
-        ],
-      },
+    elements: [
+      question('q1', '第一题'),
+      question('q2', '第二题'),
+      question('q3', '第三题'),
     ],
     rules,
-    validators: [],
-    submission: {},
+    submissionPolicy: {},
   }
 }
 

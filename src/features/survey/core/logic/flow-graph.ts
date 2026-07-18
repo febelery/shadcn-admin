@@ -107,8 +107,6 @@ function summarizeCondition(
 export function buildFlowGraph(document: SurveyDocument): FlowGraph {
   const nodes: FlowGraphNode[] = []
   const edges: FlowGraphEdge[] = []
-  const section = document.sections[0]
-
   const displayOrdinalMap = buildQuestionDisplayOrdinalMap(document)
   const globalOrdinalMap = buildQuestionOrdinalMap(document)
   const surveyStyle = getSurveyDefaultNumberingStyle(document)
@@ -120,7 +118,7 @@ export function buildFlowGraph(document: SurveyDocument): FlowGraph {
     label: document.meta.endTitle || '结束',
   })
 
-  const flowQuestions = section.elements.filter(
+  const flowQuestions = document.elements.filter(
     (el): el is QuestionElement => el.kind === 'question'
   )
   const questionById = new Map(flowQuestions.map((q) => [q.id, q]))

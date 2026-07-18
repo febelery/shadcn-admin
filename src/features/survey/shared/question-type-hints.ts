@@ -24,7 +24,6 @@ const QUESTION_TYPE_HINTS: Record<PaletteTypeId, string> = {
   slider: '拖动滑块选择数值。',
   nps: '0–10 分推荐意愿量表（净推荐值 NPS）。',
   likert: '多条陈述 × 同意度选项，用于态度、满意度调研。',
-  dynamic_panel: '同一组字段可重复添加，如家庭成员、工作经历。',
   file_upload: '上传图片或文档，可限制数量与大小。',
   signature: '手写签名，用于确认或协议场景。',
   divider: '分割线，区分章节，不收集答案。',
@@ -39,7 +38,6 @@ const QUESTION_TYPES_WITH_PREVIEW = new Set<PaletteTypeId>([
   'nps',
   'cascader',
   'ranking',
-  'dynamic_panel',
   'fill_in',
 ])
 
@@ -73,7 +71,6 @@ const QUESTION_TYPE_KEYWORDS: Record<PaletteTypeId, string[]> = {
   slider: ['滑块', 'slider', 'range'],
   nps: ['nps', '净推荐', 'net promoter'],
   likert: ['李克特', 'likert', 'scale'],
-  dynamic_panel: ['重复组', 'repeat', 'panel', 'dynamic'],
   file_upload: ['文件', 'upload', 'file'],
   signature: ['签名', 'signature', 'sign'],
   divider: ['分割', 'divider', 'separator', 'hr'],

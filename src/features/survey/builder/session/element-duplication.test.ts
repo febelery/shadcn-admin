@@ -5,14 +5,13 @@ import { createBuilderStore } from './store'
 describe('Builder element duplication interface', () => {
   it('copies a plain document element and remaps nested identities', () => {
     const document = createEmptySurvey()
-    const sectionId = document.sections[0].id
     const store = createBuilderStore(document)
-    store.getState().addQuestion(sectionId, 'single_choice')
+    store.getState().addQuestion('single_choice')
 
-    const source = store.getState().document.sections[0].elements[0]
-    store.getState().duplicateElement(sectionId, source.id)
+    const source = store.getState().document.elements[0]
+    store.getState().duplicateElement(source.id)
 
-    const [original, copy] = store.getState().document.sections[0].elements
+    const [original, copy] = store.getState().document.elements
     expect(copy).toMatchObject({ kind: 'question', type: 'single_choice' })
     expect(copy.id).not.toBe(original.id)
 

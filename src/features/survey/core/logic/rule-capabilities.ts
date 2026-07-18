@@ -24,7 +24,6 @@ const RULE_OPERATOR_PROFILES = {
   slider: 'number',
   nps: 'number',
   likert: 'none',
-  dynamic_panel: 'none',
   file_upload: 'none',
   signature: 'none',
 } satisfies Record<QuestionType, RuleOperatorProfile>

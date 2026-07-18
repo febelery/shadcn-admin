@@ -33,7 +33,6 @@ import {
 } from '@/features/survey/shared/question-type-hints'
 import { getQuestionTypeLabel } from '@/features/survey/shared/question-type-labels'
 import { QuestionTypePreview } from '@/features/survey/shared/question-type-preview'
-import { getEditorSection } from '../../../core/editor-section'
 import type {
   QuestionContentPatch,
   QuestionConfigPatch,
@@ -43,23 +42,17 @@ import type {
 import { useBuilderStore } from '../../builder-session'
 import { BuilderPanelHeader } from '../../shared/panel-header'
 import { BuilderGuidance } from '../guidance'
+import { AvailabilityPanel } from '../setting/availability-panel'
 import { EndPagePanel } from '../setting/end-page-panel'
 import { MetaCoverPanel } from '../setting/meta-cover-panel'
 import { PublishInfoCard } from '../setting/publish-info-card'
-import { SubmissionPanel } from '../setting/submission-panel'
+import { SubmissionPolicyPanel } from '../setting/submission-policy-panel'
 import { ThemePanel } from '../setting/theme-panel'
-import { TimeWindowPanel } from '../setting/time-window-panel'
 import { QuestionTypeInspectorFields } from './question-inspector'
 import { getQuestionInspectorSection } from './question-inspector-section'
 
 // 题目属性配置面板组件
-function QuestionInspector({
-  sectionId,
-  el,
-}: {
-  sectionId: string
-  el: QuestionElement
-}) {
+function QuestionInspector({ el }: { el: QuestionElement }) {
   const inspectorSection = getQuestionInspectorSection(el.type)
   const surveyStyle = useBuilderStore((s) =>
     getSurveyDefaultNumberingStyle(s.document)
@@ -68,9 +61,8 @@ function QuestionInspector({
   const updateQuestionConfig = useBuilderStore((s) => s.updateQuestionConfig)
   const removeElement = useBuilderStore((s) => s.removeElement)
 
-  const patch = (p: QuestionContentPatch) => updateQuestion(sectionId, el.id, p)
-  const patchConfig = (p: QuestionConfigPatch) =>
-    updateQuestionConfig(sectionId, el.id, p)
+  const patch = (p: QuestionContentPatch) => updateQuestion(el.id, p)
+  const patchConfig = (p: QuestionConfigPatch) => updateQuestionConfig(el.id, p)
 
   const typeLabel = getQuestionTypeLabel(el.type)
   const surveyEnabled = isSurveyNumberingEnabled(surveyStyle)
@@ -198,7 +190,7 @@ function QuestionInspector({
         variant='destructive'
         size='sm'
         className='w-full'
-        onClick={() => removeElement(sectionId, el.id)}
+        onClick={() => removeElement(el.id)}
       >
         删除此题
       </Button>
@@ -207,13 +199,7 @@ function QuestionInspector({
 }
 
 // 布局元素属性配置面板组件
-function LayoutInspector({
-  sectionId,
-  el,
-}: {
-  sectionId: string
-  el: SurveyElement
-}) {
+function LayoutInspector({ el }: { el: SurveyElement }) {
   const removeElement = useBuilderStore((s) => s.removeElement)
 
   if (el.kind === 'divider') {
@@ -226,7 +212,7 @@ function LayoutInspector({
           variant='destructive'
           size='sm'
           className='w-full'
-          onClick={() => removeElement(sectionId, el.id)}
+          onClick={() => removeElement(el.id)}
         >
           删除分割线
         </Button>
@@ -241,7 +227,7 @@ function LayoutInspector({
           variant='destructive'
           size='sm'
           className='w-full'
-          onClick={() => removeElement(sectionId, el.id)}
+          onClick={() => removeElement(el.id)}
         >
           删除说明块
         </Button>
@@ -260,12 +246,9 @@ export function InspectorPanel({ className }: Props = {}) {
   const inspectorTab = useBuilderStore((s) => s.inspectorTab)
   const setInspectorTab = useBuilderStore((s) => s.setInspectorTab)
 
-  const sectionId = useBuilderStore((s) => getEditorSection(s.document).id)
-
   const selectedEl = useBuilderStore((s) => {
     if (!s.selectedElementId) return undefined
-    const section = getEditorSection(s.document)
-    return section.elements.find((e) => e.id === s.selectedElementId)
+    return s.document.elements.find((e) => e.id === s.selectedElementId)
   })
 
   return (
@@ -299,11 +282,11 @@ export function InspectorPanel({ className }: Props = {}) {
             <div className='min-w-0 overflow-x-hidden p-4'>
               <TabsContent value='element' className='mt-0 outline-none'>
                 {selectedEl?.kind === 'question' && (
-                  <QuestionInspector sectionId={sectionId} el={selectedEl} />
+                  <QuestionInspector el={selectedEl} />
                 )}
                 {(selectedEl?.kind === 'divider' ||
                   selectedEl?.kind === 'rich_text') && (
-                  <LayoutInspector sectionId={sectionId} el={selectedEl} />
+                  <LayoutInspector el={selectedEl} />
                 )}
                 {!selectedEl && (
                   <BuilderGuidance
@@ -324,10 +307,10 @@ export function InspectorPanel({ className }: Props = {}) {
               </TabsContent>
               <TabsContent value='settings' className='mt-0 outline-none'>
                 <div className='flex flex-col gap-3'>
-                  <TimeWindowPanel />
+                  <AvailabilityPanel />
                   <MetaCoverPanel />
                   <EndPagePanel />
-                  <SubmissionPanel />
+                  <SubmissionPolicyPanel />
                   <ThemePanel />
                   <PublishInfoCard />
                 </div>

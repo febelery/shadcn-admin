@@ -21,7 +21,6 @@ const QUESTION_TYPE_LABELS = {
   slider: '滑块',
   nps: 'NPS 净推荐值',
   likert: '李克特量表',
-  dynamic_panel: '重复组',
   file_upload: '文件上传',
   signature: '手写签名',
 } satisfies Record<QuestionType, string>

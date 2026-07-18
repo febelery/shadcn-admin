@@ -4,15 +4,14 @@ import { Separator } from '@/components/ui/separator'
 import { WORKSPACE_DROP } from '../shared/dnd-types'
 
 type Props = {
-  sectionId: string
   highlight: boolean
 }
 
 /** 工作区底部：分隔线 + 拖放提示 */
-export function WorkspaceAddFooter({ sectionId, highlight }: Props) {
+export function WorkspaceAddFooter({ highlight }: Props) {
   const { setNodeRef, isOver } = useDroppable({
-    id: `workspace-drop-${sectionId}`,
-    data: { type: WORKSPACE_DROP, sectionId },
+    id: 'workspace-drop',
+    data: { type: WORKSPACE_DROP },
     disabled: !highlight,
   })
 
