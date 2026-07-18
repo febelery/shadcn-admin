@@ -133,7 +133,7 @@ type Props = {
 
 export function RulesList({ rules, issuesByRule }: Props) {
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
-  const selectFlowRule = useBuilderStore((s) => s.selectFlowRule)
+  const navigate = useBuilderStore((s) => s.navigate)
 
   return (
     <div className='flex flex-col gap-2'>
@@ -154,7 +154,9 @@ export function RulesList({ rules, issuesByRule }: Props) {
                 rule={r}
                 selected={editingRuleId === r.id}
                 ruleIssues={issuesByRule?.get(r.id)}
-                onSelect={() => selectFlowRule(r.id)}
+                onSelect={() =>
+                  navigate({ type: 'show-rule-editor', ruleId: r.id })
+                }
               />
             </li>
           ))}

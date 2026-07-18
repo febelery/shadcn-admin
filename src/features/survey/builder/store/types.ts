@@ -8,6 +8,7 @@ import type {
   BuilderMode,
   Rule,
 } from '../types'
+import type { BuilderNavigationIntent, LogicMobilePanel } from './navigation'
 
 export interface BuilderState {
   schema: SurveySchema | null
@@ -18,6 +19,7 @@ export interface BuilderState {
   // 流程与逻辑规则状态
   builderMode: BuilderMode
   editingRuleId: string | null
+  logicMobilePanel: LogicMobilePanel
   flowRuleSearchQuery: string
   flowCanvasSearchQuery: string
   flowRuleFilter: RuleCategory | 'all'
@@ -59,15 +61,13 @@ export interface BuilderState {
   getSchemaForSave: () => SurveySchema | null
 
   // 流程与规则相关操作
-  setBuilderMode: (mode: BuilderMode) => void
-  setEditingRuleId: (ruleId: string | null) => void
+  navigate: (intent: BuilderNavigationIntent) => void
   setInspectorTab: (tab: 'element' | 'settings') => void
   setFlowRuleSearchQuery: (query: string) => void
   setFlowCanvasSearchQuery: (query: string) => void
   setFlowRuleFilter: (filter: RuleCategory | 'all') => void
   setFlowShowJumpEdges: (show: boolean) => void
   setFlowShowVisibilityEdges: (show: boolean) => void
-  selectFlowRule: (ruleId: string | null) => void
   startFlowNewRule: () => void
   addRule: () => string
   addVisibilityRule: (payload: {

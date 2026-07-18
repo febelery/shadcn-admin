@@ -283,7 +283,7 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
   const showVisibility = useBuilderStore((s) => s.flowShowVisibilityEdges)
   const searchQuery = useBuilderStore((s) => s.flowCanvasSearchQuery)
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
-  const selectFlowRule = useBuilderStore((s) => s.selectFlowRule)
+  const navigate = useBuilderStore((s) => s.navigate)
 
   const initialFitDone = useRef(false)
 
@@ -510,20 +510,26 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
     (_: React.MouseEvent, node: Node) => {
       const data = node.data as unknown as NodeData
       if (data.elementId) {
-        selectFlowRule(
-          pickRuleForQuestion(projection?.rules ?? EMPTY_RULES, data.elementId)
+        const ruleId = pickRuleForQuestion(
+          projection?.rules ?? EMPTY_RULES,
+          data.elementId
+        )
+        navigate(
+          ruleId
+            ? { type: 'show-rule-editor', ruleId }
+            : { type: 'clear-rule-focus' }
         )
       }
     },
-    [projection?.rules, selectFlowRule]
+    [projection?.rules, navigate]
   )
 
   const onEdgeClick = useCallback(
     (_: React.MouseEvent, edge: Edge) => {
       const ruleId = edge.data?.ruleId as string | undefined
-      if (ruleId) selectFlowRule(ruleId)
+      if (ruleId) navigate({ type: 'show-rule-editor', ruleId })
     },
-    [selectFlowRule]
+    [navigate]
   )
 
   if (!projection) return null

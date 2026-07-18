@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { GitBranch, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -16,45 +16,15 @@ import { RightPanel } from './right-panel'
 
 const desktopOnly = 'hidden lg:flex'
 
-function useIsMobileLayout() {
-  const [mobile, setMobile] = useState(
-    () =>
-      typeof window !== 'undefined' &&
-      window.matchMedia('(max-width: 1023px)').matches
-  )
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 1023px)')
-    const onChange = () => setMobile(mq.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-
-  return mobile
-}
-
 export function FlowWorkspace() {
-  const [rulesOpen, setRulesOpen] = useState(false)
-  const [editorOpen, setEditorOpen] = useState(false)
-  const isMobile = useIsMobileLayout()
-
   const schema = useBuilderStore((s) => s.schema)
-  const editingRuleId = useBuilderStore((s) => s.editingRuleId)
+  const logicMobilePanel = useBuilderStore((s) => s.logicMobilePanel)
+  const navigate = useBuilderStore((s) => s.navigate)
   const [project] = useState(createFlowProjector)
   const projection = useMemo(
     () => (schema ? project(schema) : null),
     [schema, project]
   )
-
-  const openEditor = useCallback(() => {
-    if (isMobile) setEditorOpen(true)
-  }, [isMobile])
-
-  useEffect(() => {
-    if (isMobile && editingRuleId) {
-      queueMicrotask(() => setEditorOpen(true))
-    }
-  }, [isMobile, editingRuleId])
 
   return (
     <>
@@ -65,7 +35,7 @@ export function FlowWorkspace() {
             desktopOnly
           )}
         >
-          <LeftPanel projection={projection} onNewRule={openEditor} />
+          <LeftPanel projection={projection} />
         </aside>
         <main className='from-background via-muted/25 to-muted/40 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-linear-to-b'>
           <CenterPanel projection={projection} />
@@ -87,7 +57,7 @@ export function FlowWorkspace() {
             variant='outline'
             size='sm'
             className='h-9 gap-1.5 text-xs leading-none shadow-sm'
-            onClick={() => setRulesOpen(true)}
+            onClick={() => navigate({ type: 'show-rule-list' })}
           >
             <GitBranch className='size-4' />
             规则
@@ -97,7 +67,7 @@ export function FlowWorkspace() {
             variant='outline'
             size='sm'
             className='h-9 gap-1.5 text-xs leading-none shadow-sm'
-            onClick={() => setEditorOpen(true)}
+            onClick={() => navigate({ type: 'show-current-rule-editor' })}
           >
             <Settings2 className='size-4' />
             编辑
@@ -105,7 +75,12 @@ export function FlowWorkspace() {
         </div>
       </div>
 
-      <Sheet open={rulesOpen} onOpenChange={setRulesOpen}>
+      <Sheet
+        open={logicMobilePanel === 'rules'}
+        onOpenChange={(open) =>
+          navigate({ type: open ? 'show-rule-list' : 'show-flow' })
+        }
+      >
         <SheetContent
           side='left'
           className='flex w-[min(100vw,20rem)] flex-col gap-0 p-0 sm:max-w-sm'
@@ -116,15 +91,18 @@ export function FlowWorkspace() {
           <LeftPanel
             projection={projection}
             className='flex h-full w-full max-w-none shrink border-0'
-            onNewRule={() => {
-              openEditor()
-              setRulesOpen(false)
-            }}
           />
         </SheetContent>
       </Sheet>
 
-      <Sheet open={editorOpen} onOpenChange={setEditorOpen}>
+      <Sheet
+        open={logicMobilePanel === 'editor'}
+        onOpenChange={(open) =>
+          navigate({
+            type: open ? 'show-current-rule-editor' : 'show-flow',
+          })
+        }
+      >
         <SheetContent
           side='right'
           className='flex w-[min(100vw,20rem)] flex-col gap-0 p-0 sm:max-w-sm'

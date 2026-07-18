@@ -25,6 +25,7 @@ import {
   collectQuestionIdsFromElement,
   insertAt,
 } from './helpers'
+import { resolveBuilderNavigation } from './navigation'
 import type { BuilderState } from './types'
 
 export const useBuilderStore = create<BuilderState>()(
@@ -37,6 +38,7 @@ export const useBuilderStore = create<BuilderState>()(
     // 流程与逻辑规则默认状态
     builderMode: 'edit',
     editingRuleId: null,
+    logicMobilePanel: 'closed',
     flowRuleSearchQuery: '',
     flowCanvasSearchQuery: '',
     flowRuleFilter: 'all',
@@ -53,6 +55,7 @@ export const useBuilderStore = create<BuilderState>()(
         isDirty: false,
         builderMode: 'edit',
         editingRuleId: null,
+        logicMobilePanel: 'closed',
         flowRuleSearchQuery: '',
         flowCanvasSearchQuery: '',
         flowRuleFilter: 'all',
@@ -214,20 +217,9 @@ export const useBuilderStore = create<BuilderState>()(
       return schema ? prepareSurveySchemaForSave(schema) : null
     },
 
-    setBuilderMode: (mode) =>
+    navigate: (intent) =>
       set((s) => {
-        s.builderMode = mode
-        if (mode === 'edit') {
-          s.editingRuleId = null
-        }
-      }),
-
-    setEditingRuleId: (ruleId) =>
-      set((s) => {
-        s.editingRuleId = ruleId
-        if (ruleId) {
-          s.selectedElementId = null
-        }
+        Object.assign(s, resolveBuilderNavigation(s, intent))
       }),
 
     setInspectorTab: (tab) =>
@@ -260,12 +252,6 @@ export const useBuilderStore = create<BuilderState>()(
         s.flowShowVisibilityEdges = show
       }),
 
-    selectFlowRule: (ruleId) =>
-      set((s) => {
-        s.editingRuleId = ruleId
-        s.selectedElementId = null
-      }),
-
     startFlowNewRule: () =>
       set((s) => {
         if (!s.schema) return
@@ -290,8 +276,13 @@ export const useBuilderStore = create<BuilderState>()(
           }
         }
         s.schema.rules.push(rule)
-        s.editingRuleId = rule.id
-        s.selectedElementId = null
+        Object.assign(
+          s,
+          resolveBuilderNavigation(s, {
+            type: 'show-rule-editor',
+            ruleId: rule.id,
+          })
+        )
         s.isDirty = true
       }),
 
@@ -302,8 +293,13 @@ export const useBuilderStore = create<BuilderState>()(
       set((s) => {
         if (s.schema) {
           s.schema.rules.push(rule)
-          s.editingRuleId = rule.id
-          s.selectedElementId = null
+          Object.assign(
+            s,
+            resolveBuilderNavigation(s, {
+              type: 'show-rule-editor',
+              ruleId: rule.id,
+            })
+          )
           s.isDirty = true
         }
       })
@@ -326,8 +322,13 @@ export const useBuilderStore = create<BuilderState>()(
       set((s) => {
         if (s.schema) {
           s.schema.rules.push(rule)
-          s.editingRuleId = ruleId
-          s.selectedElementId = null
+          Object.assign(
+            s,
+            resolveBuilderNavigation(s, {
+              type: 'show-rule-editor',
+              ruleId,
+            })
+          )
           s.isDirty = true
         }
       })
@@ -350,8 +351,13 @@ export const useBuilderStore = create<BuilderState>()(
       set((s) => {
         if (s.schema) {
           s.schema.rules.push(rule)
-          s.editingRuleId = ruleId
-          s.selectedElementId = null
+          Object.assign(
+            s,
+            resolveBuilderNavigation(s, {
+              type: 'show-rule-editor',
+              ruleId,
+            })
+          )
           s.isDirty = true
         }
       })
@@ -375,7 +381,10 @@ export const useBuilderStore = create<BuilderState>()(
         if (nextRules.length === s.schema.rules.length) return
         s.schema.rules = normalizeRulePriorities(nextRules)
         if (s.editingRuleId === ruleId) {
-          s.editingRuleId = null
+          Object.assign(
+            s,
+            resolveBuilderNavigation(s, { type: 'clear-rule-focus' })
+          )
         }
         s.isDirty = true
       }),

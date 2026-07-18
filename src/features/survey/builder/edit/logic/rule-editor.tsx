@@ -163,7 +163,7 @@ export function RuleEditorPanel({
 }: Props) {
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
   const schema = useBuilderStore((s) => s.schema)
-  const setEditingRuleId = useBuilderStore((s) => s.setEditingRuleId)
+  const navigate = useBuilderStore((s) => s.navigate)
   const updateRule = useBuilderStore((s) => s.updateRule)
 
   const questions = useSurveyQuestions()
@@ -174,7 +174,7 @@ export function RuleEditorPanel({
   const defaultSourceId = allowedSourceIds[0]
 
   const handleClose = () => {
-    setEditingRuleId(null)
+    navigate({ type: 'clear-rule-focus' })
     onClose?.()
   }
 

@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react'
+import { useMemo } from 'react'
 import { GitBranch, Plus, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -21,12 +21,10 @@ const EMPTY_QUESTION_TITLES: FlowProjection['questionTitles'] = new Map()
 type Props = {
   projection: FlowProjection | null
   className?: string
-  /** 点击新建时回调（移动端打开右侧 Sheet） */
-  onNewRule?: () => void
 }
 
 /** 流程模式 · 左栏：纯规则索引（搜索 / 筛选 / 列表） */
-export function LeftPanel({ projection, className, onNewRule }: Props) {
+export function LeftPanel({ projection, className }: Props) {
   const searchQuery = useBuilderStore((s) => s.flowRuleSearchQuery)
   const setFlowSearchQuery = useBuilderStore((s) => s.setFlowRuleSearchQuery)
   const startFlowNewRule = useBuilderStore((s) => s.startFlowNewRule)
@@ -41,11 +39,6 @@ export function LeftPanel({ projection, className, onNewRule }: Props) {
         .filter((r) => ruleMatchesSearch(r, searchQuery, questionTitles)),
     [rules, searchQuery, questionTitles]
   )
-
-  const createDraftRule = useCallback(() => {
-    startFlowNewRule()
-    onNewRule?.()
-  }, [startFlowNewRule, onNewRule])
 
   return (
     <div
@@ -73,7 +66,7 @@ export function LeftPanel({ projection, className, onNewRule }: Props) {
             variant='outline'
             size='icon'
             className='size-8 shrink-0'
-            onClick={createDraftRule}
+            onClick={startFlowNewRule}
             disabled={questions.length < 1}
             aria-label='新建规则'
           >

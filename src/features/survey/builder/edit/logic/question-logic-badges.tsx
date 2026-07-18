@@ -5,7 +5,6 @@ import {
   getRulesForQuestion,
   ruleReferencesQuestionAsSource,
 } from '@/features/survey/core/logic/rule-utils'
-import { getEditorSection } from '../../../core/editor-schema'
 import { useBuilderStore } from '../../store'
 import type { Rule } from '../../types'
 
@@ -16,14 +15,7 @@ type Props = {
 
 export function QuestionLogicBadges({ questionId, className }: Props) {
   const schema = useBuilderStore((s) => s.schema)
-  const selectedSectionId = useBuilderStore((s) => s.selectedSectionId)
-  const select = useBuilderStore((s) => s.select)
-  const setEditingRuleId = useBuilderStore((s) => s.setEditingRuleId)
-  const setBuilderMode = useBuilderStore((s) => s.setBuilderMode)
-
-  const sectionId = schema
-    ? (getEditorSection(schema)?.id ?? selectedSectionId)
-    : selectedSectionId
+  const navigate = useBuilderStore((s) => s.navigate)
 
   const rules = schema?.rules ?? []
 
@@ -49,10 +41,8 @@ export function QuestionLogicBadges({ questionId, className }: Props) {
   if (!vis && !branch) return null
 
   const openInFlow = () => {
-    if (sectionId) select(sectionId, questionId)
     const first = related[0]
-    if (first) setEditingRuleId(first.id)
-    setBuilderMode('flow')
+    if (first) navigate({ type: 'show-rule-editor', ruleId: first.id })
   }
 
   return (

@@ -9,7 +9,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { analyseSurvey } from '../core/expression/analyzer'
 import { createEmptySurvey } from '../core/schema-defaults'
-import type { BuilderMode, SurveySchema } from '../core/types'
+import type { SurveySchema } from '../core/types'
 import { validateSurveySchema } from '../core/validators'
 import {
   useCreateSurvey,
@@ -64,7 +64,7 @@ export function SurveyBuilderPage(props: Props) {
   const markSaved = useBuilderStore((s) => s.markSaved)
   const getSchemaForSave = useBuilderStore((s) => s.getSchemaForSave)
   const builderMode = useBuilderStore((s) => s.builderMode)
-  const setBuilderMode = useBuilderStore((s) => s.setBuilderMode)
+  const navigate = useBuilderStore((s) => s.navigate)
   const updateMeta = useBuilderStore((s) => s.updateMeta)
 
   const lastInitializedIdRef = useRef<string | null>(null)
@@ -167,7 +167,9 @@ export function SurveyBuilderPage(props: Props) {
         </div>
         <Tabs
           value={builderMode}
-          onValueChange={(v) => setBuilderMode(v as BuilderMode)}
+          onValueChange={(value) =>
+            navigate({ type: value === 'edit' ? 'show-edit' : 'show-flow' })
+          }
           className='justify-self-center'
         >
           <TabsList className='h-8 sm:h-9'>
