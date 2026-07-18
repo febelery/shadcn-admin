@@ -11,7 +11,7 @@ export function RuleEditorSection({ ruleIssues }: Props) {
   return (
     <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
       <RuleValidation issues={ruleIssues} compact />
-      <RuleEditorPanel className='min-h-0 flex-1' hideHeader hideFooterNote />
+      <RuleEditorPanel className='min-h-0 flex-1' ruleIssues={ruleIssues} />
     </div>
   )
 }

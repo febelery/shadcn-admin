@@ -9,6 +9,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { useBuilderStore } from '../store'
+import { buildRuleDraftPreviewSchema } from '../store/rule-authoring'
+import { useRuleAuthoring } from '../store/use-rule-authoring'
 import { CenterPanel } from './center-panel'
 import { LeftPanel } from './left-panel'
 import { createFlowProjector } from './projection'
@@ -18,13 +20,33 @@ const desktopOnly = 'hidden lg:flex'
 
 export function FlowWorkspace() {
   const schema = useBuilderStore((s) => s.schema)
+  const ruleDraft = useBuilderStore((s) => s.ruleDraft)
   const logicMobilePanel = useBuilderStore((s) => s.logicMobilePanel)
   const navigate = useBuilderStore((s) => s.navigate)
+  const { clearRuleFocus } = useRuleAuthoring()
   const [project] = useState(createFlowProjector)
+  const [projectPreview] = useState(createFlowProjector)
   const projection = useMemo(
     () => (schema ? project(schema) : null),
     [schema, project]
   )
+  const previewSchema = useMemo(
+    () =>
+      schema && ruleDraft
+        ? buildRuleDraftPreviewSchema(schema, ruleDraft)
+        : schema,
+    [schema, ruleDraft]
+  )
+  const canvasProjection = useMemo(() => {
+    if (!previewSchema || !projection || !ruleDraft) return projection
+    const preview = projectPreview(previewSchema)
+    return {
+      ...preview,
+      // 草稿只叠加边，不参与正式拓扑布局和视口失效。
+      layout: projection.layout,
+      topologyKey: projection.topologyKey,
+    }
+  }, [previewSchema, projection, ruleDraft, projectPreview])
 
   return (
     <>
@@ -38,7 +60,10 @@ export function FlowWorkspace() {
           <LeftPanel projection={projection} />
         </aside>
         <main className='from-background via-muted/25 to-muted/40 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-linear-to-b'>
-          <CenterPanel projection={projection} />
+          <CenterPanel
+            projection={projection}
+            canvasProjection={canvasProjection}
+          />
         </main>
         <aside
           className={cn(
@@ -97,11 +122,10 @@ export function FlowWorkspace() {
 
       <Sheet
         open={logicMobilePanel === 'editor'}
-        onOpenChange={(open) =>
-          navigate({
-            type: open ? 'show-current-rule-editor' : 'show-flow',
-          })
-        }
+        onOpenChange={(open) => {
+          if (open) navigate({ type: 'show-current-rule-editor' })
+          else clearRuleFocus()
+        }}
       >
         <SheetContent
           side='right'

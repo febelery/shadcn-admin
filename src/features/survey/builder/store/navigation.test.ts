@@ -94,4 +94,20 @@ describe('resolveBuilderNavigation', () => {
       logicMobilePanel: 'closed',
     })
   })
+
+  it('closes a mobile panel without clearing the current rule', () => {
+    const focused: BuilderNavigationSnapshot = {
+      builderMode: 'flow',
+      editingRuleId: 'rule-1',
+      selectedElementId: null,
+      logicMobilePanel: 'editor',
+    }
+
+    expect(
+      resolveBuilderNavigation(focused, { type: 'close-mobile-panel' })
+    ).toEqual({
+      ...focused,
+      logicMobilePanel: 'closed',
+    })
+  })
 })

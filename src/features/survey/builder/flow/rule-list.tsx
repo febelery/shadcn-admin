@@ -9,6 +9,7 @@ import {
 import { summarizeRuleAction } from '@/features/survey/core/logic/rule-utils'
 import { useQuestionLabel } from '../edit/logic/use-survey-questions'
 import { useBuilderStore } from '../store'
+import { useRuleAuthoring } from '../store/use-rule-authoring'
 import type { StaticIssue, Rule } from '../types'
 import { worstSeverity } from './issues/issue-utils'
 
@@ -133,7 +134,7 @@ type Props = {
 
 export function RulesList({ rules, issuesByRule }: Props) {
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
-  const navigate = useBuilderStore((s) => s.navigate)
+  const { openRule } = useRuleAuthoring()
 
   return (
     <div className='flex flex-col gap-2'>
@@ -154,9 +155,7 @@ export function RulesList({ rules, issuesByRule }: Props) {
                 rule={r}
                 selected={editingRuleId === r.id}
                 ruleIssues={issuesByRule?.get(r.id)}
-                onSelect={() =>
-                  navigate({ type: 'show-rule-editor', ruleId: r.id })
-                }
+                onSelect={() => openRule(r.id)}
               />
             </li>
           ))}

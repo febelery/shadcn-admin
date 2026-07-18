@@ -1,8 +1,10 @@
+import { useMemo } from 'react'
 import { MousePointerClick, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BuilderGuidance } from '../edit/guidance'
 import { BuilderPanelHeader } from '../shared/panel-header'
 import { useBuilderStore } from '../store'
+import { getRuleDraftIssues } from '../store/rule-authoring'
 import type { FlowProjection } from './projection'
 import { RuleEditorSection } from './rule-editor'
 
@@ -20,10 +22,18 @@ type Props = {
  */
 export function RightPanel({ projection, className }: Props) {
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
+  const schema = useBuilderStore((s) => s.schema)
+  const ruleDraft = useBuilderStore((s) => s.ruleDraft)
 
-  const ruleIssues = editingRuleId
-    ? (projection?.issuesByRule.get(editingRuleId) ?? [])
-    : []
+  const draftIssues = useMemo(
+    () => (schema && ruleDraft ? getRuleDraftIssues(schema, ruleDraft) : []),
+    [schema, ruleDraft]
+  )
+  const ruleIssues = ruleDraft
+    ? draftIssues
+    : editingRuleId
+      ? (projection?.issuesByRule.get(editingRuleId) ?? [])
+      : []
 
   let title = '规则'
   let content: React.ReactNode

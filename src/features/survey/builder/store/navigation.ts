@@ -15,6 +15,7 @@ export type BuilderNavigationIntent =
   | { type: 'show-rule-list' }
   | { type: 'show-current-rule-editor' }
   | { type: 'show-rule-editor'; ruleId: string }
+  | { type: 'close-mobile-panel' }
   | { type: 'clear-rule-focus' }
 
 /**
@@ -62,6 +63,8 @@ export function resolveBuilderNavigation(
         selectedElementId: null,
         logicMobilePanel: 'editor',
       }
+    case 'close-mobile-panel':
+      return { ...current, logicMobilePanel: 'closed' }
     case 'clear-rule-focus':
       return {
         ...current,

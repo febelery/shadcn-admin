@@ -6,6 +6,7 @@ import {
   ruleReferencesQuestionAsSource,
 } from '@/features/survey/core/logic/rule-utils'
 import { useBuilderStore } from '../../store'
+import { useRuleAuthoring } from '../../store/use-rule-authoring'
 import type { Rule } from '../../types'
 
 type Props = {
@@ -15,7 +16,7 @@ type Props = {
 
 export function QuestionLogicBadges({ questionId, className }: Props) {
   const schema = useBuilderStore((s) => s.schema)
-  const navigate = useBuilderStore((s) => s.navigate)
+  const { openRule } = useRuleAuthoring()
 
   const rules = schema?.rules ?? []
 
@@ -42,7 +43,7 @@ export function QuestionLogicBadges({ questionId, className }: Props) {
 
   const openInFlow = () => {
     const first = related[0]
-    if (first) navigate({ type: 'show-rule-editor', ruleId: first.id })
+    if (first) openRule(first.id)
   }
 
   return (

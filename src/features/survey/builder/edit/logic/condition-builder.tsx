@@ -203,15 +203,6 @@ export function ConditionBuilder({
   const isComplex = parsed === null
   const [isAdvanced, setIsAdvanced] = useState(isComplex)
 
-  // 同步外部 when 改变（如切换规则）时的模式
-  const [lastWhen, setLastWhen] = useState(when)
-  if (when !== lastWhen) {
-    setLastWhen(when)
-    if (isComplex) {
-      setIsAdvanced(true)
-    }
-  }
-
   const group: ConditionGroup = parsed ?? {
     logic: 'and',
     items: [

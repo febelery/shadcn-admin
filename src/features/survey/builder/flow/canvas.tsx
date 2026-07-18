@@ -21,6 +21,7 @@ import { extractQuestionRefsFromWhen } from '../../core/logic/condition-serializ
 import { flowNodeDimensions, START_ID } from '../../core/logic/flow-graph'
 import { ruleMatchesSearch } from '../../core/logic/rule-meta'
 import { useBuilderStore } from '../store'
+import { useRuleAuthoring } from '../store/use-rule-authoring'
 import type { Rule, FlowGraphEdge } from '../types'
 import './canvas.css'
 import { GraphNode, type NodeData } from './nodes'
@@ -283,7 +284,7 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
   const showVisibility = useBuilderStore((s) => s.flowShowVisibilityEdges)
   const searchQuery = useBuilderStore((s) => s.flowCanvasSearchQuery)
   const editingRuleId = useBuilderStore((s) => s.editingRuleId)
-  const navigate = useBuilderStore((s) => s.navigate)
+  const { openRule, clearRuleFocus } = useRuleAuthoring()
 
   const initialFitDone = useRef(false)
 
@@ -514,22 +515,19 @@ function CanvasInner({ projection }: { projection: FlowProjection | null }) {
           projection?.rules ?? EMPTY_RULES,
           data.elementId
         )
-        navigate(
-          ruleId
-            ? { type: 'show-rule-editor', ruleId }
-            : { type: 'clear-rule-focus' }
-        )
+        if (ruleId) openRule(ruleId)
+        else clearRuleFocus()
       }
     },
-    [projection?.rules, navigate]
+    [projection?.rules, openRule, clearRuleFocus]
   )
 
   const onEdgeClick = useCallback(
     (_: React.MouseEvent, edge: Edge) => {
       const ruleId = edge.data?.ruleId as string | undefined
-      if (ruleId) navigate({ type: 'show-rule-editor', ruleId })
+      if (ruleId) openRule(ruleId)
     },
-    [navigate]
+    [openRule]
   )
 
   if (!projection) return null

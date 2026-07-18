@@ -6,9 +6,14 @@ import type {
   HtmlBlockElement,
   QuestionType,
   BuilderMode,
-  Rule,
 } from '../types'
 import type { BuilderNavigationIntent, LogicMobilePanel } from './navigation'
+import type {
+  BeginRuleDraftResult,
+  RuleDraft,
+  RuleDraftChange,
+  RuleDraftRequest,
+} from './rule-authoring'
 
 export interface BuilderState {
   schema: SurveySchema | null
@@ -20,6 +25,7 @@ export interface BuilderState {
   builderMode: BuilderMode
   editingRuleId: string | null
   logicMobilePanel: LogicMobilePanel
+  ruleDraft: RuleDraft | null
   flowRuleSearchQuery: string
   flowCanvasSearchQuery: string
   flowRuleFilter: RuleCategory | 'all'
@@ -68,20 +74,12 @@ export interface BuilderState {
   setFlowRuleFilter: (filter: RuleCategory | 'all') => void
   setFlowShowJumpEdges: (show: boolean) => void
   setFlowShowVisibilityEdges: (show: boolean) => void
-  startFlowNewRule: () => void
-  addRule: () => string
-  addVisibilityRule: (payload: {
-    targetQuestionId: string
-    when: string
-    action: 'show' | 'hide'
-    name: string
-  }) => string
-  addNavigationRule: (payload: {
-    when: string
-    action: 'jump_to_question' | 'end'
-    targetQuestionId?: string
-    name: string
-  }) => string
-  updateRule: (ruleId: string, patch: Partial<Rule>) => void
+  beginRuleDraft: (
+    request: RuleDraftRequest,
+    options?: { discardChanges?: boolean }
+  ) => BeginRuleDraftResult
+  changeRuleDraft: (change: RuleDraftChange) => void
+  applyRuleDraft: () => boolean
+  discardRuleDraft: () => void
   removeRule: (ruleId: string) => void
 }

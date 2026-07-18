@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { ruleMatchesSearch } from '@/features/survey/core/logic/rule-meta'
 import { BuilderPanelHeader } from '../shared/panel-header'
 import { useBuilderStore } from '../store'
+import { useRuleAuthoring } from '../store/use-rule-authoring'
 import type { FlowProjection } from './projection'
 import { RulesList } from './rule-list'
 
@@ -27,7 +28,7 @@ type Props = {
 export function LeftPanel({ projection, className }: Props) {
   const searchQuery = useBuilderStore((s) => s.flowRuleSearchQuery)
   const setFlowSearchQuery = useBuilderStore((s) => s.setFlowRuleSearchQuery)
-  const startFlowNewRule = useBuilderStore((s) => s.startFlowNewRule)
+  const { openNewRule } = useRuleAuthoring()
   const rules = projection?.rules ?? EMPTY_RULES
   const questions = projection?.questions ?? EMPTY_QUESTIONS
   const questionTitles = projection?.questionTitles ?? EMPTY_QUESTION_TITLES
@@ -66,7 +67,7 @@ export function LeftPanel({ projection, className }: Props) {
             variant='outline'
             size='icon'
             className='size-8 shrink-0'
-            onClick={startFlowNewRule}
+            onClick={openNewRule}
             disabled={questions.length < 1}
             aria-label='新建规则'
           >

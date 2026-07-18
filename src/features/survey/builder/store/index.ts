@@ -1,10 +1,7 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { getEditorSectionId } from '../../core/editor-schema'
-import { canUseQuestionAsRuleSource } from '../../core/logic/rule-capabilities'
 import {
-  createEmptyRule,
-  createRuleAction,
   normalizeRulePriorities,
   removeRulesReferencingQuestions,
 } from '../../core/logic/rule-utils'
@@ -15,10 +12,9 @@ import {
 import {
   createQuestionId,
   DEFAULT_SUBMISSION,
-  flattenQuestions,
 } from '../../core/schema-defaults'
 import { getQuestionManifest } from '../../shared/question-registry'
-import type { SurveySchema, SurveyElement, Rule } from '../types'
+import type { SurveySchema, SurveyElement } from '../types'
 import {
   findSection,
   cloneElement,
@@ -26,6 +22,13 @@ import {
   insertAt,
 } from './helpers'
 import { resolveBuilderNavigation } from './navigation'
+import {
+  applyRuleDraft,
+  beginRuleDraft,
+  changeRuleDraft,
+  getRuleDraftIssues,
+  hasRuleDraftChanges,
+} from './rule-authoring'
 import type { BuilderState } from './types'
 
 export const useBuilderStore = create<BuilderState>()(
@@ -39,6 +42,7 @@ export const useBuilderStore = create<BuilderState>()(
     builderMode: 'edit',
     editingRuleId: null,
     logicMobilePanel: 'closed',
+    ruleDraft: null,
     flowRuleSearchQuery: '',
     flowCanvasSearchQuery: '',
     flowRuleFilter: 'all',
@@ -56,6 +60,7 @@ export const useBuilderStore = create<BuilderState>()(
         builderMode: 'edit',
         editingRuleId: null,
         logicMobilePanel: 'closed',
+        ruleDraft: null,
         flowRuleSearchQuery: '',
         flowCanvasSearchQuery: '',
         flowRuleFilter: 'all',
@@ -252,126 +257,83 @@ export const useBuilderStore = create<BuilderState>()(
         s.flowShowVisibilityEdges = show
       }),
 
-    startFlowNewRule: () =>
-      set((s) => {
-        if (!s.schema) return
-        const rule = createEmptyRule(s.schema.rules.length)
-        const questions = flattenQuestions(s.schema)
-        const source = questions.find((q, index) => {
-          return (
-            canUseQuestionAsRuleSource(q) &&
-            questions.some((_, targetIndex) => targetIndex > index)
+    beginRuleDraft: (request, options) => {
+      const state = get()
+      if (!state.schema) return 'not-found'
+      if (
+        state.ruleDraft &&
+        request.type === 'existing' &&
+        state.ruleDraft.value.id === request.ruleId
+      ) {
+        set((s) => {
+          Object.assign(
+            s,
+            resolveBuilderNavigation(s, {
+              type: 'show-rule-editor',
+              ruleId: request.ruleId,
+            })
           )
         })
-        if (source) {
-          const sourceIndex = questions.findIndex((q) => q.id === source.id)
-          const target = questions[sourceIndex + 1]
-          rule.when = `{q.${source.id}} notEmpty`
-          if (target) {
-            rule.name = '按条件显示题目'
-            rule.action = createRuleAction('show', target.id)
-          } else {
-            rule.name = '按条件结束问卷'
-            rule.action = createRuleAction('end')
-          }
-        }
-        s.schema.rules.push(rule)
+        return 'started'
+      }
+      if (hasRuleDraftChanges(state.ruleDraft) && !options?.discardChanges) {
+        return 'confirmation-required'
+      }
+
+      const draft = beginRuleDraft(state.schema, request)
+      if (!draft) return 'not-found'
+      set((s) => {
+        s.ruleDraft = draft
         Object.assign(
           s,
           resolveBuilderNavigation(s, {
             type: 'show-rule-editor',
-            ruleId: rule.id,
+            ruleId: draft.value.id,
           })
         )
+      })
+      return 'started'
+    },
+
+    changeRuleDraft: (change) => {
+      const { schema, ruleDraft } = get()
+      if (!schema || !ruleDraft) return
+      set({ ruleDraft: changeRuleDraft(schema, ruleDraft, change) })
+    },
+
+    applyRuleDraft: () => {
+      const { schema, ruleDraft } = get()
+      if (!schema || !ruleDraft) return false
+      if (
+        getRuleDraftIssues(schema, ruleDraft).some(
+          (issue) => issue.severity === 'error'
+        )
+      ) {
+        return false
+      }
+
+      const rules = applyRuleDraft(schema.rules, ruleDraft)
+      const committedSchema = { ...schema, rules }
+      const cleanDraft = beginRuleDraft(committedSchema, {
+        type: 'existing',
+        ruleId: ruleDraft.value.id,
+      })
+      set((s) => {
+        if (!s.schema || !cleanDraft) return
+        s.schema.rules = rules
+        s.ruleDraft = cleanDraft
         s.isDirty = true
-      }),
-
-    addRule: () => {
-      const { schema } = get()
-      if (!schema) return ''
-      const rule = createEmptyRule(schema.rules.length)
-      set((s) => {
-        if (s.schema) {
-          s.schema.rules.push(rule)
-          Object.assign(
-            s,
-            resolveBuilderNavigation(s, {
-              type: 'show-rule-editor',
-              ruleId: rule.id,
-            })
-          )
-          s.isDirty = true
-        }
       })
-      return rule.id
+      return true
     },
 
-    addVisibilityRule: (payload) => {
-      const { schema } = get()
-      if (!schema) return ''
-      const ruleId = createEmptyRule().id
-      const action = createRuleAction(payload.action, payload.targetQuestionId)
-      const rule: Rule = {
-        id: ruleId,
-        name: payload.name,
-        enabled: true,
-        priority: schema.rules.length,
-        when: payload.when,
-        action,
-      }
+    discardRuleDraft: () =>
       set((s) => {
-        if (s.schema) {
-          s.schema.rules.push(rule)
-          Object.assign(
-            s,
-            resolveBuilderNavigation(s, {
-              type: 'show-rule-editor',
-              ruleId,
-            })
-          )
-          s.isDirty = true
-        }
-      })
-      return ruleId
-    },
-
-    addNavigationRule: (payload) => {
-      const { schema } = get()
-      if (!schema) return ''
-      const ruleId = createEmptyRule().id
-      const action = createRuleAction(payload.action, payload.targetQuestionId)
-      const rule: Rule = {
-        id: ruleId,
-        name: payload.name,
-        enabled: true,
-        priority: schema.rules.length,
-        when: payload.when,
-        action,
-      }
-      set((s) => {
-        if (s.schema) {
-          s.schema.rules.push(rule)
-          Object.assign(
-            s,
-            resolveBuilderNavigation(s, {
-              type: 'show-rule-editor',
-              ruleId,
-            })
-          )
-          s.isDirty = true
-        }
-      })
-      return ruleId
-    },
-
-    updateRule: (ruleId, patch) =>
-      set((s) => {
-        if (!s.schema) return
-        const idx = s.schema.rules.findIndex((r) => r.id === ruleId)
-        if (idx !== -1) {
-          Object.assign(s.schema.rules[idx], patch)
-          s.isDirty = true
-        }
+        s.ruleDraft = null
+        Object.assign(
+          s,
+          resolveBuilderNavigation(s, { type: 'clear-rule-focus' })
+        )
       }),
 
     removeRule: (ruleId) =>
@@ -380,6 +342,9 @@ export const useBuilderStore = create<BuilderState>()(
         const nextRules = s.schema.rules.filter((r) => r.id !== ruleId)
         if (nextRules.length === s.schema.rules.length) return
         s.schema.rules = normalizeRulePriorities(nextRules)
+        if (s.ruleDraft?.value.id === ruleId) {
+          s.ruleDraft = null
+        }
         if (s.editingRuleId === ruleId) {
           Object.assign(
             s,

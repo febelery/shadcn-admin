@@ -7,10 +7,11 @@ import { Toolbar } from './toolbar'
 
 type Props = {
   projection: FlowProjection | null
+  canvasProjection?: FlowProjection | null
 }
 
 /** 中栏：工具栏 + 流程图画布 */
-export function CenterPanel({ projection }: Props) {
+export function CenterPanel({ projection, canvasProjection }: Props) {
   const stats = projection?.stats.text ?? ''
   const issueStats = projection?.issueStats ?? {
     errors: 0,
@@ -62,7 +63,7 @@ export function CenterPanel({ projection }: Props) {
         </div>
       ) : null}
       <div className='relative min-h-0 flex-1 overflow-hidden pb-[calc(3.25rem+env(safe-area-inset-bottom))] lg:pb-0'>
-        <Canvas projection={projection} />
+        <Canvas projection={canvasProjection ?? projection} />
       </div>
     </div>
   )

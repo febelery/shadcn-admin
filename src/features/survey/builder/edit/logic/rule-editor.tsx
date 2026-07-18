@@ -1,4 +1,4 @@
-import { ChevronDown, MousePointerClick, X } from 'lucide-react'
+import { ChevronDown, MousePointerClick } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,24 +17,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { extractQuestionRefsFromWhen } from '@/features/survey/core/logic/condition-serializer'
-import {
-  EDITABLE_RULE_ACTION_TYPES,
-  getAutoRuleName,
-  getAvailableRuleActionTypes,
-  getRuleSourceQuestionIds,
-  getRuleTargetQuestionIds,
-  normalizeRuleAction,
-  resolveRuleSourceId,
-} from '@/features/survey/core/logic/rule-constraints'
-import { createRuleAction } from '@/features/survey/core/logic/rule-utils'
-import { getQuestionReferenceLabel } from '@/features/survey/shared/question-numbering'
 import { useBuilderStore } from '../../store'
-import type { RuleAction, RuleActionType } from '../../types'
+import {
+  deriveRuleDraftModel,
+  type RuleDraftChange,
+} from '../../store/rule-authoring'
+import { useRuleDraftEditor } from '../../store/use-rule-authoring'
+import type { RuleActionType, StaticIssue } from '../../types'
 import { BuilderGuidance } from '../guidance'
 import { ActionBuilder } from './action-builder'
 import { ConditionBuilder } from './condition-builder'
-import { useSurveyQuestions } from './use-survey-questions'
 
 const RULE_TYPE_OPTIONS: { value: RuleActionType; label: string }[] = [
   { value: 'show', label: '显示题目' },
@@ -145,40 +137,15 @@ function AdvancedRuleSettings({
 
 type Props = {
   className?: string
-  /** 内嵌在流程右栏时由外层提供标题栏 */
-  hideHeader?: boolean
-  onClose?: () => void
-  /** 限制动作类型（流程右栏类型 Tab） */
-  allowedActionTypes?: RuleActionType[]
-  /** 流程右栏内嵌时隐藏底部说明 */
-  hideFooterNote?: boolean
+  ruleIssues: StaticIssue[]
 }
 
-export function RuleEditorPanel({
-  className,
-  hideHeader,
-  onClose,
-  allowedActionTypes,
-  hideFooterNote,
-}: Props) {
-  const editingRuleId = useBuilderStore((s) => s.editingRuleId)
+export function RuleEditorPanel({ className, ruleIssues }: Props) {
   const schema = useBuilderStore((s) => s.schema)
-  const navigate = useBuilderStore((s) => s.navigate)
-  const updateRule = useBuilderStore((s) => s.updateRule)
+  const { draft, hasChanges, changeDraft, applyDraft, cancelDraft } =
+    useRuleDraftEditor()
 
-  const questions = useSurveyQuestions()
-
-  const rule = schema?.rules.find((r) => r.id === editingRuleId)
-  const action = rule?.action ?? createRuleAction('show')
-  const allowedSourceIds = getRuleSourceQuestionIds(questions)
-  const defaultSourceId = allowedSourceIds[0]
-
-  const handleClose = () => {
-    navigate({ type: 'clear-rule-focus' })
-    onClose?.()
-  }
-
-  if (!rule) {
+  if (!schema || !draft) {
     return (
       <div
         className={cn(
@@ -200,132 +167,12 @@ export function RuleEditorPanel({
     )
   }
 
-  const sourceId = resolveRuleSourceId(
-    rule.when,
-    allowedSourceIds,
-    defaultSourceId
+  const model = deriveRuleDraftModel(schema, draft)
+  const rule = draft.value
+  const hasBlockingIssues = ruleIssues.some(
+    (issue) => issue.severity === 'error'
   )
-  const editableActionTypes = allowedActionTypes ?? EDITABLE_RULE_ACTION_TYPES
-  const targetIdsFor = (
-    type: RuleActionType,
-    currentSourceId = sourceId,
-    when = rule.when
-  ) =>
-    getRuleTargetQuestionIds({
-      type,
-      sourceId: currentSourceId,
-      questions,
-      rules: schema?.rules ?? [],
-      currentRuleId: rule.id,
-      when,
-    })
-  const availableActionTypes = getAvailableRuleActionTypes({
-    requestedTypes: editableActionTypes,
-    sourceId,
-    questions,
-    rules: schema?.rules ?? [],
-    currentRuleId: rule.id,
-    when: rule.when,
-  })
-  const effectiveActionTypes: RuleActionType[] =
-    availableActionTypes.length > 0 ? availableActionTypes : ['end']
-  const getTargetLabel = (id?: string) => {
-    const q = id ? questions.find((item) => item.id === id) : undefined
-    return q && schema ? getQuestionReferenceLabel(q, schema) : undefined
-  }
-  const normalizeActionForRule = (
-    requestedType: RuleActionType,
-    requestedTarget: string | undefined,
-    currentSourceId: string | undefined,
-    when: string,
-    base: RuleAction = action
-  ): RuleAction =>
-    normalizeRuleAction({
-      action: base,
-      requestedType,
-      requestedTarget,
-      fallbackTypes: editableActionTypes,
-      sourceId: currentSourceId,
-      questions,
-      rules: schema?.rules ?? [],
-      currentRuleId: rule.id,
-      when,
-    })
-  const selectedRuleType = effectiveActionTypes.includes(action.type)
-    ? action.type
-    : effectiveActionTypes[0]
-  const targetQuestionIds = targetIdsFor(selectedRuleType)
-  const actionTarget =
-    selectedRuleType === 'end'
-      ? undefined
-      : action.target && targetQuestionIds.includes(action.target)
-        ? action.target
-        : targetQuestionIds[0]
-  const normalizedAction = normalizeActionForRule(
-    selectedRuleType,
-    actionTarget,
-    sourceId,
-    rule.when
-  )
-  const defaultTargetId = normalizedAction.target ?? targetQuestionIds[0]
-  const generatedRuleName = getAutoRuleName(
-    normalizedAction.type,
-    getTargetLabel(normalizedAction.target)
-  )
-  const resolveRuleNameFor = (next: RuleAction) => {
-    const currentName = rule.name.trim()
-    if (!currentName || currentName === generatedRuleName) {
-      return getAutoRuleName(next.type, getTargetLabel(next.target))
-    }
-    return rule.name
-  }
-
-  const handleTypeChange = (type: RuleActionType) => {
-    const next = normalizeActionForRule(
-      type,
-      action.target,
-      sourceId,
-      rule.when
-    )
-    updateRule(rule.id, {
-      name: resolveRuleNameFor(next),
-      action: next,
-    })
-  }
-
-  const handleActionChange = (next: typeof action) => {
-    const normalized = normalizeActionForRule(
-      next.type,
-      next.target,
-      sourceId,
-      rule.when,
-      next
-    )
-    updateRule(rule.id, {
-      name: resolveRuleNameFor(normalized),
-      action: normalized,
-    })
-  }
-
-  const handleWhenChange = (when: string) => {
-    const nextSourceFromWhen = extractQuestionRefsFromWhen(when)[0]
-    const nextSourceId =
-      nextSourceFromWhen && allowedSourceIds.includes(nextSourceFromWhen)
-        ? nextSourceFromWhen
-        : defaultSourceId
-    const nextAction = normalizeActionForRule(
-      selectedRuleType,
-      normalizedAction.target,
-      nextSourceId,
-      when,
-      normalizedAction
-    )
-    updateRule(rule.id, {
-      when,
-      name: resolveRuleNameFor(nextAction),
-      action: nextAction,
-    })
-  }
+  const change = (next: RuleDraftChange) => changeDraft(next)
 
   return (
     <div
@@ -335,23 +182,6 @@ export function RuleEditorPanel({
         className
       )}
     >
-      {!hideHeader ? (
-        <div className='border-border flex shrink-0 items-center justify-between gap-2 border-b px-4 py-3'>
-          <p className='text-sm leading-none font-semibold tracking-tight'>
-            规则
-          </p>
-          <Button
-            type='button'
-            variant='ghost'
-            size='icon'
-            className='size-8 shrink-0'
-            onClick={handleClose}
-            aria-label='关闭规则编辑'
-          >
-            <X className='size-4' />
-          </Button>
-        </div>
-      ) : null}
       <ScrollArea className='min-h-0 min-w-0 flex-1 overflow-x-hidden **:data-[slot=scroll-area-viewport]:overflow-x-hidden'>
         <div
           className={cn(
@@ -364,15 +194,20 @@ export function RuleEditorPanel({
               类型
             </Label>
             <Select
-              value={selectedRuleType}
-              onValueChange={(v) => handleTypeChange(v as RuleActionType)}
+              value={model.action.type}
+              onValueChange={(value) =>
+                change({
+                  type: 'action-type',
+                  actionType: value as RuleActionType,
+                })
+              }
             >
               <SelectTrigger className='h-9'>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
                 {RULE_TYPE_OPTIONS.filter((o) =>
-                  effectiveActionTypes.includes(o.value)
+                  model.availableActionTypes.includes(o.value)
                 ).map((o) => (
                   <SelectItem key={o.value} value={o.value}>
                     <span className='block max-w-full truncate'>{o.label}</span>
@@ -383,37 +218,44 @@ export function RuleEditorPanel({
           </div>
 
           <ConditionBuilder
+            key={rule.id}
             when={rule.when}
-            onWhenChange={handleWhenChange}
-            allowedSourceIds={allowedSourceIds}
-            defaultSourceId={sourceId ?? defaultSourceId}
+            onWhenChange={(when) => change({ type: 'condition', when })}
+            allowedSourceIds={model.allowedSourceIds}
+            defaultSourceId={model.sourceId ?? model.allowedSourceIds[0]}
           />
 
           <ActionBuilder
-            action={normalizedAction}
-            onChange={handleActionChange}
-            targetQuestionIds={targetQuestionIds}
-            defaultTargetId={defaultTargetId}
-            allowedTypes={[normalizedAction.type]}
+            action={model.action}
+            onChange={(action) => change({ type: 'action', action })}
+            targetQuestionIds={model.targetQuestionIds}
+            defaultTargetId={model.defaultTargetId}
+            allowedTypes={[model.action.type]}
           />
 
           <AdvancedRuleSettings
             ruleId={rule.id}
             ruleName={rule.name}
-            generatedName={generatedRuleName}
+            generatedName={model.generatedName}
             enabled={rule.enabled}
             expression={rule.when}
-            onRuleNameChange={(name) => updateRule(rule.id, { name })}
-            onEnabledChange={(enabled) => updateRule(rule.id, { enabled })}
+            onRuleNameChange={(name) => change({ type: 'name', name })}
+            onEnabledChange={(enabled) => change({ type: 'enabled', enabled })}
           />
-
-          {!hideFooterNote ? (
-            <p className='text-muted-foreground text-xs leading-relaxed'>
-              修改会即时写入问卷 schema，保存问卷后持久化。
-            </p>
-          ) : null}
         </div>
       </ScrollArea>
+      <div className='border-border bg-background flex shrink-0 items-center justify-end gap-2 border-t p-3'>
+        <Button type='button' variant='outline' onClick={cancelDraft}>
+          取消
+        </Button>
+        <Button
+          type='button'
+          disabled={!hasChanges || hasBlockingIssues}
+          onClick={applyDraft}
+        >
+          {draft.kind === 'create' ? '添加规则' : '应用修改'}
+        </Button>
+      </div>
     </div>
   )
 }

@@ -20,6 +20,8 @@ import {
 import { EditWorkspace } from './edit/workspace'
 import { FlowWorkspace } from './flow/workspace'
 import { useBuilderStore } from './store'
+import { hasRuleDraftChanges } from './store/rule-authoring'
+import { useRuleAuthoring } from './store/use-rule-authoring'
 
 type Props = { mode: 'create' } | { mode: 'edit'; surveyId: string }
 
@@ -64,7 +66,11 @@ export function SurveyBuilderPage(props: Props) {
   const markSaved = useBuilderStore((s) => s.markSaved)
   const getSchemaForSave = useBuilderStore((s) => s.getSchemaForSave)
   const builderMode = useBuilderStore((s) => s.builderMode)
+  const hasUnappliedRuleDraft = useBuilderStore((s) =>
+    hasRuleDraftChanges(s.ruleDraft)
+  )
   const navigate = useBuilderStore((s) => s.navigate)
+  const { leaveToEdit } = useRuleAuthoring()
   const updateMeta = useBuilderStore((s) => s.updateMeta)
 
   const lastInitializedIdRef = useRef<string | null>(null)
@@ -114,6 +120,10 @@ export function SurveyBuilderPage(props: Props) {
   }
 
   const handleSave = async () => {
+    if (hasUnappliedRuleDraft) {
+      toast.error('请先应用或取消当前规则草稿')
+      return
+    }
     const payload = getSchemaForSave()
     if (!payload || !assertValidPayload(payload)) return
     await persistPayload(payload)
@@ -122,6 +132,10 @@ export function SurveyBuilderPage(props: Props) {
   }
 
   const handlePublish = async () => {
+    if (hasUnappliedRuleDraft) {
+      toast.error('请先应用或取消当前规则草稿')
+      return
+    }
     if (isCreate) {
       toast.error('请先保存问卷后再发布')
       return
@@ -139,7 +153,8 @@ export function SurveyBuilderPage(props: Props) {
     toast.success(`已发布，访问标识：${res.slug}`)
   }
 
-  const saveDisabled = saving || creating || (!isCreate && !isDirty)
+  const saveDisabled =
+    saving || creating || hasUnappliedRuleDraft || (!isCreate && !isDirty)
 
   return (
     <div className='bg-background flex h-svh flex-col antialiased'>
@@ -167,9 +182,10 @@ export function SurveyBuilderPage(props: Props) {
         </div>
         <Tabs
           value={builderMode}
-          onValueChange={(value) =>
-            navigate({ type: value === 'edit' ? 'show-edit' : 'show-flow' })
-          }
+          onValueChange={(value) => {
+            if (value === 'edit') leaveToEdit()
+            else navigate({ type: 'show-flow' })
+          }}
           className='justify-self-center'
         >
           <TabsList className='h-8 sm:h-9'>
@@ -205,7 +221,7 @@ export function SurveyBuilderPage(props: Props) {
             size='icon'
             className='sm:hidden'
             onClick={handlePublish}
-            disabled={publishing || isCreate}
+            disabled={publishing || isCreate || hasUnappliedRuleDraft}
           >
             {publishing ? (
               <Spinner className='size-4' />
@@ -230,7 +246,7 @@ export function SurveyBuilderPage(props: Props) {
           <Button
             className='hidden sm:inline-flex'
             onClick={handlePublish}
-            disabled={publishing || isCreate}
+            disabled={publishing || isCreate || hasUnappliedRuleDraft}
           >
             {publishing ? (
               <Spinner className='mr-2 size-4' />
