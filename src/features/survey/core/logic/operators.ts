@@ -5,18 +5,23 @@ import type {
 } from '../types'
 import { getRuleOperatorProfile } from './rule-capabilities'
 
-export type ConditionOperator =
-  | 'eq'
-  | 'neq'
-  | 'gt'
-  | 'gte'
-  | 'lt'
-  | 'lte'
-  | 'contains'
-  | 'not_contains'
-  | 'empty'
-  | 'not_empty'
-  | 'between'
+export const CONDITION_OPERATORS = [
+  'eq',
+  'neq',
+  'gt',
+  'gte',
+  'lt',
+  'lte',
+  'contains',
+  'not_contains',
+  'empty',
+  'not_empty',
+  'between',
+] as const
+
+export type ConditionOperator = (typeof CONDITION_OPERATORS)[number]
+
+const CONDITION_OPERATOR_SET = new Set<string>(CONDITION_OPERATORS)
 
 export interface OperatorDef {
   value: ConditionOperator
@@ -27,39 +32,57 @@ export interface OperatorDef {
   needsSecondValue?: boolean
 }
 
-const CHOICE_OPS: OperatorDef[] = [
-  { value: 'eq', label: '等于', needsValue: true },
-  { value: 'neq', label: '不等于', needsValue: true },
-  { value: 'empty', label: '为空', needsValue: false },
-  { value: 'not_empty', label: '不为空', needsValue: false },
-]
+const OPERATOR_DEFINITIONS = {
+  eq: { value: 'eq', label: '等于', needsValue: true },
+  neq: { value: 'neq', label: '不等于', needsValue: true },
+  gt: { value: 'gt', label: '大于', needsValue: true },
+  gte: { value: 'gte', label: '大于等于', needsValue: true },
+  lt: { value: 'lt', label: '小于', needsValue: true },
+  lte: { value: 'lte', label: '小于等于', needsValue: true },
+  contains: { value: 'contains', label: '包含', needsValue: true },
+  not_contains: {
+    value: 'not_contains',
+    label: '不包含',
+    needsValue: true,
+  },
+  empty: { value: 'empty', label: '为空', needsValue: false },
+  not_empty: { value: 'not_empty', label: '不为空', needsValue: false },
+  between: {
+    value: 'between',
+    label: '介于',
+    needsValue: true,
+    needsSecondValue: true,
+  },
+} satisfies Record<ConditionOperator, OperatorDef>
 
-const MULTI_OPS: OperatorDef[] = [
-  { value: 'contains', label: '包含', needsValue: true },
-  { value: 'not_contains', label: '不包含', needsValue: true },
-  { value: 'empty', label: '为空', needsValue: false },
-  { value: 'not_empty', label: '不为空', needsValue: false },
-]
+function operators(...values: ConditionOperator[]): OperatorDef[] {
+  return values.map((value) => OPERATOR_DEFINITIONS[value])
+}
 
-const TEXT_OPS: OperatorDef[] = [
-  { value: 'eq', label: '等于', needsValue: true },
-  { value: 'neq', label: '不等于', needsValue: true },
-  { value: 'contains', label: '包含', needsValue: true },
-  { value: 'empty', label: '为空', needsValue: false },
-  { value: 'not_empty', label: '不为空', needsValue: false },
-]
+const CHOICE_OPS = operators('eq', 'neq', 'empty', 'not_empty')
+const MULTI_OPS = operators('contains', 'not_contains', 'empty', 'not_empty')
+const TEXT_OPS = operators('eq', 'neq', 'contains', 'empty', 'not_empty')
+const COMPARABLE_OPS = operators(
+  'eq',
+  'neq',
+  'gt',
+  'gte',
+  'lt',
+  'lte',
+  'between',
+  'empty',
+  'not_empty'
+)
 
-const NUMBER_OPS: OperatorDef[] = [
-  { value: 'eq', label: '等于', needsValue: true },
-  { value: 'neq', label: '不等于', needsValue: true },
-  { value: 'gt', label: '大于', needsValue: true },
-  { value: 'gte', label: '大于等于', needsValue: true },
-  { value: 'lt', label: '小于', needsValue: true },
-  { value: 'lte', label: '小于等于', needsValue: true },
-  { value: 'between', label: '介于', needsValue: true, needsSecondValue: true },
-  { value: 'empty', label: '为空', needsValue: false },
-  { value: 'not_empty', label: '不为空', needsValue: false },
-]
+export function getConditionOperatorDefinition(
+  operator: ConditionOperator
+): OperatorDef {
+  return OPERATOR_DEFINITIONS[operator]
+}
+
+export function isConditionOperator(value: string): value is ConditionOperator {
+  return CONDITION_OPERATOR_SET.has(value)
+}
 
 /** 按题型返回可用条件运算符 */
 export function getSegmentOperatorsForQuestionType(
@@ -73,21 +96,8 @@ export function getSegmentOperatorsForQuestionType(
     case 'text':
       return TEXT_OPS
     case 'number':
-      return NUMBER_OPS
     case 'date':
-      return NUMBER_OPS.filter((o) =>
-        [
-          'eq',
-          'neq',
-          'gt',
-          'gte',
-          'lt',
-          'lte',
-          'between',
-          'empty',
-          'not_empty',
-        ].includes(o.value)
-      )
+      return COMPARABLE_OPS
     default:
       return []
   }

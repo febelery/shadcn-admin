@@ -3,43 +3,16 @@ import type {
   SegmentConditionOperator,
   SegmentDefinition,
 } from '@/features/survey/core/analysis-schema'
-import { getSegmentOperatorsForQuestionType } from '@/features/survey/core/logic/operators'
+import {
+  getConditionOperatorDefinition,
+  getSegmentOperatorsForQuestionType,
+} from '@/features/survey/core/logic/operators'
 import { questionUsesOptions } from '@/features/survey/core/question-config'
 import { getQuestionNumberPrefix } from '@/features/survey/core/question-numbering'
 import type {
   QuestionElement,
   SurveyDocument,
 } from '@/features/survey/core/types'
-
-export type FieldKind = 'choice' | 'multi' | 'number' | 'text'
-
-export const SUPPORTED_TYPES = new Set([
-  'single_choice',
-  'dropdown',
-  'multiple_choice',
-  'rating',
-  'nps',
-  'number',
-  'slider',
-  'text',
-  'textarea',
-  'email',
-  'phone',
-])
-
-export const OPERATOR_LABELS: Record<SegmentConditionOperator, string> = {
-  eq: '等于',
-  neq: '不等于',
-  contains: '包含',
-  not_contains: '不包含',
-  gt: '大于',
-  gte: '大于等于',
-  lt: '小于',
-  lte: '小于等于',
-  between: '介于',
-  empty: '为空',
-  not_empty: '不为空',
-}
 
 export function createId(): string {
   return crypto.randomUUID()
@@ -65,24 +38,24 @@ export function getOperators(
   question: QuestionElement
 ): SegmentConditionOperator[] {
   return getSegmentOperatorsForQuestionType(question.type).map(
-    (o) => o.value as SegmentConditionOperator
+    (operator) => operator.value
   )
 }
 
 export function operatorNeedsValue(
   operator: SegmentConditionOperator
 ): boolean {
-  return operator !== 'empty' && operator !== 'not_empty'
+  return getConditionOperatorDefinition(operator).needsValue
 }
 
 export function operatorNeedsSecondValue(
   operator: SegmentConditionOperator
 ): boolean {
-  return operator === 'between'
+  return Boolean(getConditionOperatorDefinition(operator).needsSecondValue)
 }
 
 export function isSupportedQuestion(question: QuestionElement): boolean {
-  return SUPPORTED_TYPES.has(question.type)
+  return getSegmentOperatorsForQuestionType(question.type).length > 0
 }
 
 export function getQuestionLabel(
@@ -154,7 +127,7 @@ export function getSelectionDescription(
 ): string {
   if (!condition.questionId || !question) return '请选择题目'
   if (!operatorNeedsValue(condition.operator))
-    return OPERATOR_LABELS[condition.operator]
+    return getConditionOperatorDefinition(condition.operator).label
 
   const value = String(condition.value ?? '')
   if (condition.operator === 'between') {
@@ -171,13 +144,13 @@ export function getSelectionDescription(
 
 export function getConditionText(
   condition: SegmentCondition,
-  question: QuestionElement,
+  question: QuestionElement | undefined,
   document: SurveyDocument,
   questions: QuestionElement[]
 ): string {
   if (!condition.questionId || !question) return '未选择题目'
   const label = getQuestionLabel(question, document, questions)
-  const operator = OPERATOR_LABELS[condition.operator]
+  const operator = getConditionOperatorDefinition(condition.operator).label
   const value = getSelectionDescription(condition, question)
   if (!operatorNeedsValue(condition.operator)) return `${label} ${operator}`
   return `${label} ${operator} ${value}`
@@ -200,7 +173,7 @@ export function getSegmentPreview(
 ): string[] {
   return segment.conditions.map((condition) => {
     const question = questionMap.get(condition.questionId)
-    return getConditionText(condition, question!, document, questions)
+    return getConditionText(condition, question, document, questions)
   })
 }
 

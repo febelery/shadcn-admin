@@ -2,6 +2,7 @@ import type {
   SegmentCondition,
   SegmentDefinition,
 } from '@/features/survey/core/analysis-schema'
+import { getRuleOperatorProfile } from '@/features/survey/core/logic/rule-capabilities'
 import type { QuestionElement } from '@/features/survey/core/types'
 import {
   getOperators,
@@ -139,14 +140,12 @@ export function detectQuestionConflict(
     return '“为空”和“不为空”互相冲突'
   }
 
-  const isNumberKind =
-    question.type === 'number' ||
-    question.type === 'rating' ||
-    question.type === 'slider' ||
-    question.type === 'nps'
-
-  if (isNumberKind) {
-    return detectNumberConflict(conditions)
+  const operatorProfile = getRuleOperatorProfile(question.type)
+  if (operatorProfile === 'number') {
+    return detectComparableConflict(conditions, parseNumber, '数值')
+  }
+  if (operatorProfile === 'date') {
+    return detectComparableConflict(conditions, parseDate, '日期')
   }
 
   const eqValues = Array.from(
@@ -192,8 +191,20 @@ export function detectQuestionConflict(
   return null
 }
 
-export function detectNumberConflict(
-  conditions: SegmentCondition[]
+function parseNumber(value: SegmentCondition['value']): number {
+  if (value === undefined || value === '') return Number.NaN
+  return Number(value)
+}
+
+function parseDate(value: SegmentCondition['value']): number {
+  if (value === undefined || value === '') return Number.NaN
+  return Date.parse(String(value))
+}
+
+function detectComparableConflict(
+  conditions: SegmentCondition[],
+  parseValue: (value: SegmentCondition['value']) => number,
+  subject: '数值' | '日期'
 ): string | null {
   let lower = -Infinity
   let lowerInclusive = true
@@ -203,8 +214,8 @@ export function detectNumberConflict(
   const exactValues = new Set<number>()
 
   for (const condition of conditions) {
-    const value = Number(condition.value)
-    const value2 = Number(condition.value2)
+    const value = parseValue(condition.value)
+    const value2 = parseValue(condition.value2)
 
     switch (condition.operator) {
       case 'eq':
@@ -259,10 +270,10 @@ export function detectNumberConflict(
   }
 
   if (lower > upper) {
-    return '数值条件互相冲突'
+    return `${subject}条件互相冲突`
   }
   if (lower === upper && (!lowerInclusive || !upperInclusive)) {
-    return '数值区间没有可行值'
+    return `${subject}区间没有可行值`
   }
 
   const exactValue = exactValues.values().next().value as number | undefined
@@ -272,7 +283,7 @@ export function detectNumberConflict(
     const aboveUpper =
       exactValue > upper || (exactValue === upper && !upperInclusive)
     if (belowLower || aboveUpper) {
-      return '等于条件与数值范围冲突'
+      return `等于条件与${subject}范围冲突`
     }
     if (excludedValues.has(exactValue)) {
       return '“等于”和“不等于”不能指向同一值'

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { CONDITION_OPERATORS } from './logic/operators'
 
 const countSchema = z.number().int().nonnegative()
 const percentageSchema = z.number().min(0).max(1)
@@ -212,19 +213,7 @@ const surveyAnalysisSchema = z
   })
   .strict()
 
-const segmentConditionOperatorSchema = z.enum([
-  'eq',
-  'neq',
-  'contains',
-  'not_contains',
-  'gt',
-  'gte',
-  'lt',
-  'lte',
-  'between',
-  'empty',
-  'not_empty',
-])
+const segmentConditionOperatorSchema = z.enum(CONDITION_OPERATORS)
 
 const segmentConditionSchema = z
   .object({
@@ -298,4 +287,8 @@ export function parseSurveySegmentAnalysis(
   data: unknown
 ): SurveySegmentAnalysisResult {
   return surveySegmentAnalysisSchema.parse(data)
+}
+
+export function parseSegmentDefinitions(data: unknown): SegmentDefinition[] {
+  return z.array(segmentDefinitionSchema).parse(data)
 }

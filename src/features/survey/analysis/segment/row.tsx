@@ -29,6 +29,10 @@ import type {
   SegmentCondition,
   SegmentConditionOperator,
 } from '@/features/survey/core/analysis-schema'
+import {
+  getConditionOperatorDefinition,
+  isConditionOperator,
+} from '@/features/survey/core/logic/operators'
 import { questionUsesOptions } from '@/features/survey/core/question-config'
 import type { QuestionElement } from '@/features/survey/core/types'
 import {
@@ -36,7 +40,6 @@ import {
   operatorNeedsValue,
   operatorNeedsSecondValue,
   getSelectionDescription,
-  OPERATOR_LABELS,
 } from './utils'
 import type { ValidationIssue } from './validator'
 
@@ -134,13 +137,17 @@ export const SegmentRow = React.memo(function SegmentRow({
     question?.type === 'rating' ||
     question?.type === 'slider' ||
     question?.type === 'nps'
+  const isDate = question?.type === 'date'
   const kind = isChoice
     ? 'choice'
     : isMulti
       ? 'multi'
       : isNumber
         ? 'number'
-        : 'text'
+        : isDate
+          ? 'date'
+          : 'text'
+  const inputType = kind === 'number' || kind === 'date' ? kind : 'text'
 
   const isQuestionError =
     issue && (issue.id.endsWith('-question') || issue.id.endsWith('-missing'))
@@ -238,13 +245,9 @@ export const SegmentRow = React.memo(function SegmentRow({
         value={condition.operator}
         disabled={!question}
         onValueChange={(value) => {
-          if (question)
-            onOperatorChange(
-              segmentId,
-              conditionIndex,
-              question,
-              value as SegmentConditionOperator
-            )
+          if (question && isConditionOperator(value)) {
+            onOperatorChange(segmentId, conditionIndex, question, value)
+          }
         }}
       >
         <SelectTrigger
@@ -259,7 +262,7 @@ export const SegmentRow = React.memo(function SegmentRow({
         <SelectContent>
           {operators.map((operator) => (
             <SelectItem key={operator} value={operator}>
-              {OPERATOR_LABELS[operator]}
+              {getConditionOperatorDefinition(operator).label}
             </SelectItem>
           ))}
         </SelectContent>
@@ -271,7 +274,7 @@ export const SegmentRow = React.memo(function SegmentRow({
             operatorNeedsSecondValue(condition.operator) ? (
               <div className='flex items-center gap-1.5'>
                 <DebouncedInput
-                  type={kind === 'number' ? 'number' : 'text'}
+                  type={inputType}
                   value={String(condition.value ?? '')}
                   onChange={(val) =>
                     onValueChange(segmentId, conditionIndex, { value: val })
@@ -281,13 +284,13 @@ export const SegmentRow = React.memo(function SegmentRow({
                     (isValueError || isConflictError) &&
                       'border-destructive/60 focus-visible:ring-destructive text-destructive'
                   )}
-                  placeholder='最小值'
+                  placeholder={kind === 'date' ? '开始日期' : '最小值'}
                 />
                 <span className='text-muted-foreground shrink-0 text-[10px]'>
                   至
                 </span>
                 <DebouncedInput
-                  type={kind === 'number' ? 'number' : 'text'}
+                  type={inputType}
                   value={String(condition.value2 ?? '')}
                   onChange={(val) =>
                     onValueChange(segmentId, conditionIndex, { value2: val })
@@ -297,7 +300,7 @@ export const SegmentRow = React.memo(function SegmentRow({
                     (isValueError || isConflictError) &&
                       'border-destructive/60 focus-visible:ring-destructive text-destructive'
                   )}
-                  placeholder='最大值'
+                  placeholder={kind === 'date' ? '结束日期' : '最大值'}
                 />
               </div>
             ) : kind === 'choice' || kind === 'multi' ? (
@@ -326,7 +329,7 @@ export const SegmentRow = React.memo(function SegmentRow({
               </Select>
             ) : (
               <DebouncedInput
-                type={kind === 'number' ? 'number' : 'text'}
+                type={inputType}
                 value={String(condition.value ?? '')}
                 onChange={(val) =>
                   onValueChange(segmentId, conditionIndex, { value: val })
@@ -336,7 +339,13 @@ export const SegmentRow = React.memo(function SegmentRow({
                   (isValueError || isConflictError) &&
                     'border-destructive/60 focus-visible:ring-destructive text-destructive'
                 )}
-                placeholder={kind === 'number' ? '输入数值' : '输入内容'}
+                placeholder={
+                  kind === 'number'
+                    ? '输入数值'
+                    : kind === 'date'
+                      ? '选择日期'
+                      : '输入内容'
+                }
               />
             )
           ) : (

@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { SegmentCondition } from '../../core/analysis-schema'
 import type { QuestionElement } from '../../core/types'
-import { getDefaultValue, getSelectionDescription } from './utils'
+import {
+  getDefaultValue,
+  getOperators,
+  getSelectionDescription,
+  isSupportedQuestion,
+} from './utils'
 
 const question: QuestionElement = {
   id: 'question-1',
@@ -22,5 +27,19 @@ describe('segment choice identity', () => {
 
     expect(getDefaultValue(question, 'eq')).toBe('option-1')
     expect(getSelectionDescription(condition, question)).toBe('Renamed label')
+  })
+
+  it('derives date support and operators from the core capability profile', () => {
+    const dateQuestion: QuestionElement<'date'> = {
+      id: 'date-1',
+      kind: 'question',
+      type: 'date',
+      title: '到店日期',
+      required: false,
+      config: {},
+    }
+
+    expect(isSupportedQuestion(dateQuestion)).toBe(true)
+    expect(getOperators(dateQuestion)).toContain('between')
   })
 })
