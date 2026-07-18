@@ -21,13 +21,11 @@ const QUESTION_INSPECTOR_SECTIONS = {
   url: { title: '文本输入', defaultOpen: false },
   date: { title: '日期', defaultOpen: false },
   date_range: { title: '日期', defaultOpen: false },
-  fill_in: { title: '填空', defaultOpen: false },
   rating: { title: '评分', defaultOpen: false },
   slider: { title: '滑块', defaultOpen: false },
   nps: { title: 'NPS', defaultOpen: false },
   likert: { title: '量表', defaultOpen: false },
   file_upload: { title: '文件上传', defaultOpen: false },
-  signature: { title: '签名', defaultOpen: false },
 } satisfies Record<QuestionType, QuestionInspectorSection>
 
 export function getQuestionInspectorSection(

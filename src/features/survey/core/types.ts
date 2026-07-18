@@ -66,13 +66,11 @@ export const QUESTION_TYPES = [
   'url',
   'date',
   'date_range',
-  'fill_in',
   'rating',
   'slider',
   'nps',
   'likert',
   'file_upload',
-  'signature',
 ] as const
 
 export type QuestionType = (typeof QUESTION_TYPES)[number]
@@ -199,7 +197,6 @@ export interface QuestionConfigByType {
   url: StrictQuestionConfig<TextConfig>
   date: StrictQuestionConfig<DateConfig>
   date_range: StrictQuestionConfig<DateConfig>
-  fill_in: StrictQuestionConfig<Record<never, never>>
   rating: StrictQuestionConfig<{ starCount: number }>
   slider: StrictQuestionConfig<{
     minValue: number
@@ -220,7 +217,6 @@ export interface QuestionConfigByType {
     maxCount: number
     maxSize: number
   }>
-  signature: StrictQuestionConfig<Record<never, never>>
 }
 
 export type QuestionConfig<Type extends QuestionType = QuestionType> =

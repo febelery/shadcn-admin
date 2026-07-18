@@ -142,12 +142,7 @@ function getQuestionCellMeta(question: QuestionElement) {
       return {
         variant: 'date' as const,
       }
-    case 'signature':
-      return {
-        variant: 'checkbox' as const,
-      }
     case 'textarea':
-    case 'fill_in':
     case 'matrix_single':
     case 'matrix_multiple':
     case 'likert':
@@ -228,10 +223,6 @@ function formatAnswerForGrid(
     question.type === 'nps'
   ) {
     return Number(answer)
-  }
-
-  if (question.type === 'signature') {
-    return Boolean(answer)
   }
 
   if (question.type === 'single_choice' || question.type === 'dropdown') {

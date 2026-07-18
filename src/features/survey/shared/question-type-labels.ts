@@ -16,13 +16,11 @@ const QUESTION_TYPE_LABELS = {
   url: '网址',
   date: '日期',
   date_range: '日期范围',
-  fill_in: '填空题',
   rating: '星级评分',
   slider: '滑块',
   nps: 'NPS 净推荐值',
   likert: '李克特量表',
   file_upload: '文件上传',
-  signature: '手写签名',
 } satisfies Record<QuestionType, string>
 
 export function getQuestionTypeLabel(type: QuestionType): string {

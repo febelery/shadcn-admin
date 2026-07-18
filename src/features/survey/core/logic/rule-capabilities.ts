@@ -19,13 +19,11 @@ const RULE_OPERATOR_PROFILES = {
   url: 'text',
   date: 'date',
   date_range: 'none',
-  fill_in: 'none',
   rating: 'number',
   slider: 'number',
   nps: 'number',
   likert: 'none',
   file_upload: 'none',
-  signature: 'none',
 } satisfies Record<QuestionType, RuleOperatorProfile>
 
 export function getRuleOperatorProfile(

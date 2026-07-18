@@ -254,7 +254,6 @@ export function createAllTypesDemoSurvey(): SurveyDocument {
     q('text', '我们应该如何称呼您？', {
       config: { placeholder: '如：张先生 / Ms. Chen', maxLength: 50 },
     }),
-    q('fill_in', '方便核对账单时，请填写：房号（___），所在楼层（___）', {}),
     q('email', '如需发送电子发票或优惠券，请留下邮箱', {
       required: true,
     }),
@@ -280,9 +279,6 @@ export function createAllTypesDemoSurvey(): SurveyDocument {
         maxSize: 10,
         acceptTypes: ['image/*', 'application/pdf'],
       },
-    }),
-    q('signature', '本人确认以上信息真实有效', {
-      required: true,
     }),
   ]
 

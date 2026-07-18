@@ -113,6 +113,23 @@ describe('parseSurveyDocument', () => {
         ],
       })
     ).toThrow()
+    for (const removedType of ['fill_in', 'signature']) {
+      expect(() =>
+        parseSurveyDocument({
+          ...document,
+          elements: [
+            {
+              kind: 'question',
+              id: `removed-${removedType}`,
+              type: removedType,
+              title: '未完成题型',
+              required: false,
+              config: {},
+            },
+          ],
+        })
+      ).toThrow()
+    }
     expect(() => parseSurveyDocument({ ...document, submission: {} })).toThrow()
     expect(() => parseSurveyDocument({ ...document, variables: [] })).toThrow()
     expect(() => parseSurveyDocument({ ...document, validators: [] })).toThrow()

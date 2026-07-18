@@ -16,8 +16,6 @@ export function QuestionTypePreview({ type }: { type: PaletteTypeId }) {
       return <CascaderPreview />
     case 'ranking':
       return <RankingPreview />
-    case 'fill_in':
-      return <FillInPreview />
     default:
       return null
   }
@@ -152,16 +150,5 @@ function RankingPreview() {
         </div>
       ))}
     </div>
-  )
-}
-
-function FillInPreview() {
-  return (
-    <p className='bg-muted/50 rounded-md border px-2 py-1.5 text-[10px] leading-relaxed'>
-      我叫
-      <span className='bg-background mx-0.5 inline-block h-3 w-8 rounded-sm border align-middle' />
-      ，来自
-      <span className='bg-background mx-0.5 inline-block h-3 w-10 rounded-sm border align-middle' />
-    </p>
   )
 }

@@ -42,7 +42,10 @@ describe('question config module', () => {
       })
     ).toThrow()
     expect(() =>
-      parseQuestionConfig('signature', { placeholder: 'not supported' })
+      parseQuestionConfig('rating', {
+        starCount: 5,
+        placeholder: 'not supported',
+      })
     ).toThrow()
   })
 
@@ -55,10 +58,10 @@ describe('question config module', () => {
   })
 
   it('rejects config fields owned by another question type', () => {
-    const signature = createQuestion('signature')
+    const rating = createQuestion('rating')
 
     expect(() =>
-      applyQuestionConfigPatch(signature, {
+      applyQuestionConfigPatch(rating, {
         placeholder: 'not supported',
       } as never)
     ).toThrow()

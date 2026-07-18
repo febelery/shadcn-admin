@@ -131,7 +131,6 @@ function QuestionChartSkeleton({ type }: { type: string }) {
 
     case 'text':
     case 'textarea':
-    case 'fill_in':
     case 'email':
     case 'phone':
     case 'url':
@@ -264,7 +263,6 @@ export function QuestionChart({
         return <LikertChart analysis={analysis} />
       case 'text':
       case 'textarea':
-      case 'fill_in':
       case 'email':
       case 'phone':
       case 'url':

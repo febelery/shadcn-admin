@@ -890,9 +890,6 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
         end: '2026-05-03',
       }
 
-    case 'fill_in':
-      return '房号 1206，楼层 12'
-
     case 'rating': {
       const maxStars = question.config.starCount || 5
       // 每个评分题有自己的基准满意度中心 (0.55 ~ 0.95)
@@ -961,9 +958,6 @@ function buildSampleAnswer(question: QuestionElement, seed: number): unknown {
 
     case 'file_upload':
       return ['营业执照.pdf', '开票资料.png']
-
-    case 'signature':
-      return true
 
     default:
       return '示例回答'

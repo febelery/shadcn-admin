@@ -63,7 +63,6 @@ const QUESTION_FACTORIES: QuestionFactoryMap = {
   url: () => baseQuestion('url', '网址', {}),
   date: () => baseQuestion('date', '日期', {}),
   date_range: () => baseQuestion('date_range', '日期范围', {}),
-  fill_in: () => baseQuestion('fill_in', '姓名___，年龄___', {}),
   rating: () => baseQuestion('rating', '请评分', { starCount: 5 }),
   slider: () =>
     baseQuestion('slider', '滑块题', {
@@ -84,7 +83,6 @@ const QUESTION_FACTORIES: QuestionFactoryMap = {
     }),
   file_upload: () =>
     baseQuestion('file_upload', '上传文件', { maxCount: 3, maxSize: 10 }),
-  signature: () => baseQuestion('signature', '签名', {}),
 }
 
 export function createQuestion<Type extends QuestionType>(

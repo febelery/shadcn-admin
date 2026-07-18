@@ -23,11 +23,11 @@ describe('Builder question config interface', () => {
   it('rejects a config field owned by another question type', () => {
     const document = createEmptySurvey()
     const store = createBuilderStore(document)
-    store.getState().addQuestion('signature')
-    const signature = store.getState().document.elements[0]
+    store.getState().addQuestion('rating')
+    const rating = store.getState().document.elements[0]
 
     expect(() =>
-      store.getState().updateQuestionConfig(signature.id, {
+      store.getState().updateQuestionConfig(rating.id, {
         placeholder: 'not supported',
       } as never)
     ).toThrow()

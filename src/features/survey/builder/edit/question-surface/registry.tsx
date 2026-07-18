@@ -12,7 +12,6 @@ import { InlineEditable } from '../inline-editable'
 import { SurfaceCascaderEditor } from './cascader-editor'
 import { SurfaceChoiceList, SurfaceRankingList } from './choice-list'
 import { SurfaceDropdownEditor } from './dropdown-editor'
-import { SurfaceFillInPreview } from './fill-in-preview'
 import { SurfaceLikertEditor } from './likert-editor'
 import { SurfaceMatrixEditor } from './matrix-editor'
 
@@ -161,12 +160,6 @@ const fileUploadSurface: SurfaceAdapter = ({ question }) => {
   )
 }
 
-const signatureSurface: SurfaceAdapter = () => (
-  <div className='border-border/60 text-muted-foreground/60 flex min-h-[100px] items-center justify-center rounded-lg border border-dashed text-sm leading-relaxed'>
-    签名区域
-  </div>
-)
-
 const matrixSurface: SurfaceAdapter = ({ question, onConfigChange }) => (
   <SurfaceMatrixEditor question={question} onConfigChange={onConfigChange} />
 )
@@ -175,9 +168,6 @@ const likertSurface: SurfaceAdapter = ({ question, onConfigChange }) => (
 )
 const cascaderSurface: SurfaceAdapter = ({ question }) => (
   <SurfaceCascaderEditor question={question} />
-)
-const fillInSurface: SurfaceAdapter = ({ question }) => (
-  <SurfaceFillInPreview title={question.title} />
 )
 const SURFACE_ADAPTERS: Record<QuestionType, SurfaceAdapter> = {
   single_choice: choiceSurface('single'),
@@ -195,13 +185,11 @@ const SURFACE_ADAPTERS: Record<QuestionType, SurfaceAdapter> = {
   url: inlineTextSurface,
   date: dateSurface,
   date_range: dateSurface,
-  fill_in: fillInSurface,
   rating: ratingSurface,
   slider: sliderSurface,
   nps: npsSurface,
   likert: likertSurface,
   file_upload: fileUploadSurface,
-  signature: signatureSurface,
 }
 
 export function QuestionSurfaceBody(props: SurfaceProps) {

@@ -19,13 +19,11 @@ const QUESTION_TYPE_HINTS: Record<PaletteTypeId, string> = {
   url: '校验网址格式。',
   date: '选择单个日期。',
   date_range: '选择起止日期区间。',
-  fill_in: '在句子中嵌入多个填空，如「我叫___，来自___」。',
   rating: '星级打分，直观表达满意程度。',
   slider: '拖动滑块选择数值。',
   nps: '0–10 分推荐意愿量表（净推荐值 NPS）。',
   likert: '多条陈述 × 同意度选项，用于态度、满意度调研。',
   file_upload: '上传图片或文档，可限制数量与大小。',
-  signature: '手写签名，用于确认或协议场景。',
   divider: '分割线，区分章节，不收集答案。',
   rich_text: '富文本说明块，不收集答案。',
 }
@@ -38,7 +36,6 @@ const QUESTION_TYPES_WITH_PREVIEW = new Set<PaletteTypeId>([
   'nps',
   'cascader',
   'ranking',
-  'fill_in',
 ])
 
 export function getQuestionTypeHint(type: PaletteTypeId): string {
@@ -66,13 +63,11 @@ const QUESTION_TYPE_KEYWORDS: Record<PaletteTypeId, string[]> = {
   url: ['网址', 'url', 'link', 'website'],
   date: ['日期', 'date'],
   date_range: ['日期范围', 'date range', 'daterange'],
-  fill_in: ['填空', 'fill in', 'fill-in', 'cloze'],
   rating: ['星级', 'star', 'rating'],
   slider: ['滑块', 'slider', 'range'],
   nps: ['nps', '净推荐', 'net promoter'],
   likert: ['李克特', 'likert', 'scale'],
   file_upload: ['文件', 'upload', 'file'],
-  signature: ['签名', 'signature', 'sign'],
   divider: ['分割', 'divider', 'separator', 'hr'],
   rich_text: ['富文本', 'rich text', '说明'],
 }

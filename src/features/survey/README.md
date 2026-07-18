@@ -22,7 +22,7 @@
 
 当前文档契约是单页 `elements[]`，不保存没有创作界面的 page/section 占位结构。需要多页时，必须先建立完整的页面创作与跨页导航模型。`schemaVersion` 表示文档格式，`revision` 表示发布修订，两者不可复用。
 
-`document-schema.ts` 严格拒绝未知持久化字段；`document-identities.ts` 保证 element、rule 与 action 在各自命名空间内唯一。重复身份不能进入 Builder。没有完整创作和运行时契约的 variable、字符串 validator、dynamic panel、presentation 与 extensions 不属于当前文档。
+`document-schema.ts` 严格拒绝未知持久化字段；`document-identities.ts` 保证 element、rule 与 action 在各自命名空间内唯一。重复身份不能进入 Builder。没有稳定答案身份或完整运行时契约的 fill-in、signature、dynamic panel、variable、字符串 validator、presentation 与 extensions 不属于当前文档。
 
 题型与 config 通过 `QuestionConfigByType` 判别联合建模。`question-config.ts` 统一负责持久化解析、字段所有权和依赖数值的原子归一化；Store 不直接合并任意 config。
 

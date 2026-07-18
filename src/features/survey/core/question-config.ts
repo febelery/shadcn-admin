@@ -156,8 +156,6 @@ const dateSchema = z
     }
   })
 
-const emptySchema = z.object({}).strict()
-
 const questionConfigSchemas = {
   single_choice: z.object(choiceFields).strict(),
   multiple_choice: z
@@ -221,7 +219,6 @@ const questionConfigSchemas = {
   url: textSchema,
   date: dateSchema,
   date_range: dateSchema,
-  fill_in: emptySchema,
   rating: z.object({ starCount: z.number().int().min(1).max(10) }).strict(),
   slider: z
     .object({
@@ -256,7 +253,6 @@ const questionConfigSchemas = {
       maxSize: z.number().positive(),
     })
     .strict(),
-  signature: emptySchema,
 } satisfies Record<QuestionType, z.ZodType>
 
 function normalizeRange(

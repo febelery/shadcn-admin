@@ -11,13 +11,11 @@ import {
   Link,
   ListOrdered,
   Mail,
-  PenLine,
   Phone,
   SeparatorHorizontal,
   SlidersHorizontal,
   Star,
   Table,
-  TextCursorInput,
   Type,
   type LucideIcon,
 } from 'lucide-react'
@@ -60,13 +58,11 @@ const QUESTION_UI_METADATA = {
   url: { category: '输入', icon: Link },
   date: { category: '输入', icon: Calendar },
   date_range: { category: '输入', icon: Calendar },
-  fill_in: { category: '输入', icon: TextCursorInput },
   rating: { category: '评价', icon: Star },
   slider: { category: '评价', icon: SlidersHorizontal },
   nps: { category: '评价', icon: Hash },
   likert: { category: '评价', icon: Table },
   file_upload: { category: '媒体', icon: FileUp },
-  signature: { category: '媒体', icon: PenLine },
 } satisfies Record<QuestionType, Omit<QuestionUiManifest, 'type' | 'label'>>
 
 export const QUESTION_UI_MANIFESTS: QuestionUiManifest[] = QUESTION_TYPES.map(
