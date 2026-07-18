@@ -15,6 +15,7 @@ import { ChoiceChart } from './charts/choice-chart'
 import { LikertChart } from './charts/likert-chart'
 import { MatrixChart } from './charts/matrix-chart'
 import { NumberChart } from './charts/number-chart'
+import { RankingChart } from './charts/ranking-chart'
 import { RatingChart } from './charts/rating-chart'
 import { TextAnswers } from './charts/text-answers'
 
@@ -247,9 +248,10 @@ export function QuestionChart({
       case 'single_choice':
       case 'dropdown':
       case 'multiple_choice':
-      case 'ranking':
       case 'cascader':
         return <ChoiceChart analysis={analysis} />
+      case 'ranking':
+        return <RankingChart analysis={analysis} />
       case 'rating':
       case 'nps':
         return <RatingChart analysis={analysis} />

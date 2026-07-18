@@ -22,7 +22,7 @@ export interface BaseQuestionAnalysis<Type extends QuestionType> {
 }
 
 type ChoiceAnalysisQuestionType =
-  'single_choice' | 'multiple_choice' | 'dropdown' | 'ranking' | 'cascader'
+  'single_choice' | 'multiple_choice' | 'dropdown' | 'cascader'
 
 type NumericAnalysisQuestionType = 'rating' | 'nps' | 'slider' | 'number'
 
@@ -33,11 +33,24 @@ type TextAnalysisQuestionType = Exclude<
   | ChoiceAnalysisQuestionType
   | NumericAnalysisQuestionType
   | MatrixAnalysisQuestionType
+  | 'ranking'
   | 'likert'
 >
 
 export interface ChoiceAnalysis extends BaseQuestionAnalysis<ChoiceAnalysisQuestionType> {
   options: ChoiceOptionAnalysis[]
+}
+
+export interface RankingOptionAnalysis {
+  optionId: string
+  label: string
+  firstChoiceCount: number
+  firstChoicePercentage: number
+  averageRank: number | null
+}
+
+export interface RankingAnalysis extends BaseQuestionAnalysis<'ranking'> {
+  options: RankingOptionAnalysis[]
 }
 
 export interface ScoreDistribution {
@@ -114,6 +127,7 @@ export interface TextAnalysis extends BaseQuestionAnalysis<TextAnalysisQuestionT
 
 export type QuestionAnalysis =
   | ChoiceAnalysis
+  | RankingAnalysis
   | NumericAnalysis
   | MatrixAnalysis
   | LikertAnalysis

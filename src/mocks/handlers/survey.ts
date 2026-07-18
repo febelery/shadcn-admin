@@ -135,11 +135,13 @@ function computeSingleQuestionAnalysis(
     }
   } else if (question.type === 'ranking') {
     const options = question.config.options ?? []
-    const countMap = new Map<string, number>()
+    const firstChoiceCountMap = new Map<string, number>()
     const rankSumMap = new Map<string, number>()
+    const rankCountMap = new Map<string, number>()
     for (const opt of options) {
-      countMap.set(opt.id, 0)
+      firstChoiceCountMap.set(opt.id, 0)
       rankSumMap.set(opt.id, 0)
+      rankCountMap.set(opt.id, 0)
     }
 
     for (const val of validAnswers) {
@@ -148,26 +150,32 @@ function computeSingleQuestionAnalysis(
           const itemStr = String(item)
           if (rankSumMap.has(itemStr)) {
             rankSumMap.set(itemStr, (rankSumMap.get(itemStr) ?? 0) + (idx + 1))
+            rankCountMap.set(itemStr, (rankCountMap.get(itemStr) ?? 0) + 1)
           }
-          if (idx === 0 && countMap.has(itemStr)) {
-            countMap.set(itemStr, (countMap.get(itemStr) ?? 0) + 1)
+          if (idx === 0 && firstChoiceCountMap.has(itemStr)) {
+            firstChoiceCountMap.set(
+              itemStr,
+              (firstChoiceCountMap.get(itemStr) ?? 0) + 1
+            )
           }
         })
       }
     }
 
     const optionAnalyses = options.map((opt) => {
-      const count = countMap.get(opt.id) ?? 0
+      const firstChoiceCount = firstChoiceCountMap.get(opt.id) ?? 0
       const rankSum = rankSumMap.get(opt.id) ?? 0
-      const avgRank =
-        answerCount > 0 ? Number((rankSum / answerCount).toFixed(2)) : 0
-      const percentage =
-        answerCount > 0 ? Number((count / answerCount).toFixed(4)) : 0
+      const rankCount = rankCountMap.get(opt.id) ?? 0
       return {
         optionId: opt.id,
-        label: `${opt.label} (平均排名: ${avgRank || '-'})`,
-        count,
-        percentage,
+        label: opt.label,
+        firstChoiceCount,
+        firstChoicePercentage:
+          answerCount > 0
+            ? Number((firstChoiceCount / answerCount).toFixed(4))
+            : 0,
+        averageRank:
+          rankCount > 0 ? Number((rankSum / rankCount).toFixed(2)) : null,
       }
     })
 
