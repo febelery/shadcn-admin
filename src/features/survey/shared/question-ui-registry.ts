@@ -18,7 +18,11 @@ import {
   Type,
   type LucideIcon,
 } from 'lucide-react'
-import { QUESTION_TYPES, type QuestionType } from '../core/types'
+import {
+  QUESTION_TYPES,
+  type LayoutElementKind,
+  type QuestionType,
+} from '../core/types'
 import { getQuestionTypeLabel } from './question-type-labels'
 
 export const QUESTION_CATEGORIES = ['选择', '输入', '评价', '布局'] as const
@@ -29,9 +33,18 @@ export type QuestionCategory = Exclude<
 >
 
 export interface QuestionUiManifest {
+  kind: 'question'
   type: QuestionType
   label: string
   category: QuestionCategory
+  icon: LucideIcon
+}
+
+export interface LayoutUiManifest {
+  kind: 'layout'
+  type: LayoutElementKind
+  label: string
+  category: '布局'
   icon: LucideIcon
 }
 
@@ -55,33 +68,40 @@ const QUESTION_UI_METADATA = {
   slider: { category: '评价', icon: SlidersHorizontal },
   nps: { category: '评价', icon: Hash },
   likert: { category: '评价', icon: Table },
-} satisfies Record<QuestionType, Omit<QuestionUiManifest, 'type' | 'label'>>
+} satisfies Record<
+  QuestionType,
+  Omit<QuestionUiManifest, 'kind' | 'type' | 'label'>
+>
 
 export const QUESTION_UI_MANIFESTS: QuestionUiManifest[] = QUESTION_TYPES.map(
   (type) => ({
+    kind: 'question',
     type,
     label: getQuestionTypeLabel(type),
     ...QUESTION_UI_METADATA[type],
   })
 )
 
-export const LAYOUT_MANIFESTS = [
+export const LAYOUT_MANIFESTS: LayoutUiManifest[] = [
   {
-    type: 'divider' as const,
+    kind: 'layout',
+    type: 'divider',
     label: '分割线',
-    category: '布局' as const,
+    category: '布局',
     icon: SeparatorHorizontal,
   },
   {
-    type: 'rich_text' as const,
+    kind: 'layout',
+    type: 'rich_text',
     label: '富文本说明',
-    category: '布局' as const,
+    category: '布局',
     icon: AlignLeft,
   },
 ]
 
 export function getQuestionUiManifest(type: QuestionType): QuestionUiManifest {
   return {
+    kind: 'question',
     type,
     label: getQuestionTypeLabel(type),
     ...QUESTION_UI_METADATA[type],

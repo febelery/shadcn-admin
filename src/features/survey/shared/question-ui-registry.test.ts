@@ -10,6 +10,9 @@ describe('question UI registry', () => {
     expect(QUESTION_UI_MANIFESTS.map((manifest) => manifest.type)).toEqual(
       QUESTION_TYPES
     )
+    expect(
+      QUESTION_UI_MANIFESTS.every((manifest) => manifest.kind === 'question')
+    ).toBe(true)
 
     for (const type of QUESTION_TYPES) {
       expect(getQuestionUiManifest(type)).toMatchObject({ type })

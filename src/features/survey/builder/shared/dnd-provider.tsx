@@ -19,18 +19,12 @@ import { GripVertical, type LucideIcon } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import type { QuestionType } from '../../core/types'
 import {
   getQuestionUiManifest,
   LAYOUT_MANIFESTS,
 } from '../../shared/question-ui-registry'
 import { useBuilderStoreApi } from '../builder-session'
-import {
-  INSERT_DROP,
-  PALETTE_DRAG,
-  type InsertDropData,
-  type PaletteDragData,
-} from './dnd-types'
+import { isInsertDropData, isPaletteItemDragData } from './dnd-types'
 
 // ─── DnD Provider ─────────────────────────────────────────────────────────────
 
@@ -94,8 +88,8 @@ export function useIsPaletteDragging() {
 
 const workspaceCollisionDetection: CollisionDetection = (args) => {
   const pointerHits = pointerWithin(args)
-  const insertHits = pointerHits.filter(
-    (c) => c.data?.droppableContainer?.data?.current?.type === INSERT_DROP
+  const insertHits = pointerHits.filter((collision) =>
+    isInsertDropData(collision.data?.droppableContainer?.data?.current)
   )
   if (insertHits.length > 0) return insertHits
   return closestCenter(args)
@@ -124,16 +118,17 @@ export function BuilderDndProvider({ children }: Props) {
   }
 
   const onDragStart = (event: DragStartEvent) => {
-    const data = event.active.data.current as PaletteDragData | undefined
-    if (data?.type === PALETTE_DRAG) {
-      if (data.questionType) {
-        const m = getQuestionUiManifest(data.questionType as QuestionType)
-        if (m) {
-          setActiveDrag({ kind: 'palette', label: m.label, icon: m.icon })
-          return
-        }
-      }
-      if (data.layoutType) {
+    const data = event.active.data.current
+    if (isPaletteItemDragData(data)) {
+      if (data.kind === 'question') {
+        const manifest = getQuestionUiManifest(data.questionType)
+        setActiveDrag({
+          kind: 'palette',
+          label: manifest.label,
+          icon: manifest.icon,
+        })
+        return
+      } else {
         const m = LAYOUT_MANIFESTS.find(
           (manifest) => manifest.type === data.layoutType
         )
@@ -153,25 +148,25 @@ export function BuilderDndProvider({ children }: Props) {
     resetDragState()
     if (!over) return
 
-    const activeData = active.data.current as PaletteDragData | undefined
+    const activeData = active.data.current
     const store = storeApi.getState()
     const elements = store.document.elements
 
-    if (activeData?.type === PALETTE_DRAG) {
-      const overData = over.data.current as InsertDropData | undefined
+    if (isPaletteItemDragData(activeData)) {
+      const overData = over.data.current
       const overId = String(over.id)
       let index = elements.length
 
-      if (overData?.type === INSERT_DROP) {
+      if (isInsertDropData(overData)) {
         index = overData.index
       } else if (overId !== 'workspace-drop') {
         const overIndex = elements.findIndex((e) => e.id === overId)
         if (overIndex >= 0) index = overIndex
       }
 
-      if (activeData.questionType) {
-        store.addQuestion(activeData.questionType as QuestionType, index)
-      } else if (activeData.layoutType) {
+      if (activeData.kind === 'question') {
+        store.addQuestion(activeData.questionType, index)
+      } else {
         store.addLayout(activeData.layoutType, index)
       }
       return

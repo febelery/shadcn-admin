@@ -1,6 +1,6 @@
-import type { QuestionType } from '../core/types'
+import type { LayoutElementKind, QuestionType } from '../core/types'
 
-export type PaletteTypeId = QuestionType | 'divider' | 'rich_text'
+export type PaletteTypeId = QuestionType | LayoutElementKind
 
 /** 题型库 / 帮助提示文案 */
 const QUESTION_TYPE_HINTS: Record<PaletteTypeId, string> = {

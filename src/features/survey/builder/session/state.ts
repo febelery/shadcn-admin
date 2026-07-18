@@ -2,6 +2,7 @@ import type { RuleCategory } from '../../core/logic/rule-meta'
 import type { RichTextContent } from '../../core/rich-text'
 import type {
   SurveyDocument,
+  LayoutElementKind,
   QuestionContentPatch,
   QuestionConfigPatch,
   QuestionType,
@@ -38,7 +39,7 @@ export interface BuilderState {
     change: Partial<SurveyDocument['submissionPolicy']>
   ) => void
   addQuestion: (type: QuestionType, index?: number) => void
-  addLayout: (kind: 'divider' | 'rich_text', index?: number) => void
+  addLayout: (kind: LayoutElementKind, index?: number) => void
   reorderElements: (activeId: string, overId: string) => void
   duplicateElement: (elementId: string) => void
   updateQuestion: (elementId: string, patch: QuestionContentPatch) => void

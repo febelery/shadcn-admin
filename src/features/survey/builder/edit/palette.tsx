@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { useDraggable } from '@dnd-kit/core'
-import { ChevronRight, LayoutGrid, Search, type LucideIcon } from 'lucide-react'
+import { ChevronRight, LayoutGrid, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -29,39 +29,29 @@ import {
   getQuestionTypeHint,
   hasQuestionTypePreview,
   matchesPaletteSearch,
+  type PaletteTypeId,
 } from '@/features/survey/shared/question-type-hints'
 import { QuestionTypePreview } from '@/features/survey/shared/question-type-preview'
-import type { QuestionType } from '../../core/types'
 import {
   LAYOUT_MANIFESTS,
   QUESTION_CATEGORIES,
   QUESTION_UI_MANIFESTS,
+  type LayoutUiManifest,
   type QuestionUiManifest,
 } from '../../shared/question-ui-registry'
 import { useBuilderStoreApi } from '../builder-session'
-import { PALETTE_DRAG } from '../shared/dnd-types'
+import {
+  PALETTE_ITEM_DRAG,
+  type PaletteItemDragData,
+} from '../shared/dnd-types'
 import { BuilderPanelHeader } from '../shared/panel-header'
 
-type PaletteTypeId = QuestionType | 'divider' | 'rich_text'
+type PaletteItem = QuestionUiManifest | LayoutUiManifest
 
-type PaletteItem =
-  | QuestionUiManifest
-  | { type: PaletteTypeId; label: string; icon: LucideIcon; category: string }
-
-type PaletteRowItem = {
-  type: PaletteTypeId
-  label: string
-  icon: LucideIcon
-  category: string
-}
-
-function paletteData(item: PaletteRowItem) {
-  const isLayout = item.type === 'divider' || item.type === 'rich_text'
-  return {
-    type: PALETTE_DRAG,
-    questionType: isLayout ? undefined : (item.type as QuestionType),
-    layoutType: isLayout ? item.type : undefined,
-  } as const
+function paletteData(item: PaletteItem): PaletteItemDragData {
+  return item.kind === 'question'
+    ? { type: PALETTE_ITEM_DRAG, kind: 'question', questionType: item.type }
+    : { type: PALETTE_ITEM_DRAG, kind: 'layout', layoutType: item.type }
 }
 
 function PaletteItemHelpContent({
@@ -92,12 +82,11 @@ function PaletteItemRow({
   disabled,
   onAdd,
 }: {
-  item: PaletteRowItem
+  item: PaletteItem
   disabled?: boolean
   onAdd: () => void
 }) {
-  const isLayout = item.type === 'divider' || item.type === 'rich_text'
-  const id = `palette-${isLayout ? 'l' : 'q'}-${item.type}`
+  const id = `palette-${item.kind === 'layout' ? 'l' : 'q'}-${item.type}`
   const Icon = item.icon
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -156,15 +145,6 @@ function PaletteItemRow({
       </span>
     </Button>
   )
-}
-
-function toRowItem(item: PaletteItem): PaletteRowItem {
-  return {
-    type: item.type as PaletteTypeId,
-    label: item.label,
-    icon: item.icon,
-    category: item.category,
-  }
 }
 
 function PaletteCategory({
@@ -230,18 +210,16 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
     return {
       categories,
       layout,
-      flat: [...questionManifests.filter(match), ...layout] as PaletteItem[],
       total: questionManifests.filter(match).length + layout.length,
       searching: Boolean(query.trim()),
     }
   }, [query])
 
   const addItem = (item: PaletteItem) => {
-    const isLayout = item.type === 'divider' || item.type === 'rich_text'
-    if (isLayout) {
-      store.getState().addLayout(item.type as 'divider' | 'rich_text')
+    if (item.kind === 'layout') {
+      store.getState().addLayout(item.type)
     } else {
-      store.getState().addQuestion(item.type as QuestionType)
+      store.getState().addQuestion(item.type)
     }
     onNavigate?.()
   }
@@ -249,7 +227,7 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
   const renderRow = (item: PaletteItem) => (
     <PaletteItemRow
       key={`${item.type}-${item.label}`}
-      item={toRowItem(item)}
+      item={item}
       onAdd={() => addItem(item)}
     />
   )

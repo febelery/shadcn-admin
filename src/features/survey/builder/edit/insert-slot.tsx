@@ -3,7 +3,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { useActiveDrag } from '../shared/dnd-provider'
-import { INSERT_DROP } from '../shared/dnd-types'
+import { INSERT_DROP, type InsertDropData } from '../shared/dnd-types'
 
 type Props = {
   index: number
@@ -18,7 +18,7 @@ export const WorkspaceInsertSlot = memo(function WorkspaceInsertSlot({
 
   const { setNodeRef, isOver } = useDroppable({
     id: `workspace-insert-${index}`,
-    data: { type: INSERT_DROP, index },
+    data: { type: INSERT_DROP, index } satisfies InsertDropData,
     disabled: !isPaletteDrag,
   })
 

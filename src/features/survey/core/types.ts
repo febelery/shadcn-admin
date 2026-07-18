@@ -74,6 +74,24 @@ export const QUESTION_TYPES = [
 
 export type QuestionType = (typeof QUESTION_TYPES)[number]
 
+const QUESTION_TYPE_SET = new Set<string>(QUESTION_TYPES)
+
+export function isQuestionType(value: unknown): value is QuestionType {
+  return typeof value === 'string' && QUESTION_TYPE_SET.has(value)
+}
+
+export const LAYOUT_ELEMENT_KINDS = ['divider', 'rich_text'] as const
+
+export type LayoutElementKind = (typeof LAYOUT_ELEMENT_KINDS)[number]
+
+const LAYOUT_ELEMENT_KIND_SET = new Set<string>(LAYOUT_ELEMENT_KINDS)
+
+export function isLayoutElementKind(
+  value: unknown
+): value is LayoutElementKind {
+  return typeof value === 'string' && LAYOUT_ELEMENT_KIND_SET.has(value)
+}
+
 export interface ChoiceOption {
   id: string
   label: string
