@@ -477,7 +477,7 @@ function SortableItemHandle(props: SortableItemHandleProps) {
   const isDisabled = disabled ?? itemContext.disabled
 
   const composedRef = useComposedRefs(ref, (node) => {
-    if (!isDisabled) return
+    if (isDisabled) return
     itemContext.setActivatorNodeRef(node)
   })
 
@@ -524,8 +524,7 @@ interface SortableOverlayProps extends Omit<
 > {
   container?: Element | DocumentFragment | null
   children?:
-    | ((params: { value: UniqueIdentifier }) => React.ReactNode)
-    | React.ReactNode
+    ((params: { value: UniqueIdentifier }) => React.ReactNode) | React.ReactNode
 }
 
 function SortableOverlay(props: SortableOverlayProps) {

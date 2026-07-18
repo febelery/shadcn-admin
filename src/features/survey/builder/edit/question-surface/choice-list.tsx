@@ -1,5 +1,5 @@
 import type { KeyboardEvent } from 'react'
-import { Circle, GripVertical, Square, Trash2 } from 'lucide-react'
+import { Circle, Square, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ChoiceOption, QuestionElement } from '../../../core/types'
 import { BUILDER_TEXT_LIMITS } from '../../shared/text-limits'
@@ -98,49 +98,6 @@ export function SurfaceChoiceList({
           + 添加选项
         </button>
       </li>
-    </ul>
-  )
-}
-
-/** 排序题：可编辑列表 + 拖动手柄示意 */
-export function SurfaceRankingList({
-  options,
-  onChange,
-}: {
-  options: ChoiceOption[]
-  onChange: (options: ChoiceOption[]) => void
-}) {
-  const { updateOptionLabel, insertOptionAfter } = useChoiceOptions({
-    options,
-    onChange,
-  })
-
-  return (
-    <ul className='flex flex-col gap-3'>
-      {options.map((opt, index) => (
-        <li key={opt.id} className='group/option flex items-center gap-2'>
-          <GripVertical className='text-muted-foreground/50 h-4 w-4 shrink-0' />
-          <span className='text-muted-foreground w-5 text-sm leading-relaxed tabular-nums'>
-            {index + 1}
-          </span>
-          <InlineEditable
-            value={opt.label}
-            onChange={(label) => updateOptionLabel(opt.id, label)}
-            placeholder={`选项 ${index + 1}`}
-            maxLength={BUILDER_TEXT_LIMITS.choiceOption}
-            className='placeholder:text-muted-foreground/50 max-w-full min-w-0 flex-1 text-sm leading-relaxed font-normal'
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                insertOptionAfter(index, () => ({
-                  id: crypto.randomUUID(),
-                  label: '',
-                }))
-              }
-            }}
-          />
-        </li>
-      ))}
     </ul>
   )
 }

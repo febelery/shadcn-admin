@@ -8,10 +8,11 @@ import type {
 import { BUILDER_TEXT_LIMITS } from '../../shared/text-limits'
 import { InlineEditable } from '../inline-editable'
 import { SurfaceCascaderEditor } from './cascader-editor'
-import { SurfaceChoiceList, SurfaceRankingList } from './choice-list'
+import { SurfaceChoiceList } from './choice-list'
 import { SurfaceDropdownEditor } from './dropdown-editor'
 import { SurfaceLikertEditor } from './likert-editor'
 import { SurfaceMatrixEditor } from './matrix-editor'
+import { SurfaceRankingEditor } from './ranking-editor'
 
 type SurfaceProps = {
   question: QuestionElement
@@ -48,7 +49,7 @@ const dropdownSurface: SurfaceAdapter = ({ question, onConfigChange }) => {
 const rankingSurface: SurfaceAdapter = ({ question, onConfigChange }) => {
   const options = question.config.options ?? []
   return (
-    <SurfaceRankingList
+    <SurfaceRankingEditor
       options={options}
       onChange={(next) => onConfigChange({ options: next })}
     />
