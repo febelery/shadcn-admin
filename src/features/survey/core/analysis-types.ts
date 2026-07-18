@@ -22,11 +22,7 @@ export interface BaseQuestionAnalysis<Type extends QuestionType> {
 }
 
 type ChoiceAnalysisQuestionType =
-  | 'single_choice'
-  | 'multiple_choice'
-  | 'dropdown'
-  | 'ranking'
-  | 'cascader'
+  'single_choice' | 'multiple_choice' | 'dropdown' | 'ranking' | 'cascader'
 
 type NumericAnalysisQuestionType = 'rating' | 'nps' | 'slider' | 'number'
 
@@ -51,11 +47,11 @@ export interface ScoreDistribution {
 }
 
 export interface NumericAnalysis extends BaseQuestionAnalysis<NumericAnalysisQuestionType> {
-  avgScore?: number
-  medianScore?: number
-  minScore?: number
-  maxScore?: number
-  sumScore?: number
+  avgScore: number
+  medianScore: number
+  minScore: number
+  maxScore: number
+  sumScore: number
   distribution: ScoreDistribution[]
   // NPS 专属属性
   npsScore?: number

@@ -22,85 +22,13 @@ interface NumberChartProps {
 }
 
 export function NumberChart({ analysis }: NumberChartProps) {
-  // 科学兜底计算各项统计指标，防止后端数据未下发或被缓存
-  const stats = React.useMemo(() => {
-    const hasBackEndStats =
-      analysis.minScore !== undefined &&
-      analysis.maxScore !== undefined &&
-      analysis.sumScore !== undefined
-
-    if (hasBackEndStats) {
-      return {
-        min: analysis.minScore ?? 0,
-        max: analysis.maxScore ?? 0,
-        sum: analysis.sumScore ?? 0,
-        avg: analysis.avgScore ?? 0,
-        median: analysis.medianScore ?? 0,
-      }
-    }
-
-    // 兜底提取并计算
-    let sum = 0
-    let totalCount = 0
-    let min = Infinity
-    let max = -Infinity
-    const scoreFreqs: { val: number; count: number }[] = []
-
-    analysis.distribution.forEach((d) => {
-      // 若是区间标签如 "1-7"，取其中间值作为统计源
-      let val = Number(d.score)
-      if (Number.isNaN(val)) {
-        const parts = String(d.score).split('-').map(Number)
-        if (parts.length === 2 && !parts.some(Number.isNaN)) {
-          val = (parts[0] + parts[1]) / 2
-        } else {
-          val = 0
-        }
-      }
-
-      sum += val * d.count
-      totalCount += d.count
-      if (val < min) min = val
-      if (val > max) max = val
-
-      scoreFreqs.push({ val, count: d.count })
-    })
-
-    // 按分值从小到大排序
-    scoreFreqs.sort((a, b) => a.val - b.val)
-
-    let median = 0
-    if (totalCount > 0) {
-      const mid1 = Math.floor((totalCount - 1) / 2)
-      const mid2 = Math.floor(totalCount / 2)
-
-      let runningSum = 0
-      let val1: number | null = null
-      let val2: number | null = null
-
-      for (const item of scoreFreqs) {
-        runningSum += item.count
-        if (val1 === null && runningSum > mid1) {
-          val1 = item.val
-        }
-        if (val2 === null && runningSum > mid2) {
-          val2 = item.val
-        }
-        if (val1 !== null && val2 !== null) {
-          break
-        }
-      }
-      median = ((val1 ?? 0) + (val2 ?? 0)) / 2
-    }
-
-    return {
-      min: min === Infinity ? 0 : min,
-      max: max === -Infinity ? 0 : max,
-      sum: Number(sum.toFixed(2)),
-      avg: totalCount > 0 ? Number((sum / totalCount).toFixed(2)) : 0,
-      median: Number(median.toFixed(2)),
-    }
-  }, [analysis])
+  const stats = {
+    min: analysis.minScore,
+    max: analysis.maxScore,
+    sum: analysis.sumScore,
+    avg: analysis.avgScore,
+    median: analysis.medianScore,
+  }
 
   const chartData = React.useMemo(() => {
     return analysis.distribution.map((dist) => ({

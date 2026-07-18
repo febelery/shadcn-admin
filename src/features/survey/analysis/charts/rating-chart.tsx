@@ -102,7 +102,7 @@ export function RatingChart({ analysis }: RatingChartProps) {
             平均值 (Average)
           </div>
           <div className='text-foreground font-mono text-3xl font-bold tracking-tight'>
-            {analysis.avgScore ?? 0}
+            {analysis.avgScore}
           </div>
         </div>
 
@@ -112,7 +112,7 @@ export function RatingChart({ analysis }: RatingChartProps) {
             中位数 (Median)
           </div>
           <div className='text-foreground font-mono text-3xl font-bold tracking-tight'>
-            {analysis.medianScore ?? 0}
+            {analysis.medianScore}
           </div>
         </div>
       </div>
