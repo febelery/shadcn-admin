@@ -51,7 +51,15 @@ export function FileUpload({
 
   return (
     <FileUploadProvider
-      value={{ ...state, view, cardSize, variant, validation, crop }}
+      value={{
+        ...state,
+        view,
+        cardSize,
+        variant,
+        validation,
+        crop,
+        aspect,
+      }}
     >
       <div className={cn('w-full', className)} {...props}>
         {children ?? <FileUploadDropzone />}

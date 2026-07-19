@@ -38,7 +38,6 @@ export function createBuilderStore(initialDocument: SurveyDocument) {
       flowRuleFilter: 'all',
       flowShowJumpEdges: true,
       flowShowVisibilityEdges: true,
-      inspectorTab: 'element',
 
       updateMeta: (patch) =>
         set((s) => {
@@ -180,11 +179,6 @@ export function createBuilderStore(initialDocument: SurveyDocument) {
       navigate: (intent) =>
         set((s) => {
           Object.assign(s, resolveBuilderNavigation(s, intent))
-        }),
-
-      setInspectorTab: (tab) =>
-        set((s) => {
-          s.inspectorTab = tab
         }),
 
       setFlowRuleSearchQuery: (query) =>

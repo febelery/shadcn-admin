@@ -31,7 +31,6 @@ export interface BuilderState {
   flowRuleFilter: RuleCategory | 'all'
   flowShowJumpEdges: boolean
   flowShowVisibilityEdges: boolean
-  inspectorTab: 'element' | 'settings'
 
   updateMeta: (patch: Partial<SurveyDocument['meta']>) => void
   updateTheme: (patch: Partial<SurveyDocument['theme']>) => void
@@ -52,7 +51,6 @@ export interface BuilderState {
 
   // 流程与规则相关操作
   navigate: (intent: BuilderNavigationIntent) => void
-  setInspectorTab: (tab: 'element' | 'settings') => void
   setFlowRuleSearchQuery: (query: string) => void
   setFlowCanvasSearchQuery: (query: string) => void
   setFlowRuleFilter: (filter: RuleCategory | 'all') => void

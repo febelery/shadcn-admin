@@ -5,7 +5,8 @@
 - `core/`：`SurveyDocument`、合法题目工厂、规则语义、静态分析与 Zod 解码
 - `builder/builder-session.tsx`：Builder 会话的 React interface，仅暴露 Provider 与 selector hooks
 - `builder/session/`：单个 Builder 会话的文档、编辑焦点、规则草稿与 dirty 状态实现
-- `builder/edit/`：题目画布、题型 Surface、Inspector 与问卷设置
+- `settings/`：基于后台 layout 的独立问卷设置页，新建问卷从这里开始
+- `builder/edit/`：题目画布、题型 Surface 与当前题目 Inspector
 - `builder/flow/`：从文档派生的流程投影、规则列表与规则编辑入口
 - `builder/rules/`：编辑画布与流程模式共享的规则创作 UI
 - `builder/shared/`：编辑和流程模式共同使用的 DnD 与面板组件

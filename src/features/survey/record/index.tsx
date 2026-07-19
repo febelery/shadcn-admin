@@ -115,8 +115,8 @@ export function SurveyRecordPage({ surveyId }: SurveyRecordPageProps) {
   return (
     <PageLayout
       variant='fixed'
-      title={document ? `${document.meta.title} · 填写记录` : '填写记录'}
-      description={`按题目列查看每位填写人的提交记录，共 ${data?.meta?.total ?? 0} 条。`}
+      title={document ? `${document.meta.title} · 回收` : '回收'}
+      description={`共 ${data?.meta?.total ?? 0} 条回收记录。`}
       actions={
         <div className='flex items-center gap-2'>
           <Button variant='outline' asChild>
@@ -128,7 +128,7 @@ export function SurveyRecordPage({ surveyId }: SurveyRecordPageProps) {
           <Button variant='outline' asChild>
             <Link to='/survey/$id/analysis' params={{ id: surveyId }}>
               <BarChart3 className='h-4 w-4' />
-              数据分析
+              分析
             </Link>
           </Button>
           <Button

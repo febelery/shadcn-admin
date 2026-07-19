@@ -230,11 +230,9 @@ export function QuestionChart({
         <div className='flex items-start gap-3 rounded-lg border border-dashed p-4'>
           <AlertCircle className='text-destructive mt-0.5 h-4 w-4 shrink-0' />
           <div className='space-y-1'>
-            <div className='text-sm font-medium'>题目分析加载失败</div>
+            <div className='text-sm font-medium'>加载失败</div>
             <div className='text-muted-foreground text-xs'>
-              {error instanceof Error
-                ? error.message
-                : '当前题目的数据请求异常，请刷新重试。'}
+              {error instanceof Error ? error.message : '请刷新重试。'}
             </div>
           </div>
         </div>

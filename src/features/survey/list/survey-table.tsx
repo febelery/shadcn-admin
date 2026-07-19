@@ -118,7 +118,7 @@ export function SurveyTable({
               onClick={handleClearFilters}
             >
               <FilterX data-icon='inline-start' />
-              清除筛选
+              清除
             </Button>
           )}
         </div>
@@ -158,23 +158,21 @@ function SurveyEmptyState({
         <EmptyMedia variant='icon' className='text-muted-foreground'>
           <Icon />
         </EmptyMedia>
-        <EmptyTitle>{filtered ? '没有匹配的问卷' : '暂无问卷'}</EmptyTitle>
+        <EmptyTitle>{filtered ? '无匹配结果' : '暂无问卷'}</EmptyTitle>
         <EmptyDescription>
-          {filtered
-            ? '当前筛选条件下没有可显示的问卷。'
-            : '创建第一份问卷后会在这里展示。'}
+          {filtered ? '换个筛选条件试试。' : '新建后会显示在这里。'}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
         {filtered ? (
           <Button variant='outline' size='sm' onClick={onClearFilters}>
             <FilterX data-icon='inline-start' />
-            清除筛选
+            清除
           </Button>
         ) : (
           <Button size='sm' onClick={onCreate}>
             <Plus data-icon='inline-start' />
-            新建问卷
+            新建
           </Button>
         )}
       </EmptyContent>

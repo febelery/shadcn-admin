@@ -3,10 +3,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
   ArrowLeft,
-  Database,
   BarChart3,
   AlertCircle,
   Filter,
+  Inbox,
   RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -52,8 +52,8 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
   return (
     <PageLayout
       variant='default'
-      title={document ? `${document.meta.title} · 数据分析` : '数据分析'}
-      description='提供整体回收概况、逐题统计与服务端条件统计。'
+      title={document ? `${document.meta.title} · 分析` : '分析'}
+      description='查看回收概况和题目统计。'
       actions={
         <div className='flex items-center gap-2'>
           <Button variant='outline' asChild>
@@ -64,8 +64,8 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
           </Button>
           <Button variant='outline' asChild>
             <Link to={`/survey/${surveyId}/record`}>
-              <Database className='h-4 w-4' />
-              记录
+              <Inbox className='h-4 w-4' />
+              回收
             </Link>
           </Button>
           <Button
@@ -166,10 +166,10 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
                     </div>
                     <div className='space-y-1'>
                       <h4 className='text-foreground text-sm font-semibold'>
-                        无匹配的数据记录
+                        暂无答卷
                       </h4>
                       <p className='text-muted-foreground mx-auto max-w-xs text-xs'>
-                        当前没有可用于逐题统计的回收答卷。
+                        回收后可查看逐题统计。
                       </p>
                     </div>
                   </div>
@@ -204,11 +204,9 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
           <AlertCircle className='text-destructive mx-auto h-6 w-6' />
           <div className='space-y-1'>
             <h4 className='text-foreground text-sm font-semibold'>
-              数据加载失败
+              分析加载失败
             </h4>
-            <p className='text-muted-foreground text-xs'>
-              无法获取该问卷的数据统计分析，请刷新重试。
-            </p>
+            <p className='text-muted-foreground text-xs'>请刷新重试。</p>
           </div>
           <Button variant='outline' size='sm' onClick={handleRefresh}>
             重新加载

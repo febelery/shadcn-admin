@@ -32,21 +32,21 @@ export function OverviewCards({ overview }: OverviewCardsProps) {
 
   const stats = [
     {
-      title: '总回收记录',
+      title: '总回收',
       value: overview.totalRecords,
-      description: '问卷已提交的全部有效记录数',
+      description: '全部有效回收',
       icon: FileText,
     },
     {
-      title: '今日新增回收',
+      title: '今日新增',
       value: todayCount,
-      description: '今天截至目前新增的问卷数',
+      description: '今日新增回收',
       icon: TrendingUp,
     },
     {
-      title: '平均填写时长',
+      title: '平均时长',
       value: formatDuration(overview.avgDurationMs),
-      description: '单份答卷的平均填写时间',
+      description: '每份答卷平均耗时',
       icon: Clock,
     },
   ]
@@ -87,7 +87,7 @@ export function OverviewCards({ overview }: OverviewCardsProps) {
               回收趋势
             </CardTitle>
             <p className='text-muted-foreground text-xs'>
-              展示最近 30 天内每天的问卷回收走势（包含进行中和已提交记录）
+              最近 30 天，含填写中和已提交记录。
             </p>
           </div>
         </CardHeader>

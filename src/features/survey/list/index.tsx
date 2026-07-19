@@ -36,18 +36,17 @@ export function SurveyListPage() {
   const { data, isFetching } = useSurveyList(params)
 
   const handleCreate = () => {
-    const href = router.buildLocation({ to: '/survey/new' }).href
-    window.open(href, '_blank', 'noopener,noreferrer')
+    void router.navigate({ to: '/survey/new' })
   }
 
   return (
     <PageLayout
-      title='问卷管理'
-      description='设计问卷、发布 Schema、查看回收数据。'
+      title='问卷'
+      description='创建、发布和查看回收。'
       actions={
         <Button onClick={handleCreate}>
           <Plus data-icon='inline-start' />
-          新建问卷
+          新建
         </Button>
       }
       className='flex flex-1 flex-col gap-4 sm:gap-6'

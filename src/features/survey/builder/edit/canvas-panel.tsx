@@ -61,7 +61,7 @@ const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
         <InlineEditable
           value={title}
           onChange={(title) => updateMeta({ title })}
-          placeholder='未命名问卷'
+          placeholder='未命名'
           maxLength={BUILDER_TEXT_LIMITS.surveyTitle}
           className={cn(titleClass, 'max-w-full min-w-0 wrap-break-word')}
         />
@@ -70,7 +70,7 @@ const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
         <InlineEditable
           value={description}
           onChange={(description) => updateMeta({ description })}
-          placeholder='添加问卷说明（选填）'
+          placeholder='添加说明（选填）'
           multiline
           maxLength={BUILDER_TEXT_LIMITS.surveyDescription}
           className={cn(descriptionClass, 'max-w-full min-w-0')}

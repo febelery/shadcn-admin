@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
-import { AlertCircle, ArrowLeft, RefreshCw, Save, Send } from 'lucide-react'
+import { AlertCircle, ArrowLeft, RefreshCw, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -10,11 +10,9 @@ import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { createEmptySurvey } from '../core/document-factory'
 import { parseSurveyDocument } from '../core/document-schema'
-import { analyseSurvey } from '../core/logic/analyzer'
 import type { SurveyDocument } from '../core/types'
 import {
   useCreateSurvey,
-  usePublishSurvey,
   useSurveyDetail,
   useUpdateSurvey,
 } from '../query/hooks'
@@ -79,7 +77,6 @@ function SurveyBuilderContent({ props }: { props: Props }) {
 
   const { mutateAsync: create, isPending: creating } = useCreateSurvey()
   const { mutateAsync: save, isPending: saving } = useUpdateSurvey()
-  const { mutateAsync: publish, isPending: publishing } = usePublishSurvey()
 
   const surveyTitle = useBuilderStore((s) => s.document.meta.title)
   const isDirty = useBuilderStore((s) => s.isDirty)
@@ -114,36 +111,14 @@ function SurveyBuilderContent({ props }: { props: Props }) {
     if (!document) return
     const persisted = await persistDocument(document)
     adoptDocument(persisted)
-    toast.success(isCreate ? '问卷已创建' : '已保存')
+    toast.success(isCreate ? '已新建' : '已保存')
     if (isCreate) {
       await router.navigate({
-        to: '/survey/$id/edit',
+        to: '/survey/$id/question',
         params: { id: persisted.id },
         replace: true,
       })
     }
-  }
-
-  const handlePublish = async () => {
-    if (hasUnappliedRuleDraft) {
-      toast.error('请先应用或取消当前规则草稿')
-      return
-    }
-    if (isCreate) {
-      toast.error('请先保存问卷后再发布')
-      return
-    }
-    const document = parseValidDocument(getDocumentSnapshot())
-    if (!document) return
-    const issues = analyseSurvey(document).filter((i) => i.severity === 'error')
-    if (issues.length) {
-      toast.error(issues[0].message)
-      return
-    }
-    await save({ id: surveyId!, data: { ...document, id: surveyId! } })
-    const published = await publish(surveyId!)
-    adoptDocument(published)
-    toast.success(`已发布，访问标识：${published.slug}`)
   }
 
   const saveDisabled =
@@ -166,7 +141,7 @@ function SurveyBuilderContent({ props }: { props: Props }) {
           </Button>
           <div className='flex min-w-0 flex-col gap-0.5'>
             <span className='text-muted-foreground hidden text-[11px] leading-none font-medium sm:block'>
-              {builderMode === 'flow' ? '流程逻辑' : '问卷编辑'}
+              {builderMode === 'flow' ? '流程逻辑' : '编辑'}
             </span>
             <Input
               aria-label='问卷标题'
@@ -175,7 +150,7 @@ function SurveyBuilderContent({ props }: { props: Props }) {
                 'min-w-0 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 sm:max-w-md'
               )}
               value={surveyTitle}
-              placeholder='问卷标题'
+              placeholder='标题'
               onChange={(e) => updateMeta({ title: e.target.value })}
             />
           </div>
@@ -222,19 +197,6 @@ function SurveyBuilderContent({ props }: { props: Props }) {
             <span className='sr-only'>保存</span>
           </Button>
           <Button
-            size='icon'
-            className='sm:hidden'
-            onClick={handlePublish}
-            disabled={publishing || isCreate || hasUnappliedRuleDraft}
-          >
-            {publishing ? (
-              <Spinner className='size-4' />
-            ) : (
-              <Send className='size-4' />
-            )}
-            <span className='sr-only'>发布</span>
-          </Button>
-          <Button
             variant='outline'
             className='hidden sm:inline-flex'
             onClick={handleSave}
@@ -245,19 +207,7 @@ function SurveyBuilderContent({ props }: { props: Props }) {
             ) : (
               <Save className='mr-2 size-4' />
             )}
-            {isCreate ? '创建' : '保存'}
-          </Button>
-          <Button
-            className='hidden sm:inline-flex'
-            onClick={handlePublish}
-            disabled={publishing || isCreate || hasUnappliedRuleDraft}
-          >
-            {publishing ? (
-              <Spinner className='mr-2 size-4' />
-            ) : (
-              <Send className='mr-2 size-4' />
-            )}
-            发布
+            {isCreate ? '新建' : '保存'}
           </Button>
         </div>
       </header>

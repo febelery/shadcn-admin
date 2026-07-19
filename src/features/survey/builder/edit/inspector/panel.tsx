@@ -11,7 +11,6 @@ import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import {
   getSurveyDefaultNumberingStyle,
@@ -34,12 +33,6 @@ import type {
 import { useBuilderStore } from '../../builder-session'
 import { BuilderPanelHeader } from '../../shared/panel-header'
 import { BuilderGuidance } from '../guidance'
-import { AvailabilityPanel } from '../setting/availability-panel'
-import { EndPagePanel } from '../setting/end-page-panel'
-import { MetaCoverPanel } from '../setting/meta-cover-panel'
-import { PublishInfoCard } from '../setting/publish-info-card'
-import { SubmissionPolicyPanel } from '../setting/submission-policy-panel'
-import { ThemePanel } from '../setting/theme-panel'
 import { QuestionTypeInspectorFields } from './question-inspector'
 import { getQuestionInspectorSection } from './question-inspector-section'
 
@@ -234,9 +227,6 @@ type Props = {
 }
 
 export function InspectorPanel({ className }: Props = {}) {
-  const inspectorTab = useBuilderStore((s) => s.inspectorTab)
-  const setInspectorTab = useBuilderStore((s) => s.setInspectorTab)
-
   const selectedEl = useBuilderStore((s) => {
     if (!s.selectedElementId) return undefined
     return s.document.elements.find((e) => e.id === s.selectedElementId)
@@ -249,72 +239,44 @@ export function InspectorPanel({ className }: Props = {}) {
         className
       )}
     >
-      <Tabs
-        value={inspectorTab}
-        onValueChange={(v) => setInspectorTab(v as 'element' | 'settings')}
-        className='flex min-h-0 flex-1 flex-col gap-0'
-      >
-        <BuilderPanelHeader
-          icon={Settings2}
-          title={selectedEl ? '当前题目' : '属性'}
-          description={
-            selectedEl?.kind === 'question'
-              ? getQuestionTypeLabel(selectedEl.type)
-              : undefined
-          }
-          action={
-            <TabsList className='grid h-8 shrink-0 grid-cols-2'>
-              <TabsTrigger value='element' className='px-2 text-xs'>
-                题目
-              </TabsTrigger>
-              <TabsTrigger value='settings' className='px-2 text-xs'>
-                问卷设置
-              </TabsTrigger>
-            </TabsList>
-          }
-        />
-        <div className='bg-background text-foreground flex min-h-0 min-w-0 flex-1 flex-col'>
-          <ScrollArea className='min-h-0 flex-1'>
-            <div className='min-w-0 overflow-x-hidden'>
-              <TabsContent value='element' className='mt-0 outline-none'>
-                {selectedEl?.kind === 'question' && (
-                  <QuestionInspector el={selectedEl} />
-                )}
-                {(selectedEl?.kind === 'divider' ||
-                  selectedEl?.kind === 'rich_text') && (
-                  <LayoutInspector el={selectedEl} />
-                )}
-                {!selectedEl && (
-                  <BuilderGuidance
-                    className='flex flex-col items-center justify-center gap-2 px-6 py-14 text-center'
-                    density='compact'
-                    title='未选中元素'
-                    description={
-                      <>
-                        在编辑区点击题目或布局块以编辑属性。逻辑与跳题请切换到顶栏
-                        <strong className='text-sm leading-none font-semibold tracking-tight'>
-                          「流程」
-                        </strong>
-                        。
-                      </>
-                    }
-                  />
-                )}
-              </TabsContent>
-              <TabsContent value='settings' className='mt-0 outline-none'>
-                <div className='flex flex-col'>
-                  <AvailabilityPanel />
-                  <MetaCoverPanel />
-                  <EndPagePanel />
-                  <SubmissionPolicyPanel />
-                  <ThemePanel />
-                  <PublishInfoCard />
-                </div>
-              </TabsContent>
-            </div>
-          </ScrollArea>
-        </div>
-      </Tabs>
+      <BuilderPanelHeader
+        icon={Settings2}
+        title='当前题目'
+        description={
+          selectedEl?.kind === 'question'
+            ? getQuestionTypeLabel(selectedEl.type)
+            : undefined
+        }
+      />
+      <div className='bg-background text-foreground flex min-h-0 min-w-0 flex-1 flex-col'>
+        <ScrollArea key={selectedEl?.id ?? 'empty'} className='min-h-0 flex-1'>
+          <div className='min-w-0 overflow-x-hidden'>
+            {selectedEl?.kind === 'question' && (
+              <QuestionInspector el={selectedEl} />
+            )}
+            {(selectedEl?.kind === 'divider' ||
+              selectedEl?.kind === 'rich_text') && (
+              <LayoutInspector el={selectedEl} />
+            )}
+            {!selectedEl && (
+              <BuilderGuidance
+                className='flex flex-col items-center justify-center gap-2 px-6 py-14 text-center'
+                density='compact'
+                title='未选中元素'
+                description={
+                  <>
+                    在编辑区点击题目或布局块以编辑属性。逻辑与跳题请切换到顶栏
+                    <strong className='text-sm leading-none font-semibold tracking-tight'>
+                      「流程」
+                    </strong>
+                    。
+                  </>
+                }
+              />
+            )}
+          </div>
+        </ScrollArea>
+      </div>
     </div>
   )
 }

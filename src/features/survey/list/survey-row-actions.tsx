@@ -2,11 +2,10 @@ import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   BarChart3,
-  ClipboardList,
+  Inbox,
+  ListChecks,
   MoreHorizontal,
-  Pause,
-  Pencil,
-  Rocket,
+  Settings2,
   Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -25,110 +24,81 @@ import {
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import type { SurveyListItem } from '../core/admin-data-schema'
 
-/** 从列表打开已有问卷的编辑页（新标签，保留列表页） */
-const editInNewTab = {
-  target: '_blank',
-  rel: 'noopener noreferrer',
-} as const
-
 type SurveyRowActionsProps = {
   survey: SurveyListItem
   onDelete: (id: string) => void
-  onPublish: (id: string) => void
-  onPause: (id: string) => void
 }
 
-export function SurveyRowActions({
-  survey,
-  onDelete,
-  onPublish,
-  onPause,
-}: SurveyRowActionsProps) {
+export function SurveyRowActions({ survey, onDelete }: SurveyRowActionsProps) {
   const [showConfirm, setShowConfirm] = useState(false)
 
   return (
     <div className='flex items-center justify-end gap-1'>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            asChild
-            variant='ghost'
-            size='icon'
-            className='size-8'
-            aria-label='编辑问卷'
-          >
-            <Link
-              to='/survey/$id/edit'
-              params={{ id: survey.id }}
-              {...editInNewTab}
-            >
-              <Pencil />
-            </Link>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side='top' className='text-xs'>
+      <Button
+        asChild
+        variant='ghost'
+        size='sm'
+        className='h-8 px-2'
+        aria-label='编辑设置'
+      >
+        <Link to='/survey/$id/edit' params={{ id: survey.id }}>
+          <Settings2 data-icon='inline-start' />
           编辑
-        </TooltipContent>
-      </Tooltip>
+        </Link>
+      </Button>
 
-      <SurveyStatusAction
-        survey={survey}
-        onPublish={onPublish}
-        onPause={onPause}
-      />
+      <Button
+        asChild
+        variant='ghost'
+        size='sm'
+        className='h-8 px-2'
+        aria-label={`编辑题目：${survey.title}`}
+      >
+        <Link to='/survey/$id/question' params={{ id: survey.id }}>
+          <ListChecks data-icon='inline-start' />
+          题目
+        </Link>
+      </Button>
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            asChild
-            variant='ghost'
-            size='icon'
-            className='size-8'
-            aria-label='数据分析'
-          >
-            <Link to='/survey/$id/analysis' params={{ id: survey.id }}>
-              <BarChart3 />
-            </Link>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side='top' className='text-xs'>
-          数据分析
-        </TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            asChild
-            variant='ghost'
-            size='icon'
-            className='size-8'
-            aria-label='查看填写记录'
-          >
-            <Link to='/survey/$id/record' params={{ id: survey.id }}>
-              <ClipboardList />
-            </Link>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side='top' className='text-xs'>
-          填写记录
-        </TooltipContent>
-      </Tooltip>
+      <Button
+        asChild
+        variant='ghost'
+        size='sm'
+        className='h-8 px-2'
+        aria-label='回收'
+      >
+        <Link to='/survey/$id/record' params={{ id: survey.id }}>
+          <Inbox data-icon='inline-start' />
+          回收
+        </Link>
+      </Button>
 
       <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant='ghost'
-            size='icon'
-            className='size-8'
-            aria-label='更多操作'
-            title='更多'
-          >
-            <MoreHorizontal />
-          </Button>
-        </DropdownMenuTrigger>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='size-8'
+                aria-label='更多操作'
+              >
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent side='top' className='text-xs'>
+            更多
+          </TooltipContent>
+        </Tooltip>
         <DropdownMenuContent align='end' sideOffset={6}>
           <DropdownMenuGroup>
+            <DropdownMenuItem asChild>
+              <Link to='/survey/$id/analysis' params={{ id: survey.id }}>
+                <BarChart3 />
+                分析
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem
               variant='destructive'
               onSelect={(e) => {
@@ -146,9 +116,9 @@ export function SurveyRowActions({
       <ConfirmDialog
         open={showConfirm}
         onOpenChange={setShowConfirm}
-        title='确认删除问卷？'
-        desc='删除问卷将同时清空该问卷下的所有答卷数据且无法恢复。您确定要删除吗？'
-        confirmText='确认删除'
+        title={`删除「${survey.title}」？`}
+        desc='问卷和全部答卷将永久删除。'
+        confirmText='删除'
         cancelBtnText='取消'
         destructive
         handleConfirm={() => {
@@ -157,58 +127,5 @@ export function SurveyRowActions({
         }}
       />
     </div>
-  )
-}
-
-function SurveyStatusAction({
-  survey,
-  onPublish,
-  onPause,
-}: {
-  survey: SurveyListItem
-  onPublish: (id: string) => void
-  onPause: (id: string) => void
-}) {
-  if (survey.status === 'archived') {
-    return (
-      <Button
-        type='button'
-        variant='ghost'
-        size='icon'
-        className='size-8'
-        aria-label='已归档'
-        title='已归档'
-        disabled
-      >
-        <Pause />
-      </Button>
-    )
-  }
-
-  const isPublished = survey.status === 'published'
-  const Icon = isPublished ? Pause : Rocket
-  const label = isPublished ? '暂停发布' : '发布'
-  const onClick = isPublished
-    ? () => onPause(survey.id)
-    : () => onPublish(survey.id)
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon'
-          className='size-8'
-          aria-label={label}
-          onClick={onClick}
-        >
-          <Icon />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side='top' className='text-xs'>
-        {label}
-      </TooltipContent>
-    </Tooltip>
   )
 }
