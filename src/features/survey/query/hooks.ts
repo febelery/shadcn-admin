@@ -69,11 +69,17 @@ export function usePublishSurvey() {
   })
 }
 
-export function useSurveyDetail(id: string, options?: { enabled?: boolean }) {
+export function useSurveyDetail(
+  id: string,
+  options?: { enabled?: boolean; suppressGlobalError?: boolean }
+) {
   return useQuery({
     queryKey: surveyKeys.detail(id),
     queryFn: () => getSurveyDetail(id),
     enabled: options?.enabled !== false && !!id,
+    meta: options?.suppressGlobalError
+      ? { suppressGlobalError: true }
+      : undefined,
   })
 }
 

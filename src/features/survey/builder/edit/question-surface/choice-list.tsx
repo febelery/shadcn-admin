@@ -52,8 +52,8 @@ export function SurfaceChoiceList({
 
   const layoutClass =
     optionLayout === 'horizontal'
-      ? 'flex flex-wrap gap-x-6 gap-y-3'
-      : 'flex flex-col gap-3'
+      ? 'flex flex-wrap gap-x-4 gap-y-2'
+      : 'flex flex-col gap-2'
 
   const Icon = mode === 'single' ? Circle : Square
 

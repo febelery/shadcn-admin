@@ -24,16 +24,14 @@ export function BuilderPanelHeader({
   return (
     <div
       className={cn(
-        'border-border bg-muted/60 flex h-12 shrink-0 items-center gap-2.5 border-b px-4',
+        'border-border/80 bg-background/80 flex min-h-12 shrink-0 items-center gap-2.5 border-b px-4 py-2.5',
         compact && 'px-3',
         className
       )}
     >
-      {Icon ? <Icon className='text-foreground/60 size-4 shrink-0' /> : null}
+      {Icon ? <Icon className='text-primary/70 size-4 shrink-0' /> : null}
       <div className='min-w-0 flex-1'>
-        <p className='truncate text-sm leading-none font-semibold tracking-tight'>
-          {title}
-        </p>
+        <h2 className='truncate text-sm leading-none font-semibold'>{title}</h2>
         {!compact && description ? (
           <p className='text-muted-foreground mt-1 truncate text-xs leading-snug'>
             {description}

@@ -83,7 +83,9 @@ export function OptionEditor({
   }
 
   return (
-    <div className={cn('max-w-full min-w-0 overflow-hidden', 'gap-3')}>
+    <div
+      className={cn('flex max-w-full min-w-0 flex-col gap-2 overflow-hidden')}
+    >
       <div className='flex items-center justify-between gap-2'>
         <Label className='text-muted-foreground text-xs font-medium'>
           {label}
@@ -194,7 +196,9 @@ export function OptionEditor({
         onValueChange={onChange}
         getItemValue={(o) => o.id}
       >
-        <SortableContent className={cn('max-w-full min-w-0', 'gap-1.5')}>
+        <SortableContent
+          className={cn('flex max-w-full min-w-0 flex-col gap-1.5')}
+        >
           {options.map((opt, idx) => (
             <SortableItem
               key={opt.id}

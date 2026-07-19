@@ -102,7 +102,7 @@ export function SurveyCoverHeader({
     const hasImage = Boolean(meta.cover)
 
     return (
-      <div className={cn('relative overflow-hidden', 'h-60', className)}>
+      <div className={cn('relative h-52 overflow-hidden', className)}>
         {hasImage ? (
           <img
             src={meta.cover}
@@ -141,7 +141,7 @@ export function SurveyCoverHeader({
   return (
     <div
       className={cn(
-        'h-60',
+        'h-52',
         'flex flex-col justify-end px-6 py-8 text-white',
         className
       )}

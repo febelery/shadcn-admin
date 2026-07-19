@@ -3,13 +3,6 @@ import { Settings2, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -17,7 +10,6 @@ import {
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
@@ -72,7 +64,7 @@ function QuestionInspector({ el }: { el: QuestionElement }) {
     surveyStyle
 
   return (
-    <div className='flex flex-col gap-3'>
+    <div className='flex flex-col'>
       <InspectorSection title='题型说明' description={typeLabel}>
         <p className='text-muted-foreground text-xs leading-relaxed'>
           {getQuestionTypeHint(el.type)}
@@ -183,16 +175,16 @@ function QuestionInspector({ el }: { el: QuestionElement }) {
         />
       </InspectorSection>
 
-      <Separator />
-
-      <Button
-        variant='destructive'
-        size='sm'
-        className='w-full'
-        onClick={() => removeElement(el.id)}
-      >
-        删除此题
-      </Button>
+      <div className='p-4'>
+        <Button
+          variant='outline'
+          size='sm'
+          className='text-destructive hover:bg-destructive/10 hover:text-destructive w-full'
+          onClick={() => removeElement(el.id)}
+        >
+          删除此题
+        </Button>
+      </div>
     </div>
   )
 }
@@ -203,7 +195,7 @@ function LayoutInspector({ el }: { el: SurveyElement }) {
 
   if (el.kind === 'divider') {
     return (
-      <div className='flex max-w-full min-w-0 flex-col gap-4 overflow-x-hidden'>
+      <div className='flex max-w-full min-w-0 flex-col gap-4 overflow-x-hidden p-4'>
         <p className='text-muted-foreground text-sm leading-relaxed'>
           分割线无额外配置
         </p>
@@ -221,7 +213,7 @@ function LayoutInspector({ el }: { el: SurveyElement }) {
 
   if (el.kind === 'rich_text') {
     return (
-      <div className='flex max-w-full min-w-0 flex-col gap-4 overflow-x-hidden'>
+      <div className='flex max-w-full min-w-0 flex-col gap-4 overflow-x-hidden p-4'>
         <Button
           variant='destructive'
           size='sm'
@@ -264,7 +256,12 @@ export function InspectorPanel({ className }: Props = {}) {
       >
         <BuilderPanelHeader
           icon={Settings2}
-          title='属性'
+          title={selectedEl ? '当前题目' : '属性'}
+          description={
+            selectedEl?.kind === 'question'
+              ? getQuestionTypeLabel(selectedEl.type)
+              : undefined
+          }
           action={
             <TabsList className='grid h-8 shrink-0 grid-cols-2'>
               <TabsTrigger value='element' className='px-2 text-xs'>
@@ -278,7 +275,7 @@ export function InspectorPanel({ className }: Props = {}) {
         />
         <div className='bg-background text-foreground flex min-h-0 min-w-0 flex-1 flex-col'>
           <ScrollArea className='min-h-0 flex-1'>
-            <div className='min-w-0 overflow-x-hidden p-4'>
+            <div className='min-w-0 overflow-x-hidden'>
               <TabsContent value='element' className='mt-0 outline-none'>
                 {selectedEl?.kind === 'question' && (
                   <QuestionInspector el={selectedEl} />
@@ -289,7 +286,7 @@ export function InspectorPanel({ className }: Props = {}) {
                 )}
                 {!selectedEl && (
                   <BuilderGuidance
-                    className='flex flex-col items-center justify-center gap-1.5 py-10 text-center'
+                    className='flex flex-col items-center justify-center gap-2 px-6 py-14 text-center'
                     density='compact'
                     title='未选中元素'
                     description={
@@ -305,7 +302,7 @@ export function InspectorPanel({ className }: Props = {}) {
                 )}
               </TabsContent>
               <TabsContent value='settings' className='mt-0 outline-none'>
-                <div className='flex flex-col gap-3'>
+                <div className='flex flex-col'>
                   <AvailabilityPanel />
                   <MetaCoverPanel />
                   <EndPagePanel />
@@ -335,39 +332,30 @@ export function InspectorSection({
 }) {
   return (
     <Collapsible defaultOpen={defaultOpen} className='group/panel'>
-      <Card className='border-border/60 gap-0 overflow-hidden py-0 shadow-sm'>
-        <CardHeader className='block p-0'>
-          <CollapsibleTrigger asChild>
-            <Button
-              type='button'
-              variant='ghost'
-              className='hover:bg-muted/50 h-auto min-h-12 w-full justify-between rounded-none px-4 py-3'
-            >
-              <div className='flex min-w-0 flex-col items-start gap-1 text-start'>
-                <CardTitle className='text-sm leading-none font-semibold tracking-tight'>
-                  {title}
-                </CardTitle>
-                {description ? (
-                  <CardDescription className='text-muted-foreground text-xs leading-relaxed'>
-                    {description}
-                  </CardDescription>
-                ) : null}
-              </div>
-              <ChevronDown className='text-muted-foreground size-4 shrink-0 transition-transform group-data-[state=open]/panel:rotate-180' />
-            </Button>
-          </CollapsibleTrigger>
-        </CardHeader>
-        <CollapsibleContent className='overflow-hidden'>
-          <CardContent
-            className={cn(
-              'flex min-w-0 flex-col overflow-x-hidden px-4 pt-0 pb-4',
-              'gap-4'
-            )}
+      <section className='border-border/70 border-b'>
+        <CollapsibleTrigger asChild>
+          <Button
+            type='button'
+            variant='ghost'
+            className='hover:bg-muted/45 h-auto min-h-13 w-full justify-between rounded-none px-4 py-3.5'
           >
+            <div className='flex min-w-0 flex-col items-start gap-1 text-start'>
+              <h3 className='text-sm leading-snug font-semibold'>{title}</h3>
+              {description ? (
+                <p className='text-muted-foreground text-xs leading-relaxed'>
+                  {description}
+                </p>
+              ) : null}
+            </div>
+            <ChevronDown className='text-muted-foreground size-4 shrink-0 transition-transform group-data-[state=open]/panel:rotate-180' />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className='overflow-hidden'>
+          <div className='flex min-w-0 flex-col gap-4 overflow-x-hidden px-4 pt-1 pb-5'>
             {children}
-          </CardContent>
+          </div>
         </CollapsibleContent>
-      </Card>
+      </section>
     </Collapsible>
   )
 }

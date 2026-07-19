@@ -99,7 +99,7 @@ function PaletteItemRow({
   const showHelp = !isDragging && !disabled
 
   const typeIcon = (
-    <span className='bg-muted text-foreground border-border/50 group-hover:border-border group-hover:bg-accent group-hover:text-accent-foreground flex size-7 shrink-0 items-center justify-center rounded-md border transition-colors'>
+    <span className='bg-muted/80 text-foreground group-hover:bg-accent group-hover:text-accent-foreground flex size-7 shrink-0 items-center justify-center rounded-sm transition-colors'>
       <Icon className='size-3.5' />
     </span>
   )
@@ -113,7 +113,7 @@ function PaletteItemRow({
       style={style}
       disabled={disabled}
       onClick={onAdd}
-      className='group text-foreground hover:bg-muted/60 hover:text-foreground h-9 w-full justify-start gap-2 rounded-md px-2 font-normal transition-colors duration-150'
+      className='group text-foreground hover:bg-accent/70 hover:text-foreground h-9 w-full justify-start gap-2 rounded-sm px-2 font-normal transition-colors duration-150'
       {...listeners}
       {...attributes}
     >
@@ -121,7 +121,7 @@ function PaletteItemRow({
         <HoverCard openDelay={200} closeDelay={80}>
           <HoverCardTrigger asChild>
             <span
-              className='bg-muted text-foreground border-border/50 group-hover:border-border group-hover:bg-accent group-hover:text-accent-foreground flex size-7 shrink-0 cursor-help items-center justify-center rounded-md border transition-colors'
+              className='bg-muted/80 text-foreground group-hover:bg-accent group-hover:text-accent-foreground flex size-7 shrink-0 cursor-help items-center justify-center rounded-sm transition-colors'
               aria-label={`${item.label} 说明`}
             >
               <Icon className='size-3.5' />
@@ -167,8 +167,8 @@ function PaletteCategory({
     >
       <CollapsibleTrigger
         className={cn(
-          'text-muted-foreground text-xs font-medium tracking-wider uppercase',
-          'flex h-8 w-full items-center gap-1.5 rounded-md px-2',
+          'text-muted-foreground text-xs font-semibold',
+          'flex h-8 w-full items-center gap-1.5 rounded-sm px-2',
           'hover:bg-muted/50 hover:text-foreground transition-colors duration-150'
         )}
       >
@@ -239,7 +239,11 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
         className
       )}
     >
-      <BuilderPanelHeader icon={LayoutGrid} title='题型' />
+      <BuilderPanelHeader
+        icon={LayoutGrid}
+        title='添加题目'
+        description='点击或拖拽到画布'
+      />
 
       <div className='bg-background text-foreground flex min-h-0 min-w-0 flex-1 flex-col'>
         <Command

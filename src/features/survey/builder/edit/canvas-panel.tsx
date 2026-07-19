@@ -42,13 +42,15 @@ const WorkspaceSurveyCover = memo(function WorkspaceSurveyCover() {
     coverType === 'color' || (coverType === 'image' && hasCoverImage)
 
   const titleClass = cn(
-    'text-xl font-semibold tracking-tight leading-tight sm:text-2xl',
-    onLightText ? 'text-white' : 'text-foreground'
+    'text-xl leading-tight font-semibold sm:text-2xl',
+    onLightText ? 'text-white placeholder:text-white/75' : 'text-foreground'
   )
   const descriptionClass = cn(
     'text-sm leading-relaxed',
     'mt-2 min-h-[1.25em]',
-    onLightText ? 'text-white/90' : 'text-muted-foreground'
+    onLightText
+      ? 'text-white/90 placeholder:text-white/65'
+      : 'text-muted-foreground'
   )
 
   return (
@@ -95,20 +97,24 @@ export function BuilderWorkspacePanel() {
 
   return (
     <div className='flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden'>
-      <BuilderPanelHeader icon={LayoutTemplate} title='题目' />
+      <BuilderPanelHeader
+        icon={LayoutTemplate}
+        title='编辑画布'
+        description={`${elements.length} 个内容块`}
+      />
 
       <div
         className='min-h-0 flex-1 overflow-y-auto pb-[calc(3.25rem+env(safe-area-inset-bottom))] lg:pb-0'
         {...{ [BUILDER_WORKSPACE_SCROLL_ATTR]: '' }}
       >
-        <div className='flex w-full flex-col px-4 py-6 @6xl/content:mx-auto @6xl/content:w-full @6xl/content:max-w-6xl'>
-          <div className='bg-card text-card-foreground border-border/80 w-full overflow-hidden rounded-xl border shadow-md'>
+        <div className='flex w-full flex-col px-5 py-6 @6xl/content:mx-auto @6xl/content:w-full @6xl/content:max-w-5xl @6xl/content:py-8'>
+          <div className='bg-card text-card-foreground border-border w-full overflow-hidden rounded-lg border'>
             <WorkspaceSurveyCover />
 
-            <div className='flex min-h-[320px] min-w-0 flex-col overflow-x-hidden px-5 py-8 sm:px-8 sm:py-10 md:px-12 md:py-12'>
+            <div className='flex min-h-[360px] min-w-0 flex-col overflow-x-hidden px-5 py-8 sm:px-8 sm:py-10 md:px-12'>
               {elements.length === 0 && !isPaletteDragging && (
                 <BuilderGuidance
-                  className='flex flex-1 flex-col items-center justify-center gap-1.5 py-20 text-center'
+                  className='border-primary/20 bg-primary/[0.025] flex flex-1 flex-col items-center justify-center gap-2 rounded-md border border-dashed px-8 py-16 text-center'
                   icon={LayoutGrid}
                   title='从左侧拖入或点击添加题目'
                   description='在画布上直接编辑题目与选项；选中题目后可在右侧属性面板调整设置。'

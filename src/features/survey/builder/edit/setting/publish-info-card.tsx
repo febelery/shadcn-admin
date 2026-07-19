@@ -1,6 +1,5 @@
 import { useShallow } from 'zustand/react/shallow'
 import { cn } from '@/lib/utils'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Item, ItemGroup, ItemTitle, ItemActions } from '@/components/ui/item'
 import { useBuilderStore } from '../../builder-session'
 
@@ -15,13 +14,9 @@ export function PublishInfoCard() {
   if (!slug) return null
 
   return (
-    <Card className='gap-0 py-0 shadow-sm'>
-      <CardHeader className='px-4 py-3'>
-        <CardTitle className='text-muted-foreground text-xs font-medium'>
-          发布信息
-        </CardTitle>
-      </CardHeader>
-      <CardContent className='px-4 pt-0 pb-4'>
+    <section className='border-border/70 border-b px-4 py-4'>
+      <h3 className='mb-2 text-sm font-semibold'>发布信息</h3>
+      <div>
         <ItemGroup>
           <Item
             size='sm'
@@ -57,7 +52,7 @@ export function PublishInfoCard() {
             </ItemActions>
           </Item>
         </ItemGroup>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   )
 }

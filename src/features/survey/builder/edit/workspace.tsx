@@ -24,20 +24,22 @@ export function EditWorkspace() {
       <div className='flex min-h-0 flex-1 overflow-hidden'>
         <aside
           className={cn(
-            'border-border bg-muted/35 flex min-h-0 w-72 min-w-0 shrink-0 flex-col overflow-hidden border-r',
+            'border-border/80 bg-background flex min-h-0 w-72 min-w-0 shrink-0 flex-col overflow-hidden border-r',
             desktopOnly
           )}
+          aria-label='题型工具'
         >
           <QuestionPalette />
         </aside>
-        <main className='from-background via-muted/25 to-muted/40 @container/content flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-linear-to-b'>
+        <main className='bg-muted/25 @container/content flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden'>
           <BuilderWorkspacePanel />
         </main>
         <aside
           className={cn(
-            'border-border bg-muted/35 flex min-h-0 w-80 min-w-0 shrink-0 flex-col overflow-hidden border-l',
+            'border-border/80 bg-background flex min-h-0 w-80 min-w-0 shrink-0 flex-col overflow-hidden border-l',
             desktopOnly
           )}
+          aria-label='属性面板'
         >
           <InspectorPanel />
         </aside>

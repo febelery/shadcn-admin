@@ -4,6 +4,7 @@ import {
   QueryCache,
   QueryClient,
 } from '@tanstack/react-query'
+import type { Query } from '@tanstack/react-query'
 import { ROUTES } from '@/constants'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
@@ -41,7 +42,11 @@ const shouldRetry = (failureCount: number, error: unknown): boolean => {
 /**
  * 处理查询错误
  */
-const handleQueryError = (error: unknown) => {
+const handleQueryError = (
+  error: unknown,
+  query: Query<unknown, unknown, unknown, readonly unknown[]>
+) => {
+  if (query?.meta?.suppressGlobalError) return
   if (!(error instanceof AxiosError) || !routerInstance) return
 
   const status = error.response?.status

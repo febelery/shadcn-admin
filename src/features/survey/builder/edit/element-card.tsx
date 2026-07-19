@@ -13,11 +13,11 @@ import type { SurveyElement } from '../../core/types'
 import { RichTextEditor } from '../../shared/rich-text-editor'
 import { useBuilderStore, useBuilderStoreApi } from '../builder-session'
 import { useIsPaletteDragging } from '../shared/dnd-provider'
-import { QuestionLogicBadges } from './question-logic-badges'
 import {
   WorkspaceQuestionActions,
   type QuestionDragHandleProps,
 } from './question-actions'
+import { QuestionLogicBadges } from './question-logic-badges'
 import { SurfaceQuestionBlock } from './question-surface/question-block'
 import { QUESTION_NUMBER_TOGGLE_ATTR } from './question-surface/question-number-toggle'
 import { scrollIntoWorkspaceView } from './workspace-scroll'
@@ -62,11 +62,11 @@ function QuestionBlock({
       ref={attachNode}
       style={style}
       className={cn(
-        'group/question relative rounded-lg border border-transparent',
+        'group/question relative',
         'transition-[background-color,border-color,box-shadow,opacity] duration-150',
         selected
-          ? 'border-border/50 bg-background before:bg-primary shadow-sm before:absolute before:top-2.5 before:bottom-2.5 before:left-0 before:w-0.5 before:rounded-r before:content-[""]'
-          : 'hover:bg-muted/30',
+          ? 'bg-primary/[0.035] before:bg-primary before:absolute before:top-2.5 before:bottom-2.5 before:left-0 before:w-0.5 before:rounded-r before:content-[""]'
+          : 'hover:bg-primary/[0.025]',
         dragging && 'opacity-40',
         dimmed && !dragging && 'opacity-35'
       )}

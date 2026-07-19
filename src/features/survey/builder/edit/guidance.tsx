@@ -25,23 +25,23 @@ export function BuilderGuidance({
       {Icon ? (
         <Icon
           className={cn(
-            'text-muted-foreground/40 mx-auto shrink-0 stroke-[1.25]',
+            'text-primary/55 mx-auto shrink-0 stroke-[1.5]',
             compact ? 'size-6' : 'size-8'
           )}
           aria-hidden
         />
       ) : null}
-      <p
+      <h3
         className={cn(
           compact
-            ? 'text-sm leading-none font-semibold tracking-tight'
-            : 'text-foreground text-base font-semibold tracking-tight'
+            ? 'text-sm leading-snug font-semibold'
+            : 'text-foreground text-lg leading-snug font-semibold'
         )}
       >
         {title}
-      </p>
+      </h3>
       {description ? (
-        <div className='text-muted-foreground mx-auto max-w-sm text-xs leading-relaxed'>
+        <div className='text-muted-foreground mx-auto max-w-sm text-[13px] leading-relaxed'>
           {description}
         </div>
       ) : null}
