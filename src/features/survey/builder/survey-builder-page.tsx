@@ -4,7 +4,6 @@ import { AlertCircle, ArrowLeft, RefreshCw, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -23,6 +22,7 @@ import {
 } from './builder-session'
 import { EditWorkspace } from './edit/workspace'
 import { FlowWorkspace } from './flow/workspace'
+import { SettingsWorkspace } from './settings/workspace'
 import { useRuleAuthoring } from './session/rule-authoring'
 import { RuleAuthoringProvider } from './session/rule-authoring-provider'
 import { hasRuleDraftChanges } from './session/rule-draft'
@@ -88,7 +88,6 @@ function SurveyBuilderContent({ props }: { props: Props }) {
   )
   const navigate = useBuilderStore((s) => s.navigate)
   const { leaveToEdit } = useRuleAuthoring()
-  const updateMeta = useBuilderStore((s) => s.updateMeta)
 
   const persistDocument = async (
     document: SurveyDocument
@@ -114,7 +113,7 @@ function SurveyBuilderContent({ props }: { props: Props }) {
     toast.success(isCreate ? '已新建' : '已保存')
     if (isCreate) {
       await router.navigate({
-        to: '/survey/$id/question',
+        to: '/survey/$id/edit',
         params: { id: persisted.id },
         replace: true,
       })
@@ -139,33 +138,35 @@ function SurveyBuilderContent({ props }: { props: Props }) {
               <ArrowLeft className='h-4 w-4' />
             </Link>
           </Button>
-          <div className='flex min-w-0 flex-col gap-0.5'>
-            <span className='text-muted-foreground hidden text-[11px] leading-none font-medium sm:block'>
-              {builderMode === 'flow' ? '流程逻辑' : '编辑'}
-            </span>
-            <Input
-              aria-label='问卷标题'
-              className={cn(
-                'placeholder:text-muted-foreground/50 h-7 text-lg leading-none font-semibold',
-                'min-w-0 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 sm:max-w-md'
-              )}
-              value={surveyTitle}
-              placeholder='标题'
-              onChange={(e) => updateMeta({ title: e.target.value })}
-            />
+          <div className='flex min-w-0 items-center'>
+            <h1
+              className='max-w-[12rem] truncate text-base font-semibold sm:max-w-xs md:max-w-md'
+              title={surveyTitle || '未命名问卷'}
+            >
+              {surveyTitle || '未命名问卷'}
+            </h1>
           </div>
         </div>
         <Tabs
           value={builderMode}
           onValueChange={(value) => {
-            if (value === 'edit') leaveToEdit()
-            else navigate({ type: 'show-flow' })
+            if (value === 'settings') {
+              if (builderMode === 'flow') leaveToEdit()
+              navigate({ type: 'show-settings' })
+            } else if (value === 'edit') {
+              leaveToEdit()
+            } else {
+              navigate({ type: 'show-flow' })
+            }
           }}
           className='justify-self-center'
         >
           <TabsList className='h-8 sm:h-9'>
+            <TabsTrigger value='settings' className='px-2.5 text-xs sm:px-4'>
+              配置
+            </TabsTrigger>
             <TabsTrigger value='edit' className='px-2.5 text-xs sm:px-4'>
-              编辑
+              题目
             </TabsTrigger>
             <TabsTrigger value='flow' className='px-2.5 text-xs sm:px-4'>
               流程
@@ -212,6 +213,7 @@ function SurveyBuilderContent({ props }: { props: Props }) {
         </div>
       </header>
 
+      {builderMode === 'settings' && <SettingsWorkspace />}
       {builderMode === 'edit' && <EditWorkspace />}
       {builderMode === 'flow' && <FlowWorkspace />}
     </div>

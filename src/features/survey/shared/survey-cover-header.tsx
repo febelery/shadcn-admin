@@ -16,7 +16,7 @@ type Props = {
   descriptionSlot?: ReactNode
 }
 
-/** 问卷说明是纯文本；富文本由独立 rich_text block 承担。 */
+/** 问卷描述：支持富文本 HTML 或纯文本回显 */
 function SurveyDescription({
   text,
   className,
@@ -25,6 +25,18 @@ function SurveyDescription({
   className?: string
 }) {
   if (!text.trim()) return null
+  const isHtml = /<[a-z][\s\S]*>/i.test(text)
+  if (isHtml) {
+    return (
+      <div
+        className={cn(
+          'prose prose-sm dark:prose-invert max-w-none mt-1.5 text-sm leading-relaxed',
+          className
+        )}
+        dangerouslySetInnerHTML={{ __html: text }}
+      />
+    )
+  }
   return (
     <p
       className={cn(

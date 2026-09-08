@@ -148,4 +148,11 @@ describe('survey settings form schema', () => {
       }).primaryColor
     ).toBe('#aabbcc')
   })
+
+  it('rejects invalid or non-image URLs via checkImageAccessible', async () => {
+    const { checkImageAccessible } = await import('@/lib/files')
+    expect(await checkImageAccessible('')).toBe(false)
+    expect(await checkImageAccessible('not-a-url')).toBe(false)
+    expect(await checkImageAccessible('ftp://example.com/a.png')).toBe(false)
+  })
 })

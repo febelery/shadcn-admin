@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptySurvey } from '../../core/document-factory'
+import { documentToSurveySettingsValues } from '../../settings/form-schema'
 import { createBuilderStore } from './store'
 
 describe('Builder document lifecycle', () => {
@@ -56,5 +57,20 @@ describe('Builder document lifecycle', () => {
       perUserLimit: 2,
     })
     expect(store.getState().isDirty).toBe(true)
+  })
+
+  it('updates settings without DataCloneError and marks dirty', () => {
+    const store = createBuilderStore(createEmptySurvey('Initial'))
+    const formValues = documentToSurveySettingsValues(store.getState().document)
+    formValues.title = 'Updated Title'
+    formValues.primaryColor = '#ff5500'
+
+    expect(() => {
+      store.getState().updateSettings(formValues)
+    }).not.toThrow()
+
+    expect(store.getState().isDirty).toBe(true)
+    expect(store.getState().document.meta.title).toBe('Updated Title')
+    expect(store.getState().document.theme.primaryColor).toBe('#ff5500')
   })
 })

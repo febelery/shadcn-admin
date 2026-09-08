@@ -18,6 +18,7 @@ import {
   getRuleDraftIssues,
   hasRuleDraftChanges,
 } from './rule-draft'
+import { applySurveySettingsValues } from '../../settings/form-schema'
 import type { BuilderState } from './state'
 
 export function createBuilderStore(initialDocument: SurveyDocument) {
@@ -29,7 +30,7 @@ export function createBuilderStore(initialDocument: SurveyDocument) {
       isDirty: false,
 
       // 流程与逻辑规则默认状态
-      builderMode: 'edit',
+      builderMode: 'settings',
       editingRuleId: null,
       logicMobilePanel: 'closed',
       ruleDraft: null,
@@ -61,6 +62,12 @@ export function createBuilderStore(initialDocument: SurveyDocument) {
               delete s.document.submissionPolicy[key]
             }
           }
+          s.isDirty = true
+        }),
+
+      updateSettings: (values) =>
+        set((s) => {
+          s.document = applySurveySettingsValues(s.document, values)
           s.isDirty = true
         }),
 

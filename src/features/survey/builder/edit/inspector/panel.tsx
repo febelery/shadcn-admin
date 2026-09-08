@@ -239,15 +239,7 @@ export function InspectorPanel({ className }: Props = {}) {
         className
       )}
     >
-      <BuilderPanelHeader
-        icon={Settings2}
-        title='当前题目'
-        description={
-          selectedEl?.kind === 'question'
-            ? getQuestionTypeLabel(selectedEl.type)
-            : undefined
-        }
-      />
+      <BuilderPanelHeader icon={Settings2} title='当前题目' />
       <div className='bg-background text-foreground flex min-h-0 min-w-0 flex-1 flex-col'>
         <ScrollArea key={selectedEl?.id ?? 'empty'} className='min-h-0 flex-1'>
           <div className='min-w-0 overflow-x-hidden'>

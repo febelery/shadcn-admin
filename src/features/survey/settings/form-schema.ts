@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { zEditorString } from '@/components/editor'
 import { DEFAULT_META } from '../core/document-factory'
 import type {
   CoverType,
@@ -36,7 +37,10 @@ const surveySettingsFormSchema = z
       .trim()
       .min(1, '请输入问卷标题')
       .max(120, '问卷标题不能超过 120 个字符'),
-    description: z.string().max(2000, '问卷说明不能超过 2000 个字符'),
+    description: zEditorString({
+      max: 2000,
+      maxError: '问卷描述不能超过 2000 个字符',
+    }),
     coverType: z.enum(['none', 'color', 'image']),
     coverColor: hexColor,
     cover: imageLocation,
@@ -161,35 +165,37 @@ export function applySurveySettingsValues(
   document: SurveyDocument,
   values: SurveySettingsFormValues
 ): SurveyDocument {
-  const next = structuredClone(document)
-  next.meta = {
-    ...next.meta,
-    title: values.title,
-    description: values.description,
-    coverType: values.coverType as CoverType,
-    coverColor: values.coverColor,
-    cover: values.cover || undefined,
-    submitLabel: values.submitLabel,
-    endTitle: values.endTitle,
-    endDescription: values.endDescription,
-    defaultQuestionNumbering:
-      values.numberingStyle as SurveyDefaultNumberingStyle,
-    questionNumberingMode: values.numberingMode as QuestionNumberingMode,
-  }
-  next.theme = {
-    ...next.theme,
-    primaryColor: values.primaryColor,
-  }
-  next.submissionPolicy = {
-    ...next.submissionPolicy,
-    opensAt: values.opensAt?.toISOString(),
-    closesAt: values.closesAt?.toISOString(),
-    totalLimit: optionalNumber(values.totalLimit),
-    perUserLimit: optionalNumber(values.perUserLimit),
-    dailyPerUserLimit: optionalNumber(values.dailyPerUserLimit),
-    dailyLimit: optionalNumber(values.dailyLimit),
-    perDeviceLimit: optionalNumber(values.perDeviceLimit),
-    accessPassword: values.accessPassword || undefined,
+  const next: SurveyDocument = {
+    ...document,
+    meta: {
+      ...document.meta,
+      title: values.title,
+      description: values.description,
+      coverType: values.coverType as CoverType,
+      coverColor: values.coverColor,
+      cover: values.cover || undefined,
+      submitLabel: values.submitLabel,
+      endTitle: values.endTitle,
+      endDescription: values.endDescription,
+      defaultQuestionNumbering:
+        values.numberingStyle as SurveyDefaultNumberingStyle,
+      questionNumberingMode: values.numberingMode as QuestionNumberingMode,
+    },
+    theme: {
+      ...document.theme,
+      primaryColor: values.primaryColor,
+    },
+    submissionPolicy: {
+      ...document.submissionPolicy,
+      opensAt: values.opensAt?.toISOString(),
+      closesAt: values.closesAt?.toISOString(),
+      totalLimit: optionalNumber(values.totalLimit),
+      perUserLimit: optionalNumber(values.perUserLimit),
+      dailyPerUserLimit: optionalNumber(values.dailyPerUserLimit),
+      dailyLimit: optionalNumber(values.dailyLimit),
+      perDeviceLimit: optionalNumber(values.perDeviceLimit),
+      accessPassword: values.accessPassword || undefined,
+    },
   }
 
   for (const key of Object.keys(next.submissionPolicy) as Array<

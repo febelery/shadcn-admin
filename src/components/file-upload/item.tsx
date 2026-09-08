@@ -4,6 +4,7 @@
 import * as React from 'react'
 import {
   XIcon,
+  Trash2,
   EyeIcon,
   AlertCircleIcon,
   CheckCircle2Icon,
@@ -110,7 +111,9 @@ function CardItem({
   onDelete: (e: React.MouseEvent) => void
   onCrop: (e: React.MouseEvent) => void
 } & React.ComponentProps<'div'>) {
+  const [thumbError, setThumbError] = React.useState(false)
   const isImage = item.file.type.startsWith('image/')
+  const isError = item.status === 'error' || thumbError
 
   return (
     <div
@@ -126,8 +129,7 @@ function CardItem({
         'bg-muted/20 border-border/50 border shadow-sm transition-all duration-300',
         'hover:border-primary/30 hover:shadow-md',
         'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none',
-        item.status === 'error' &&
-          'border-destructive/50 ring-destructive/20 ring-2',
+        isError && 'border-destructive/50 ring-destructive/20 ring-2',
         className
       )}
       style={{
@@ -142,6 +144,7 @@ function CardItem({
             url={item.url}
             view='card'
             className='size-full object-cover'
+            onLoadError={setThumbError}
           />
         </div>
       </div>
@@ -198,7 +201,7 @@ function CardItem({
             )}
             aria-label='删除文件'
           >
-            <XIcon className='size-3.5' />
+            <Trash2 className='size-3.5' />
           </button>
         </div>
       )}
@@ -234,13 +237,13 @@ function CardItem({
       </div>
 
       {/* 错误状态遮罩 */}
-      {item.status === 'error' && (
+      {isError && (
         <>
           <div className='bg-destructive/10 pointer-events-none absolute inset-0' />
           <div className='bg-destructive/95 pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-1.5 px-2 py-2 shadow-inner'>
             <AlertCircleIcon className='size-3.5 shrink-0 text-white' />
             <p className='truncate text-[10px] leading-tight font-semibold tracking-wide text-white'>
-              {item.error ?? '上传失败'}
+              {item.error ?? '图片无法访问或加载失败 (404)'}
             </p>
           </div>
         </>

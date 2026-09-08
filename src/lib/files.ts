@@ -330,3 +330,67 @@ export function validateFile(file: File, rule: FileValidation): string | null {
 
   return validateFileSize(file, rule.maxSize, rule.minSize)
 }
+
+const imageAccessCache = new Map<string, boolean>()
+
+/**
+ * 校验图片 URL 是否可正常加载访问（可捕获 404、链接失效或非合法图片资源）
+ */
+export function checkImageAccessible(
+  url: string,
+  timeoutMs = 5000
+): Promise<boolean> {
+  if (!url || typeof url !== 'string') return Promise.resolve(false)
+  const trimmed = url.trim()
+  if (
+    !/^https?:\/\//i.test(trimmed) &&
+    !trimmed.startsWith('blob:') &&
+    !trimmed.startsWith('data:image/')
+  ) {
+    return Promise.resolve(false)
+  }
+
+  // 命中已验证过的缓存（避免重复发请求）
+  if (imageAccessCache.has(trimmed)) {
+    return Promise.resolve(imageAccessCache.get(trimmed)!)
+  }
+
+  // 非浏览器环境默认放行
+  if (typeof window === 'undefined' || typeof Image === 'undefined') {
+    return Promise.resolve(true)
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image()
+    let settled = false
+
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true
+        img.src = ''
+        imageAccessCache.set(trimmed, false)
+        resolve(false)
+      }
+    }, timeoutMs)
+
+    img.onload = () => {
+      if (!settled) {
+        settled = true
+        clearTimeout(timer)
+        imageAccessCache.set(trimmed, true)
+        resolve(true)
+      }
+    }
+
+    img.onerror = () => {
+      if (!settled) {
+        settled = true
+        clearTimeout(timer)
+        imageAccessCache.set(trimmed, false)
+        resolve(false)
+      }
+    }
+
+    img.src = trimmed
+  })
+}

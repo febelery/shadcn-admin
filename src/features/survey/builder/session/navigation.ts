@@ -10,6 +10,7 @@ export interface BuilderNavigationSnapshot {
 }
 
 export type BuilderNavigationIntent =
+  | { type: 'show-settings' }
   | { type: 'show-edit' }
   | { type: 'show-flow' }
   | { type: 'show-rule-list' }
@@ -27,6 +28,13 @@ export function resolveBuilderNavigation(
   intent: BuilderNavigationIntent
 ): BuilderNavigationSnapshot {
   switch (intent.type) {
+    case 'show-settings':
+      return {
+        ...current,
+        builderMode: 'settings',
+        editingRuleId: null,
+        logicMobilePanel: 'closed',
+      }
     case 'show-edit':
       return {
         ...current,

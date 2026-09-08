@@ -277,8 +277,8 @@ export function isRuleActionType(value: unknown): value is RuleActionType {
   return typeof value === 'string' && RULE_ACTION_TYPE_SET.has(value)
 }
 
-/** 设计器顶栏模式：编辑内容 / 流程图 */
-export type BuilderMode = 'edit' | 'flow'
+/** 设计器顶栏模式：配置 / 题目编辑 / 流程图 */
+export type BuilderMode = 'settings' | 'edit' | 'flow'
 
 export interface RuleAction {
   id: string

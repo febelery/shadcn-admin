@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
-import type { ColumnDef } from '@/lib/table'
 import { ChevronDown, Pause, Rocket } from 'lucide-react'
+import type { ColumnDef } from '@/lib/table'
 import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
@@ -55,6 +55,7 @@ export function createSurveyColumns(handlers: {
   return [
     {
       accessorKey: 'title',
+      enableSorting: false,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='标题' />
       ),
@@ -85,6 +86,7 @@ export function createSurveyColumns(handlers: {
     },
     {
       accessorKey: 'status',
+      enableSorting: false,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='状态' />
       ),
@@ -101,21 +103,16 @@ export function createSurveyColumns(handlers: {
     },
     {
       accessorKey: 'questionCount',
+      enableSorting: false,
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
           title='题目'
-          className='justify-center'
+          className='justify-center text-center'
         />
       ),
       cell: ({ row }) => (
-        <Link
-          to='/survey/$id/question'
-          params={{ id: row.original.id }}
-          className='inline-flex w-full justify-center font-medium underline-offset-4 hover:underline'
-        >
-          <span className='tabular-nums'>{row.original.questionCount}</span>
-        </Link>
+        <span className='tabular-nums'>{row.original.questionCount}</span>
       ),
       meta: {
         className: 'w-[96px]',
@@ -124,21 +121,16 @@ export function createSurveyColumns(handlers: {
     },
     {
       accessorKey: 'recordCount',
+      enableSorting: false,
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
           title='回收'
-          className='justify-center'
+          className='justify-center text-center'
         />
       ),
       cell: ({ row }) => (
-        <Link
-          to='/survey/$id/record'
-          params={{ id: row.original.id }}
-          className='inline-flex w-full justify-center font-medium underline-offset-4 hover:underline'
-        >
-          <span className='tabular-nums'>{row.original.recordCount}</span>
-        </Link>
+        <span className='tabular-nums'>{row.original.recordCount}</span>
       ),
       meta: {
         className: 'w-[96px]',

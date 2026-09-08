@@ -79,18 +79,6 @@ export function createAllTypesDemoSurvey(): SurveyDocument {
     '您的反馈已收到，期待再次为您服务。退房时可至前台领取一份手冲咖啡券。'
 
   document.elements = [
-    // 开始之前
-    {
-      kind: 'rich_text',
-      id: crypto.randomUUID(),
-      content: richText(
-        '尊敬的住客，您好！',
-        '云岭精品酒店重视每一位客人的真实感受。本问卷用于了解您本次入住的整体体验，所有信息仅用于服务质量改进，不会对外公开。',
-        '若您愿意留下联系方式，我们将在您下次入住时为您准备一份欢迎礼遇。'
-      ),
-    },
-    divider(),
-
     // 预订与行程
     q('single_choice', '您是通过哪种方式完成本次预订的？', {
       required: true,
@@ -136,6 +124,16 @@ export function createAllTypesDemoSurvey(): SurveyDocument {
         ],
       },
     }),
+    {
+      kind: 'rich_text',
+      id: crypto.randomUUID(),
+      content: richText(
+        '尊敬的住客，您好！',
+        '云岭精品酒店重视每一位客人的真实感受。本问卷用于了解您本次入住的整体体验，所有信息仅用于服务质量改进，不会对外公开。',
+        '若您愿意留下联系方式，我们将在您下次入住时为您准备一份欢迎礼遇。'
+      ),
+    },
+    divider(),
     q('date', '您的入住日期是？', {
       config: {},
     }),

@@ -28,6 +28,7 @@ export function FileUploadDropzone({
     cardSize = 'lg',
     variant = 'default',
     validation,
+    aspect,
   } = useFileUploadContext()
 
   const inputRef = React.useRef<HTMLInputElement>(null)
@@ -124,14 +125,27 @@ export function FileUploadDropzone({
   }, [items.length, acceptStr, validation])
 
   const isEmpty = items.length === 0
+  const isSingleCard = !isEmpty && validation?.maxFiles === 1 && view === 'card'
 
   return (
     <div
       className={cn(
-        'relative rounded-xl border-2 border-dashed transition-all duration-200',
-        isDisabled
-          ? 'border-muted bg-muted/20 cursor-not-allowed'
-          : 'border-muted-foreground/20 bg-background hover:border-primary/30 hover:bg-accent/20 cursor-pointer',
+        'relative rounded-xl transition-all duration-200',
+        isEmpty
+          ? [
+              'border-2 border-dashed',
+              isDisabled
+                ? 'border-muted bg-muted/20 cursor-not-allowed'
+                : 'border-muted-foreground/20 bg-background hover:border-primary/30 hover:bg-accent/20 cursor-pointer',
+            ]
+          : isSingleCard
+            ? 'border-none p-0'
+            : [
+                'border-2 border-dashed',
+                isDisabled
+                  ? 'border-muted bg-muted/20 cursor-not-allowed'
+                  : 'border-muted-foreground/20 bg-background',
+              ],
         isDragging &&
           !isDisabled && [
             'border-primary bg-primary/5',
@@ -139,18 +153,22 @@ export function FileUploadDropzone({
             'scale-[1.005]',
           ],
         'focus-within:border-primary/50 focus-within:ring-ring/20 focus-within:ring-2',
-        variant === 'minimal' ? 'py-0' : '',
+        variant === 'minimal' && isEmpty ? 'py-0' : '',
         variant === 'button'
           ? 'border-none bg-transparent p-0 hover:bg-transparent'
           : '',
         className
       )}
+      style={{
+        ...(isEmpty && aspect ? { aspectRatio: aspect } : {}),
+        ...props.style,
+      }}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onPaste={handlePaste}
-      onClick={openFilePicker}
+      onClick={isAtMax ? undefined : openFilePicker}
       {...props}
     >
       <input
@@ -185,7 +203,7 @@ export function FileUploadDropzone({
         ) : (
           <div
             className={cn(
-              'flex flex-col items-center justify-center text-center',
+              'flex flex-col items-center justify-center text-center size-full',
               variant === 'minimal' ? 'gap-2 px-3 py-6' : 'gap-4 px-6 py-12'
             )}
           >
@@ -270,7 +288,7 @@ export function FileUploadDropzone({
         /* ── 有文件时的列表 / 网格 ── */
         <div
           className={cn(
-            'p-3',
+            isSingleCard ? 'p-0' : 'p-3',
             view === 'card' && [
               'grid gap-3',
               cardSize === 'sm' &&
@@ -301,6 +319,7 @@ export function FileUploadDropzone({
 
           {/* 未达上限时的「继续添加」入口 */}
           {!isDisabled &&
+            !isAtMax &&
             (view === 'list' ? (
               /* List 模式：一行文字按钮 */
               <button

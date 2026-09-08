@@ -2,10 +2,9 @@ import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   BarChart3,
-  Inbox,
-  ListChecks,
+  ScrollText,
   MoreHorizontal,
-  Settings2,
+  SquarePen,
   Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -39,24 +38,11 @@ export function SurveyRowActions({ survey, onDelete }: SurveyRowActionsProps) {
         variant='ghost'
         size='sm'
         className='h-8 px-2'
-        aria-label='编辑设置'
+        aria-label='编辑问卷'
       >
         <Link to='/survey/$id/edit' params={{ id: survey.id }}>
-          <Settings2 data-icon='inline-start' />
+          <SquarePen data-icon='inline-start' />
           编辑
-        </Link>
-      </Button>
-
-      <Button
-        asChild
-        variant='ghost'
-        size='sm'
-        className='h-8 px-2'
-        aria-label={`编辑题目：${survey.title}`}
-      >
-        <Link to='/survey/$id/question' params={{ id: survey.id }}>
-          <ListChecks data-icon='inline-start' />
-          题目
         </Link>
       </Button>
 
@@ -68,7 +54,7 @@ export function SurveyRowActions({ survey, onDelete }: SurveyRowActionsProps) {
         aria-label='回收'
       >
         <Link to='/survey/$id/record' params={{ id: survey.id }}>
-          <Inbox data-icon='inline-start' />
+          <ScrollText data-icon='inline-start' />
           回收
         </Link>
       </Button>

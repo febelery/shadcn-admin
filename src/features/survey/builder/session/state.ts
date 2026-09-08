@@ -1,5 +1,6 @@
 import type { RuleCategory } from '../../core/logic/rule-meta'
 import type { RichTextContent } from '../../core/rich-text'
+import type { SurveySettingsFormValues } from '../../settings/form-schema'
 import type {
   SurveyDocument,
   LayoutElementKind,
@@ -37,6 +38,7 @@ export interface BuilderState {
   updateSubmissionPolicy: (
     change: Partial<SurveyDocument['submissionPolicy']>
   ) => void
+  updateSettings: (values: SurveySettingsFormValues) => void
   addQuestion: (type: QuestionType, index?: number) => void
   addLayout: (kind: LayoutElementKind, index?: number) => void
   reorderElements: (activeId: string, overId: string) => void
