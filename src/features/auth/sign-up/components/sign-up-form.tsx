@@ -1,6 +1,5 @@
-import { useTransition } from 'react'
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { IconGmail, IconGithub } from '@/assets/brand-icons'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -27,23 +26,19 @@ export function SignUpForm({
   className,
   ...props
 }: React.HTMLAttributes<HTMLFormElement>) {
-  const [isPending, startTransition] = useTransition()
-
   const form = useForm({
     defaultValues: {
       name: '',
       password: '',
       confirmPassword: '',
     },
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: formSchema,
-      onSubmit: formSchema,
+      onDynamic: formSchema,
     },
     onSubmit: async ({ value }) => {
-      startTransition(async () => {
-        console.log(value)
-        await new Promise((resolve) => setTimeout(resolve, 3000))
-      })
+      console.log(value)
+      await new Promise((resolve) => setTimeout(resolve, 3000))
     },
   })
 
@@ -62,7 +57,8 @@ export function SignUpForm({
         name='name'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>账号</FieldLabel>
@@ -86,7 +82,8 @@ export function SignUpForm({
         name='password'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>密码</FieldLabel>
@@ -110,7 +107,8 @@ export function SignUpForm({
         name='confirmPassword'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>确认密码</FieldLabel>
@@ -129,9 +127,14 @@ export function SignUpForm({
         }}
       />
 
-      <Button type='submit' className='mt-2' disabled={isPending}>
-        创建账户
-      </Button>
+      <form.Subscribe
+        selector={(state) => state.isSubmitting}
+        children={(isSubmitting) => (
+          <Button type='submit' className='mt-2' disabled={isSubmitting}>
+            创建账户
+          </Button>
+        )}
+      />
 
       <div className='relative my-2'>
         <div className='absolute inset-0 flex items-center'>
@@ -149,7 +152,7 @@ export function SignUpForm({
           variant='outline'
           className='w-full'
           type='button'
-          disabled={isPending}
+          disabled={form.state.isSubmitting}
         >
           <IconGithub className='h-4 w-4' /> GitHub
         </Button>
@@ -157,7 +160,7 @@ export function SignUpForm({
           variant='outline'
           className='w-full'
           type='button'
-          disabled={isPending}
+          disabled={form.state.isSubmitting}
         >
           <IconGmail className='h-4 w-4' /> Google
         </Button>

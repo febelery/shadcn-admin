@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import { useForm, useStore } from '@tanstack/react-form'
+import { revalidateLogic, useForm, useStore } from '@tanstack/react-form'
 import { checkImageAccessible, mbToBytes } from '@/lib/files'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
@@ -67,7 +67,7 @@ function SettingsSection({
 }) {
   return (
     <section className='px-5 py-6 sm:px-6'>
-      <div className='mb-5 space-y-1'>
+      <div className='mb-5 gap-1'>
         <h2 className='text-base leading-none font-semibold'>{title}</h2>
         <p className='text-muted-foreground text-sm leading-relaxed'>
           {description}
@@ -173,7 +173,7 @@ function NumberingStyleSelect({
 function PublishInfo({ document }: { document: SurveyDocument }) {
   return (
     <CardFooter className='bg-muted/25 grid gap-3 border-t px-5 py-4 sm:grid-cols-[1fr_auto] sm:px-6'>
-      <div className='space-y-0.5'>
+      <div className='flex flex-col gap-0.5'>
         <p className='text-sm font-medium'>发布信息</p>
         <p className='text-muted-foreground text-xs leading-relaxed'>
           {document.slug
@@ -212,8 +212,9 @@ export function SettingsWorkspace() {
 
   const form = useForm({
     defaultValues: documentToSurveySettingsValues(document),
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: surveySettingsFormSchema,
+      onDynamic: surveySettingsFormSchema,
     },
   })
 
@@ -244,15 +245,16 @@ export function SettingsWorkspace() {
               title='基础信息'
               description='标题、描述和提交按钮文案。'
             >
-              <FieldGroup className='gap-5'>
+              <FieldGroup className='flex flex-col gap-5'>
                 <div className='grid gap-5 md:grid-cols-[minmax(0,2fr)_minmax(12rem,1fr)]'>
                   <form.Field
                     name='title'
                     children={(field) => {
                       const invalid =
-                        field.state.meta.isTouched && !field.state.meta.isValid
+                        field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='gap-2'>
+                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
                           <FieldLabel htmlFor={field.name}>问卷标题</FieldLabel>
                           <Input
                             id={field.name}
@@ -276,9 +278,10 @@ export function SettingsWorkspace() {
                     name='submitLabel'
                     children={(field) => {
                       const invalid =
-                        field.state.meta.isTouched && !field.state.meta.isValid
+                        field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='gap-2'>
+                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
                           <FieldLabel htmlFor={field.name}>
                             提交按钮文案
                           </FieldLabel>
@@ -305,9 +308,10 @@ export function SettingsWorkspace() {
                   name='description'
                   children={(field) => {
                     const invalid =
-                      field.state.meta.isTouched && !field.state.meta.isValid
+                      field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                     return (
-                      <Field data-invalid={invalid} className='gap-2'>
+                      <Field data-invalid={invalid} className='flex flex-col gap-2'>
                         <FieldLabel htmlFor={field.name}>描述</FieldLabel>
                         <Editor
                           id={field.name}
@@ -333,14 +337,15 @@ export function SettingsWorkspace() {
             <Separator />
 
             <SettingsSection title='头图' description='选择无、纯色或图片。'>
-              <FieldGroup className='gap-5'>
+              <FieldGroup className='flex flex-col gap-5'>
                 <form.Field
                   name='coverType'
                   children={(field) => {
                     const invalid =
-                      field.state.meta.isTouched && !field.state.meta.isValid
+                      field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                     return (
-                      <Field data-invalid={invalid} className='gap-2'>
+                      <Field data-invalid={invalid} className='flex flex-col gap-2'>
                         <FieldLabel>样式</FieldLabel>
                         <RadioGroup
                           name={field.name}
@@ -384,8 +389,9 @@ export function SettingsWorkspace() {
                           name='coverColor'
                           children={(field) => {
                             const invalid =
-                              field.state.meta.isTouched &&
-                              !field.state.meta.isValid
+                              field.state.meta.errors.length > 0 &&
+                              (field.state.meta.isTouched ||
+                                form.state.submissionAttempts > 0)
                             return (
                               <Field
                                 data-invalid={invalid}
@@ -415,17 +421,8 @@ export function SettingsWorkspace() {
                         name='cover'
                         asyncDebounceMs={350}
                         validators={{
-                          onChangeAsyncDebounceMs: 350,
-                          onChangeAsync: async ({ value }) => {
-                            if (!value) return undefined
-                            const isAccessible =
-                              await checkImageAccessible(value)
-                            if (!isAccessible) {
-                              return '图片无法访问（404 或链接失效）'
-                            }
-                            return undefined
-                          },
-                          onBlurAsync: async ({ value }) => {
+                          onDynamicAsyncDebounceMs: 350,
+                          onDynamicAsync: async ({ value }) => {
                             if (!value) return undefined
                             const isAccessible =
                               await checkImageAccessible(value)
@@ -437,11 +434,11 @@ export function SettingsWorkspace() {
                         }}
                         children={(field) => {
                           const invalid =
+                            field.state.meta.errors.length > 0 &&
                             (field.state.meta.isTouched ||
-                              field.state.meta.isDirty) &&
-                            !field.state.meta.isValid
+                              form.state.submissionAttempts > 0)
                           return (
-                            <Field data-invalid={invalid} className='gap-3'>
+                            <Field data-invalid={invalid} className='flex flex-col gap-3'>
                               <FieldLabel>图片</FieldLabel>
                               <div className='bg-muted/15 grid gap-4 rounded-lg border p-4 sm:grid-cols-[18rem_minmax(0,1fr)]'>
                                 <div className='min-w-0'>
@@ -464,7 +461,7 @@ export function SettingsWorkspace() {
                                   />
                                 </div>
                                 <div className='min-w-0 sm:py-1'>
-                                  <div className='mb-3 space-y-1'>
+                                  <div className='mb-3 gap-1'>
                                     <p className='text-sm font-medium'>
                                       图片来源
                                     </p>
@@ -504,15 +501,16 @@ export function SettingsWorkspace() {
               title='投放与访问'
               description='时间、回收上限和访问限制。'
             >
-              <FieldGroup className='gap-5'>
+              <FieldGroup className='flex flex-col gap-5'>
                 <div className='grid gap-5 md:grid-cols-2'>
                   <form.Field
                     name='opensAt'
                     children={(field) => {
                       const invalid =
-                        field.state.meta.isTouched && !field.state.meta.isValid
+                        field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='gap-2'>
+                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
                           <FieldLabel htmlFor='opens-at-picker'>
                             开始时间
                           </FieldLabel>
@@ -534,9 +532,10 @@ export function SettingsWorkspace() {
                     name='closesAt'
                     children={(field) => {
                       const invalid =
-                        field.state.meta.isTouched && !field.state.meta.isValid
+                        field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='gap-2'>
+                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
                           <FieldLabel htmlFor='closes-at-picker'>
                             结束时间
                           </FieldLabel>
@@ -560,9 +559,10 @@ export function SettingsWorkspace() {
                     name='totalLimit'
                     children={(field) => {
                       const invalid =
-                        field.state.meta.isTouched && !field.state.meta.isValid
+                        field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='gap-2'>
+                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
                           <FieldLabel htmlFor={field.name}>回收上限</FieldLabel>
                           <Input
                             id={field.name}
@@ -589,9 +589,10 @@ export function SettingsWorkspace() {
                     name='perDeviceLimit'
                     children={(field) => {
                       const invalid =
-                        field.state.meta.isTouched && !field.state.meta.isValid
+                        field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='gap-2'>
+                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
                           <FieldLabel htmlFor={field.name}>
                             每台设备上限
                           </FieldLabel>
@@ -620,9 +621,10 @@ export function SettingsWorkspace() {
                     name='accessPassword'
                     children={(field) => {
                       const invalid =
-                        field.state.meta.isTouched && !field.state.meta.isValid
+                        field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='gap-2'>
+                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
                           <FieldLabel htmlFor={field.name}>访问密码</FieldLabel>
                           <Input
                             id={field.name}
@@ -650,9 +652,10 @@ export function SettingsWorkspace() {
                     name='perUserLimit'
                     children={(field) => {
                       const invalid =
-                        field.state.meta.isTouched && !field.state.meta.isValid
+                        field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='gap-2'>
+                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
                           <FieldLabel htmlFor={field.name}>每人上限</FieldLabel>
                           <Input
                             id={field.name}
@@ -679,9 +682,10 @@ export function SettingsWorkspace() {
                     name='dailyPerUserLimit'
                     children={(field) => {
                       const invalid =
-                        field.state.meta.isTouched && !field.state.meta.isValid
+                        field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='gap-2'>
+                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
                           <FieldLabel htmlFor={field.name}>
                             每人每日上限
                           </FieldLabel>
@@ -710,9 +714,10 @@ export function SettingsWorkspace() {
                     name='dailyLimit'
                     children={(field) => {
                       const invalid =
-                        field.state.meta.isTouched && !field.state.meta.isValid
+                        field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='gap-2'>
+                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
                           <FieldLabel htmlFor={field.name}>
                             每日总上限
                           </FieldLabel>
@@ -751,9 +756,10 @@ export function SettingsWorkspace() {
                   name='endTitle'
                   children={(field) => {
                     const invalid =
-                      field.state.meta.isTouched && !field.state.meta.isValid
+                      field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                     return (
-                      <Field data-invalid={invalid} className='gap-2'>
+                      <Field data-invalid={invalid} className='flex flex-col gap-2'>
                         <FieldLabel htmlFor={field.name}>标题</FieldLabel>
                         <Input
                           id={field.name}
@@ -776,9 +782,10 @@ export function SettingsWorkspace() {
                   name='endDescription'
                   children={(field) => {
                     const invalid =
-                      field.state.meta.isTouched && !field.state.meta.isValid
+                      field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                     return (
-                      <Field data-invalid={invalid} className='gap-2'>
+                      <Field data-invalid={invalid} className='flex flex-col gap-2'>
                         <FieldLabel htmlFor={field.name}>说明</FieldLabel>
                         <Textarea
                           id={field.name}
@@ -812,9 +819,10 @@ export function SettingsWorkspace() {
                   name='numberingStyle'
                   children={(field) => {
                     const invalid =
-                      field.state.meta.isTouched && !field.state.meta.isValid
+                      field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                     return (
-                      <Field data-invalid={invalid} className='gap-2'>
+                      <Field data-invalid={invalid} className='flex flex-col gap-2'>
                         <FieldLabel>题号样式</FieldLabel>
                         <NumberingStyleSelect
                           value={field.state.value}
@@ -836,15 +844,16 @@ export function SettingsWorkspace() {
                       name='numberingMode'
                       children={(field) => {
                         const invalid =
-                          field.state.meta.isTouched &&
-                          !field.state.meta.isValid
+                          field.state.meta.errors.length > 0 &&
+                          (field.state.meta.isTouched ||
+                            form.state.submissionAttempts > 0)
                         const disabled =
                           !isSurveyNumberingEnabled(numberingStyle)
                         return (
                           <Field
                             data-invalid={invalid}
                             data-disabled={disabled}
-                            className='gap-2'
+                            className='flex flex-col gap-2'
                           >
                             <FieldLabel>编号方式</FieldLabel>
                             <Select
@@ -896,9 +905,10 @@ export function SettingsWorkspace() {
                   name='primaryColor'
                   children={(field) => {
                     const invalid =
-                      field.state.meta.isTouched && !field.state.meta.isValid
+                      field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
                     return (
-                      <Field data-invalid={invalid} className='gap-2'>
+                      <Field data-invalid={invalid} className='flex flex-col gap-2'>
                         <FieldLabel>主题色</FieldLabel>
                         <ColorControl
                           value={field.state.value}

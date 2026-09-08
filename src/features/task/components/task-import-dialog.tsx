@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import {
@@ -41,8 +41,9 @@ export function TaskImportDialog({
     defaultValues: {
       file: undefined as unknown as FileList,
     },
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: formSchema,
+      onDynamic: formSchema,
     },
     onSubmit: async ({ value }) => {
       const file = value.file
@@ -90,7 +91,9 @@ export function TaskImportDialog({
             name='file'
             children={(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
+                field.state.meta.errors.length > 0 &&
+                (field.state.meta.isTouched ||
+                  form.state.submissionAttempts > 0)
               return (
                 <Field data-invalid={isInvalid} className='my-2'>
                   <FieldLabel htmlFor={field.name}>文件</FieldLabel>
@@ -113,11 +116,15 @@ export function TaskImportDialog({
             }}
           />
         </form>
-        <DialogFooter className='gap-2'>
+        <DialogFooter className='flex flex-col gap-2'>
           <DialogClose asChild>
             <Button variant='outline'>关闭</Button>
           </DialogClose>
-          <Button type='submit' form='task-import-form'>
+          <Button
+            type='submit'
+            form='task-import-form'
+            disabled={form.state.isSubmitting}
+          >
             导入
           </Button>
         </DialogFooter>

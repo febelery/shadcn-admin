@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from 'react'
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import {
@@ -121,8 +121,9 @@ export function UserActionDialog({
 
   const form = useForm({
     defaultValues: initialValues,
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: formSchema,
+      onDynamic: formSchema,
     },
     onSubmit: async ({ value }) => {
       form.reset()
@@ -160,19 +161,21 @@ export function UserActionDialog({
               e.stopPropagation()
               form.handleSubmit()
             }}
-            className='space-y-4 px-0.5'
+            className='flex flex-col gap-4 px-0.5'
           >
             {/* 名字 */}
             <form.Field
               name='firstName'
               children={(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid
+                  field.state.meta.errors.length > 0 &&
+                  (field.state.meta.isTouched ||
+                    form.state.submissionAttempts > 0)
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
-                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                    className='grid grid-cols-6 items-center gap-x-4 gap-y-1'
                   >
                     <FieldLabel
                       htmlFor={field.name}
@@ -207,12 +210,14 @@ export function UserActionDialog({
               name='lastName'
               children={(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid
+                  field.state.meta.errors.length > 0 &&
+                  (field.state.meta.isTouched ||
+                    form.state.submissionAttempts > 0)
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
-                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                    className='grid grid-cols-6 items-center gap-x-4 gap-y-1'
                   >
                     <FieldLabel
                       htmlFor={field.name}
@@ -247,12 +252,14 @@ export function UserActionDialog({
               name='username'
               children={(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid
+                  field.state.meta.errors.length > 0 &&
+                  (field.state.meta.isTouched ||
+                    form.state.submissionAttempts > 0)
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
-                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                    className='grid grid-cols-6 items-center gap-x-4 gap-y-1'
                   >
                     <FieldLabel
                       htmlFor={field.name}
@@ -286,12 +293,14 @@ export function UserActionDialog({
               name='email'
               children={(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid
+                  field.state.meta.errors.length > 0 &&
+                  (field.state.meta.isTouched ||
+                    form.state.submissionAttempts > 0)
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
-                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                    className='grid grid-cols-6 items-center gap-x-4 gap-y-1'
                   >
                     <FieldLabel
                       htmlFor={field.name}
@@ -325,12 +334,14 @@ export function UserActionDialog({
               name='phoneNumber'
               children={(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid
+                  field.state.meta.errors.length > 0 &&
+                  (field.state.meta.isTouched ||
+                    form.state.submissionAttempts > 0)
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
-                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                    className='grid grid-cols-6 items-center gap-x-4 gap-y-1'
                   >
                     <FieldLabel
                       htmlFor={field.name}
@@ -364,12 +375,14 @@ export function UserActionDialog({
               name='role'
               children={(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid
+                  field.state.meta.errors.length > 0 &&
+                  (field.state.meta.isTouched ||
+                    form.state.submissionAttempts > 0)
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
-                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                    className='grid grid-cols-6 items-center gap-x-4 gap-y-1'
                   >
                     <FieldLabel
                       htmlFor={field.name}
@@ -403,12 +416,14 @@ export function UserActionDialog({
               name='password'
               children={(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid
+                  field.state.meta.errors.length > 0 &&
+                  (field.state.meta.isTouched ||
+                    form.state.submissionAttempts > 0)
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
-                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                    className='grid grid-cols-6 items-center gap-x-4 gap-y-1'
                   >
                     <FieldLabel
                       htmlFor={field.name}
@@ -442,12 +457,14 @@ export function UserActionDialog({
               name='confirmPassword'
               children={(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid
+                  field.state.meta.errors.length > 0 &&
+                  (field.state.meta.isTouched ||
+                    form.state.submissionAttempts > 0)
                 return (
                   <Field
                     orientation='horizontal'
                     data-invalid={isInvalid}
-                    className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'
+                    className='grid grid-cols-6 items-center gap-x-4 gap-y-1'
                   >
                     <FieldLabel
                       htmlFor={field.name}
@@ -484,7 +501,11 @@ export function UserActionDialog({
           </form>
         </div>
         <DialogFooter>
-          <Button type='submit' form='user-form'>
+          <Button
+            type='submit'
+            form='user-form'
+            disabled={form.state.isSubmitting}
+          >
             保存更改
           </Button>
         </DialogFooter>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import {
@@ -60,8 +60,9 @@ export function TaskMutateDrawer({
 
   const form = useForm({
     defaultValues: initialValues as TaskForm,
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: formSchema,
+      onDynamic: formSchema,
     },
     onSubmit: async ({ value }) => {
       onOpenChange(false)
@@ -101,14 +102,16 @@ export function TaskMutateDrawer({
             e.stopPropagation()
             form.handleSubmit()
           }}
-          className='flex-1 space-y-6 overflow-y-auto px-4'
+          className='flex flex-1 flex-col gap-6 overflow-y-auto px-4'
         >
           {/* 标题 */}
           <form.Field
             name='title'
             children={(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
+                field.state.meta.errors.length > 0 &&
+                (field.state.meta.isTouched ||
+                  form.state.submissionAttempts > 0)
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>标题</FieldLabel>
@@ -132,7 +135,9 @@ export function TaskMutateDrawer({
             name='status'
             children={(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
+                field.state.meta.errors.length > 0 &&
+                (field.state.meta.isTouched ||
+                  form.state.submissionAttempts > 0)
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>状态</FieldLabel>
@@ -159,7 +164,9 @@ export function TaskMutateDrawer({
             name='label'
             children={(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
+                field.state.meta.errors.length > 0 &&
+                (field.state.meta.isTouched ||
+                  form.state.submissionAttempts > 0)
               return (
                 <FieldSet>
                   <FieldLegend variant='label'>标签</FieldLegend>
@@ -167,7 +174,7 @@ export function TaskMutateDrawer({
                     name={field.name}
                     value={field.state.value}
                     onValueChange={(val) => field.handleChange(val as any)}
-                    className='flex flex-col space-y-1'
+                    className='flex flex-col gap-1'
                   >
                     <Field orientation='horizontal' data-invalid={isInvalid}>
                       <RadioGroupItem
@@ -214,7 +221,9 @@ export function TaskMutateDrawer({
             name='priority'
             children={(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
+                field.state.meta.errors.length > 0 &&
+                (field.state.meta.isTouched ||
+                  form.state.submissionAttempts > 0)
               return (
                 <FieldSet>
                   <FieldLegend variant='label'>优先级</FieldLegend>
@@ -222,7 +231,7 @@ export function TaskMutateDrawer({
                     name={field.name}
                     value={field.state.value}
                     onValueChange={(val) => field.handleChange(val as any)}
-                    className='flex flex-col space-y-1'
+                    className='flex flex-col gap-1'
                   >
                     <Field orientation='horizontal' data-invalid={isInvalid}>
                       <RadioGroupItem value='high' id={`${field.name}-high`} />
@@ -262,11 +271,15 @@ export function TaskMutateDrawer({
           />
         </form>
 
-        <SheetFooter className='gap-2'>
+        <SheetFooter className='flex flex-col gap-2'>
           <SheetClose asChild>
             <Button variant='outline'>关闭</Button>
           </SheetClose>
-          <Button form='task-form' type='submit'>
+          <Button
+            form='task-form'
+            type='submit'
+            disabled={form.state.isSubmitting}
+          >
             保存更改
           </Button>
         </SheetFooter>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { z } from 'zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { Loader2, Shield, Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
@@ -80,14 +80,15 @@ export function RoleFormDialog({
       permissions: [],
       isAllPermissions: false,
     } as FormValues,
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: formSchema,
+      onDynamic: formSchema,
     },
     onSubmit: async ({ value }) => {
       const permissions = value.isAllPermissions ? ['*'] : value.permissions
 
       if (isEditing && role) {
-        updateMutation.mutate({
+        await updateMutation.mutateAsync({
           id: role.id,
           payload: {
             label: value.label,
@@ -96,7 +97,7 @@ export function RoleFormDialog({
           },
         })
       } else {
-        createMutation.mutate({
+        await createMutation.mutateAsync({
           name: value.name,
           label: value.label,
           description: value.description || '',
@@ -198,7 +199,7 @@ export function RoleFormDialog({
           className='flex min-h-0 flex-1 flex-col overflow-hidden'
         >
           <ScrollArea className='min-h-0 flex-1'>
-            <div className='space-y-6 px-6 pb-6'>
+            <div className='flex flex-col gap-6 px-6 pb-6'>
               <Separator className='my-2' />
 
               {/* 基本信息 */}
@@ -208,7 +209,9 @@ export function RoleFormDialog({
                   name='name'
                   children={(field) => {
                     const isInvalid =
-                      field.state.meta.isTouched && !field.state.meta.isValid
+                      field.state.meta.errors.length > 0 &&
+                      (field.state.meta.isTouched ||
+                        form.state.submissionAttempts > 0)
                     return (
                       <Field data-invalid={isInvalid}>
                         <FieldLabel htmlFor={field.name}>角色标识</FieldLabel>
@@ -236,7 +239,9 @@ export function RoleFormDialog({
                   name='label'
                   children={(field) => {
                     const isInvalid =
-                      field.state.meta.isTouched && !field.state.meta.isValid
+                      field.state.meta.errors.length > 0 &&
+                      (field.state.meta.isTouched ||
+                        form.state.submissionAttempts > 0)
                     return (
                       <Field data-invalid={isInvalid}>
                         <FieldLabel htmlFor={field.name}>角色名称</FieldLabel>
@@ -263,7 +268,9 @@ export function RoleFormDialog({
                 name='description'
                 children={(field) => {
                   const isInvalid =
-                    field.state.meta.isTouched && !field.state.meta.isValid
+                    field.state.meta.errors.length > 0 &&
+                    (field.state.meta.isTouched ||
+                      form.state.submissionAttempts > 0)
                   return (
                     <Field data-invalid={isInvalid}>
                       <FieldLabel htmlFor={field.name}>功能描述</FieldLabel>
@@ -291,7 +298,7 @@ export function RoleFormDialog({
               {/* 权限项 */}
               <div>
                 <div className='mb-4 flex items-center justify-between'>
-                  <div className='space-y-0.5'>
+                  <div className='flex flex-col gap-0.5'>
                     <h4 className='text-sm font-semibold'>权限清单</h4>
                     <p className='text-muted-foreground text-xs'>
                       控制角色在系统中的菜单可见性和操作权限
@@ -340,10 +347,11 @@ export function RoleFormDialog({
                         name='permissions'
                         children={(field) => {
                           const isInvalid =
-                            field.state.meta.isTouched &&
-                            !field.state.meta.isValid
+                            field.state.meta.errors.length > 0 &&
+                            (field.state.meta.isTouched ||
+                              form.state.submissionAttempts > 0)
                           return (
-                            <div className='space-y-4'>
+                            <div className='flex flex-col gap-4'>
                               {Array.from(groupedPermissions.entries()).map(
                                 ([group, perms]) => {
                                   const permKeys = perms.map((p) => p.key)
@@ -364,7 +372,9 @@ export function RoleFormDialog({
                                       <div className='bg-muted/30 flex items-center gap-2 px-3 py-2'>
                                         <Checkbox
                                           checked={allChecked}
-                                          indeterminate={!allChecked && someChecked}
+                                          indeterminate={
+                                            !allChecked && someChecked
+                                          }
                                           onCheckedChange={() =>
                                             toggleGroup(permKeys)
                                           }
@@ -433,7 +443,10 @@ export function RoleFormDialog({
             >
               取消
             </Button>
-            <Button type='submit' disabled={isPending}>
+            <Button
+              type='submit'
+              disabled={isPending || form.state.isSubmitting}
+            >
               {isPending && <Loader2 className='mr-2 size-4 animate-spin' />}
               {isEditing ? '更新角色配置' : '确定创建角色'}
             </Button>

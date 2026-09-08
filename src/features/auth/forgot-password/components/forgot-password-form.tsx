@@ -1,7 +1,6 @@
-import { useState } from 'react'
 import { z } from 'zod'
 import { useNavigate } from '@tanstack/react-router'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { ArrowRight, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { sleep, cn } from '@/lib/utils'
@@ -20,24 +19,20 @@ export function ForgotPasswordForm({
   ...props
 }: React.HTMLAttributes<HTMLFormElement>) {
   const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
-
   const form = useForm({
     defaultValues: {
       email: '',
     },
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: formSchema,
-      onSubmit: formSchema,
+      onDynamic: formSchema,
     },
     onSubmit: async ({ value }) => {
-      setIsLoading(true)
       console.log(value)
 
-      toast.promise(sleep(2000), {
+      await toast.promise(sleep(2000), {
         loading: '正在发送邮件...',
         success: () => {
-          setIsLoading(false)
           form.reset()
           navigate({ to: '/otp' })
           return `邮件已发送至 ${value.email}`
@@ -54,14 +49,15 @@ export function ForgotPasswordForm({
         e.stopPropagation()
         form.handleSubmit()
       }}
-      className={cn('grid gap-2', className)}
+      className={cn('flex flex-col gap-2', className)}
       {...props}
     >
       <form.Field
         name='email'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>邮箱</FieldLabel>
@@ -79,9 +75,13 @@ export function ForgotPasswordForm({
           )
         }}
       />
-      <Button type='submit' className='mt-2' disabled={isLoading}>
+      <Button type='submit' className='mt-2' disabled={form.state.isSubmitting}>
         继续
-        {isLoading ? <Loader2 className='animate-spin' /> : <ArrowRight />}
+        {form.state.isSubmitting ? (
+          <Loader2 className='animate-spin' />
+        ) : (
+          <ArrowRight />
+        )}
       </Button>
     </form>
   )

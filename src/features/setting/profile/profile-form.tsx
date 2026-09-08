@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { Link } from '@tanstack/react-router'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -54,8 +54,9 @@ export function ProfileForm() {
         { value: 'http://twitter.com/shadcn' },
       ],
     } as ProfileFormValues,
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: profileFormSchema,
+      onDynamic: profileFormSchema,
     },
     onSubmit: async ({ value }) => {
       showSubmittedData(value)
@@ -69,14 +70,15 @@ export function ProfileForm() {
         e.stopPropagation()
         form.handleSubmit()
       }}
-      className='space-y-8'
+      className='flex flex-col gap-8'
     >
       {/* 用户名输入框 */}
       <form.Field
         name='username'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>Username</FieldLabel>
@@ -104,7 +106,8 @@ export function ProfileForm() {
         name='email'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>Email</FieldLabel>
@@ -137,7 +140,8 @@ export function ProfileForm() {
         name='bio'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>Bio</FieldLabel>
@@ -166,15 +170,16 @@ export function ProfileForm() {
         name='urls'
         mode='array'
         children={(field) => (
-          <div className='space-y-4'>
+          <div className='flex flex-col gap-4'>
             {field.state.value?.map((_, index) => (
               <form.Field
                 key={index}
                 name={`urls[${index}].value`}
                 children={(subField) => {
                   const isSubFieldInvalid =
-                    subField.state.meta.isTouched &&
-                    !subField.state.meta.isValid
+                    subField.state.meta.errors.length > 0 &&
+                    (subField.state.meta.isTouched ||
+                      form.state.submissionAttempts > 0)
                   return (
                     <Field data-invalid={isSubFieldInvalid}>
                       <FieldLabel
@@ -219,7 +224,14 @@ export function ProfileForm() {
         )}
       />
 
-      <Button type='submit'>Update profile</Button>
+      <form.Subscribe
+        selector={(state) => state.isSubmitting}
+        children={(isSubmitting) => (
+          <Button type='submit' disabled={isSubmitting}>
+            Update profile
+          </Button>
+        )}
+      />
     </form>
   )
 }

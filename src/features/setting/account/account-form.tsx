@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { cn } from '@/lib/utils'
@@ -59,8 +59,9 @@ export function AccountForm() {
       dob: undefined as unknown as Date,
       language: '',
     } as AccountFormValues,
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: accountFormSchema,
+      onDynamic: accountFormSchema,
     },
     onSubmit: async ({ value }) => {
       showSubmittedData(value)
@@ -74,14 +75,15 @@ export function AccountForm() {
         e.stopPropagation()
         form.handleSubmit()
       }}
-      className='space-y-8'
+      className='flex flex-col gap-8'
     >
       {/* 姓名 */}
       <form.Field
         name='name'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>Name</FieldLabel>
@@ -109,7 +111,8 @@ export function AccountForm() {
         name='dob'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid} className='flex flex-col'>
               <FieldLabel htmlFor={field.name}>Date of birth</FieldLabel>
@@ -131,7 +134,8 @@ export function AccountForm() {
         name='language'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid} className='flex flex-col'>
               <FieldLabel htmlFor={field.name}>Language</FieldLabel>
@@ -192,7 +196,14 @@ export function AccountForm() {
         }}
       />
 
-      <Button type='submit'>Update account</Button>
+      <form.Subscribe
+        selector={(state) => state.isSubmitting}
+        children={(isSubmitting) => (
+          <Button type='submit' disabled={isSubmitting}>
+            Update account
+          </Button>
+        )}
+      />
     </form>
   )
 }

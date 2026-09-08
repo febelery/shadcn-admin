@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -43,8 +43,9 @@ function EditorFormExample({
     defaultValues: {
       content: '',
     } as FormValues,
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: formSchema,
+      onDynamic: formSchema,
     },
     onSubmit: async ({ value }) => {
       toast.success('验证通过', {
@@ -65,13 +66,14 @@ function EditorFormExample({
         e.stopPropagation()
         form.handleSubmit()
       }}
-      className='space-y-6'
+      className='flex flex-col gap-6'
     >
       <form.Field
         name='content'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>文章内容</FieldLabel>
@@ -114,7 +116,7 @@ function EditorFormExample({
         >
           重置表单
         </Button>
-        <Button type='submit' disabled={disabled}>
+        <Button type='submit' disabled={disabled || form.state.isSubmitting}>
           提交表单
         </Button>
       </div>
@@ -166,7 +168,7 @@ export default function EditorDemo() {
           </div>
         </div>
       }
-      className='space-y-6'
+      className='flex flex-col gap-6'
     >
       <Card>
         <CardHeader>

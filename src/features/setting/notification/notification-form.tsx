@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { Link } from '@tanstack/react-router'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -39,8 +39,9 @@ export function NotificationForm() {
       social_emails: true,
       security_emails: true,
     } as NotificationFormValues,
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: notificationFormSchema,
+      onDynamic: notificationFormSchema,
     },
     onSubmit: async ({ value }) => {
       showSubmittedData(value)
@@ -54,14 +55,15 @@ export function NotificationForm() {
         e.stopPropagation()
         form.handleSubmit()
       }}
-      className='space-y-8'
+      className='flex flex-col gap-8'
     >
       {/* 通知频次 */}
       <form.Field
         name='type'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <FieldSet>
               <FieldLegend variant='label'>Notify me about...</FieldLegend>
@@ -111,13 +113,15 @@ export function NotificationForm() {
       {/* 邮件通知开关组 */}
       <div className='relative'>
         <h3 className='mb-4 text-lg font-medium'>Email Notifications</h3>
-        <div className='space-y-4'>
+        <div className='flex flex-col gap-4'>
           {/* 通讯邮件 */}
           <form.Field
             name='communication_emails'
             children={(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
+                field.state.meta.errors.length > 0 &&
+                (field.state.meta.isTouched ||
+                  form.state.submissionAttempts > 0)
               return (
                 <Field
                   orientation='horizontal'
@@ -155,7 +159,9 @@ export function NotificationForm() {
             name='marketing_emails'
             children={(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
+                field.state.meta.errors.length > 0 &&
+                (field.state.meta.isTouched ||
+                  form.state.submissionAttempts > 0)
               return (
                 <Field
                   orientation='horizontal'
@@ -193,7 +199,9 @@ export function NotificationForm() {
             name='social_emails'
             children={(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
+                field.state.meta.errors.length > 0 &&
+                (field.state.meta.isTouched ||
+                  form.state.submissionAttempts > 0)
               return (
                 <Field
                   orientation='horizontal'
@@ -231,7 +239,9 @@ export function NotificationForm() {
             name='security_emails'
             children={(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
+                field.state.meta.errors.length > 0 &&
+                (field.state.meta.isTouched ||
+                  form.state.submissionAttempts > 0)
               return (
                 <Field
                   orientation='horizontal'
@@ -272,7 +282,8 @@ export function NotificationForm() {
         name='mobile'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field
               orientation='horizontal'
@@ -288,7 +299,7 @@ export function NotificationForm() {
                 aria-invalid={isInvalid}
                 className='mt-1'
               />
-              <FieldContent className='gap-1'>
+              <FieldContent className='flex flex-col gap-1'>
                 <FieldLabel
                   htmlFor={field.name}
                   className='cursor-pointer font-normal'
@@ -311,7 +322,14 @@ export function NotificationForm() {
           )
         }}
       />
-      <Button type='submit'>Update notifications</Button>
+      <form.Subscribe
+        selector={(state) => state.isSubmitting}
+        children={(isSubmitting) => (
+          <Button type='submit' disabled={isSubmitting}>
+            Update notifications
+          </Button>
+        )}
+      />
     </form>
   )
 }

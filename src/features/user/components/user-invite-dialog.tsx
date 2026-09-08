@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { MailPlus, Send } from 'lucide-react'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
@@ -44,8 +44,9 @@ export function UserInviteDialog({
       role: '',
       desc: '',
     } as UserInviteForm,
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: formSchema,
+      onDynamic: formSchema,
     },
     onSubmit: async ({ value }) => {
       form.reset()
@@ -84,14 +85,16 @@ export function UserInviteDialog({
             e.stopPropagation()
             form.handleSubmit()
           }}
-          className='space-y-4'
+          className='flex flex-col gap-4'
         >
           {/* 邮箱 */}
           <form.Field
             name='email'
             children={(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
+                field.state.meta.errors.length > 0 &&
+                (field.state.meta.isTouched ||
+                  form.state.submissionAttempts > 0)
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>邮箱</FieldLabel>
@@ -116,7 +119,9 @@ export function UserInviteDialog({
             name='role'
             children={(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
+                field.state.meta.errors.length > 0 &&
+                (field.state.meta.isTouched ||
+                  form.state.submissionAttempts > 0)
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>角色</FieldLabel>
@@ -140,7 +145,9 @@ export function UserInviteDialog({
             name='desc'
             children={(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
+                field.state.meta.errors.length > 0 &&
+                (field.state.meta.isTouched ||
+                  form.state.submissionAttempts > 0)
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>描述（可选）</FieldLabel>
@@ -164,7 +171,11 @@ export function UserInviteDialog({
           <DialogClose asChild>
             <Button variant='outline'>取消</Button>
           </DialogClose>
-          <Button type='submit' form='user-invite-form'>
+          <Button
+            type='submit'
+            form='user-invite-form'
+            disabled={form.state.isSubmitting}
+          >
             邀请 <Send />
           </Button>
         </DialogFooter>

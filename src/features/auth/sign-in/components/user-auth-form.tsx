@@ -1,8 +1,7 @@
-import { useTransition } from 'react'
 import { z } from 'zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
@@ -29,37 +28,32 @@ export function UserAuthForm({
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { auth } = useAuthStore()
-  const [isPending, startTransition] = useTransition()
 
   const form = useForm({
     defaultValues: {
       name: '',
       password: '',
     },
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: formSchema,
-      onSubmit: formSchema,
+      onDynamic: formSchema,
     },
     onSubmit: async ({ value }) => {
-      startTransition(async () => {
-        try {
-          await auth.login(value)
-          queryClient.clear()
+      try {
+        await auth.login(value)
+        queryClient.clear()
 
-          toast.success(`欢迎回来, ${value.name}!`)
+        toast.success(`欢迎回来, ${value.name}!`)
 
-          // 跳转回之前的页面，默认为首页
-          const targetPath = redirectTo || '/'
-          navigate({ to: targetPath, replace: true })
-        } catch (error: any) {
-          const message =
-            error?.response?.data?.msg ||
-            error?.message ||
-            '登录失败，请重试。'
-          toast.error(message)
-          console.error(error)
-        }
-      })
+        // 跳转回之前的页面，默认为首页
+        const targetPath = redirectTo || '/'
+        navigate({ to: targetPath, replace: true })
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.msg || error?.message || '登录失败，请重试。'
+        toast.error(message)
+        console.error(error)
+      }
     },
   })
 
@@ -123,10 +117,15 @@ export function UserAuthForm({
         }}
       />
 
-      <RainbowButton type='submit' className='mt-2' disabled={isPending}>
-        {isPending ? <Loader2 className='animate-spin' /> : <LogIn />}
-        登录
-      </RainbowButton>
+      <form.Subscribe
+        selector={(state) => state.isSubmitting}
+        children={(isSubmitting) => (
+          <RainbowButton type='submit' className='mt-2' disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className='animate-spin' /> : <LogIn />}
+            登录
+          </RainbowButton>
+        )}
+      />
     </form>
   )
 }

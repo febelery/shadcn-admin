@@ -1,7 +1,6 @@
-import { useState } from 'react'
 import { z } from 'zod'
 import { useNavigate } from '@tanstack/react-router'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -21,23 +20,19 @@ type OtpFormProps = React.HTMLAttributes<HTMLFormElement>
 
 export function OtpForm({ className, ...props }: OtpFormProps) {
   const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
-
   const form = useForm({
     defaultValues: {
       otp: '',
     },
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: formSchema,
+      onDynamic: formSchema,
     },
     onSubmit: async ({ value }) => {
-      setIsLoading(true)
       showSubmittedData(value)
 
-      setTimeout(() => {
-        setIsLoading(false)
-        navigate({ to: '/' })
-      }, 1000)
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      navigate({ to: '/' })
     },
   })
 
@@ -48,14 +43,15 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
         e.stopPropagation()
         form.handleSubmit()
       }}
-      className={cn('grid gap-2', className)}
+      className={cn('flex flex-col gap-2', className)}
       {...props}
     >
       <form.Field
         name='otp'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel className='sr-only'>一次性密码</FieldLabel>
@@ -93,7 +89,7 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
           <Button
             type='submit'
             className='mt-2'
-            disabled={(otp || '').length < 6 || isLoading}
+            disabled={(otp || '').length < 6 || form.state.isSubmitting}
           >
             验证
           </Button>

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -53,8 +53,9 @@ export function DisplayForm() {
     defaultValues: {
       items: ['recents', 'home'],
     } as DisplayFormValues,
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: displayFormSchema,
+      onDynamic: displayFormSchema,
     },
     onSubmit: async ({ value }) => {
       showSubmittedData(value)
@@ -68,13 +69,14 @@ export function DisplayForm() {
         e.stopPropagation()
         form.handleSubmit()
       }}
-      className='space-y-8'
+      className='flex flex-col gap-8'
     >
       <form.Field
         name='items'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <FieldSet>
               <div>
@@ -121,7 +123,14 @@ export function DisplayForm() {
         }}
       />
 
-      <Button type='submit'>Update display</Button>
+      <form.Subscribe
+        selector={(state) => state.isSubmitting}
+        children={(isSubmitting) => (
+          <Button type='submit' disabled={isSubmitting}>
+            Update display
+          </Button>
+        )}
+      />
     </form>
   )
 }

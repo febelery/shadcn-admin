@@ -3,7 +3,7 @@
  */
 import * as React from 'react'
 import { z } from 'zod'
-import { useForm } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -117,8 +117,8 @@ export function FileUploadDemo() {
             <CardTitle>配置面板</CardTitle>
             <CardDescription>调整上传组件的验证规则和显示模式</CardDescription>
           </CardHeader>
-          <CardContent className='space-y-5'>
-            <div className='space-y-2'>
+          <CardContent className='flex flex-col gap-5'>
+            <div className='flex flex-col gap-2'>
               <Label>视图模式</Label>
               <Select
                 value={view}
@@ -135,7 +135,7 @@ export function FileUploadDemo() {
             </div>
 
             {view === 'card' && (
-              <div className='space-y-2'>
+              <div className='flex flex-col gap-2'>
                 <Label>卡片尺寸</Label>
                 <Select
                   value={cardSize}
@@ -155,7 +155,7 @@ export function FileUploadDemo() {
 
             <Separator />
 
-            <div className='space-y-2'>
+            <div className='flex flex-col gap-2'>
               <Label>文件类型</Label>
               <Select value={fileType} onValueChange={setFileType}>
                 <SelectTrigger>
@@ -171,7 +171,7 @@ export function FileUploadDemo() {
               </Select>
             </div>
 
-            <div className='space-y-2'>
+            <div className='flex flex-col gap-2'>
               <Label>最大文件大小</Label>
               <Select value={maxSize} onValueChange={setMaxSize}>
                 <SelectTrigger>
@@ -187,7 +187,7 @@ export function FileUploadDemo() {
               </Select>
             </div>
 
-            <div className='space-y-2'>
+            <div className='flex flex-col gap-2'>
               <Label>最大文件数量</Label>
               <Select value={maxFiles} onValueChange={setMaxFiles}>
                 <SelectTrigger>
@@ -232,7 +232,7 @@ export function FileUploadDemo() {
             </div>
 
             {enableCrop && (
-              <div className='animate-in slide-in-from-top-2 space-y-2 duration-300'>
+              <div className='animate-in slide-in-from-top-2 flex flex-col gap-2 duration-300'>
                 <Label className='text-xs font-semibold'>裁剪比例预设</Label>
                 <Select value={aspect} onValueChange={setAspect}>
                   <SelectTrigger className='h-9'>
@@ -257,7 +257,7 @@ export function FileUploadDemo() {
 
             <Separator />
 
-            <div className='space-y-2'>
+            <div className='flex flex-col gap-2'>
               <Label>自定义验证（检查文件名特殊字符）</Label>
               <Select
                 value={enableCustomValidation ? 'true' : 'false'}
@@ -276,9 +276,9 @@ export function FileUploadDemo() {
             <Separator />
 
             {/* 当前配置摘要 */}
-            <div className='space-y-2'>
+            <div className='flex flex-col gap-2'>
               <Label className='text-muted-foreground text-xs'>当前配置</Label>
-              <div className='bg-muted/50 space-y-1 rounded-lg p-3 text-xs'>
+              <div className='bg-muted/50 gap-1 rounded-lg p-3 text-xs'>
                 <div>
                   <span className='font-medium'>视图：</span>
                   {view === 'list' ? '列表' : `卡片 (${cardSize})`}
@@ -368,8 +368,9 @@ function FileUploadFormExample({
     defaultValues: {
       files: [] as string[],
     } as FormValues,
+    validationLogic: revalidateLogic(),
     validators: {
-      onChange: formSchema,
+      onDynamic: formSchema,
     },
     onSubmit: async ({ value }) => {
       alert(
@@ -379,20 +380,21 @@ function FileUploadFormExample({
   })
 
   return (
-    <div className='space-y-6'>
+    <div className='flex flex-col gap-6'>
       <form
         onSubmit={(e) => {
           e.preventDefault()
           e.stopPropagation()
           form.handleSubmit()
         }}
-        className='space-y-4'
+        className='flex flex-col gap-4'
       >
         <form.Field
           name='files'
           children={(field) => {
             const isInvalid =
-              field.state.meta.isTouched && !field.state.meta.isValid
+              field.state.meta.errors.length > 0 &&
+              (field.state.meta.isTouched || form.state.submissionAttempts > 0)
             return (
               <Field data-invalid={isInvalid}>
                 <FieldLabel htmlFor={field.name}>上传文件</FieldLabel>
@@ -425,7 +427,7 @@ function FileUploadFormExample({
         />
 
         <div className='flex items-center gap-2'>
-          <Button type='submit' size='sm'>
+          <Button type='submit' size='sm' disabled={form.state.isSubmitting}>
             提交表单
           </Button>
           <Button
@@ -440,7 +442,7 @@ function FileUploadFormExample({
       </form>
 
       {/* 回显测试 */}
-      <div className='space-y-2'>
+      <div className='flex flex-col gap-2'>
         <Label className='text-sm'>回显测试</Label>
         <div className='flex items-center gap-2'>
           <Button
@@ -476,11 +478,11 @@ function FileUploadFormExample({
         selector={(state) => state.values.files || []}
         children={(files) =>
           files.length > 0 ? (
-            <div className='space-y-1.5'>
+            <div className='flex flex-col gap-1.5'>
               <Label className='text-muted-foreground text-xs'>
                 当前 URL 值
               </Label>
-              <ul className='bg-muted/50 space-y-1 rounded-lg p-3 font-mono text-xs break-all'>
+              <ul className='bg-muted/50 flex flex-col gap-1 rounded-lg p-3 font-mono text-xs break-all'>
                 {files.map((url: string, i: number) => (
                   <li key={i} className='text-muted-foreground'>
                     <span className='text-foreground font-medium'>
