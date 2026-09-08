@@ -1,11 +1,11 @@
-import type {
-  QuestionElement,
-  Rule,
-  RuleAction,
-  RuleActionType,
-  RuleCondition,
+import {
+  RULE_ACTION_TYPES,
+  type QuestionElement,
+  type Rule,
+  type RuleAction,
+  type RuleActionType,
+  type RuleCondition,
 } from '../types'
-import { RULE_ACTION_TYPES } from '../types'
 import { canUseQuestionAsRuleSource } from './rule-capabilities'
 import { areRuleConditionsEqual } from './rule-condition'
 

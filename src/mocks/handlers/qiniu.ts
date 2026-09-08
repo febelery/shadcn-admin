@@ -29,7 +29,7 @@ export const qiniuHandlers = [
       return HttpResponse.json({
         uptoken: mockToken,
       })
-    } catch (error) {
+    } catch (_error) {
       // 解析错误，返回 400
       return new HttpResponse(JSON.stringify({ error: 'invalid request' }), {
         status: 400,

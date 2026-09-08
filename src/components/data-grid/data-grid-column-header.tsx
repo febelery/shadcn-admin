@@ -1,11 +1,11 @@
 import * as React from 'react'
 import type {
   ColumnSort,
-  Header,
+  DataGridHeader,
+  DataGridTable,
   SortDirection,
   SortingState,
-  Table,
-} from '@tanstack/react-table'
+} from '@/lib/table'
 import type { CellOpts } from '@/types/data-grid'
 import {
   BaselineIcon,
@@ -70,8 +70,8 @@ function getColumnVariant(variant?: CellOpts['variant']): {
 interface DataGridColumnHeaderProps<TData, TValue> extends React.ComponentProps<
   typeof DropdownMenuTrigger
 > {
-  header: Header<TData, TValue>
-  table: Table<TData>
+  header: DataGridHeader<TData, TValue>
+  table: DataGridTable<TData>
 }
 
 export function DataGridColumnHeader<TData, TValue>({
@@ -88,14 +88,16 @@ export function DataGridColumnHeader<TData, TValue>({
       ? column.columnDef.header
       : column.id
 
-  const isAnyColumnResizing = table.getState().columnSizingInfo.isResizingColumn
+  const isAnyColumnResizing = Boolean(
+    table.state.columnResizing?.isResizingColumn
+  )
 
   const cellVariant = column.columnDef.meta?.cell
   const columnVariant = getColumnVariant(cellVariant?.variant)
 
   const pinnedPosition = column.getIsPinned()
-  const isPinnedLeft = pinnedPosition === 'left'
-  const isPinnedRight = pinnedPosition === 'right'
+  const isPinnedLeft = pinnedPosition === 'start'
+  const isPinnedRight = pinnedPosition === 'end'
 
   const onSortingChange = React.useCallback(
     (direction: SortDirection) => {
@@ -127,11 +129,11 @@ export function DataGridColumnHeader<TData, TValue>({
   }, [column.id, table])
 
   const onLeftPin = React.useCallback(() => {
-    column.pin('left')
+    column.pin('start')
   }, [column])
 
   const onRightPin = React.useCallback(() => {
-    column.pin('right')
+    column.pin('end')
   }, [column])
 
   const onUnpin = React.useCallback(() => {
@@ -298,7 +300,7 @@ function DataGridColumnResizerImpl<TData, TValue>({
   table,
   label,
 }: DataGridColumnResizerProps<TData, TValue>) {
-  const defaultColumnDef = table._getDefaultColumnDef()
+  const defaultColumnDef = table.getDefaultColumnDef()
 
   const onDoubleClick = React.useCallback(() => {
     header.column.resetSize()

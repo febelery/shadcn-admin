@@ -1,4 +1,5 @@
 import * as React from 'react'
+import type { RowData } from '@tanstack/react-table'
 import type { CellVariantProps, FileCellData } from '@/types/data-grid'
 import {
   Check,
@@ -43,7 +44,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { DataGridCellWrapper } from '@/components/data-grid/data-grid-cell-wrapper'
 
-export function ShortTextCell<TData>({
+export function ShortTextCell<TData extends RowData>({
   cell,
   table,
   rowIndex,
@@ -189,7 +190,7 @@ export function ShortTextCell<TData>({
   )
 }
 
-export function LongTextCell<TData>({
+export function LongTextCell<TData extends RowData>({
   cell,
   table,
   rowIndex,
@@ -349,7 +350,7 @@ export function LongTextCell<TData>({
   )
 }
 
-export function NumberCell<TData>({
+export function NumberCell<TData extends RowData>({
   cell,
   table,
   rowIndex,
@@ -486,7 +487,7 @@ function getUrlHref(urlString: string): string {
   return `http://${trimmed}`
 }
 
-export function UrlCell<TData>({
+export function UrlCell<TData extends RowData>({
   cell,
   table,
   rowIndex,
@@ -719,7 +720,7 @@ export function UrlCell<TData>({
   )
 }
 
-export function CheckboxCell<TData>({
+export function CheckboxCell<TData extends RowData>({
   cell,
   table,
   rowIndex,
@@ -826,7 +827,7 @@ export function CheckboxCell<TData>({
   )
 }
 
-export function SelectCell<TData>({
+export function SelectCell<TData extends RowData>({
   cell,
   table,
   rowIndex,
@@ -939,7 +940,7 @@ export function SelectCell<TData>({
   )
 }
 
-export function MultiSelectCell<TData>({
+export function MultiSelectCell<TData extends RowData>({
   cell,
   table,
   rowIndex,
@@ -1240,7 +1241,7 @@ function formatDateForDisplay(dateStr: string) {
   return date.toLocaleDateString()
 }
 
-export function DateCell<TData>({
+export function DateCell<TData extends RowData>({
   cell,
   table,
   rowIndex,
@@ -1377,7 +1378,7 @@ function getFileIcon(
   return File
 }
 
-export function FileCell<TData>({
+export function FileCell<TData extends RowData>({
   cell,
   table,
   rowIndex,

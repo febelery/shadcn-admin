@@ -2,8 +2,36 @@ allowBuilds:
   msw: true
 minimumReleaseAgeExclude:
   - '@faker-js/faker@10.5.0'
-  - lucide-react@1.21.0
+  - lucide-react@1.21.0 || 1.42.0
   - react-image-crop@11.1.2
-  - '@tanstack/router-cli@1.167.21'
-  - '@tanstack/router-generator@1.167.21'
-  - '@tanstack/router-plugin@1.168.22'
+  - '@tanstack/history@1.162.2'
+  - '@tanstack/react-router@1.170.33'
+  - '@tanstack/router-cli@1.167.34'
+  - '@tanstack/router-core@1.171.28'
+  - '@tanstack/router-generator@1.167.34'
+  - '@tanstack/router-plugin@1.168.36'
+  - cn@0.2.6
+  - '@oxlint/binding-android-arm-eabi@1.82.0'
+  - '@oxlint/binding-android-arm64@1.82.0'
+  - '@oxlint/binding-darwin-arm64@1.82.0'
+  - '@oxlint/binding-darwin-x64@1.82.0'
+  - '@oxlint/binding-freebsd-x64@1.82.0'
+  - '@oxlint/binding-linux-arm-gnueabihf@1.82.0'
+  - '@oxlint/binding-linux-arm-musleabihf@1.82.0'
+  - '@oxlint/binding-linux-arm64-gnu@1.82.0'
+  - '@oxlint/binding-linux-arm64-musl@1.82.0'
+  - '@oxlint/binding-linux-ppc64-gnu@1.82.0'
+  - '@oxlint/binding-linux-riscv64-gnu@1.82.0'
+  - '@oxlint/binding-linux-riscv64-musl@1.82.0'
+  - '@oxlint/binding-linux-s390x-gnu@1.82.0'
+  - '@oxlint/binding-linux-x64-gnu@1.82.0'
+  - '@oxlint/binding-linux-x64-musl@1.82.0'
+  - '@oxlint/binding-openharmony-arm64@1.82.0'
+  - '@oxlint/binding-win32-arm64-msvc@1.82.0'
+  - '@oxlint/binding-win32-ia32-msvc@1.82.0'
+  - '@oxlint/binding-win32-x64-msvc@1.82.0'
+  - '@splinetool/runtime@2.0.40'
+  - '@tanstack/react-virtual@3.14.11'
+  - '@tanstack/virtual-core@3.17.9'
+  - '@types/node@26.5.0'
+  - oxlint@1.82.0

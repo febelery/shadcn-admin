@@ -1,5 +1,5 @@
-import type { ColumnDef } from '@tanstack/react-table'
-import { getFilterFn } from '@/lib/data-grid-filters'
+import type { DataGridColumnDef } from '@/lib/table'
+import { dataGridFilterFn } from '@/lib/data-grid-filters'
 import type { SurveyRecordItem } from '../core/admin-data-schema'
 import { getQuestionReferenceLabel } from '../core/question-numbering'
 import type { QuestionElement, SurveyDocument } from '../core/types'
@@ -14,8 +14,8 @@ const statusOptions = [
 export function createRecordGridColumns(
   questions: QuestionElement[],
   document?: SurveyDocument
-): ColumnDef<SurveyRecordGridRow>[] {
-  const filterFn = getFilterFn<SurveyRecordGridRow>()
+): DataGridColumnDef<SurveyRecordGridRow>[] {
+  const filterFn = dataGridFilterFn
 
   return [
     {
@@ -88,7 +88,7 @@ export function createRecordGridColumns(
       },
       minSize: 110,
     },
-    ...questions.map((question, index): ColumnDef<SurveyRecordGridRow> => {
+    ...questions.map((question, index): DataGridColumnDef<SurveyRecordGridRow> => {
       const titleLabel = document
         ? getQuestionReferenceLabel(question, document)
         : `${index + 1}. ${question.title}`

@@ -11,14 +11,14 @@ import {
 } from '../../core/logic/rule-constraints'
 import { createEmptyRule, createRuleAction } from '../../core/logic/rule-utils'
 import { getQuestionReferenceLabel } from '../../core/question-numbering'
-import { RULE_ACTION_TYPES } from '../../core/types'
-import type {
-  QuestionElement,
-  Rule,
-  RuleAction,
-  RuleActionType,
-  RuleCondition,
-  SurveyDocument,
+import {
+  RULE_ACTION_TYPES,
+  type QuestionElement,
+  type Rule,
+  type RuleAction,
+  type RuleActionType,
+  type RuleCondition,
+  type SurveyDocument,
 } from '../../core/types'
 
 export interface RuleDraft {

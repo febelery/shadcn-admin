@@ -100,7 +100,8 @@ export function SurveyRecordPage({ surveyId }: SurveyRecordPageProps) {
     },
     initialState: {
       columnPinning: {
-        left: ['respondent'],
+        start: ['respondent'],
+        end: [],
       },
     },
   })
@@ -115,6 +116,7 @@ export function SurveyRecordPage({ surveyId }: SurveyRecordPageProps) {
   return (
     <PageLayout
       variant='fixed'
+      fluid
       title={document ? `${document.meta.title} · 回收` : '回收'}
       description={`共 ${data?.meta?.total ?? 0} 条回收记录。`}
       actions={

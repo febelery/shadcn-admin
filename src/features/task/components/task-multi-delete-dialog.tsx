@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { type Table } from '@tanstack/react-table'
+import { type Table } from '@/lib/table'
 import { AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { sleep } from '@/lib/utils'

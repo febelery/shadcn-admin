@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { useOptimistic, useTransition } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { ColumnDef } from '@tanstack/react-table'
-import { getFilterFn } from '@/lib/data-grid-filters'
+import type { DataGridColumnDef } from '@/lib/table'
+import { dataGridFilterFn } from '@/lib/data-grid-filters'
 import { useDataGrid } from '@/hooks/use-data-grid'
 import { useWindowSize } from '@/hooks/use-window-size'
 import { ColumnVisibility } from '@/components/column-visibility'
@@ -28,15 +28,13 @@ export function ProductPage() {
   )
   const [, startTransition] = useTransition()
 
-  const filterFn = React.useMemo(() => getFilterFn<Product>(), [])
-
-  const columns = React.useMemo<ColumnDef<Product>[]>(
+  const columns = React.useMemo<DataGridColumnDef<Product>[]>(
     () => [
       {
         id: 'name',
         accessorKey: 'name',
         header: '产品名称',
-        filterFn,
+        filterFn: dataGridFilterFn,
         meta: {
           label: '产品名称',
           cell: {
@@ -49,7 +47,7 @@ export function ProductPage() {
         id: 'description',
         accessorKey: 'description',
         header: '描述',
-        filterFn,
+        filterFn: dataGridFilterFn,
         meta: {
           label: '描述',
           cell: {
@@ -62,7 +60,7 @@ export function ProductPage() {
         id: 'category',
         accessorKey: 'category',
         header: '分类',
-        filterFn,
+        filterFn: dataGridFilterFn,
         meta: {
           label: '分类',
           cell: {
@@ -83,7 +81,7 @@ export function ProductPage() {
         id: 'brand',
         accessorKey: 'brand',
         header: '品牌',
-        filterFn,
+        filterFn: dataGridFilterFn,
         meta: {
           label: '品牌',
           cell: {
@@ -96,7 +94,7 @@ export function ProductPage() {
         id: 'price',
         accessorKey: 'price',
         header: '价格',
-        filterFn,
+        filterFn: dataGridFilterFn,
         meta: {
           label: '价格',
           cell: {
@@ -112,7 +110,7 @@ export function ProductPage() {
         id: 'stock',
         accessorKey: 'stock',
         header: '库存',
-        filterFn,
+        filterFn: dataGridFilterFn,
         meta: {
           label: '库存',
           cell: {
@@ -127,7 +125,7 @@ export function ProductPage() {
         id: 'inStock',
         accessorKey: 'inStock',
         header: '有货',
-        filterFn,
+        filterFn: dataGridFilterFn,
         meta: {
           label: '有货',
           cell: {
@@ -140,7 +138,7 @@ export function ProductPage() {
         id: 'tags',
         accessorKey: 'tags',
         header: '标签',
-        filterFn,
+        filterFn: dataGridFilterFn,
         meta: {
           label: '标签',
           cell: {
@@ -163,7 +161,7 @@ export function ProductPage() {
         id: 'rating',
         accessorKey: 'rating',
         header: '评分',
-        filterFn,
+        filterFn: dataGridFilterFn,
         meta: {
           label: '评分',
           cell: {
@@ -179,7 +177,7 @@ export function ProductPage() {
         id: 'releaseDate',
         accessorKey: 'releaseDate',
         header: '发布日期',
-        filterFn,
+        filterFn: dataGridFilterFn,
         meta: {
           label: '发布日期',
           cell: {
@@ -192,7 +190,7 @@ export function ProductPage() {
         id: 'imageUrl',
         accessorKey: 'imageUrl',
         header: '图片链接',
-        filterFn,
+        filterFn: dataGridFilterFn,
         meta: {
           label: '图片链接',
           cell: {
@@ -202,7 +200,7 @@ export function ProductPage() {
         minSize: 200,
       },
     ],
-    [filterFn]
+    []
   )
 
   useMutation({
@@ -252,6 +250,7 @@ export function ProductPage() {
       title='产品管理'
       description='管理和编辑产品信息'
       variant='fixed'
+      fluid
       className='flex flex-col gap-4 sm:gap-6'
     >
       <>

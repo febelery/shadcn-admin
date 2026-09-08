@@ -135,7 +135,7 @@ export function FilterPopoverContent({
   )
 }
 
-function FilterItem<TData>({
+function FilterItem({
   filter,
   index,
   totalCount,
@@ -153,7 +153,7 @@ function FilterItem<TData>({
     updateFilter,
     removeFilter,
     changeFilterField,
-  } = useFilterContext<TData>()
+  } = useFilterContext()
   const [showFieldSelector, setShowFieldSelector] = React.useState(false)
 
   const variant = columnVariants.get(filter.id) ?? 'short-text'

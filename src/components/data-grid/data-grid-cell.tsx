@@ -1,4 +1,7 @@
-import type { Cell, Table } from '@tanstack/react-table'
+import type { CellContext, RowData } from '@tanstack/react-table'
+import type {
+  DataGridTableFeatures,
+} from '@/lib/table'
 import {
   CheckboxCell,
   DateCell,
@@ -11,12 +14,16 @@ import {
   UrlCell,
 } from '@/components/data-grid/data-grid-cell-variants'
 
-interface DataGridCellProps<TData> {
-  cell: Cell<TData, unknown>
-  table: Table<TData>
-}
+type DataGridCellProps<TData extends RowData = any> = CellContext<
+  DataGridTableFeatures,
+  TData,
+  unknown
+>
 
-export function DataGridCell<TData>({ cell, table }: DataGridCellProps<TData>) {
+export function DataGridCell<TData extends RowData>({
+  cell,
+  table,
+}: DataGridCellProps<TData>) {
   const meta = table.options.meta
   const originalRowIndex = cell.row.index
 

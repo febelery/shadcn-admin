@@ -1,6 +1,10 @@
 import * as React from 'react'
-import type { Table, TableMeta } from '@tanstack/react-table'
-import type { UpdateCell } from '@/types/data-grid'
+import type { DataGridTable } from '@/lib/table'
+import type {
+  ContextMenuState,
+  SelectionState,
+  UpdateCell,
+} from '@/types/data-grid'
 import { CopyIcon, EraserIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 import { parseCellKey } from '@/lib/data-grid'
@@ -13,7 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 interface DataGridContextMenuProps<TData> {
-  table: Table<TData>
+  table: DataGridTable<TData>
 }
 
 export function DataGridContextMenu<TData>({
@@ -42,18 +46,14 @@ export function DataGridContextMenu<TData>({
   )
 }
 
-interface ContextMenuProps<TData>
-  extends
-    Pick<
-      TableMeta<TData>,
-      | 'dataGridRef'
-      | 'onContextMenuOpenChange'
-      | 'selectionState'
-      | 'onDataUpdate'
-      | 'onRowsDelete'
-    >,
-    Required<Pick<TableMeta<TData>, 'contextMenu'>> {
-  table: Table<TData>
+interface ContextMenuProps<TData> {
+  table: DataGridTable<TData>
+  contextMenu: ContextMenuState
+  dataGridRef?: React.RefObject<HTMLElement | null>
+  onContextMenuOpenChange?: (open: boolean) => void
+  selectionState?: SelectionState
+  onDataUpdate?: (props: UpdateCell | Array<UpdateCell>) => void
+  onRowsDelete?: (rowIndices: number[]) => void | Promise<void>
 }
 
 const ContextMenu = React.memo(ContextMenuImpl, (prev, next) => {
@@ -115,7 +115,7 @@ function ContextMenuImpl<TData>({
     const rows = table.getRowModel().rows
     const columnIds: string[] = []
 
-    const selectedCellsArray = Array.from(selectionState.selectedCells)
+    const selectedCellsArray = Array.from(selectionState.selectedCells) as string[]
     for (const cellKey of selectedCellsArray) {
       const { columnId } = parseCellKey(cellKey)
       if (columnId && !columnIds.includes(columnId)) {

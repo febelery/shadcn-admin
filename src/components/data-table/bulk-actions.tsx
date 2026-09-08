@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { type Table } from '@tanstack/react-table'
+import { type Table } from '@/lib/table'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'

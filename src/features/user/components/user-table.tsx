@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react'
-import {
-  type VisibilityState,
-  getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table'
+import { useTable } from '@tanstack/react-table'
+import { standardTableFeatures, type ColumnVisibilityState } from '@/lib/table'
 import { type TableState } from '@/types/table'
 import { type DragEndEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
@@ -37,7 +34,8 @@ export function UserTable({
   }, [initialData])
 
   const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({})
 
   const {
     columnFilters,
@@ -49,7 +47,8 @@ export function UserTable({
     ensurePageInRange,
   } = tableState
 
-  const table = useReactTable({
+  const table = useTable({
+    features: standardTableFeatures,
     data,
     columns,
     pageCount: Math.ceil(total / pagination.pageSize),
@@ -69,7 +68,6 @@ export function UserTable({
     onColumnVisibilityChange: setColumnVisibility,
     onColumnFiltersChange,
     onPaginationChange,
-    getCoreRowModel: getCoreRowModel(),
   })
 
   useEffect(() => {

@@ -19,6 +19,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Editor, zEditorString } from '@/components/editor'
+import { PageLayout } from '@/components/layout/page-layout'
 
 // 表单 Schema，使用富文本专属的 zEditorString 轻松在内部剥离 HTML 标签进行字数验证
 const formSchema = z.object({
@@ -134,17 +135,10 @@ export default function EditorDemo() {
   )
 
   return (
-    <div className='space-y-6 p-6'>
-      <div className='flex flex-wrap items-center justify-between gap-4'>
-        <div>
-          <h2 className='text-2xl font-bold tracking-tight'>
-            Tiptap 富文本编辑器
-          </h2>
-          <p className='text-muted-foreground'>
-            基于 Tiptap
-            封装的模块化富文本编辑器，集成常用文本排版、超链接、图片上传及字数/字符统计。
-          </p>
-        </div>
+    <PageLayout
+      title='Tiptap 富文本编辑器'
+      description='基于 Tiptap 封装的模块化富文本编辑器，集成常用文本排版、超链接、图片上传及字数/字符统计。'
+      actions={
         <div className='flex items-center gap-6'>
           <div className='flex items-center gap-2'>
             <Label className='text-muted-foreground text-xs'>工具栏</Label>
@@ -171,8 +165,9 @@ export default function EditorDemo() {
             <Label htmlFor='disable-mode'>禁用编辑</Label>
           </div>
         </div>
-      </div>
-
+      }
+      className='space-y-6'
+    >
       <Card>
         <CardHeader>
           <CardTitle>表单验证集成</CardTitle>
@@ -185,6 +180,6 @@ export default function EditorDemo() {
           <EditorFormExample disabled={disabled} toolbar={toolbar} />
         </CardContent>
       </Card>
-    </div>
+    </PageLayout>
   )
 }

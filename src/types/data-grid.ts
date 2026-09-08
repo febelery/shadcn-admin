@@ -1,4 +1,10 @@
-import type { Cell, Table } from '@tanstack/react-table'
+import type {
+  Cell,
+  RowData,
+  Table,
+  TableFeatures,
+} from '@tanstack/react-table'
+import type { DataGridTableFeatures } from '@/lib/table'
 
 export type RowHeightValue = 'short' | 'medium' | 'tall' | 'extra-tall'
 
@@ -53,70 +59,69 @@ export interface UpdateCell {
   value: unknown
 }
 
-declare module '@tanstack/react-table' {
-  // @ts-expect-error
-  interface ColumnMeta {
-    label?: string
-    cell?: CellOpts
-  }
+export interface DataGridColumnMeta {
+  label?: string
+  cell?: CellOpts
+  className?: string
+  tdClassName?: string
+  thClassName?: string
+}
 
-  // @ts-expect-error
-  interface TableMeta {
-    dataGridRef?: React.RefObject<HTMLElement | null>
-    cellMapRef?: React.RefObject<Map<string, HTMLDivElement>>
-    focusedCell?: CellPosition | null
-    editingCell?: CellPosition | null
-    selectionState?: SelectionState
-    searchOpen?: boolean
-    isScrolling?: boolean
-    readOnly?: boolean
-    getIsCellSelected?: (rowIndex: number, columnId: string) => boolean
-    getIsSearchMatch?: (rowIndex: number, columnId: string) => boolean
-    getIsActiveSearchMatch?: (rowIndex: number, columnId: string) => boolean
-    onDataUpdate?: (props: UpdateCell | Array<UpdateCell>) => void
-    onRowsDelete?: (rowIndices: number[]) => void | Promise<void>
-    onColumnClick?: (columnId: string) => void
-    onCellClick?: (
-      rowIndex: number,
-      columnId: string,
-      event?: React.MouseEvent
-    ) => void
-    onCellDoubleClick?: (rowIndex: number, columnId: string) => void
-    onCellMouseDown?: (
-      rowIndex: number,
-      columnId: string,
-      event: React.MouseEvent
-    ) => void
-    onCellMouseEnter?: (
-      rowIndex: number,
-      columnId: string,
-      event: React.MouseEvent
-    ) => void
-    onCellMouseUp?: () => void
-    onCellContextMenu?: (
-      rowIndex: number,
-      columnId: string,
-      event: React.MouseEvent
-    ) => void
-    onCellEditingStart?: (rowIndex: number, columnId: string) => void
-    onCellEditingStop?: (opts?: {
-      direction?: NavigationDirection
-      moveToNextRow?: boolean
-    }) => void
-    contextMenu?: ContextMenuState
-    onContextMenuOpenChange?: (open: boolean) => void
-    pasteDialog?: PasteDialogState
-    onPasteDialogOpenChange?: (open: boolean) => void
-    onPasteWithExpansion?: () => void
-    onPasteWithoutExpansion?: () => void
-    rowHeight?: RowHeightValue
-    onRowHeightChange?: (value: RowHeightValue) => void
-    onRowSelect?: (
-      rowIndex: number,
-      checked: boolean,
-      shiftKey: boolean
-    ) => void
-  }
+export interface DataGridTableMeta {
+  dataGridRef?: React.RefObject<HTMLElement | null>
+  cellMapRef?: React.RefObject<Map<string, HTMLDivElement>>
+  focusedCell?: CellPosition | null
+  editingCell?: CellPosition | null
+  selectionState?: SelectionState
+  searchOpen?: boolean
+  isScrolling?: boolean
+  readOnly?: boolean
+  getIsCellSelected?: (rowIndex: number, columnId: string) => boolean
+  getIsSearchMatch?: (rowIndex: number, columnId: string) => boolean
+  getIsActiveSearchMatch?: (rowIndex: number, columnId: string) => boolean
+  onDataUpdate?: (props: UpdateCell | Array<UpdateCell>) => void
+  onRowsDelete?: (rowIndices: number[]) => void | Promise<void>
+  onColumnClick?: (columnId: string) => void
+  onCellClick?: (
+    rowIndex: number,
+    columnId: string,
+    event?: React.MouseEvent
+  ) => void
+  onCellDoubleClick?: (rowIndex: number, columnId: string) => void
+  onCellMouseDown?: (
+    rowIndex: number,
+    columnId: string,
+    event: React.MouseEvent
+  ) => void
+  onCellMouseEnter?: (
+    rowIndex: number,
+    columnId: string,
+    event: React.MouseEvent
+  ) => void
+  onCellMouseUp?: () => void
+  onCellContextMenu?: (
+    rowIndex: number,
+    columnId: string,
+    event: React.MouseEvent
+  ) => void
+  onCellEditingStart?: (rowIndex: number, columnId: string) => void
+  onCellEditingStop?: (opts?: {
+    direction?: NavigationDirection
+    moveToNextRow?: boolean
+  }) => void
+  contextMenu?: ContextMenuState
+  onContextMenuOpenChange?: (open: boolean) => void
+  pasteDialog?: PasteDialogState
+  onPasteDialogOpenChange?: (open: boolean) => void
+  onPasteWithExpansion?: () => void
+  onPasteWithoutExpansion?: () => void
+  rowHeight?: RowHeightValue
+  onRowHeightChange?: (value: RowHeightValue) => void
+  onRowSelect?: (
+    rowIndex: number,
+    checked: boolean,
+    shiftKey: boolean
+  ) => void
 }
 
 export interface CellPosition {
@@ -171,9 +176,12 @@ export interface SearchState {
   onNavigateToPrevMatch: () => void
 }
 
-export interface CellVariantProps<TData> {
-  cell: Cell<TData, unknown>
-  table: Table<TData>
+export interface CellVariantProps<
+  TData extends RowData = any,
+  TFeatures extends TableFeatures = DataGridTableFeatures,
+> {
+  cell: Cell<TFeatures, TData, unknown>
+  table: Table<TFeatures, TData>
   rowIndex: number
   columnId: string
   isEditing: boolean

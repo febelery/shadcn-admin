@@ -1,4 +1,4 @@
-import { type Table } from '@tanstack/react-table'
+import { type DataGridTable } from '@/lib/table'
 import {
   ChevronFirstIcon,
   ChevronLastIcon,
@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 
 type DataGridPaginationProps<TData> = {
-  table: Table<TData>
+  table: DataGridTable<TData>
   className?: string
   pageSizeOptions?: number[]
 }
@@ -26,9 +26,9 @@ export function DataGridPagination<TData>({
   className,
   pageSizeOptions = [50, 100, 200, 500],
 }: DataGridPaginationProps<TData>) {
-  const currentPage = table.getState().pagination.pageIndex + 1
+  const currentPage = table.state.pagination.pageIndex + 1
   const totalPages = table.getPageCount()
-  const pageSize = table.getState().pagination.pageSize
+  const pageSize = table.state.pagination.pageSize
 
   return (
     <div

@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import type { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@/lib/table'
 import { ChevronDown, Pause, Rocket } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {

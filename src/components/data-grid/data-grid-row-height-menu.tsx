@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { Table } from '@tanstack/react-table'
+import type { DataGridTable } from '@/lib/table'
 import {
   AlignVerticalSpaceAroundIcon,
   ChevronsDownUpIcon,
@@ -41,7 +41,7 @@ const rowHeights = [
 interface DataGridRowHeightMenuProps<TData> extends React.ComponentProps<
   typeof SelectContent
 > {
-  table: Table<TData>
+  table: DataGridTable<TData>
 }
 
 export function DataGridRowHeightMenu<TData>({

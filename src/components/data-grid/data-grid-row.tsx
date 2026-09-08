@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { flexRender, type Row } from '@tanstack/react-table'
+import { flexRender, type DataGridRow as TanstackDataGridRow } from '@/lib/table'
 import type { CellPosition, RowHeightValue } from '@/types/data-grid'
 import type { Virtualizer } from '@tanstack/react-virtual'
 import { useComposedRefs } from '@/lib/compose-refs'
@@ -8,7 +8,7 @@ import { getCommonPinningStyles } from '@/lib/data-table'
 import { cn } from '@/lib/utils'
 
 interface DataGridRowProps<TData> extends React.ComponentProps<'div'> {
-  row: Row<TData>
+  row: TanstackDataGridRow<TData>
   rowVirtualizer: Virtualizer<HTMLDivElement, Element>
   virtualRowIndex: number
   virtualRowStart: number

@@ -1,4 +1,4 @@
-import { type ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef } from '@/lib/table'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/data-table'

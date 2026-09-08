@@ -1,5 +1,4 @@
 import * as React from 'react'
-import type { Table } from '@tanstack/react-table'
 import { Check, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -17,10 +16,26 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 
-interface ColumnVisibilityProps<TData> extends React.ComponentProps<
-  typeof PopoverContent
-> {
-  table: Table<TData>
+export interface ColumnVisibilityColumn {
+  id: string
+  accessorFn?: unknown
+  getCanHide: () => boolean
+  getIsVisible: () => boolean
+  toggleVisibility: (updater?: boolean) => void
+  columnDef: {
+    meta?: {
+      label?: string
+    }
+  }
+}
+
+export interface ColumnVisibilityTable {
+  getAllColumns: () => ColumnVisibilityColumn[]
+}
+
+interface ColumnVisibilityProps
+  extends React.ComponentProps<typeof PopoverContent> {
+  table: ColumnVisibilityTable
   /**
    * 按钮文本，默认为 "视图"
    */
@@ -39,13 +54,13 @@ interface ColumnVisibilityProps<TData> extends React.ComponentProps<
  * 列可见性切换组件
  * 提供搜索和切换表格列显示/隐藏的功能
  */
-export function ColumnVisibility<TData>({
+export function ColumnVisibility({
   table,
   buttonLabel = '视图',
   showButton = true,
   trigger,
   ...props
-}: ColumnVisibilityProps<TData>) {
+}: ColumnVisibilityProps) {
   const columns = React.useMemo(
     () =>
       table

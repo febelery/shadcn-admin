@@ -1,4 +1,4 @@
-import type { FilterFn, Row } from '@tanstack/react-table'
+import type { DataGridFilterFn, DataGridRow } from '@/lib/table'
 import type {
   BooleanFilterOperator,
   DateFilterOperator,
@@ -291,11 +291,18 @@ export function matchFilterValue(
   return true
 }
 
-export function getFilterFn<TData>(): FilterFn<TData> {
-  return (row: Row<TData>, columnId: string, filterValue: unknown): boolean => {
-    if (!filterValue || typeof filterValue !== 'object') {
-      return true
-    }
-    return matchFilterValue(row.getValue(columnId), filterValue as FilterValue)
+export const dataGridFilterFn: DataGridFilterFn<any> = (
+  row: DataGridRow<any>,
+  columnId: string,
+  filterValue: unknown
+): boolean => {
+  if (!filterValue || typeof filterValue !== 'object') {
+    return true
   }
+  return matchFilterValue(row.getValue(columnId), filterValue as FilterValue)
 }
+
+export function getFilterFn<TData>(): DataGridFilterFn<TData> {
+  return dataGridFilterFn as DataGridFilterFn<TData>
+}
+

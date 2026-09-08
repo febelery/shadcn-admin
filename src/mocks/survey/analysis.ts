@@ -3,12 +3,12 @@ import {
   parseQueryFilterParam,
 } from '@/lib/data-grid-filters'
 import type { SurveyRecordItem } from '@/features/survey/core/admin-data-schema'
-import type {
-  SegmentDefinition,
-  SurveyAnalysisResult,
-  SurveySegmentAnalysisResult,
+import {
+  parseSegmentDefinitions,
+  type SegmentDefinition,
+  type SurveyAnalysisResult,
+  type SurveySegmentAnalysisResult,
 } from '@/features/survey/core/analysis-schema'
-import { parseSegmentDefinitions } from '@/features/survey/core/analysis-schema'
 import { flattenQuestions } from '@/features/survey/core/document-elements'
 import { evaluateCondition } from '@/features/survey/core/logic/eval'
 import type {

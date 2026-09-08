@@ -1,4 +1,4 @@
-import { type ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef } from '@/lib/table'
 import { GripVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'

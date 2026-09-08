@@ -14,11 +14,11 @@
 | **状态管理 (Server)** | **TanStack Query (React Query)**                          |
 | **状态管理 (Client)** | **Zustand** (全局 UI/Auth 状态)                           |
 | **UI 组件库**         | **shadcn/ui** (基于 Radix UI & Tailwind CSS)              |
-| **表单处理**          | **React Hook Form** + **Zod** (模式校验)                  |
-| **数据展示**          | **TanStack Table**, **TanStack Virtual**, **Recharts**    |
+| **表单处理**          | **@tanstack/react-form** + **Zod** (模式校验)             |
+| **数据展示**          | **TanStack Table v9**, **TanStack Virtual**, **Recharts** |
 | **动画效果**          | **Motion** (framer-motion), **tw-animate-css**            |
 | **图标库**            | **Lucide React**                                          |
-| **其他增强**          | **AIEditor**, **Axios**, **date-fns**, **dnd-kit** (拖拽) |
+| **其他增强**          | **Axios**, **date-fns**, **dnd-kit** (拖拽)                |
 
 ---
 
@@ -100,16 +100,93 @@ _路径：`src/components/image-cropper.tsx`_
   - **比例预设**：支持 1:1, 4:3, 16:9 切换。
   - **高质量输出**：使用 Canvas Canvas 2D 渲染，支持平滑缩放和高质量 Blob 输出。
 
-### 5. 🧱 布局与导航 (Layout & Navigation)
+### 5. 🧱 页面布局容器 (PageLayout)
 
-_路径：`src/components/layout`_
+_路径：`src/components/layout/page-layout.tsx`_
 
-- **AuthenticatedLayout**：内置侧边栏显示逻辑、面包屑、用户菜单的受控布局。
-- **NavGroup**：支持嵌套层级、多级展开、外链跳转以及权限自动过滤。
-- **AppSidebar**：高度集成的侧方主菜单，适配移动端和桌面端。
-- **Header / TopNav**：顶栏与水平导航，支持搜索框聚合。
+`PageLayout` 是所有业务页面的核心容器，统一封装了页眉（`PageHeader`）、操作区、加载态骨架屏（`Suspense`）和错误拦截屏障（`ErrorBoundary`）。
 
-### 6. 🛠 其他实用组件
+#### 核心属性 (Props)
+
+| 属性 | 类型 | 默认值 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `title` | `string` | - | 页面主标题 |
+| `description` | `string` | - | 页面副标题描述 |
+| `actions` | `ReactNode` | - | 顶部操作栏右侧操作组件（如新建按钮、导入导出） |
+| `variant` | `'default' \| 'fluid' \| 'fixed'` | `'default'` | 页面高度与滚动模式（见下文说明） |
+| `fluid` | `boolean` | `false` | 是否解除 `@7xl/content:max-w-7xl` 宽度限制，撑满可用容器全宽 |
+| `className` | `string` | - | 容器额外 Tailwind 类名 |
+| `fallback` | `ReactNode` | `<PageSkeleton />` | 异步加载时的降级骨架屏 |
+
+#### 布局模式与宽度控制
+
+布局系统通过 **高度/滚动模式 (`variant`)** 与 **宽度流式控制 (`fluid`)** 两个正交维度进行管理：
+
+1. **常规内容页 (`variant='default'`，默认)**：
+   - 页面高度随内容自适应，随浏览器外层滚动。
+   - 默认限制最大宽度并居中（`@7xl/content:mx-auto @7xl/content:w-full @7xl/content:max-w-7xl`），防止在大屏/超宽屏下视觉分散。
+   - **典型场景**：Dashboard、Task 列表、User 列表、权限配置等常规管理页面。
+
+2. **固定高度内滚页 (`variant='fixed'`)**：
+   - 页面固定为视口高度（`has-data-[layout=fixed]:h-svh`），外层禁止滚动，内容区自身通过 `overflow-auto` / `ScrollArea` 处理滚动。
+   - 默认同样保持居中与 `max-w-7xl` 限制。
+   - **典型场景**：App 应用卡片页、Chat 聊天窗口、Setting 设置中心等。
+
+3. **数据密集型全宽网格 (`variant='fixed' fluid`)**：
+   - 既需要固定视口高度自适应滚动，又需要解除最大宽度限制以铺满屏幕。
+   - **典型场景**：Product 高级数据网格、Survey 填写记录等包含大量数据列需要横向/纵向虚拟滚动的页面。
+
+#### 使用示例
+
+```tsx
+// 1. 标准常规列表页（默认 max-w-7xl 居中 + 随页面滚动）
+export function TaskPage() {
+  return (
+    <PageLayout
+      title='任务列表'
+      description='管理团队的所有日常研发任务'
+      actions={<Button>新建任务</Button>}
+    >
+      <TaskTable />
+    </PageLayout>
+  )
+}
+
+// 2. 固定高度内滚页（如聊天、应用中心，保留 max-w-7xl 居中限制）
+export function ChatPage() {
+  return (
+    <PageLayout variant='fixed'>
+      <div className='flex h-full gap-6'>
+        <ChatSidebar />
+        <ChatContent />
+      </div>
+    </PageLayout>
+  )
+}
+
+// 3. 高性能全宽数据网格（固定视口 + 解除最大宽度限制）
+export function ProductPage() {
+  return (
+    <PageLayout
+      title='产品数据网格'
+      description='支持虚拟滚动、多列固定与即时编辑'
+      variant='fixed'
+      fluid
+      className='flex flex-col gap-4'
+    >
+      <DataGrid />
+    </PageLayout>
+  )
+}
+```
+
+### 6. 🏛️ 其他布局与导航组件
+
+- **AuthenticatedLayout** (`src/components/layout/authenticated-layout.tsx`)：后台主骨架，管理侧栏（`AppSidebar`）、暗黑模式、全局主题与 `@container/content` 容器查询边界。
+- **AppSidebar** (`src/components/layout/app-sidebar.tsx`)：高度集成的侧栏导航，支持展开/紧凑模式与多级折叠菜单。
+- **TopNav / Header** (`src/components/layout/top-nav.tsx`)：顶部操作与二级快捷导航。
+
+### 7. 🛠 其他实用组件
 
 - **Can (权限守卫)** (`src/components/can.tsx`)：声明式权限控制，支持 `hide` (隐藏)、`disable` (禁用样式) 和 `fallback` (降级内容) 三种模式。
 - **Navigation Progress** (`src/components/navigation-progress.tsx`)：利用 TanStack Router 状态实现的自渲染进度条，替代沉重的第三方库。
@@ -131,7 +208,7 @@ _路径：`src/components/layout`_
 
 - **服务器状态**：由 TanStack Query 托管，处理缓存、同步和错误重试。
 - **客户端全局状态**：由 Zustand 管理，主要负责侧边栏折叠、当前主题、用户凭证等轻量级应用状态。
-- **局部状态**：首选 `useState`，表单状态由 `react-hook-form` 隔离在表单内部。
+- **局部状态**：首选 `useState`，表单状态由 `@tanstack/react-form` 隔离在表单内部。
 
 ### 3. 组件设计准则 (KISS/SOLID/YAGNI)
 

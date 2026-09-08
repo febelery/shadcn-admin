@@ -1,12 +1,14 @@
 import * as React from 'react'
-import type { Cell, Table } from '@tanstack/react-table'
+import type { Cell, RowData, Table } from '@tanstack/react-table'
+import type { DataGridTableFeatures } from '@/lib/table'
 import { useComposedRefs } from '@/lib/compose-refs'
 import { getCellKey } from '@/lib/data-grid'
 import { cn } from '@/lib/utils'
 
-interface DataGridCellWrapperProps<TData> extends React.ComponentProps<'div'> {
-  cell: Cell<TData, unknown>
-  table: Table<TData>
+interface DataGridCellWrapperProps<TData extends RowData = any>
+  extends React.ComponentProps<'div'> {
+  cell: Cell<DataGridTableFeatures, TData, unknown>
+  table: Table<DataGridTableFeatures, TData>
   rowIndex: number
   columnId: string
   isEditing: boolean
@@ -14,7 +16,7 @@ interface DataGridCellWrapperProps<TData> extends React.ComponentProps<'div'> {
   isSelected: boolean
 }
 
-export function DataGridCellWrapper<TData>({
+export function DataGridCellWrapper<TData extends RowData = any>({
   table,
   rowIndex,
   columnId,

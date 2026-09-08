@@ -3,7 +3,7 @@ import {
   flexRender,
   type Row,
   type Table as TanstackTable,
-} from '@tanstack/react-table'
+} from '@/lib/table'
 import { type DragEndEvent } from '@dnd-kit/core'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'

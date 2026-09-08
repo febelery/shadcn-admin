@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { ColumnSort, SortDirection, Table } from '@tanstack/react-table'
+import type { ColumnSort, DataGridTable, SortDirection } from '@/lib/table'
 import {
   ArrowDownUp,
   Check,
@@ -74,7 +74,7 @@ interface SortableColumn {
 }
 
 interface SortContextType<TData> {
-  table: Table<TData>
+  table: DataGridTable<TData>
   columnLabels: Map<string, string>
   /** 当前编辑态中尚未被选用的列（供"添加"时使用） */
   availableColumns: SortableColumn[]
@@ -95,7 +95,7 @@ function useSortContext<TData>(): SortContextType<TData> {
 }
 
 function buildColumnMeta<TData>(
-  table: Table<TData>,
+  table: DataGridTable<TData>,
   editingSortIds: Set<string>
 ) {
   const columnLabels = new Map<string, string>()
@@ -118,7 +118,7 @@ function buildColumnMeta<TData>(
 interface DataGridSortMenuProps<TData> extends React.ComponentProps<
   typeof PopoverContent
 > {
-  table: Table<TData>
+  table: DataGridTable<TData>
 }
 
 export function DataGridSortMenu<TData>({
@@ -129,7 +129,7 @@ export function DataGridSortMenu<TData>({
   const descriptionId = React.useId()
   const [open, setOpen] = React.useState(false)
 
-  const appliedSorting = table.getState().sorting
+  const appliedSorting = table.state.sorting
   const [editingSorting, setEditingSorting] =
     React.useState<ColumnSort[]>(appliedSorting)
 

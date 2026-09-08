@@ -2,9 +2,13 @@ import * as React from 'react'
 import type {
   ColumnFilter,
   ColumnFiltersState,
-  Table,
-} from '@tanstack/react-table'
-import type { FilterOperator, FilterValue, Option } from '@/types/data-grid'
+} from '@/lib/table'
+import type {
+  CellOpts,
+  FilterOperator,
+  FilterValue,
+  Option,
+} from '@/types/data-grid'
 import { SlidersHorizontal } from 'lucide-react'
 import { getDefaultOperator } from '@/lib/data-grid-filters'
 import { cn, formatDate } from '@/lib/utils'
@@ -60,6 +64,11 @@ export function buildInitialFilterValue(variant: string): FilterValue {
   return { operator: getDefaultOperator(variant), value: '' }
 }
 
+export function formatFilterDisplayValue(value: unknown): string {
+  if (value instanceof Date) return formatDate(value)
+  return String(value ?? '')
+}
+
 export function getFilterValueText(fv: FilterValue | undefined): string {
   if (!fv) return ''
   const { operator, value, value2 } = fv
@@ -71,8 +80,32 @@ export function getFilterValueText(fv: FilterValue | undefined): string {
   return String(value ?? '')
 }
 
-export function buildColumnMeta<TData>(
-  table: Table<TData>,
+export interface FilterMenuColumn {
+  id: string
+  getCanFilter: () => boolean
+  columnDef: {
+    meta?: {
+      label?: string
+      cell?: CellOpts
+    }
+  }
+}
+
+export interface FilterMenuTable {
+  getColumn: (id: string) => FilterMenuColumn | undefined
+  getAllColumns: () => FilterMenuColumn[]
+  state: {
+    columnFilters: ColumnFiltersState
+  }
+  setColumnFilters: (
+    updater:
+      | ColumnFiltersState
+      | ((old: ColumnFiltersState) => ColumnFiltersState)
+  ) => void
+}
+
+export function buildColumnMeta(
+  table: FilterMenuTable,
   filters: FilterConfig[] | undefined
 ) {
   const columnLabels = new Map<string, string>()
@@ -113,8 +146,8 @@ export function buildColumnMeta<TData>(
   }
 }
 
-export interface FilterContextType<TData = any> {
-  table: Table<TData>
+export interface FilterContextType {
+  table: FilterMenuTable
   allFilterableColumns: Option[]
   unusedColumns: Option[]
   columnLabels: Map<string, string>
@@ -129,31 +162,29 @@ export interface FilterContextType<TData = any> {
 
 export const FilterContext = React.createContext<FilterContextType | null>(null)
 
-export function useFilterContext<TData>(): FilterContextType<TData> {
+export function useFilterContext(): FilterContextType {
   const ctx = React.use(FilterContext)
   if (!ctx) throw new Error('useFilterContext 必须在 FilterMenu 内部使用')
-  return ctx as FilterContextType<TData>
+  return ctx
 }
 
-interface FilterMenuProps<TData> extends React.ComponentProps<
-  typeof PopoverContent
-> {
-  table: Table<TData>
+interface FilterMenuProps extends React.ComponentProps<typeof PopoverContent> {
+  table: FilterMenuTable
   mode?: FilterMode
   onFiltersChange?: (filters: ColumnFilter[]) => void
   filters?: FilterConfig[]
 }
 
-export function FilterMenu<TData>({
+export function FilterMenu({
   table,
   mode = 'local',
   onFiltersChange,
   filters,
   ...props
-}: FilterMenuProps<TData>) {
+}: FilterMenuProps) {
   const id = React.useId()
   const [open, setOpen] = React.useState(false)
-  const appliedFilters = table.getState().columnFilters
+  const appliedFilters = table.state.columnFilters
   const [editingFilters, setEditingFilters] =
     React.useState<ColumnFiltersState>(appliedFilters)
   const [isPending, startTransition] = React.useTransition()
@@ -250,7 +281,7 @@ export function FilterMenu<TData>({
     setOpen(newOpen)
   }
 
-  const contextValue: FilterContextType<TData> = React.useMemo(
+  const contextValue: FilterContextType = React.useMemo(
     () => ({
       table,
       allFilterableColumns: columnMeta.allFilterableColumns,

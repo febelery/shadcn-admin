@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useTable } from '@tanstack/react-table'
 import {
-  type VisibilityState,
-  getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table'
+  standardTableFeatures,
+  type ColumnVisibilityState,
+} from '@/lib/table'
 import { type TableState } from '@/types/table'
 import { cn } from '@/lib/utils'
 import { ColumnVisibility } from '@/components/column-visibility'
@@ -27,7 +27,8 @@ export function TaskTable({
   tableState,
 }: DataTableProps) {
   const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({})
 
   const {
     columnFilters,
@@ -39,7 +40,8 @@ export function TaskTable({
     ensurePageInRange,
   } = tableState
 
-  const table = useReactTable({
+  const table = useTable({
+    features: standardTableFeatures,
     data,
     columns,
     pageCount: Math.ceil(total / pagination.pageSize),
@@ -59,7 +61,6 @@ export function TaskTable({
     onColumnVisibilityChange: setColumnVisibility,
     onColumnFiltersChange,
     onPaginationChange,
-    getCoreRowModel: getCoreRowModel(),
   })
 
   useEffect(() => {

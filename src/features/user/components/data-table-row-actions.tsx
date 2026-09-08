@@ -1,4 +1,4 @@
-import { type Row } from '@tanstack/react-table'
+import { type Row } from '@/lib/table'
 import { MoreHorizontal, Trash2, UserPen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {

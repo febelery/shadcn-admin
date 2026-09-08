@@ -1,17 +1,16 @@
 'use client'
 
 import * as React from 'react'
+import { useTable } from '@tanstack/react-table'
 import {
-  type ColumnDef,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
+  dataGridTableFeatures,
+  type DataGridColumnDef,
+  type DataGridTable,
+  type DataGridTableOptions,
   type RowSelectionState,
   type SortingState,
-  type TableOptions,
   type Updater,
-  useReactTable,
-} from '@tanstack/react-table'
+} from '@/lib/table'
 import type {
   CellPosition,
   ContextMenuState,
@@ -87,10 +86,8 @@ function useStore<T>(
   return React.useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
 }
 
-interface UseDataGridProps<TData> extends Omit<
-  TableOptions<TData>,
-  'getCoreRowModel'
-> {
+interface UseDataGridProps<TData>
+  extends Omit<DataGridTableOptions<TData>, 'features'> {
   onDataChange?: (data: TData[]) => void
   onRowAdd?: (event?: React.MouseEvent<HTMLDivElement>) =>
     | Partial<CellPosition>
@@ -129,7 +126,7 @@ function useDataGrid<TData>({
   ...dataGridProps
 }: UseDataGridProps<TData>) {
   const dataGridRef = React.useRef<HTMLDivElement>(null)
-  const tableRef = React.useRef<ReturnType<typeof useReactTable<TData>>>(null)
+  const tableRef = React.useRef<DataGridTable<TData> | null>(null)
   const rowVirtualizerRef =
     React.useRef<Virtualizer<HTMLDivElement, Element>>(null)
   const headerRef = React.useRef<HTMLDivElement>(null)
@@ -1705,16 +1702,23 @@ function useDataGrid<TData>({
         for (let i = startIndex; i <= endIndex; i++) {
           const row = rows[i]
           if (row) {
-            newRowSelection[row.id] = selected
+            if (selected) {
+              newRowSelection[row.id] = true
+            } else {
+              delete newRowSelection[row.id]
+            }
           }
         }
 
         onRowSelectionChange(newRowSelection)
       } else {
-        onRowSelectionChange({
-          ...currentState.rowSelection,
-          [currentRow.id]: selected,
-        })
+        const next: RowSelectionState = { ...currentState.rowSelection }
+        if (selected) {
+          next[currentRow.id] = true
+        } else {
+          delete next[currentRow.id]
+        }
+        onRowSelectionChange(next)
       }
 
       store.setState('lastClickedRowIndex', rowIndex)
@@ -1768,7 +1772,7 @@ function useDataGrid<TData>({
     pasteCells(false)
   }, [pasteCells])
 
-  const defaultColumn: Partial<ColumnDef<TData>> = React.useMemo(
+  const defaultColumn: Partial<DataGridColumnDef<TData>> = React.useMemo(
     () => ({
       cell: DataGridCell,
       minSize: MIN_COLUMN_SIZE,
@@ -1777,9 +1781,10 @@ function useDataGrid<TData>({
     []
   )
 
-  const tableOptions = React.useMemo<TableOptions<TData>>(
+  const tableOptions = React.useMemo<DataGridTableOptions<TData>>(
     () => ({
       ...dataGridProps,
+      features: dataGridTableFeatures,
       data,
       columns,
       defaultColumn,
@@ -1793,9 +1798,6 @@ function useDataGrid<TData>({
         dataGridProps.onRowSelectionChange ?? onRowSelectionChange,
       onSortingChange: dataGridProps.onSortingChange ?? onSortingChange,
       columnResizeMode: 'onChange',
-      getCoreRowModel: getCoreRowModel(),
-      getFilteredRowModel: getFilteredRowModel(),
-      getSortedRowModel: getSortedRowModel(),
       meta: {
         ...dataGridProps.meta,
         dataGridRef,
@@ -1874,7 +1876,7 @@ function useDataGrid<TData>({
     ]
   )
 
-  const table = useReactTable(tableOptions)
+  const table = useTable(tableOptions)
 
   tableRef.current = table
 
@@ -2168,16 +2170,13 @@ function useDataGrid<TData>({
     })
     return () => cancelAnimationFrame(rafId)
   }, [
-    table.getState().columnFilters,
-    table.getState().columnOrder,
-    table.getState().columnPinning,
-    table.getState().columnSizing,
-    table.getState().columnVisibility,
-    table.getState().expanded,
-    table.getState().globalFilter,
-    table.getState().grouping,
-    table.getState().rowSelection,
-    table.getState().sorting,
+    table.state.columnFilters,
+    table.state.columnOrder,
+    table.state.columnPinning,
+    table.state.columnSizing,
+    table.state.columnVisibility,
+    table.state.rowSelection,
+    table.state.sorting,
     rowHeight,
   ])
 

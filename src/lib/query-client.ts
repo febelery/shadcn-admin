@@ -3,8 +3,8 @@ import {
   keepPreviousData,
   QueryCache,
   QueryClient,
+  type Query,
 } from '@tanstack/react-query'
-import type { Query } from '@tanstack/react-query'
 import { ROUTES } from '@/constants'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'

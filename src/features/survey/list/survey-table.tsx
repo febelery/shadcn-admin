@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTable } from '@tanstack/react-table'
 import {
-  getCoreRowModel,
-  useReactTable,
-  type VisibilityState,
-} from '@tanstack/react-table'
+  standardTableFeatures,
+  type ColumnVisibilityState,
+} from '@/lib/table'
 import type { TableState } from '@/types/table'
 import { ClipboardList, FilterX, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -41,7 +41,8 @@ export function SurveyTable({
   tableState,
   onCreate,
 }: Props) {
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({})
   const { mutate: deleteSurvey } = useDeleteSurvey()
   const { mutate: publishSurvey } = usePublishSurvey()
   const { mutate: updateSurveyStatus } = useUpdateSurveyStatus()
@@ -68,7 +69,8 @@ export function SurveyTable({
 
   const handleClearFilters = () => onColumnFiltersChange([])
 
-  const table = useReactTable({
+  const table = useTable({
+    features: standardTableFeatures,
     data,
     columns,
     pageCount: Math.ceil(total / pagination.pageSize) || 1,
@@ -85,7 +87,6 @@ export function SurveyTable({
     onColumnVisibilityChange: setColumnVisibility,
     onColumnFiltersChange,
     onPaginationChange,
-    getCoreRowModel: getCoreRowModel(),
   })
 
   useEffect(() => {

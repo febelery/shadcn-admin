@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { type Table } from '@tanstack/react-table'
+import { type Table } from '@/lib/table'
 import { Trash2, UserX, UserCheck, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import { sleep } from '@/lib/utils'

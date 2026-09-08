@@ -7,7 +7,7 @@ import { PageHeader } from './page-header'
 /**
  * default — 居中 + 最大宽度约束（常规内容页）
  * fluid   — 撑满容器宽度（数据密集型页面）
- * fixed   — 固定高度，内容区自行处理滚动（编辑器、地图、看板）
+ * fixed   — 固定高度，内容区自行处理滚动
  */
 type LayoutVariant = 'default' | 'fluid' | 'fixed'
 
@@ -16,15 +16,10 @@ interface PageLayoutProps {
   description?: string
   actions?: React.ReactNode
   variant?: LayoutVariant
+  fluid?: boolean
   className?: string
   fallback?: React.ReactNode
   children: React.ReactNode
-}
-
-const variantClassName: Record<LayoutVariant, string | null> = {
-  default: '@7xl/content:mx-auto @7xl/content:w-full @7xl/content:max-w-7xl',
-  fluid: null,
-  fixed: 'flex grow flex-col overflow-hidden',
 }
 
 const variantDataLayout: Record<LayoutVariant, string> = {
@@ -74,14 +69,24 @@ export function PageLayout({
   description,
   actions,
   variant = 'default',
+  fluid = false,
   className,
   fallback = DEFAULT_FALLBACK,
   children,
 }: PageLayoutProps) {
+  const isFixed = variant === 'fixed'
+  const isFluid = fluid || variant === 'fluid'
+
   return (
     <main
       data-layout={variantDataLayout[variant]}
-      className={cn('px-4 py-6', variantClassName[variant], className)}
+      className={cn(
+        'px-4 py-6',
+        isFixed && 'flex grow flex-col overflow-hidden',
+        !isFluid &&
+          '@7xl/content:mx-auto @7xl/content:w-full @7xl/content:max-w-7xl',
+        className
+      )}
     >
       <ErrorBoundary>
         {title && (

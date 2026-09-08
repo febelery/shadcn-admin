@@ -1,4 +1,4 @@
-import { type Table } from '@tanstack/react-table'
+import { type Table } from '@/lib/table'
 import {
   ChevronFirstIcon,
   ChevronLastIcon,
@@ -24,9 +24,9 @@ export function DataTablePagination<TData>({
   table,
   className,
 }: DataTablePaginationProps<TData>) {
-  const currentPage = table.getState().pagination.pageIndex + 1
+  const currentPage = table.state.pagination.pageIndex + 1
   const totalPages = table.getPageCount()
-  const pageSize = table.getState().pagination.pageSize
+  const pageSize = table.state.pagination.pageSize
 
   return (
     <div

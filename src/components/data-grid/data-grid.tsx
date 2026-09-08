@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { flexRender } from '@tanstack/react-table'
+import { flexRender } from '@/lib/table'
 import { Plus } from 'lucide-react'
 import { getCommonPinningStyles } from '@/lib/data-table'
 import { cn } from '@/lib/utils'
@@ -99,7 +99,7 @@ export function DataGrid<TData>({
               className='flex w-full'
             >
               {headerGroup.headers.map((header, colIndex) => {
-                const sorting = table.getState().sorting
+                const sorting = table.state.sorting
                 const currentSort = sorting.find(
                   (sort) => sort.id === header.column.id
                 )
