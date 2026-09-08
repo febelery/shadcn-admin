@@ -1,7 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { Slot as SlotPrimitive } from 'radix-ui'
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
 import { useComposedRefs } from '@/lib/compose-refs'
 import { cn } from '@/lib/utils'
 
@@ -90,7 +91,8 @@ function useQRCodeContext(consumerName: string) {
   return context
 }
 
-interface QRCodeRootProps extends Omit<React.ComponentProps<'div'>, 'onError'> {
+interface QRCodeRootProps
+  extends Omit<useRender.ComponentProps<'div'>, 'onError'> {
   value: string
   size?: number
   level?: QRCodeLevel
@@ -117,6 +119,8 @@ function QRCodeRoot(props: QRCodeRootProps) {
     className,
     style,
     asChild,
+    render,
+    children,
     ...rootProps
   } = props
 
@@ -280,116 +284,145 @@ function QRCodeRoot(props: QRCodeRootProps) {
     }
   }, [generationKey, onQRCodeGenerate])
 
-  const RootPrimitive = asChild ? SlotPrimitive.Slot : 'div'
+  const finalRender =
+    asChild && React.isValidElement(children) ? children : render
 
   return (
     <StoreContext value={store}>
       <QRCodeContext value={contextValue}>
-        <RootPrimitive
-          data-slot='qr-code'
-          {...rootProps}
-          className={cn(className, 'relative flex flex-col items-center gap-2')}
-          style={
+        {useRender({
+          defaultTagName: 'div',
+          render: finalRender,
+          props: mergeProps<'div'>(
             {
-              '--qr-code-size': `${size}px`,
-              ...style,
-            } as React.CSSProperties
-          }
-        />
+              'data-slot': 'qr-code',
+              className: cn(
+                className,
+                'relative flex flex-col items-center gap-2'
+              ),
+              style: {
+                '--qr-code-size': `${size}px`,
+                ...style,
+              },
+            } as React.ComponentProps<'div'>,
+            rootProps
+          ),
+        })}
       </QRCodeContext>
     </StoreContext>
   )
 }
 
-interface QRCodeCanvasProps extends React.ComponentProps<'canvas'> {
+interface QRCodeCanvasProps extends useRender.ComponentProps<'canvas'> {
   asChild?: boolean
 }
 
 function QRCodeCanvas(props: QRCodeCanvasProps) {
-  const { asChild, className, ref, ...canvasProps } = props
+  const { asChild, className, ref, render, children, ...canvasProps } = props
 
   const context = useQRCodeContext(CANVAS_NAME)
   const generationKey = useStore((state) => state.generationKey)
 
   const composedRef = useComposedRefs(ref, context.canvasRef)
+  const finalRender =
+    asChild && React.isValidElement(children) ? children : render
 
-  const CanvasPrimitive = asChild ? SlotPrimitive.Slot : 'canvas'
-
-  return (
-    <CanvasPrimitive
-      data-slot='qr-code-canvas'
-      {...canvasProps}
-      ref={composedRef}
-      width={context.size}
-      height={context.size}
-      className={cn(
-        'relative max-h-(--qr-code-size) max-w-(--qr-code-size)',
-        !generationKey && 'invisible',
-        className
-      )}
-    />
-  )
+  return useRender({
+    defaultTagName: 'canvas',
+    render: finalRender,
+    props: mergeProps<'canvas'>(
+      {
+        'data-slot': 'qr-code-canvas',
+        width: context.size,
+        height: context.size,
+        className: cn(
+          'relative max-h-(--qr-code-size) max-w-(--qr-code-size)',
+          !generationKey && 'invisible',
+          className
+        ),
+        ref: composedRef,
+      } as React.ComponentProps<'canvas'>,
+      canvasProps
+    ),
+  })
 }
 
-interface QRCodeSvgProps extends React.ComponentProps<'div'> {
+interface QRCodeSvgProps extends useRender.ComponentProps<'div'> {
   asChild?: boolean
 }
 
 function QRCodeSvg(props: QRCodeSvgProps) {
-  const { asChild, className, style, ...svgProps } = props
+  const { asChild, className, style, render, children, ...svgProps } = props
 
   const context = useQRCodeContext(SVG_NAME)
   const svgString = useStore((state) => state.svgString)
 
   if (!svgString) return null
 
-  const SvgPrimitive = asChild ? SlotPrimitive.Slot : 'div'
+  const finalRender =
+    asChild && React.isValidElement(children) ? children : render
 
-  return (
-    <SvgPrimitive
-      data-slot='qr-code-svg'
-      {...svgProps}
-      className={cn(
-        'relative max-h-(--qr-code-size) max-w-(--qr-code-size)',
-        className
-      )}
-      style={{ width: context.size, height: context.size, ...style }}
-      dangerouslySetInnerHTML={{ __html: svgString }}
-    />
-  )
+  return useRender({
+    defaultTagName: 'div',
+    render: finalRender,
+    props: mergeProps<'div'>(
+      {
+        'data-slot': 'qr-code-svg',
+        className: cn(
+          'relative max-h-(--qr-code-size) max-w-(--qr-code-size)',
+          className
+        ),
+        style: { width: context.size, height: context.size, ...style },
+        dangerouslySetInnerHTML: { __html: svgString },
+      } as React.ComponentProps<'div'>,
+      svgProps
+    ),
+  })
 }
 
-interface QRCodeImageProps extends React.ComponentProps<'img'> {
+interface QRCodeImageProps extends useRender.ComponentProps<'img'> {
   asChild?: boolean
 }
 
 function QRCodeImage(props: QRCodeImageProps) {
-  const { alt = 'QR Code', asChild, className, ...imageProps } = props
+  const {
+    alt = 'QR Code',
+    asChild,
+    className,
+    render,
+    children,
+    ...imageProps
+  } = props
 
   const context = useQRCodeContext(IMAGE_NAME)
   const dataUrl = useStore((state) => state.dataUrl)
 
   if (!dataUrl) return null
 
-  const ImagePrimitive = asChild ? SlotPrimitive.Slot : 'img'
+  const finalRender =
+    asChild && React.isValidElement(children) ? children : render
 
-  return (
-    <ImagePrimitive
-      data-slot='qr-code-image'
-      {...imageProps}
-      src={dataUrl}
-      alt={alt}
-      width={context.size}
-      height={context.size}
-      className={cn(
-        'relative max-h-(--qr-code-size) max-w-(--qr-code-size)',
-        className
-      )}
-    />
-  )
+  return useRender({
+    defaultTagName: 'img',
+    render: finalRender,
+    props: mergeProps<'img'>(
+      {
+        'data-slot': 'qr-code-image',
+        src: dataUrl,
+        alt,
+        width: context.size,
+        height: context.size,
+        className: cn(
+          'relative max-h-(--qr-code-size) max-w-(--qr-code-size)',
+          className
+        ),
+      } as React.ComponentProps<'img'>,
+      imageProps
+    ),
+  })
 }
 
-interface QRCodeDownloadProps extends React.ComponentProps<'button'> {
+interface QRCodeDownloadProps extends useRender.ComponentProps<'button'> {
   filename?: string
   format?: 'png' | 'svg'
   asChild?: boolean
@@ -402,6 +435,7 @@ function QRCodeDownload(props: QRCodeDownloadProps) {
     asChild,
     className,
     children,
+    render,
     ...buttonProps
   } = props
 
@@ -437,49 +471,56 @@ function QRCodeDownload(props: QRCodeDownloadProps) {
     [dataUrl, svgString, filename, format, buttonProps.onClick]
   )
 
-  const ButtonPrimitive = asChild ? SlotPrimitive.Slot : 'button'
+  const finalRender =
+    asChild && React.isValidElement(children) ? children : render
 
-  return (
-    <ButtonPrimitive
-      type='button'
-      data-slot='qr-code-download'
-      {...buttonProps}
-      className={cn('max-w-(--qr-code-size)', className)}
-      onClick={onClick}
-    >
-      {children ?? `Download ${format.toUpperCase()}`}
-    </ButtonPrimitive>
-  )
+  return useRender({
+    defaultTagName: 'button',
+    render: finalRender,
+    props: mergeProps<'button'>(
+      {
+        type: 'button',
+        'data-slot': 'qr-code-download',
+        className: cn('max-w-(--qr-code-size)', className),
+        onClick,
+        children: children ?? `Download ${format.toUpperCase()}`,
+      } as React.ComponentProps<'button'>,
+      buttonProps
+    ),
+  })
 }
 
-interface QRCodeOverlayProps extends React.ComponentProps<'div'> {
+interface QRCodeOverlayProps extends useRender.ComponentProps<'div'> {
   asChild?: boolean
 }
 
 function QRCodeOverlay(props: QRCodeOverlayProps) {
-  const { asChild, className, ...overlayProps } = props
+  const { asChild, className, render, children, ...overlayProps } = props
+  const finalRender =
+    asChild && React.isValidElement(children) ? children : render
 
-  const OverlayPrimitive = asChild ? SlotPrimitive.Slot : 'div'
-
-  return (
-    <OverlayPrimitive
-      data-slot='qr-code-overlay'
-      {...overlayProps}
-      className={cn(
-        'bg-background absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-sm',
-        className
-      )}
-    />
-  )
+  return useRender({
+    defaultTagName: 'div',
+    render: finalRender,
+    props: mergeProps<'div'>(
+      {
+        'data-slot': 'qr-code-overlay',
+        className: cn(
+          'bg-background absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-sm',
+          className
+        ),
+      } as React.ComponentProps<'div'>,
+      overlayProps
+    ),
+  })
 }
 
-interface QRCodeSkeletonProps extends React.ComponentProps<'div'> {
+interface QRCodeSkeletonProps extends useRender.ComponentProps<'div'> {
   asChild?: boolean
 }
 
 function QRCodeSkeleton(props: QRCodeSkeletonProps) {
-  const { asChild, className, style, ...skeletonProps } = props
-
+  const { asChild, className, style, render, children, ...skeletonProps } = props
   const context = useQRCodeContext(SKELETON_NAME)
   const dataUrl = useStore((state) => state.dataUrl)
   const svgString = useStore((state) => state.svgString)
@@ -489,23 +530,28 @@ function QRCodeSkeleton(props: QRCodeSkeletonProps) {
 
   if (isLoaded) return null
 
-  const SkeletonPrimitive = asChild ? SlotPrimitive.Slot : 'div'
+  const finalRender =
+    asChild && React.isValidElement(children) ? children : render
 
-  return (
-    <SkeletonPrimitive
-      data-slot='qr-code-skeleton'
-      {...skeletonProps}
-      className={cn(
-        'bg-accent absolute max-h-(--qr-code-size) max-w-(--qr-code-size) animate-pulse',
-        className
-      )}
-      style={{
-        width: context.size,
-        height: context.size,
-        ...style,
-      }}
-    />
-  )
+  return useRender({
+    defaultTagName: 'div',
+    render: finalRender,
+    props: mergeProps<'div'>(
+      {
+        'data-slot': 'qr-code-skeleton',
+        className: cn(
+          'bg-accent absolute max-h-(--qr-code-size) max-w-(--qr-code-size) animate-pulse',
+          className
+        ),
+        style: {
+          width: context.size,
+          height: context.size,
+          ...style,
+        },
+      } as React.ComponentProps<'div'>,
+      skeletonProps
+    ),
+  })
 }
 
 export {

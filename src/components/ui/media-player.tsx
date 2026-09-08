@@ -33,7 +33,22 @@ import {
   useMediaRef,
   useMediaSelector,
 } from 'media-chrome/react/media-store'
-import { Slider as SliderPrimitive, Slot as SlotPrimitive } from 'radix-ui'
+import { Slider as SliderPrimitive } from '@base-ui/react/slider'
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
+
+const SlotPrimitive = {
+  Slot: React.forwardRef<
+    HTMLElement,
+    React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }
+  >(function Slot({ children, ...props }, ref) {
+    return useRender({
+      defaultTagName: 'div',
+      render: React.isValidElement(children) ? children : undefined,
+      props: mergeProps<any>({ ref, children: undefined }, props),
+    })
+  }),
+}
 import * as ReactDOM from 'react-dom'
 import { useComposedRefs } from '@/lib/compose-refs'
 import { cn } from '@/lib/utils'
@@ -2074,34 +2089,36 @@ function MediaPlayerSeek(props: MediaPlayerSeekProps) {
           className
         )}
         value={[displayValue]}
-        onValueChange={onSeek}
-        onValueCommit={onSeekCommit}
+        onValueChange={(val: any) => onSeek(Array.isArray(val) ? val : [val])}
+        onValueCommitted={(val: any) => onSeekCommit(Array.isArray(val) ? val : [val])}
         onPointerEnter={onPointerEnter}
         onPointerLeave={onPointerLeave}
         onPointerMove={onPointerMove}
       >
-        <SliderPrimitive.Track className='bg-primary/40 relative h-1 w-full grow overflow-hidden rounded-full'>
-          <div
-            data-slot='media-player-seek-buffered'
-            className='bg-primary/70 absolute h-full will-change-[width]'
-            style={{
-              width: `${bufferedProgress * 100}%`,
-            }}
-          />
-          <SliderPrimitive.Range className='bg-primary absolute h-full will-change-[width]' />
-          {seekState.isHovering && seekableEnd > 0 && (
+        <SliderPrimitive.Control className='relative flex w-full touch-none items-center select-none'>
+          <SliderPrimitive.Track className='bg-primary/40 relative h-1 w-full grow overflow-hidden rounded-full'>
             <div
-              data-slot='media-player-seek-hover-range'
-              className='bg-primary/70 absolute h-full will-change-[width,opacity]'
+              data-slot='media-player-seek-buffered'
+              className='bg-primary/70 absolute h-full will-change-[width]'
               style={{
-                width: `var(${SEEK_HOVER_PERCENT}, 0%)`,
-                transition: 'opacity 150ms ease-out',
+                width: `${bufferedProgress * 100}%`,
               }}
             />
-          )}
-          {chapterSeparators}
-        </SliderPrimitive.Track>
-        <SliderPrimitive.Thumb className='bg-primary ring-ring/50 relative z-10 block size-2.5 shrink-0 rounded-full shadow-sm transition-[color,box-shadow] will-change-transform hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50' />
+            <SliderPrimitive.Indicator className='bg-primary absolute h-full will-change-[width]' />
+            {seekState.isHovering && seekableEnd > 0 && (
+              <div
+                data-slot='media-player-seek-hover-range'
+                className='bg-primary/70 absolute h-full will-change-[width,opacity]'
+                style={{
+                  width: `var(${SEEK_HOVER_PERCENT}, 0%)`,
+                  transition: 'opacity 150ms ease-out',
+                }}
+              />
+            )}
+            {chapterSeparators}
+          </SliderPrimitive.Track>
+          <SliderPrimitive.Thumb className='bg-primary ring-ring/50 relative z-10 block size-2.5 shrink-0 rounded-full shadow-sm transition-[color,box-shadow] will-change-transform hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50' />
+        </SliderPrimitive.Control>
       </SliderPrimitive.Root>
       {!withoutTooltip &&
         !context.withoutTooltip &&
@@ -2309,13 +2326,15 @@ function MediaPlayerVolume(props: MediaPlayerVolumeProps) {
         )}
         disabled={isDisabled}
         value={[effectiveVolume]}
-        onValueChange={onVolumeChange}
-        onValueCommit={onVolumeCommit}
+        onValueChange={(val: any) => onVolumeChange?.(Array.isArray(val) ? val : [val])}
+        onValueCommitted={(val: any) => onVolumeCommit?.(Array.isArray(val) ? val : [val])}
       >
-        <SliderPrimitive.Track className='relative h-1 w-full grow overflow-hidden rounded-full bg-zinc-500'>
-          <SliderPrimitive.Range className='bg-primary absolute h-full will-change-[width]' />
-        </SliderPrimitive.Track>
-        <SliderPrimitive.Thumb className='bg-primary ring-ring/50 block size-2.5 shrink-0 rounded-full shadow-sm transition-[color,box-shadow] will-change-transform hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50' />
+        <SliderPrimitive.Control className='relative flex touch-none items-center select-none'>
+          <SliderPrimitive.Track className='relative h-1 w-full grow overflow-hidden rounded-full bg-zinc-500'>
+            <SliderPrimitive.Indicator className='bg-primary absolute h-full will-change-[width]' />
+          </SliderPrimitive.Track>
+          <SliderPrimitive.Thumb className='bg-primary ring-ring/50 block size-2.5 shrink-0 rounded-full shadow-sm transition-[color,box-shadow] will-change-transform hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50' />
+        </SliderPrimitive.Control>
       </SliderPrimitive.Root>
     </div>
   )
@@ -2397,11 +2416,12 @@ function MediaPlayerTime(props: MediaPlayerTimeProps) {
 
 interface MediaPlayerPlaybackSpeedProps
   extends
-    React.ComponentProps<typeof DropdownMenuTrigger>,
-    React.ComponentProps<typeof Button>,
-    Omit<React.ComponentProps<typeof DropdownMenu>, 'dir'>,
+    Omit<React.ComponentProps<typeof DropdownMenuTrigger>, 'render' | 'children'>,
+    Omit<React.ComponentProps<typeof Button>, 'render'>,
+    Omit<React.ComponentProps<typeof DropdownMenu>, 'dir' | 'children' | 'onOpenChange'>,
     Pick<React.ComponentProps<typeof DropdownMenuContent>, 'sideOffset'> {
   speeds?: number[]
+  onOpenChange?: (open: boolean) => void
 }
 
 function MediaPlayerPlaybackSpeed(props: MediaPlayerPlaybackSpeedProps) {
@@ -2467,10 +2487,10 @@ function MediaPlayerPlaybackSpeed(props: MediaPlayerPlaybackSpeedProps) {
         </DropdownMenuTrigger>
       </MediaPlayerTooltip>
       <DropdownMenuContent
-        container={context.portalContainer}
+        container={context.portalContainer as any}
         sideOffset={sideOffset}
         align='center'
-        className='min-w-(--radix-dropdown-menu-trigger-width) data-[side=top]:mb-3.5'
+        className='min-w-(--anchor-width) data-[side=top]:mb-3.5'
       >
         {speeds.map((speed) => (
           <DropdownMenuItem
@@ -2931,7 +2951,7 @@ function MediaPlayerSettings(props: MediaPlayerSettingsProps) {
         align='end'
         side='top'
         sideOffset={sideOffset}
-        container={context.portalContainer}
+        container={context.portalContainer as any}
         className='w-56 data-[side=top]:mb-3.5'
       >
         <DropdownMenuLabel className='sr-only'>设置</DropdownMenuLabel>
@@ -3059,10 +3079,12 @@ function MediaPlayerPortal(props: MediaPlayerPortalProps) {
 
 interface MediaPlayerTooltipProps
   extends
-    React.ComponentProps<typeof Tooltip>,
+    Omit<React.ComponentProps<typeof Tooltip>, 'children'>,
     Pick<React.ComponentProps<typeof TooltipContent>, 'sideOffset'> {
   tooltip?: string
   shortcut?: string | string[]
+  delayDuration?: number
+  children?: React.ReactNode
 }
 
 function MediaPlayerTooltip(props: MediaPlayerTooltipProps) {
@@ -3090,7 +3112,7 @@ function MediaPlayerTooltip(props: MediaPlayerTooltipProps) {
         {children}
       </TooltipTrigger>
       <TooltipContent
-        container={context.portalContainer}
+        container={context.portalContainer as any}
         sideOffset={tooltipSideOffset}
         className='bg-accent text-foreground flex items-center gap-2 border px-2 py-1 font-medium data-[side=top]:mb-3.5 dark:bg-zinc-900 [&>span]:hidden'
       >

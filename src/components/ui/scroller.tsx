@@ -3,7 +3,8 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
-import { Slot as SlotPrimitive } from 'radix-ui'
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
 import { useComposedRefs } from '@/lib/compose-refs'
 import { cn } from '@/lib/utils'
 
@@ -48,7 +49,8 @@ type ScrollVisibility = {
 }
 
 interface ScrollerProps
-  extends VariantProps<typeof scrollerVariants>, React.ComponentProps<'div'> {
+  extends VariantProps<typeof scrollerVariants>,
+    useRender.ComponentProps<'div'> {
   size?: number
   offset?: number
   asChild?: boolean
@@ -67,6 +69,8 @@ function Scroller(props: ScrollerProps) {
     scrollStep = 40,
     style,
     asChild,
+    render,
+    children,
     withNavigation = false,
     scrollTriggerMode = 'press',
     ref,
@@ -219,19 +223,22 @@ function Scroller(props: ScrollerProps) {
     return orientation === 'vertical' ? ['up', 'down'] : ['left', 'right']
   }, [orientation, withNavigation])
 
-  const ScrollerPrimitive = asChild ? SlotPrimitive.Slot : 'div'
+  const finalRender =
+    asChild && React.isValidElement(children) ? children : render
 
-  const ScrollerImpl = (
-    <ScrollerPrimitive
-      data-slot='scroller'
-      {...scrollerProps}
-      ref={composedRef}
-      style={composedStyle}
-      className={cn(
-        scrollerVariants({ orientation, hideScrollbar, className })
-      )}
-    />
-  )
+  const ScrollerImpl = useRender({
+    defaultTagName: 'div',
+    render: finalRender,
+    props: mergeProps<'div'>(
+      {
+        'data-slot': 'scroller',
+        ref: composedRef,
+        style: composedStyle,
+        className: cn(scrollerVariants({ orientation, hideScrollbar, className })),
+      } as React.ComponentProps<'div'>,
+      scrollerProps
+    ),
+  })
 
   const navigationButtons = React.useMemo(() => {
     if (!withNavigation) return null

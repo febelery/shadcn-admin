@@ -25,7 +25,7 @@
     "^date-fns$",
     "^react-hook-form$",
     "^use-intl$",
-    "^@radix-ui/(.*)$",
+    "^@base-ui/(.*)$",
     "^@hookform/resolvers/zod$",
     "^@tanstack/react-query$",
     "^@tanstack/react-router$",

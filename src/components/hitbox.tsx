@@ -1,6 +1,7 @@
-import type * as React from 'react'
+import * as React from 'react'
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { Slot as SlotPrimitive } from 'radix-ui'
 import { cn } from '@/lib/utils'
 
 type Size = 'default' | 'sm' | 'lg'
@@ -54,9 +55,10 @@ const hitboxVariants = cva(
 
 interface HitboxProps
   extends
-    React.ComponentProps<typeof SlotPrimitive.Slot>,
+    useRender.ComponentProps<'div'>,
     Omit<VariantProps<typeof hitboxVariants>, 'size'> {
   size?: DynamicSize
+  asChild?: boolean
 }
 
 function Hitbox(props: HitboxProps) {
@@ -67,29 +69,38 @@ function Hitbox(props: HitboxProps) {
     position,
     radius,
     debug = false,
+    asChild = false,
+    render,
+    children,
     ...hitboxProps
   } = props
 
   const isDynamicSize = size && !sizes.includes(size)
+  const finalRender =
+    asChild && React.isValidElement(children) ? children : (render ?? (React.isValidElement(children) ? children : undefined))
 
-  return (
-    <SlotPrimitive.Slot
-      {...hitboxProps}
-      className={cn(
-        hitboxVariants({
-          size: isDynamicSize ? 'dynamic' : (size as Size),
-          position,
-          radius,
-          debug,
-        }),
-        className
-      )}
-      style={{
-        ...(isDynamicSize && { '--size': size }),
-        ...style,
-      }}
-    />
-  )
+  return useRender({
+    defaultTagName: 'div',
+    render: finalRender,
+    props: mergeProps<'div'>(
+      {
+        className: cn(
+          hitboxVariants({
+            size: isDynamicSize ? 'dynamic' : (size as Size),
+            position,
+            radius,
+            debug,
+          }),
+          className
+        ),
+        style: {
+          ...(isDynamicSize && { '--size': size }),
+          ...style,
+        },
+      } as React.ComponentProps<'div'>,
+      hitboxProps
+    ),
+  })
 }
 
 export { Hitbox }

@@ -276,7 +276,7 @@ export function DataGridSortMenu<TData>({
               aria-describedby={descriptionId}
               align={props.align ?? 'end'}
               side={props.side ?? 'bottom'}
-              className='flex w-full max-w-(--radix-popover-content-available-width) flex-col p-0 sm:min-w-[420px]'
+              className='flex w-full max-w-(--available-width) flex-col p-0 sm:min-w-[420px]'
               onOpenAutoFocus={(e) => e.preventDefault()}
               {...props}
             >
@@ -523,6 +523,7 @@ function SortItem<TData>({
 
         {/* 方向选择器 */}
         <Select
+          items={SORT_ORDERS}
           value={sort.desc ? 'desc' : 'asc'}
           onValueChange={(val: SortDirection) =>
             updateSort(sort.id, { desc: val === 'desc' })
@@ -532,7 +533,13 @@ function SortItem<TData>({
             size='sm'
             className='h-8 w-20 rounded-md px-2.5 text-xs font-normal'
           >
-            <SelectValue />
+            <SelectValue>
+              {(val: any) =>
+                SORT_ORDERS.find((o) => o.value === (val ?? (sort.desc ? 'desc' : 'asc')))
+                  ?.label ??
+                val
+              }
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {SORT_ORDERS.map((order) => (

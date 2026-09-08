@@ -1,5 +1,4 @@
 import { CircleQuestionMark } from 'lucide-react'
-import { Popover as PopoverPrimitive } from 'radix-ui'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -8,9 +7,10 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 
-type LearnMoreProps = React.ComponentProps<typeof PopoverPrimitive.Root> & {
-  contentProps?: React.ComponentProps<typeof PopoverPrimitive.Content>
-  triggerProps?: React.ComponentProps<typeof PopoverPrimitive.Trigger>
+type LearnMoreProps = Omit<React.ComponentProps<typeof Popover>, 'children'> & {
+  children?: React.ReactNode
+  contentProps?: React.ComponentProps<typeof PopoverContent>
+  triggerProps?: React.ComponentProps<typeof PopoverTrigger>
 }
 
 export function LearnMore({

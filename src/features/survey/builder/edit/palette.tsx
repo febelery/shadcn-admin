@@ -172,7 +172,7 @@ function PaletteCategory({
           'hover:bg-muted/50 hover:text-foreground transition-colors duration-150'
         )}
       >
-        <ChevronRight className='size-3.5 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90' />
+        <ChevronRight className='size-3.5 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90 group-data-open/collapsible:rotate-90' />
         <span className='truncate'>{title}</span>
         <span className='text-muted-foreground ms-auto tabular-nums'>
           {count}

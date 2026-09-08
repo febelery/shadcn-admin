@@ -363,13 +363,8 @@ export function RoleFormDialog({
                                     >
                                       <div className='bg-muted/30 flex items-center gap-2 px-3 py-2'>
                                         <Checkbox
-                                          checked={
-                                            allChecked
-                                              ? true
-                                              : someChecked
-                                                ? 'indeterminate'
-                                                : false
-                                          }
+                                          checked={allChecked}
+                                          indeterminate={!allChecked && someChecked}
                                           onCheckedChange={() =>
                                             toggleGroup(permKeys)
                                           }

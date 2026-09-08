@@ -9,7 +9,8 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   FORBIDDEN: '/403',
   SERVER_ERROR: '/500',
-  SETTING: '/setting',
+  SETTING: '/setting/profile',
+  PROFILE: '/setting/profile',
   ACCOUNT: '/setting/account',
   NOTIFICATION: '/setting/notification',
 } as const

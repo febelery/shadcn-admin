@@ -6,19 +6,19 @@
 
 ## 🚀 核心技术栈 (Core Tech Stack)
 
-| 类别                  | 技术/库                                                   |
-| :-------------------- | :-------------------------------------------------------- |
-| **基础框架**          | **React 19** (TypeScript)                                 |
-| **构建工具**          | **Vite**, **PostCSS**, **Tailwind CSS v4**                |
-| **路由管理**          | **TanStack Router** (基于文件的路由, `src/routes`)        |
-| **状态管理 (Server)** | **TanStack Query (React Query)**                          |
-| **状态管理 (Client)** | **Zustand** (全局 UI/Auth 状态)                           |
-| **UI 组件库**         | **shadcn/ui** (基于 Radix UI & Tailwind CSS)              |
-| **表单处理**          | **@tanstack/react-form** + **Zod** (模式校验)             |
-| **数据展示**          | **TanStack Table v9**, **TanStack Virtual**, **Recharts** |
-| **动画效果**          | **Motion** (framer-motion), **tw-animate-css**            |
-| **图标库**            | **Lucide React**                                          |
-| **其他增强**          | **Axios**, **date-fns**, **dnd-kit** (拖拽)                |
+| 类别                  | 技术/库                                                      |
+| :-------------------- | :----------------------------------------------------------- |
+| **基础框架**          | **React 19** (TypeScript)                                    |
+| **构建工具**          | **Vite**, **PostCSS**, **Tailwind CSS v4**                   |
+| **路由管理**          | **TanStack Router** (基于文件的路由, `src/routes`)           |
+| **状态管理 (Server)** | **TanStack Query (React Query)**                             |
+| **状态管理 (Client)** | **Zustand** (全局 UI/Auth 状态)                              |
+| **UI 组件库**         | **shadcn/ui** (基于 Base UI (@base-ui/react) & Tailwind CSS) |
+| **表单处理**          | **@tanstack/react-form** + **Zod** (模式校验)                |
+| **数据展示**          | **TanStack Table v9**, **TanStack Virtual**, **Recharts**    |
+| **动画效果**          | **Motion** (framer-motion), **tw-animate-css**               |
+| **图标库**            | **Lucide React**                                             |
+| **其他增强**          | **Axios**, **date-fns**, **dnd-kit** (拖拽)                  |
 
 ---
 
@@ -108,15 +108,15 @@ _路径：`src/components/layout/page-layout.tsx`_
 
 #### 核心属性 (Props)
 
-| 属性 | 类型 | 默认值 | 说明 |
-| :--- | :--- | :--- | :--- |
-| `title` | `string` | - | 页面主标题 |
-| `description` | `string` | - | 页面副标题描述 |
-| `actions` | `ReactNode` | - | 顶部操作栏右侧操作组件（如新建按钮、导入导出） |
-| `variant` | `'default' \| 'fluid' \| 'fixed'` | `'default'` | 页面高度与滚动模式（见下文说明） |
-| `fluid` | `boolean` | `false` | 是否解除 `@7xl/content:max-w-7xl` 宽度限制，撑满可用容器全宽 |
-| `className` | `string` | - | 容器额外 Tailwind 类名 |
-| `fallback` | `ReactNode` | `<PageSkeleton />` | 异步加载时的降级骨架屏 |
+| 属性          | 类型                              | 默认值             | 说明                                                         |
+| :------------ | :-------------------------------- | :----------------- | :----------------------------------------------------------- |
+| `title`       | `string`                          | -                  | 页面主标题                                                   |
+| `description` | `string`                          | -                  | 页面副标题描述                                               |
+| `actions`     | `ReactNode`                       | -                  | 顶部操作栏右侧操作组件（如新建按钮、导入导出）               |
+| `variant`     | `'default' \| 'fluid' \| 'fixed'` | `'default'`        | 页面高度与滚动模式（见下文说明）                             |
+| `fluid`       | `boolean`                         | `false`            | 是否解除 `@7xl/content:max-w-7xl` 宽度限制，撑满可用容器全宽 |
+| `className`   | `string`                          | -                  | 容器额外 Tailwind 类名                                       |
+| `fallback`    | `ReactNode`                       | `<PageSkeleton />` | 异步加载时的降级骨架屏                                       |
 
 #### 布局模式与宽度控制
 

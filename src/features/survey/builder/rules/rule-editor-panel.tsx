@@ -189,7 +189,7 @@ export function RuleEditorPanel({
               <SelectTrigger className='h-9'>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
+              <SelectContent className='w-(--anchor-width) max-w-[calc(100vw-2rem)]'>
                 {RULE_ACTION_TYPES.filter((type) =>
                   model.availableActionTypes.includes(type)
                 ).map((type) => (

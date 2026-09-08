@@ -17,8 +17,16 @@
     @apply bg-background text-foreground has-[div[data-variant='inset']]:bg-sidebar min-h-svh w-full;
   }
 
-  /* Override Radix scroll locking for sticky headers */
-  body[data-scroll-locked] {
+  /* Override Base UI scroll locking for sticky headers and layout stability */
+  html[data-base-ui-scroll-locked] {
+    scrollbar-gutter: auto !important;
+    overflow: unset !important;
+  }
+
+  html[data-base-ui-scroll-locked] body {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
     overflow: unset !important;
   }
 
@@ -60,10 +68,12 @@
 .CollapsibleContent {
   overflow: hidden;
 }
-.CollapsibleContent[data-state='open'] {
+.CollapsibleContent[data-state='open'],
+.CollapsibleContent[data-open] {
   animation: slideDown 300ms ease-out;
 }
-.CollapsibleContent[data-state='closed'] {
+.CollapsibleContent[data-state='closed'],
+.CollapsibleContent[data-closed] {
   animation: slideUp 300ms ease-out;
 }
 
@@ -72,13 +82,13 @@
     height: 0;
   }
   to {
-    height: var(--radix-collapsible-content-height);
+    height: var(--collapsible-panel-height);
   }
 }
 
 @keyframes slideUp {
   from {
-    height: var(--radix-collapsible-content-height);
+    height: var(--collapsible-panel-height);
   }
   to {
     height: 0;

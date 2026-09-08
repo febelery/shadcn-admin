@@ -7,7 +7,7 @@ import { SidebarNav } from './components/sidebar-nav'
 const sidebarNavItems = [
   {
     title: 'Profile',
-    href: '/setting',
+    href: '/setting/profile',
     icon: <UserCog size={18} />,
   },
   {

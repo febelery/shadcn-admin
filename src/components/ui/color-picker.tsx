@@ -3,7 +3,9 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { PipetteIcon } from 'lucide-react'
-import { Slider as SliderPrimitive, Slot as SlotPrimitive } from 'radix-ui'
+import { Slider as SliderPrimitive } from '@base-ui/react/slider'
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
 import { useComposedRefs } from '@/lib/compose-refs'
 import { cn } from '@/lib/utils'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -561,11 +563,12 @@ interface ColorPickerRootProps
     Omit<React.ComponentProps<'div'>, 'onValueChange'>,
     Pick<
       React.ComponentProps<typeof Popover>,
-      'defaultOpen' | 'open' | 'onOpenChange' | 'modal'
+      'defaultOpen' | 'open' | 'modal'
     > {
   value?: string
   defaultValue?: string
   onValueChange?: (value: string) => void
+  onOpenChange?: (open: boolean) => void
   dir?: Direction
   format?: ColorFormat
   defaultFormat?: ColorFormat
@@ -728,12 +731,27 @@ function ColorPickerRootImpl(props: ColorPickerRootImplProps) {
     [store.setOpen, onOpenChange]
   )
 
-  const RootPrimitive = asChild ? SlotPrimitive.Slot : 'div'
+  const finalRender =
+    asChild && React.isValidElement(rootProps.children)
+      ? rootProps.children
+      : undefined
+
+  const rootElement = useRender({
+    defaultTagName: 'div',
+    render: finalRender,
+    props: mergeProps<'div'>(
+      {
+        ref: composedRef,
+        children: asChild ? undefined : rootProps.children,
+      } as React.ComponentProps<'div'>,
+      rootProps
+    ),
+  })
 
   if (inline) {
     return (
       <ColorPickerContext value={contextValue}>
-        <RootPrimitive {...rootProps} ref={composedRef} />
+        {rootElement}
         {isFormControl && (
           <VisuallyHiddenInput
             type='hidden'
@@ -757,7 +775,7 @@ function ColorPickerRootImpl(props: ColorPickerRootImplProps) {
         onOpenChange={onPopoverOpenChange}
         modal={modal}
       >
-        <RootPrimitive {...rootProps} ref={composedRef} />
+        {rootElement}
         {isFormControl && (
           <VisuallyHiddenInput
             type='hidden'
@@ -776,42 +794,57 @@ function ColorPickerRootImpl(props: ColorPickerRootImplProps) {
 
 interface ColorPickerTriggerProps
   extends
-    React.ComponentProps<typeof PopoverTrigger>,
-    VariantProps<typeof buttonVariants> {}
+    Omit<
+      React.ComponentProps<typeof PopoverTrigger>,
+      'render' | 'className' | 'style'
+    >,
+    VariantProps<typeof buttonVariants> {
+  className?: string
+  style?: React.CSSProperties
+}
 
 function ColorPickerTrigger(props: ColorPickerTriggerProps) {
-  const { asChild, ...triggerProps } = props
+  const { asChild, className, style, ...triggerProps } = props
   const context = useColorPickerContext('ColorPickerTrigger')
-
-  const TriggerPrimitive = asChild ? SlotPrimitive.Slot : Button
 
   return (
     <PopoverTrigger asChild disabled={context.disabled}>
-      <TriggerPrimitive data-slot='color-picker-trigger' {...triggerProps} />
+      <Button
+        data-slot='color-picker-trigger'
+        asChild={asChild}
+        className={className}
+        style={style}
+        {...triggerProps}
+      />
     </PopoverTrigger>
   )
 }
 
-interface ColorPickerContentProps extends React.ComponentProps<
-  typeof PopoverContent
-> {}
+interface ColorPickerContentProps
+  extends React.ComponentProps<typeof PopoverContent> {
+  asChild?: boolean
+}
 
 function ColorPickerContent(props: ColorPickerContentProps) {
   const { asChild, className, children, ...popoverContentProps } = props
   const context = useColorPickerContext('ColorPickerContent')
 
   if (context.inline) {
-    const ContentPrimitive = asChild ? SlotPrimitive.Slot : 'div'
+    const finalRender =
+      asChild && React.isValidElement(children) ? children : undefined
 
-    return (
-      <ContentPrimitive
-        data-slot='color-picker-content'
-        {...popoverContentProps}
-        className={cn('flex w-[340px] flex-col gap-4 p-4', className)}
-      >
-        {children}
-      </ContentPrimitive>
-    )
+    return useRender({
+      defaultTagName: 'div',
+      render: finalRender,
+      props: mergeProps<'div'>(
+        {
+          'data-slot': 'color-picker-content',
+          className: cn('flex w-[340px] flex-col gap-4 p-4', className),
+          children: asChild ? undefined : children,
+        } as React.ComponentProps<'div'>,
+        popoverContentProps as React.ComponentProps<'div'>
+      ),
+    })
   }
 
   return (
@@ -890,51 +923,61 @@ function ColorPickerArea(props: ColorPickerAreaProps) {
   const hue = hsv?.h ?? 0
   const backgroundHue = hsvToRgb({ h: hue, s: 100, v: 100, a: 1 })
 
-  const AreaPrimitive = asChild ? SlotPrimitive.Slot : 'div'
+  const finalRender =
+    asChild && React.isValidElement(areaProps.children)
+      ? areaProps.children
+      : undefined
 
-  return (
-    <AreaPrimitive
-      data-slot='color-picker-area'
-      {...areaProps}
-      className={cn(
-        'relative h-40 w-full cursor-crosshair touch-none rounded-sm border',
-        context.disabled && 'pointer-events-none opacity-50',
-        className
-      )}
-      ref={composedRef}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-    >
-      <div className='absolute inset-0 overflow-hidden rounded-sm'>
-        <div
-          className='absolute inset-0'
-          style={{
-            backgroundColor: `rgb(${backgroundHue.r}, ${backgroundHue.g}, ${backgroundHue.b})`,
-          }}
-        />
-        <div
-          className='absolute inset-0'
-          style={{
-            background: 'linear-gradient(to right, #fff, transparent)',
-          }}
-        />
-        <div
-          className='absolute inset-0'
-          style={{
-            background: 'linear-gradient(to bottom, transparent, #000)',
-          }}
-        />
-      </div>
-      <div
-        className='absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm'
-        style={{
-          left: `${hsv?.s ?? 0}%`,
-          top: `${100 - (hsv?.v ?? 0)}%`,
-        }}
-      />
-    </AreaPrimitive>
-  )
+  return useRender({
+    defaultTagName: 'div',
+    render: finalRender,
+    props: mergeProps<'div'>(
+      {
+        'data-slot': 'color-picker-area',
+        ref: composedRef,
+        onPointerDown,
+        onPointerMove,
+        onPointerUp,
+        className: cn(
+          'relative h-40 w-full cursor-crosshair touch-none rounded-sm border',
+          context.disabled && 'pointer-events-none opacity-50',
+          className
+        ),
+        children: (
+          <>
+            <div className='absolute inset-0 overflow-hidden rounded-sm'>
+              <div
+                className='absolute inset-0'
+                style={{
+                  backgroundColor: `rgb(${backgroundHue.r}, ${backgroundHue.g}, ${backgroundHue.b})`,
+                }}
+              />
+              <div
+                className='absolute inset-0'
+                style={{
+                  background: 'linear-gradient(to right, #fff, transparent)',
+                }}
+              />
+              <div
+                className='absolute inset-0'
+                style={{
+                  background: 'linear-gradient(to bottom, transparent, #000)',
+                }}
+              />
+            </div>
+            <div
+              className='absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm'
+              style={{
+                left: `${hsv?.s ?? 0}%`,
+                top: `${100 - (hsv?.v ?? 0)}%`,
+              }}
+            />
+          </>
+        ),
+      } as React.ComponentProps<'div'>,
+      areaProps
+    ),
+  })
 }
 
 interface ColorPickerHueSliderProps extends React.ComponentProps<
@@ -949,9 +992,10 @@ function ColorPickerHueSlider(props: ColorPickerHueSliderProps) {
   const hsv = useColorPickerStore((state) => state.hsv)
 
   const onValueChange = React.useCallback(
-    (values: number[]) => {
+    (values: number | readonly number[]) => {
+      const val = Array.isArray(values) ? values[0] : values
       const newHsv: HSVColorValue = {
-        h: values[0] ?? 0,
+        h: val ?? 0,
         s: hsv?.s ?? 0,
         v: hsv?.v ?? 0,
         a: hsv?.a ?? 1,
@@ -976,10 +1020,12 @@ function ColorPickerHueSlider(props: ColorPickerHueSliderProps) {
       onValueChange={onValueChange}
       disabled={context.disabled}
     >
-      <SliderPrimitive.Track className='relative h-3 w-full grow overflow-hidden rounded-full bg-[linear-gradient(to_right,#ff0000_0%,#ffff00_16.66%,#00ff00_33.33%,#00ffff_50%,#0000ff_66.66%,#ff00ff_83.33%,#ff0000_100%)]'>
-        <SliderPrimitive.Range className='absolute h-full' />
-      </SliderPrimitive.Track>
-      <SliderPrimitive.Thumb className='border-primary/50 bg-background focus-visible:ring-ring block size-4 rounded-full border shadow transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50' />
+      <SliderPrimitive.Control className='relative flex w-full touch-none items-center select-none'>
+        <SliderPrimitive.Track className='relative h-3 w-full grow overflow-hidden rounded-full bg-[linear-gradient(to_right,#ff0000_0%,#ffff00_16.66%,#00ff00_33.33%,#00ffff_50%,#0000ff_66.66%,#ff00ff_83.33%,#ff0000_100%)]'>
+          <SliderPrimitive.Indicator className='absolute h-full' />
+        </SliderPrimitive.Track>
+        <SliderPrimitive.Thumb className='border-primary/50 bg-background focus-visible:ring-ring block size-4 rounded-full border shadow transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50' />
+      </SliderPrimitive.Control>
     </SliderPrimitive.Root>
   )
 }
@@ -997,8 +1043,9 @@ function ColorPickerAlphaSlider(props: ColorPickerAlphaSliderProps) {
   const hsv = useColorPickerStore((state) => state.hsv)
 
   const onValueChange = React.useCallback(
-    (values: number[]) => {
-      const alpha = (values[0] ?? 0) / 100
+    (values: number | readonly number[]) => {
+      const val = Array.isArray(values) ? values[0] : values
+      const alpha = (val ?? 0) / 100
       const newColor = { ...color, a: alpha }
       const newHsv = { ...hsv, a: alpha }
       store.setColor(newColor)
@@ -1023,24 +1070,26 @@ function ColorPickerAlphaSlider(props: ColorPickerAlphaSliderProps) {
       value={[Math.round((color?.a ?? 1) * 100)]}
       onValueChange={onValueChange}
     >
-      <SliderPrimitive.Track
-        className='relative h-3 w-full grow overflow-hidden rounded-full'
-        style={{
-          background:
-            'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
-          backgroundSize: '8px 8px',
-          backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px',
-        }}
-      >
-        <div
-          className='absolute inset-0 rounded-full'
+      <SliderPrimitive.Control className='relative flex w-full touch-none items-center select-none'>
+        <SliderPrimitive.Track
+          className='relative h-3 w-full grow overflow-hidden rounded-full'
           style={{
-            background: `linear-gradient(to right, transparent, ${gradientColor})`,
+            background:
+              'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
+            backgroundSize: '8px 8px',
+            backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px',
           }}
-        />
-        <SliderPrimitive.Range className='absolute h-full' />
-      </SliderPrimitive.Track>
-      <SliderPrimitive.Thumb className='border-primary/50 bg-background focus-visible:ring-ring block size-4 rounded-full border shadow transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50' />
+        >
+          <div
+            className='absolute inset-0 rounded-full'
+            style={{
+              background: `linear-gradient(to right, transparent, ${gradientColor})`,
+            }}
+          />
+          <SliderPrimitive.Indicator className='absolute h-full' />
+        </SliderPrimitive.Track>
+        <SliderPrimitive.Thumb className='border-primary/50 bg-background focus-visible:ring-ring block size-4 rounded-full border shadow transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50' />
+      </SliderPrimitive.Control>
     </SliderPrimitive.Root>
   )
 }
@@ -1081,25 +1130,32 @@ function ColorPickerSwatch(props: ColorPickerSwatchProps) {
     ? 'No color selected'
     : `Current color: ${colorToString(color, format)}`
 
-  const SwatchPrimitive = asChild ? SlotPrimitive.Slot : 'div'
+  const finalRender =
+    asChild && React.isValidElement(swatchProps.children)
+      ? swatchProps.children
+      : undefined
 
-  return (
-    <SwatchPrimitive
-      role='img'
-      aria-label={ariaLabel}
-      data-slot='color-picker-swatch'
-      {...swatchProps}
-      className={cn(
-        'box-border size-8 rounded-sm border shadow-sm',
-        context.disabled && 'opacity-50',
-        className
-      )}
-      style={{
-        ...backgroundStyle,
-        forcedColorAdjust: 'none',
-      }}
-    />
-  )
+  return useRender({
+    defaultTagName: 'div',
+    render: finalRender,
+    props: mergeProps<'div'>(
+      {
+        role: 'img',
+        'aria-label': ariaLabel,
+        'data-slot': 'color-picker-swatch',
+        className: cn(
+          'box-border size-8 rounded-sm border shadow-sm',
+          context.disabled && 'opacity-50',
+          className
+        ),
+        style: {
+          ...backgroundStyle,
+          forcedColorAdjust: 'none',
+        },
+      } as React.ComponentProps<'div'>,
+      swatchProps
+    ),
+  })
 }
 
 interface ColorPickerEyeDropperProps extends React.ComponentProps<
@@ -1154,7 +1210,10 @@ function ColorPickerEyeDropper(props: ColorPickerEyeDropperProps) {
 
 interface ColorPickerFormatSelectProps
   extends
-    Omit<React.ComponentProps<typeof Select>, 'value' | 'onValueChange'>,
+    Omit<
+      React.ComponentProps<typeof Select>,
+      'defaultValue' | 'value' | 'onValueChange'
+    >,
     Pick<React.ComponentProps<typeof SelectTrigger>, 'size' | 'className'> {}
 
 function ColorPickerFormatSelect(props: ColorPickerFormatSelectProps) {

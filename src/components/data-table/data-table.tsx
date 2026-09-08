@@ -76,7 +76,7 @@ export function DataTable<TData extends object & { id: string }>({
 
   const tableContent = (
     <Table>
-      <TableHeader className='bg-background/95 sticky top-0 z-10 backdrop-blur'>
+      <TableHeader className='bg-background/95 sticky top-0 z-10 backdrop-blur **:data-[slot=table-head]:first:w-8'>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id} className='group/row'>
             {headerGroup.headers.map((header) => {

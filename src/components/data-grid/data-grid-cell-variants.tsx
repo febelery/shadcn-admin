@@ -787,14 +787,14 @@ export function CheckboxCell<TData extends RowData>({
   }, [])
 
   const onCheckboxMouseDown = React.useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
+    (event: React.MouseEvent<HTMLSpanElement>) => {
       event.stopPropagation()
     },
     []
   )
 
   const onCheckboxDoubleClick = React.useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
+    (event: React.MouseEvent<HTMLSpanElement>) => {
       event.stopPropagation()
     },
     []
@@ -907,6 +907,7 @@ export function SelectCell<TData extends RowData>({
     >
       {isEditing ? (
         <Select
+          items={options}
           value={value}
           onValueChange={onValueChange}
           open={isEditing}
@@ -916,7 +917,13 @@ export function SelectCell<TData extends RowData>({
             size='sm'
             className='size-full items-start border-none p-0 shadow-none focus-visible:ring-0 dark:bg-transparent [&_svg]:hidden'
           >
-            <SelectValue />
+            <SelectValue>
+              {(val: any) =>
+                options.find((o: any) => o.value === (val ?? value))?.label ??
+                val ??
+                value
+              }
+            </SelectValue>
           </SelectTrigger>
           <SelectContent
             data-grid-cell-editor=''
@@ -924,7 +931,7 @@ export function SelectCell<TData extends RowData>({
             align='start'
             alignOffset={-8}
             sideOffset={-8}
-            className='min-w-[calc(var(--radix-select-trigger-width)+16px)]'
+            className='min-w-[calc(var(--anchor-width)+16px)]'
           >
             {options.map((option: { value: string; label: string }) => (
               <SelectItem key={option.value} value={option.value}>

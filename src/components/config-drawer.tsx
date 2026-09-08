@@ -1,6 +1,7 @@
 import React, { type SVGProps } from 'react'
 import { CircleCheck, RotateCcw, Palette } from 'lucide-react'
-import { RadioGroup } from 'radix-ui'
+import { Radio } from '@base-ui/react/radio'
+import { RadioGroup } from '@base-ui/react/radio-group'
 import { IconLayoutCompact } from '@/assets/custom/icon-layout-compact'
 import { IconLayoutDefault } from '@/assets/custom/icon-layout-default'
 import { IconLayoutFull } from '@/assets/custom/icon-layout-full'
@@ -125,7 +126,7 @@ function RadioGroupItem({
   isTheme?: boolean
 }) {
   return (
-    <RadioGroup.Item
+    <Radio.Root
       value={item.value}
       className={cn('group outline-none', 'transition duration-200 ease-in')}
       aria-label={`选择 ${item.label}`}
@@ -134,7 +135,7 @@ function RadioGroupItem({
       <div
         className={cn(
           'ring-border relative rounded-[6px] ring-[1px]',
-          'group-data-[state=checked]:ring-primary group-data-[state=checked]:shadow-2xl',
+          'group-data-checked:ring-primary group-data-checked:shadow-2xl',
           'group-focus-visible:ring-2'
         )}
         role='img'
@@ -144,7 +145,7 @@ function RadioGroupItem({
         <CircleCheck
           className={cn(
             'fill-primary size-6 stroke-white',
-            'group-data-[state=unchecked]:hidden',
+            'group-data-unchecked:hidden',
             'absolute top-0 right-0 translate-x-1/2 -translate-y-1/2'
           )}
           aria-hidden='true'
@@ -152,7 +153,7 @@ function RadioGroupItem({
         <item.icon
           className={cn(
             !isTheme &&
-              'stroke-primary fill-primary group-data-[state=unchecked]:stroke-muted-foreground group-data-[state=unchecked]:fill-muted-foreground'
+              'stroke-primary fill-primary group-data-unchecked:stroke-muted-foreground group-data-unchecked:fill-muted-foreground'
           )}
           aria-hidden='true'
         />
@@ -164,7 +165,7 @@ function RadioGroupItem({
       >
         {item.label}
       </div>
-    </RadioGroup.Item>
+    </Radio.Root>
   )
 }
 
@@ -177,7 +178,7 @@ function ThemeConfig() {
         showReset={theme !== defaultTheme}
         onReset={() => setTheme(defaultTheme)}
       />
-      <RadioGroup.Root
+      <RadioGroup
         value={theme}
         onValueChange={setTheme}
         className='grid w-full max-w-md grid-cols-3 gap-4'
@@ -203,7 +204,7 @@ function ThemeConfig() {
         ].map((item) => (
           <RadioGroupItem key={item.value} item={item} isTheme />
         ))}
-      </RadioGroup.Root>
+      </RadioGroup>
       <div id='theme-description' className='sr-only'>
         在系统偏好、浅色模式或深色模式之间选择
       </div>
@@ -220,7 +221,7 @@ function SidebarConfig() {
         showReset={defaultVariant !== variant}
         onReset={() => setVariant(defaultVariant)}
       />
-      <RadioGroup.Root
+      <RadioGroup
         value={variant}
         onValueChange={setVariant}
         className='grid w-full max-w-md grid-cols-3 gap-4'
@@ -246,7 +247,7 @@ function SidebarConfig() {
         ].map((item) => (
           <RadioGroupItem key={item.value} item={item} />
         ))}
-      </RadioGroup.Root>
+      </RadioGroup>
       <div id='sidebar-description' className='sr-only'>
         在内嵌、浮动或标准侧边栏布局之间选择
       </div>
@@ -270,7 +271,7 @@ function LayoutConfig() {
           setCollapsible(defaultCollapsible)
         }}
       />
-      <RadioGroup.Root
+      <RadioGroup
         value={radioState}
         onValueChange={(v) => {
           if (v === 'default') {
@@ -303,7 +304,7 @@ function LayoutConfig() {
         ].map((item) => (
           <RadioGroupItem key={item.value} item={item} />
         ))}
-      </RadioGroup.Root>
+      </RadioGroup>
       <div id='layout-description' className='sr-only'>
         在默认展开、紧凑图标模式或完整布局模式之间选择
       </div>

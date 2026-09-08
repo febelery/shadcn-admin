@@ -14,6 +14,7 @@ dist-ssr
 
 .env
 .env.development
+.env.production
 
 # Editor directories and files
 .vscode/*
@@ -32,3 +33,4 @@ src/routeTree.gen.ts
 .agents/
 .cursor/
 .tanstack/
+.migration/

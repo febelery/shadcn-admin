@@ -33,9 +33,11 @@ export function SelectDropdown({
     ? { value: defaultValue, onValueChange }
     : { defaultValue, onValueChange }
   return (
-    <Select {...defaultState}>
+    <Select items={items} {...defaultState}>
       <SelectTrigger disabled={disabled} className={cn(className)}>
-        <SelectValue placeholder={placeholder ?? '请选择'} />
+        <SelectValue placeholder={placeholder ?? '请选择'}>
+          {(val: any) => items?.find((item) => item.value === val)?.label ?? val}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {isPending ? (

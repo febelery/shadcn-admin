@@ -10,6 +10,7 @@ export type NavItem = {
   icon?: string
   permission?: string
   items?: NavItem[]
+  exact?: boolean
 }
 
 /**

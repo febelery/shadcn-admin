@@ -22,7 +22,7 @@ type SidebarNavProps = React.HTMLAttributes<HTMLElement> & {
 export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const [val, setVal] = useState(pathname ?? '/setting')
+  const [val, setVal] = useState(pathname ?? '/setting/profile')
 
   const handleSelect = (e: string) => {
     setVal(e)
@@ -51,7 +51,6 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
 
       <ScrollArea
         orientation='horizontal'
-        type='always'
         className='bg-background hidden w-full min-w-40 px-1 py-2 md:block'
       >
         <nav

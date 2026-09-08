@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { type Table } from '@/lib/table'
 import { X } from 'lucide-react'
+import { type Table } from '@/lib/table'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -89,7 +89,6 @@ export function DataTableBulkActions<TData>({
         break
       case 'Escape': {
         // 检查 Escape 键是否来自下拉触发器或内容
-        // 我们不能检查下拉状态，因为 Radix UI 在我们处理程序运行之前关闭它
         const target = event.target as HTMLElement
         const activeElement = document.activeElement as HTMLElement
 

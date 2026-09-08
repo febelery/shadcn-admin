@@ -106,7 +106,7 @@ export function ActionBuilder({
                   <SelectTrigger className='h-9'>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
+                  <SelectContent className='w-(--anchor-width) max-w-[calc(100vw-2rem)]'>
                     {actionTypes.map((type) => (
                       <SelectItem key={type} value={type}>
                         <span className='block max-w-full truncate'>
@@ -134,7 +134,7 @@ export function ActionBuilder({
                         className='min-w-0 truncate'
                       />
                     </SelectTrigger>
-                    <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
+                    <SelectContent className='w-(--anchor-width) max-w-[calc(100vw-2rem)]'>
                       {targetOptions.map(({ id, label }) => (
                         <SelectItem key={id} value={id}>
                           <span className='block max-w-full truncate'>

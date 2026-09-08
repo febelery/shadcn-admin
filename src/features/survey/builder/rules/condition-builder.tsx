@@ -137,7 +137,7 @@ export function ConditionBuilder({
                   <SelectTrigger className='h-9'>
                     <SelectValue placeholder='选择条件题目' />
                   </SelectTrigger>
-                  <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
+                  <SelectContent className='w-(--anchor-width) max-w-[calc(100vw-2rem)]'>
                     {sourceOptions.map(({ id, label }) => (
                       <SelectItem key={id} value={id}>
                         <span className='block max-w-full truncate'>
@@ -165,7 +165,7 @@ export function ConditionBuilder({
                     <SelectTrigger className='h-9'>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
+                    <SelectContent className='w-(--anchor-width) max-w-[calc(100vw-2rem)]'>
                       {operators.map((operator) => (
                         <SelectItem key={operator.value} value={operator.value}>
                           {operator.label}
@@ -191,7 +191,7 @@ export function ConditionBuilder({
                         <SelectTrigger className='h-9'>
                           <SelectValue placeholder='选择选项' />
                         </SelectTrigger>
-                        <SelectContent className='w-(--radix-select-trigger-width) max-w-[calc(100vw-2rem)]'>
+                        <SelectContent className='w-(--anchor-width) max-w-[calc(100vw-2rem)]'>
                           {(question.config.options ?? []).map((option) => (
                             <SelectItem key={option.id} value={option.id}>
                               {option.label}

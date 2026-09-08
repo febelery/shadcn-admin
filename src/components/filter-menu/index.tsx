@@ -39,9 +39,9 @@ export interface FilterConfig {
 export const TEXT = {
   FILTER_BUTTON: '筛选',
   FILTER_TITLE: '筛选条件',
-  ADD_FILTER: '添加条件',
-  RESET_FILTER: '清除全部',
-  APPLY_FILTER: '应用筛选',
+  ADD_FILTER: '添加',
+  RESET_FILTER: '清除',
+  APPLY_FILTER: '应用',
   APPLYING: '应用中…',
   SEARCH_FIELD: '搜索字段…',
   NO_FIELD_FOUND: '未找到字段',
@@ -343,7 +343,7 @@ export function FilterMenu({
             <PopoverContent
               aria-labelledby={`${id}-label`}
               align='start'
-              className='flex w-full max-w-(--radix-popover-content-available-width) flex-col p-0 sm:min-w-[520px]'
+              className='flex w-full max-w-(--available-width) flex-col p-0 sm:min-w-[520px]'
               onOpenAutoFocus={(e) => e.preventDefault()}
               {...props}
             >

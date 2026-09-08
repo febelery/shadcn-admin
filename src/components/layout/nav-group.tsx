@@ -105,7 +105,7 @@ function SidebarMenuCollapsible({
             {item.icon && <DynamicIcon name={item.icon} />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
-            <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+            <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-open/collapsible:rotate-90' />
           </SidebarMenuButton>
         </CollapsibleTrigger>
         <CollapsibleContent className='CollapsibleContent'>
@@ -132,7 +132,7 @@ function SidebarMenuCollapsible({
                           {subItem.badge && (
                             <NavBadge>{subItem.badge}</NavBadge>
                           )}
-                          <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+                          <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-open/collapsible:rotate-90' />
                         </SidebarMenuSubButton>
                       </CollapsibleTrigger>
                       <CollapsibleContent className='CollapsibleContent'>
@@ -200,7 +200,7 @@ function RecursiveSidebarMenuSubItem({
               {item.icon && <DynamicIcon name={item.icon} />}
               <span>{item.title}</span>
               {item.badge && <NavBadge>{item.badge}</NavBadge>}
-              <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+              <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-open/collapsible:rotate-90' />
             </SidebarMenuSubButton>
           </CollapsibleTrigger>
           <CollapsibleContent className='CollapsibleContent'>
@@ -248,7 +248,7 @@ function SidebarMenuCollapsedDropdown({
             {item.icon && <DynamicIcon name={item.icon} />}
             <span>{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
-            <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+            <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-open/collapsible:rotate-90' />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent side='right' align='start' sideOffset={4}>
@@ -351,7 +351,7 @@ function RecursiveDropdownMenuItem({
 export function hasActiveChild(href: string, item: NavItem): boolean {
   if (!item.items) return false
   // 检查是否有子项激活，但排除自身激活
-  const isSelfActive = isActiveUrlMatch(href, item.url)
+  const isSelfActive = isActiveUrlMatch(href, item.url, item.exact)
   if (isSelfActive) return false
   // 检查子项是否有激活的
   return item.items.some((child) => checkIsActive(href, child))
@@ -364,7 +364,7 @@ export function checkIsActive(
   mainNav = false
 ): boolean {
   return (
-    isActiveUrlMatch(href, item.url) ||
+    isActiveUrlMatch(href, item.url, item.exact) ||
     !!item?.items?.filter((i) => checkIsActive(href, i)).length || // if child nav is active
     (mainNav &&
       getPathname(href).split('/')[1] !== '' &&
@@ -372,14 +372,21 @@ export function checkIsActive(
   )
 }
 
-function isActiveUrlMatch(href: string, itemUrl?: string): boolean {
+function isActiveUrlMatch(
+  href: string,
+  itemUrl?: string,
+  exact?: boolean
+): boolean {
   if (!itemUrl) return false
 
   const currentPath = getPathname(href)
   const itemPath = getPathname(itemUrl)
   const activePath = getActiveBasePath(itemPath)
 
-  if (activePath === '/') return currentPath === '/'
+  // 根路径或指定 exact 只进行精确匹配
+  if (exact || activePath === '/') {
+    return currentPath === activePath
+  }
 
   return currentPath === activePath || currentPath.startsWith(`${activePath}/`)
 }

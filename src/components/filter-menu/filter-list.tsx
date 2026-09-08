@@ -248,6 +248,7 @@ function FilterItem({
           </Popover>
 
           <Select
+            items={operators}
             value={operator}
             onValueChange={(val: FilterOperator) =>
               updateFilter(filter.id, {
@@ -257,16 +258,23 @@ function FilterItem({
           >
             <SelectTrigger
               size='sm'
-              className='h-8 w-28 rounded-md px-2.5 text-xs font-normal lowercase'
+              className='h-8 w-28 rounded-md px-2.5 text-xs font-normal'
             >
-              <SelectValue />
+              <SelectValue>
+                {(val: any) =>
+                  operators.find((op) => op.value === (val ?? operator))
+                    ?.label ??
+                  val ??
+                  operator
+                }
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {operators.map((op) => (
                 <SelectItem
                   key={op.value}
                   value={op.value}
-                  className='text-xs lowercase'
+                  className='text-xs'
                 >
                   {op.label}
                 </SelectItem>

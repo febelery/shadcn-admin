@@ -126,7 +126,7 @@ const menuData: MenuData = {
           items: [
             {
               title: 'Profile',
-              url: '/setting',
+              url: '/setting/profile',
               icon: 'UserCog',
             },
             {
