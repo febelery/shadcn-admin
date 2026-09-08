@@ -37,6 +37,7 @@ export function SignUpForm({
     },
     validators: {
       onChange: formSchema,
+      onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
       startTransition(async () => {
@@ -128,7 +129,7 @@ export function SignUpForm({
         }}
       />
 
-      <Button className='mt-2' disabled={isPending}>
+      <Button type='submit' className='mt-2' disabled={isPending}>
         创建账户
       </Button>
 

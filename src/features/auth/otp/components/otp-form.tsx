@@ -91,6 +91,7 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
         selector={(state) => state.values.otp}
         children={(otp) => (
           <Button
+            type='submit'
             className='mt-2'
             disabled={(otp || '').length < 6 || isLoading}
           >

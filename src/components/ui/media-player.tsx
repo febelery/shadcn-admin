@@ -57,6 +57,7 @@ import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSub,
@@ -2954,7 +2955,9 @@ function MediaPlayerSettings(props: MediaPlayerSettingsProps) {
         container={context.portalContainer as any}
         className='w-56 data-[side=top]:mb-3.5'
       >
-        <DropdownMenuLabel className='sr-only'>设置</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className='sr-only'>设置</DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <span className='flex-1'>速度</span>

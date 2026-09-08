@@ -28,6 +28,7 @@ export function ForgotPasswordForm({
     },
     validators: {
       onChange: formSchema,
+      onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
       setIsLoading(true)
@@ -78,7 +79,7 @@ export function ForgotPasswordForm({
           )
         }}
       />
-      <Button className='mt-2' disabled={isLoading}>
+      <Button type='submit' className='mt-2' disabled={isLoading}>
         继续
         {isLoading ? <Loader2 className='animate-spin' /> : <ArrowRight />}
       </Button>

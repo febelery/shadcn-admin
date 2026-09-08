@@ -38,6 +38,7 @@ export function UserAuthForm({
     },
     validators: {
       onChange: formSchema,
+      onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
       startTransition(async () => {
@@ -51,11 +52,11 @@ export function UserAuthForm({
           const targetPath = redirectTo || '/'
           navigate({ to: targetPath, replace: true })
         } catch (error: any) {
-          if (error && error.message) {
-            toast.error(error.message)
-          } else {
-            toast.error('登录失败，请重试。')
-          }
+          const message =
+            error?.response?.data?.msg ||
+            error?.message ||
+            '登录失败，请重试。'
+          toast.error(message)
           console.error(error)
         }
       })
@@ -77,7 +78,8 @@ export function UserAuthForm({
         name='name'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor={field.name}>账号</FieldLabel>
@@ -101,7 +103,8 @@ export function UserAuthForm({
         name='password'
         children={(field) => {
           const isInvalid =
-            field.state.meta.isTouched && !field.state.meta.isValid
+            field.state.meta.errors.length > 0 &&
+            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
           return (
             <Field data-invalid={isInvalid} className='relative'>
               <FieldLabel htmlFor={field.name}>密码</FieldLabel>
@@ -120,7 +123,7 @@ export function UserAuthForm({
         }}
       />
 
-      <RainbowButton className='mt-2' disabled={isPending}>
+      <RainbowButton type='submit' className='mt-2' disabled={isPending}>
         {isPending ? <Loader2 className='animate-spin' /> : <LogIn />}
         登录
       </RainbowButton>
