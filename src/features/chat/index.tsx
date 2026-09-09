@@ -175,6 +175,7 @@ export function ChatPage() {
               error={error}
               onSelectPrompt={submit}
               isWaitingForResponse={busy && !hasReceivedToken}
+              isGenerating={busy}
               onApprove={() => undefined}
               onAnswer={() => undefined}
               onRetry={handleRetry}

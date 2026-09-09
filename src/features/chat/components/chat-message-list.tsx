@@ -3,7 +3,9 @@ import {
   AlertCircle,
   ArrowUp,
   Brain,
+  Check,
   ChevronDown,
+  Copy,
   Download,
   ExternalLink,
   FileArchive,
@@ -17,9 +19,9 @@ import {
   Wrench,
   X,
 } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { ChatMarkdown } from './chat-markdown'
 import {
   Attachment,
   AttachmentAction,
@@ -59,6 +61,7 @@ interface ChatMessageListProps {
   onApprove: (id: string, approved: boolean) => void
   onAnswer: (id: string, answers: Record<string, string>) => void
   isWaitingForResponse?: boolean
+  isGenerating?: boolean
   onRetry?: () => void
   onDismissError?: () => void
 }
@@ -80,6 +83,7 @@ export function ChatMessageList({
   onApprove,
   onAnswer,
   isWaitingForResponse = false,
+  isGenerating = false,
   onRetry,
   onDismissError,
 }: ChatMessageListProps) {
@@ -90,6 +94,15 @@ export function ChatMessageList({
   for (let i = messages.length - 1; i >= 0; i--) {
     if (messages[i].role === 'user') {
       lastUserMessageId = messages[i].id
+      break
+    }
+  }
+
+  // 获取最新一条助手回复的消息 ID（用于流式呼吸光标与操作条定位）
+  let lastAssistantMessageId: string | undefined
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === 'assistant') {
+      lastAssistantMessageId = messages[i].id
       break
     }
   }
@@ -115,6 +128,9 @@ export function ChatMessageList({
           message={message}
           onApprove={onApprove}
           onAnswer={onAnswer}
+          isLastAssistant={message.id === lastAssistantMessageId}
+          isGenerating={isGenerating}
+          onRetry={onRetry}
         />
       ))}
 
@@ -337,10 +353,16 @@ function MessageItem({
   message,
   onApprove,
   onAnswer,
+  isLastAssistant = false,
+  isGenerating = false,
+  onRetry,
 }: {
   message: ChatMessage
   onApprove: (id: string, approved: boolean) => void
   onAnswer: (id: string, answers: Record<string, string>) => void
+  isLastAssistant?: boolean
+  isGenerating?: boolean
+  onRetry?: () => void
 }) {
   const isUser = message.role === 'user'
 
@@ -412,21 +434,25 @@ function MessageItem({
     )
   }
 
+  const fullAssistantText = message.parts
+    .filter((p) => p.type === 'text')
+    .map((p) => p.text)
+    .join('\n\n')
+
   return (
     <div className='flex w-full flex-col py-2.5'>
       <div className='text-foreground w-full min-w-0 space-y-3 text-sm leading-relaxed'>
         {message.parts.map((part, index) => {
-          if (part.type === 'text')
+          if (part.type === 'text') {
+            if (!part.text.trim()) return null
             return (
-              <div
+              <ChatMarkdown
                 key={index}
-                className='[&_a]:text-primary [&_blockquote]:text-muted-foreground [&_code]:bg-muted [&_pre]:bg-muted [&_th]:bg-muted max-w-none leading-7 [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-4 [&_code]:rounded-sm [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:text-xl [&_h1]:font-semibold [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:font-semibold [&_li]:my-1 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:p-3 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:p-2 [&_th]:border [&_th]:p-2 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6'
-              >
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {part.text}
-                </ReactMarkdown>
-              </div>
+                content={part.text}
+                isStreaming={isLastAssistant && isGenerating}
+              />
             )
+          }
           if (part.type === 'reasoning')
             return <ReasoningBlock key={index} text={part.text} />
           if (part.type === 'file') {
@@ -565,6 +591,79 @@ function MessageItem({
           return null
         })}
       </div>
+
+      {/* 助手回复消息底部操作工具栏：仅在完成生成（非流式）且有内容时优雅展示 */}
+      {fullAssistantText.trim().length > 0 && !isGenerating && (
+        <AssistantMessageActions
+          content={fullAssistantText}
+          isLast={isLastAssistant}
+          onRetry={onRetry}
+        />
+      )}
+    </div>
+  )
+}
+
+/**
+ * 助手消息底部操作栏（Deep Module 内部配套组件）
+ *
+ * 封装能力：
+ * 1. 复制全文 Markdown（带复制状态图标切换与 Toast 提示）
+ * 2. 重新生成按钮（仅在最新一条回复且非生成中时展示）
+ */
+function AssistantMessageActions({
+  content,
+  isLast,
+  onRetry,
+}: {
+  content: string
+  isLast: boolean
+  onRetry?: () => void
+}) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopied(true)
+      toast.success('已复制回答内容')
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error('复制失败，请手动选择复制')
+    }
+  }
+
+  return (
+    <div className='flex items-center gap-1 pt-1.5 opacity-70 transition-opacity hover:opacity-100'>
+      <Button
+        type='button'
+        variant='ghost'
+        size='icon'
+        onClick={handleCopy}
+        className='text-muted-foreground hover:text-foreground size-7 cursor-pointer rounded-lg hover:bg-muted'
+        title='复制全文 Markdown'
+        aria-label='复制全文'
+      >
+        {copied ? (
+          <Check className='size-3.5 text-emerald-500' />
+        ) : (
+          <Copy className='size-3.5' />
+        )}
+      </Button>
+
+      {isLast && onRetry && (
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          onClick={onRetry}
+          className='text-muted-foreground hover:text-foreground size-7 cursor-pointer rounded-lg hover:bg-muted'
+          title='重新生成'
+          aria-label='重新生成'
+        >
+          <RotateCw className='size-3.5' />
+        </Button>
+      )}
     </div>
   )
 }
