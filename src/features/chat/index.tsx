@@ -1,6 +1,4 @@
-import { useState } from 'react'
-import { useChat } from '@ai-sdk/react'
-import { lastAssistantMessageIsCompleteWithApprovalResponses } from 'ai'
+import { useRef, useState } from 'react'
 import { History } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MessageScroller } from '@/components/ui/chat'
@@ -8,29 +6,17 @@ import { PageLayout } from '@/components/layout/page-layout'
 import { ChatHistorySheet } from './components/chat-history-sheet'
 import { ChatInput } from './components/chat-input'
 import { ChatMessageList } from './components/chat-message-list'
-import { scriptedChat, scriptedChatFallback } from './data/scripted-chat'
 import type { AttachmentItem, ChatMessage } from './data/types'
+import { completeChat } from './openrouter'
 
 export function ChatPage() {
   const [input, setInput] = useState('')
   const [historyOpen, setHistoryOpen] = useState(false)
-  const {
-    messages,
-    setMessages,
-    sendMessage,
-    status,
-    stop,
-    addToolApprovalResponse,
-    addToolOutput,
-    error,
-  } = useChat<ChatMessage>({
-    messages: [],
-    transport: scriptedChat.transport({
-      fallback: scriptedChatFallback,
-    }),
-    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
-  })
-  const busy = status === 'submitted' || status === 'streaming'
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [busy, setBusy] = useState(false)
+  const [hasReceivedToken, setHasReceivedToken] = useState(false)
+  const [error, setError] = useState<Error>()
+  const requestController = useRef<AbortController | null>(null)
 
   const submit = (
     overrideText?: string,
@@ -39,6 +25,7 @@ export function ChatPage() {
     const text = (overrideText ?? input).trim()
     if ((!text && attachments.length === 0) || busy) return
     setInput('')
+    setError(undefined)
 
     const parts: ChatMessage['parts'] = []
     for (const att of attachments) {
@@ -53,24 +40,117 @@ export function ChatPage() {
       parts.push({ type: 'text', text })
     }
 
-    void sendMessage({ role: 'user', parts })
+    const userMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      parts,
+    }
+    const nextMessages = [...messages, userMessage]
+    setMessages(nextMessages)
+    setBusy(true)
+    setHasReceivedToken(false)
+    requestController.current = new AbortController()
+    const assistantId = crypto.randomUUID()
+    setMessages((current) => [
+      ...current,
+      {
+        id: assistantId,
+        role: 'assistant',
+        parts: [{ type: 'text', text: '' }],
+      },
+    ])
+    let streamedText = ''
+    void completeChat(
+      nextMessages,
+      requestController.current.signal,
+      (delta) => {
+        setHasReceivedToken(true)
+        streamedText += delta
+        setMessages((current) =>
+          current.map((message) =>
+            message.id === assistantId
+              ? { ...message, parts: [{ type: 'text', text: streamedText }] }
+              : message
+          )
+        )
+      }
+    )
+      .catch((cause: unknown) => {
+        setMessages((current) =>
+          current.filter((message) => message.id !== assistantId)
+        )
+        if (cause instanceof DOMException && cause.name === 'AbortError') return
+        setError(cause instanceof Error ? cause : new Error('聊天请求失败'))
+      })
+      .finally(() => setBusy(false))
+  }
+
+  const stop = () => {
+    requestController.current?.abort()
+    setBusy(false)
+  }
+
+  const handleRetry = () => {
+    if (busy || messages.length === 0) return
+    setError(undefined)
+
+    setBusy(true)
+    setHasReceivedToken(false)
+    requestController.current = new AbortController()
+    const assistantId = crypto.randomUUID()
+    setMessages((current) => [
+      ...current,
+      {
+        id: assistantId,
+        role: 'assistant',
+        parts: [{ type: 'text', text: '' }],
+      },
+    ])
+    let streamedText = ''
+    void completeChat(
+      messages,
+      requestController.current.signal,
+      (delta) => {
+        setHasReceivedToken(true)
+        streamedText += delta
+        setMessages((current) =>
+          current.map((message) =>
+            message.id === assistantId
+              ? { ...message, parts: [{ type: 'text', text: streamedText }] }
+              : message
+          )
+        )
+      }
+    )
+      .catch((cause: unknown) => {
+        setMessages((current) =>
+          current.filter((message) => message.id !== assistantId)
+        )
+        if (cause instanceof DOMException && cause.name === 'AbortError') return
+        setError(cause instanceof Error ? cause : new Error('聊天请求失败'))
+      })
+      .finally(() => setBusy(false))
   }
 
   const handleNewChat = () => {
+    requestController.current?.abort()
     setMessages([])
     setInput('')
+    setError(undefined)
   }
 
   const handleResetChat = () => {
+    requestController.current?.abort()
     setMessages([])
     setInput('')
+    setError(undefined)
   }
 
   return (
     <PageLayout
       variant='fixed'
       fluid
-      className='bg-background flex h-full min-h-0 flex-col p-0'
+      className='flex h-full min-h-0 flex-col p-0 rounded-[inherit]'
     >
       <div className='relative flex min-h-0 flex-1 flex-col'>
         {/* 页面右上角历史记录图标按钮 */}
@@ -94,16 +174,11 @@ export function ChatPage() {
               messages={messages}
               error={error}
               onSelectPrompt={submit}
-              onApprove={(id, approved) =>
-                addToolApprovalResponse({ id, approved })
-              }
-              onAnswer={(id, answers) =>
-                addToolOutput({
-                  tool: 'askQuestions',
-                  toolCallId: id,
-                  output: { answers },
-                })
-              }
+              isWaitingForResponse={busy && !hasReceivedToken}
+              onApprove={() => undefined}
+              onAnswer={() => undefined}
+              onRetry={handleRetry}
+              onDismissError={() => setError(undefined)}
             />
           </div>
         </MessageScroller>

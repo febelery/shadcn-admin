@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
+  AlertCircle,
   ArrowUp,
   Brain,
   ChevronDown,
@@ -11,9 +12,13 @@ import {
   FileSpreadsheet,
   FileText,
   Globe,
+  RotateCw,
   ShieldAlert,
   Wrench,
+  X,
 } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { cn } from '@/lib/utils'
 import {
   Attachment,
@@ -26,6 +31,8 @@ import {
   AttachmentTrigger,
 } from '@/components/ui/attachment'
 import { Button } from '@/components/ui/button'
+import { useMessageScroller } from '@/components/ui/chat'
+import { Marker, MarkerContent } from '@/components/ui/marker'
 import {
   Questionnaire,
   QuestionnaireActions,
@@ -51,6 +58,9 @@ interface ChatMessageListProps {
   onSelectPrompt: (prompt: string) => void
   onApprove: (id: string, approved: boolean) => void
   onAnswer: (id: string, answers: Record<string, string>) => void
+  isWaitingForResponse?: boolean
+  onRetry?: () => void
+  onDismissError?: () => void
 }
 
 /**
@@ -69,7 +79,30 @@ export function ChatMessageList({
   onSelectPrompt,
   onApprove,
   onAnswer,
+  isWaitingForResponse = false,
+  onRetry,
+  onDismissError,
 }: ChatMessageListProps) {
+  const { scrollToEnd } = useMessageScroller()
+
+  // 获取最新一条用户发送的消息 ID
+  let lastUserMessageId: string | undefined
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === 'user') {
+      lastUserMessageId = messages[i].id
+      break
+    }
+  }
+
+  // 当用户提交新问题（lastUserMessageId 改变）时，自动平滑滚动到底部并重新开启跟随模式
+  useEffect(() => {
+    if (!lastUserMessageId) return
+    const rafId = requestAnimationFrame(() => {
+      scrollToEnd({ behavior: 'smooth' })
+    })
+    return () => cancelAnimationFrame(rafId)
+  }, [lastUserMessageId, scrollToEnd])
+
   if (messages.length === 0) {
     return <WelcomeHero onSelectPrompt={onSelectPrompt} />
   }
@@ -85,9 +118,104 @@ export function ChatMessageList({
         />
       ))}
 
+      {isWaitingForResponse && (
+        <Marker role='status' className='mx-1 w-fit py-2'>
+          <MarkerContent className='shimmer'>正在思考…</MarkerContent>
+        </Marker>
+      )}
+
       {error && (
-        <div className='text-destructive border-destructive/20 bg-destructive/5 mx-auto my-2 w-full max-w-3xl rounded-xl border px-4 py-3 text-xs'>
-          {error.message}
+        <ChatErrorCard
+          error={error}
+          onRetry={onRetry}
+          onDismiss={onDismissError}
+        />
+      )}
+    </div>
+  )
+}
+
+/**
+ * 友好、结构化的错误提示卡片
+ */
+function ChatErrorCard({
+  error,
+  onRetry,
+  onDismiss,
+}: {
+  error: Error
+  onRetry?: () => void
+  onDismiss?: () => void
+}) {
+  const [showDetails, setShowDetails] = useState(false)
+  const isLong = error.message.length > 80 || Boolean(error.stack)
+
+  return (
+    <div className='bg-destructive/5 border-destructive/20 mx-auto my-3 w-full max-w-3xl rounded-2xl border p-4 shadow-2xs transition-all'>
+      <div className='flex items-start justify-between gap-3'>
+        <div className='flex items-start gap-3 min-w-0'>
+          <div className='bg-destructive/15 text-destructive ring-destructive/25 mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl ring-1'>
+            <AlertCircle className='size-4' />
+          </div>
+          <div className='min-w-0 space-y-1'>
+            <h4 className='text-destructive text-xs font-semibold sm:text-sm'>
+              生成回复时遇到问题
+            </h4>
+            <p className='text-muted-foreground text-xs leading-relaxed break-words'>
+              {error.message}
+            </p>
+          </div>
+        </div>
+
+        <div className='flex items-center gap-1.5 shrink-0'>
+          {onRetry && (
+            <Button
+              type='button'
+              size='sm'
+              variant='outline'
+              onClick={onRetry}
+              className='hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 h-7.5 px-2.5 text-xs font-medium cursor-pointer shadow-2xs'
+            >
+              <RotateCw className='mr-1.5 size-3' />
+              重试
+            </Button>
+          )}
+          {onDismiss && (
+            <Button
+              type='button'
+              size='icon'
+              variant='ghost'
+              onClick={onDismiss}
+              className='text-muted-foreground hover:text-foreground size-7.5 cursor-pointer'
+              title='忽略错误'
+              aria-label='忽略错误'
+            >
+              <X className='size-3.5' />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {isLong && (
+        <div className='mt-3 border-destructive/10 border-t pt-2.5'>
+          <button
+            type='button'
+            onClick={() => setShowDetails((prev) => !prev)}
+            className='text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-[11px] font-medium transition-colors cursor-pointer select-none'
+          >
+            <span>{showDetails ? '收起技术详情' : '查看技术详情'}</span>
+            <ChevronDown
+              className={cn(
+                'size-3 transition-transform duration-200',
+                showDetails && 'rotate-180'
+              )}
+            />
+          </button>
+          {showDetails && (
+            <pre className='bg-muted/60 text-muted-foreground mt-2 max-h-40 overflow-auto rounded-lg p-2.5 font-mono text-[11px] leading-relaxed whitespace-pre-wrap select-all'>
+              {error.stack || error.message}
+            </pre>
+          )}
         </div>
       )}
     </div>
@@ -290,12 +418,14 @@ function MessageItem({
         {message.parts.map((part, index) => {
           if (part.type === 'text')
             return (
-              <p
+              <div
                 key={index}
-                className='text-foreground leading-7 whitespace-pre-wrap'
+                className='[&_a]:text-primary [&_blockquote]:text-muted-foreground [&_code]:bg-muted [&_pre]:bg-muted [&_th]:bg-muted max-w-none leading-7 [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-4 [&_code]:rounded-sm [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:text-xl [&_h1]:font-semibold [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:font-semibold [&_li]:my-1 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:p-3 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:p-2 [&_th]:border [&_th]:p-2 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6'
               >
-                {part.text}
-              </p>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {part.text}
+                </ReactMarkdown>
+              </div>
             )
           if (part.type === 'reasoning')
             return <ReasoningBlock key={index} text={part.text} />

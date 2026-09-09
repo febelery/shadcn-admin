@@ -9,6 +9,7 @@ export const MessageScrollerRoot = MessageScrollerPrimitive.Root
 export const MessageScrollerViewport = MessageScrollerPrimitive.Viewport
 export const MessageScrollerContent = MessageScrollerPrimitive.Content
 export const MessageScrollerItem = MessageScrollerPrimitive.Item
+export { useMessageScroller } from '@shadcn/react/message-scroller'
 
 export function MessageScrollerButton({
   className,
