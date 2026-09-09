@@ -11,10 +11,10 @@
     scrollbar-color: var(--border) transparent;
   }
   html {
-    @apply overflow-x-hidden;
+    @apply overflow-x-hidden font-sans;
   }
   body {
-    @apply bg-background text-foreground has-[div[data-variant='inset']]:bg-sidebar min-h-svh w-full;
+    @apply has-[div[data-variant='inset']]:bg-sidebar min-h-svh w-full bg-background text-foreground;
   }
 
   /* Override Base UI scroll locking for sticky headers and layout stability */
