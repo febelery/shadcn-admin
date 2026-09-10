@@ -1,6 +1,6 @@
 import { createChat } from '@shadcn/helpers/ai-sdk'
-import type { ChatTransport } from './transport'
-import type { ChatMessage } from './types'
+import type { ChatTransport } from '../core/transport'
+import type { ChatMessage } from '../core/types'
 
 /**
  * 构建预置可交互会话（包含推理、工具审批、问卷及来源引用）

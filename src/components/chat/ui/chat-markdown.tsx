@@ -26,9 +26,7 @@ const MARKDOWN_COMPONENTS: Components = {
       )
     }
 
-    return (
-      <ChatCodeBlock language={match ? match[1] : undefined} value={raw} />
-    )
+    return <ChatCodeBlock language={match ? match[1] : undefined} value={raw} />
   },
   table({ children }) {
     return (
@@ -61,9 +59,7 @@ const MARKDOWN_COMPONENTS: Components = {
     )
   },
   tr({ children }) {
-    return (
-      <tr className='hover:bg-muted/20 transition-colors'>{children}</tr>
-    )
+    return <tr className='hover:bg-muted/20 transition-colors'>{children}</tr>
   },
   a({ href, children }) {
     return (

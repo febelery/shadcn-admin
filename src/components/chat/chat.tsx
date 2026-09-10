@@ -4,43 +4,48 @@ import {
   lastAssistantMessageIsCompleteWithApprovalResponses,
   lastAssistantMessageIsCompleteWithToolCalls,
 } from 'ai'
-import { History, MessageCircle, X } from 'lucide-react'
+import { MessageCircle, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { MessageScroller } from '@/components/ui/chat'
-import { ChatHistorySheet } from './chat-history-sheet'
-import { ChatInput } from './chat-input'
-import { ChatMessageList } from './chat-message-list'
-import { useChatTransport } from './chat-provider'
-import { createOpenRouterTransport, isOpenRouterConfigured } from './openrouter'
-import { createDemoTransport } from './scripted-chat'
-import { createSmoothTransport } from './smooth-stream'
-import type { ChatTransport } from './transport'
-import type { AttachmentItem, ChatMessage, MessageMetrics } from './types'
+import {
+  createOpenRouterTransport,
+  isOpenRouterConfigured,
+} from './adapters/openrouter'
+import { createDemoTransport } from './adapters/scripted-chat'
+import { useChatTransport } from './core/chat-provider'
+import { useChatStore } from './core/chat-store'
+import type { ChatTransport } from './core/transport'
+import type { AttachmentItem, ChatMessage, MessageMetrics } from './core/types'
+import type { ChatToolRenderer, ToolPartContext } from './tools/types'
+import { ChatInput } from './ui/chat-input'
+import { ChatMessageList } from './ui/chat-message-list'
 
 export interface ChatProps {
   className?: string
-  mode?: 'page' | 'panel'
-  historyMode?: 'sheet' | 'panel' | 'hidden'
+  /** Session key shared by views that should show the same conversation. */
+  sessionId?: string
   transport?: ChatTransport
   initialMessages?: ChatMessage[]
+  toolRenderers?: Record<string, ChatToolRenderer>
 }
 
 /**
- * 状态内聚且深层的对话模块（Deep Module）
+ * 状态内聚且深层的对话模块（Deep Module / Facade）
  *
- * 彻底收拢自研状态机，完全委托给 @ai-sdk/react 的 useChat 生命周期：
+ * 顶层装配容器：连接 core/ 逻辑状态与 ui/ 视图层，
+ * 彻底收拢状态机，完全委托给 @ai-sdk/react 的 useChat 生命周期：
  * 1. 原生接管流式分块累加与增量更新；
  * 2. 规范化 status 驱动加载与生成光标（submitted vs streaming）；
- * 3. 自动支持审批流与客户端工具回调（Human-in-the-loop）；
- * 4. 默认采用 @shadcn/helpers/ai-sdk 的本地模拟流，支持插拔后端 Transport。
+ * 3. 统一工具调用（Tool Calls）与敏感操作审批流（Human-in-the-loop）；
+ * 4. 默认采用本地模拟流，支持插拔后端 Transport。
  */
-export function Chat({
+function ChatView({
   className,
-  mode = 'page',
-  historyMode,
+  sessionId = 'default',
   transport: propTransport,
   initialMessages,
+  toolRenderers,
 }: ChatProps) {
   const contextTransport = useChatTransport()
   const defaultTransport = useMemo(
@@ -52,18 +57,22 @@ export function Chat({
   )
   const resolvedTransport = useMemo(() => {
     const raw = propTransport ?? contextTransport ?? defaultTransport
-    return createSmoothTransport(raw)
+    return raw
   }, [propTransport, contextTransport, defaultTransport])
 
-  const resolvedHistoryMode =
-    historyMode ?? (mode === 'page' ? 'sheet' : 'hidden')
-  const [input, setInput] = useState('')
-  const [historyOpen, setHistoryOpen] = useState(false)
+  const session = useChatStore((state) => state.sessions[sessionId])
+  const storedMessages = session?.messages ?? []
+  const input = session?.input ?? ''
+  const storedMetrics = session?.metrics ?? {}
+  const setInputValue = useChatStore((state) => state.setInput)
+  const setMessagesValue = useChatStore((state) => state.setMessages)
+  const setMetricsValue = useChatStore((state) => state.setMetrics)
+  const resetStore = useChatStore((state) => state.reset)
+  const setInput = (value: string) => setInputValue(sessionId, value)
 
   // 性能指标状态与计时追踪
-  const [metricsMap, setMetricsMap] = useState<Record<string, MessageMetrics>>(
-    {}
-  )
+  const [metricsMap, setMetricsMap] =
+    useState<Record<string, MessageMetrics>>(storedMetrics)
   const requestStartTimeRef = useRef<number>(0)
   const recordedTtftRef = useRef<Record<string, number>>({})
   const [thinkingStartTime, setThinkingStartTime] = useState<
@@ -82,13 +91,21 @@ export function Chat({
     addToolOutput,
     addToolApprovalResponse,
   } = useChat<ChatMessage>({
-    messages: initialMessages,
+    messages: initialMessages ?? storedMessages,
     transport: resolvedTransport,
     throttle: 30,
     sendAutomaticallyWhen: (options) =>
       lastAssistantMessageIsCompleteWithToolCalls(options) ||
       lastAssistantMessageIsCompleteWithApprovalResponses(options),
   })
+
+  useEffect(() => {
+    setMessagesValue(sessionId, messages)
+  }, [messages, sessionId, setMessagesValue])
+
+  useEffect(() => {
+    setMetricsValue(sessionId, metricsMap)
+  }, [metricsMap, sessionId, setMetricsValue])
 
   const isBusy = status === 'submitted' || status === 'streaming'
 
@@ -101,7 +118,7 @@ export function Chat({
     }
   }
 
-  // 只要处于请求中（无论是网络等待还是流式准备），在首个可见内容到来前，持续展示 Marker 正在思考占位
+  // 只要处于请求中，在首个可见内容到来前，持续展示 Marker 正在思考占位
   const lastMessage = messages[messages.length - 1]
   const hasAssistantContent =
     lastMessage?.role === 'assistant' &&
@@ -201,6 +218,7 @@ export function Chat({
   const reset = () => {
     stop()
     setMessages([])
+    resetStore(sessionId)
     setInput('')
     clearError()
     setMetricsMap({})
@@ -208,24 +226,25 @@ export function Chat({
     setThinkingStartTime(undefined)
   }
 
+  // 统一的工具上下文，支持客户端所有交互式工具与审批动作
+  const toolContext = useMemo<ToolPartContext>(
+    () => ({
+      addToolOutput: ({ tool, toolCallId, output }) =>
+        addToolOutput({
+          tool,
+          toolCallId,
+          output,
+        } as Parameters<typeof addToolOutput>[0]),
+      addToolApprovalResponse: ({ id, approved }) =>
+        addToolApprovalResponse({ id, approved }),
+      isGenerating,
+      onRetry: retry,
+    }),
+    [addToolOutput, addToolApprovalResponse, isGenerating, retry]
+  )
+
   return (
     <div className={cn('relative flex min-h-0 flex-1 flex-col', className)}>
-      {resolvedHistoryMode !== 'hidden' && (
-        <div className='absolute top-3 right-4 z-20 sm:top-4 sm:right-6'>
-          <Button
-            type='button'
-            variant='ghost'
-            size='icon'
-            className='hover:bg-muted/80 bg-background/80 text-muted-foreground hover:text-foreground size-8 rounded-lg border shadow-2xs backdrop-blur-xs transition-colors'
-            onClick={() => setHistoryOpen(true)}
-            title='历史记录'
-            aria-label='打开对话历史'
-          >
-            <History className='size-4' />
-          </Button>
-        </div>
-      )}
-
       <MessageScroller className='px-4 sm:px-6'>
         <div className='mx-auto flex min-h-full w-full max-w-3xl flex-1 flex-col'>
           <ChatMessageList
@@ -236,16 +255,8 @@ export function Chat({
             isGenerating={isGenerating}
             thinkingStartTime={thinkingStartTime}
             metricsMap={metricsMap}
-            onApprove={(id, approved) =>
-              addToolApprovalResponse({ id, approved })
-            }
-            onAnswer={(toolCallId, answers) =>
-              addToolOutput({
-                tool: 'askQuestions',
-                toolCallId,
-                output: { answers },
-              })
-            }
+            toolContext={toolContext}
+            toolRenderers={toolRenderers}
             onRetry={retry}
             onDismissError={clearError}
           />
@@ -262,19 +273,13 @@ export function Chat({
         onReset={reset}
         onNewChat={reset}
       />
-
-      {resolvedHistoryMode === 'sheet' && (
-        <ChatHistorySheet open={historyOpen} onOpenChange={setHistoryOpen} />
-      )}
-      {resolvedHistoryMode === 'panel' && (
-        <ChatHistorySheet
-          mode='panel'
-          open={historyOpen}
-          onOpenChange={setHistoryOpen}
-        />
-      )}
     </div>
   )
+}
+
+/** Mounts one AI SDK chat controller per session key. */
+export function Chat(props: ChatProps) {
+  return <ChatView key={props.sessionId ?? 'default'} {...props} />
 }
 
 export interface ChatLauncherProps {
@@ -319,7 +324,7 @@ export function ChatLauncher({
               <X className='size-4' />
             </Button>
           </div>
-          <Chat mode='panel' historyMode='hidden' transport={transport} />
+          <Chat transport={transport} />
         </div>
       )}
       <Button

@@ -10,8 +10,7 @@ import { createAppQueryClient, setRouterInstance } from '@/lib/query-client'
 import { createAppRouter } from '@/lib/router'
 import { FontProvider } from '@/context/font-provider'
 import { ThemeProvider } from '@/context/theme-provider'
-import { ChatProvider } from '@/components/chat'
-import { openRouterTransport } from '@/components/chat/openrouter'
+import { ChatProvider, openRouterTransport } from '@/components/chat'
 
 const renderApp = async (): Promise<void> => {
   const rootElement = document.getElementById('root')

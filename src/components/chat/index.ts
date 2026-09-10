@@ -11,14 +11,22 @@ export {
   type ChatLauncherProps,
 } from './chat'
 
-export { ChatProvider, useChatTransport } from './chat-provider'
-export { type ChatTransport } from './transport'
-export { createDemoChat, createDemoTransport } from './scripted-chat'
+export { ChatProvider, useChatTransport } from './core/chat-provider'
+export { useChatStore } from './core/chat-store'
+export { type ChatTransport } from './core/transport'
+export {
+  type ToolPartContext,
+  type ChatToolRenderer,
+  DEFAULT_TOOL_RENDERERS,
+  renderAskQuestionsTool,
+  renderArchiveDraftsTool,
+} from './tools'
+export { createDemoChat, createDemoTransport } from './adapters/scripted-chat'
 export {
   createOpenRouterTransport,
   isOpenRouterConfigured,
   openRouterTransport,
-} from './openrouter'
+} from './adapters/openrouter'
 
 export type {
   ChatMessage,
@@ -27,4 +35,4 @@ export type {
   DataParts,
   AttachmentItem,
   PromptCard,
-} from './types'
+} from './core/types'

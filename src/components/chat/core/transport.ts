@@ -8,4 +8,3 @@ import type { ChatMessage } from './types'
  * 均可直接接入该接缝，实现完全可插拔与前后端解耦。
  */
 export type ChatTransport = AiSdkChatTransport<ChatMessage>
-export { createSmoothStream, createSmoothTransport } from './smooth-stream'

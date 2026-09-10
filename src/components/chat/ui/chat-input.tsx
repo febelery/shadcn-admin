@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ArrowUp,
   Brain,
@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/attachment'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import type { AttachmentItem } from './types'
+import type { AttachmentItem } from '../core/types'
 
 interface ChatInputProps {
   value: string
@@ -117,6 +117,20 @@ export function ChatInput({
   const [attachments, setAttachments] = useState<AttachmentItem[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const attachmentsRef = useRef(attachments)
+
+  useEffect(() => {
+    attachmentsRef.current = attachments
+  }, [attachments])
+
+  useEffect(() => {
+    return () => {
+      attachmentsRef.current.forEach((attachment) => {
+        if (attachment.url?.startsWith('blob:'))
+          URL.revokeObjectURL(attachment.url)
+      })
+    }
+  }, [])
 
   const handleToggleDeepThink = () => {
     const next = !isDeepThink
@@ -141,7 +155,11 @@ export function ChatInput({
   }
 
   const removeAttachment = (id: string) => {
-    setAttachments((prev) => prev.filter((item) => item.id !== id))
+    setAttachments((prev) => {
+      const removed = prev.find((item) => item.id === id)
+      if (removed?.url?.startsWith('blob:')) URL.revokeObjectURL(removed.url)
+      return prev.filter((item) => item.id !== id)
+    })
   }
 
   const handleSend = () => {

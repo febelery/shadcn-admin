@@ -1,6 +1,6 @@
 import { createUIMessageStream } from 'ai'
-import type { ChatTransport } from '@/components/chat/transport'
-import type { ChatMessage } from '@/components/chat/types'
+import type { ChatTransport } from '../core/transport'
+import type { ChatMessage } from '../core/types'
 import { createDemoTransport } from './scripted-chat'
 
 const OPENROUTER_URL =
