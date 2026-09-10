@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/attachment'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import type { AttachmentItem } from '../data/types'
+import type { AttachmentItem } from './types'
 
 interface ChatInputProps {
   value: string
@@ -336,7 +336,7 @@ export function ChatInput({
 
         {/* 底部免责声明 */}
         <p className='text-muted-foreground/60 text-center text-[11px]'>
-          AI 生成内容仅供参考 · ⌘Enter 或 Enter 发送 · 支持文件与图片附件
+          AI 生成内容仅供参考
         </p>
       </div>
     </div>

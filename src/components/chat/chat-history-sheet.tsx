@@ -19,53 +19,13 @@ export interface HistorySession {
   messageCount: number
 }
 
-const INITIAL_SESSIONS: HistorySession[] = [
-  {
-    id: '1',
-    title: '版本新特性与思考过程探索',
-    preview: '本次更新增加了键盘快捷键、更快的搜索体验…',
-    updatedAt: '10 分钟前',
-    group: '今天',
-    messageCount: 4,
-  },
-  {
-    id: '2',
-    title: '原型需求定制问卷交互方案',
-    preview: '请回答这份简短的问卷，我将为你量身定制原型路线…',
-    updatedAt: '2 小时前',
-    group: '今天',
-    messageCount: 6,
-  },
-  {
-    id: '3',
-    title: '敏感操作权限确认流程演示',
-    preview: '检测到敏感操作：即将归档 3 篇草稿，执行前需要你的确认…',
-    updatedAt: '3 天前',
-    group: '前 7 天',
-    messageCount: 3,
-  },
-  {
-    id: '4',
-    title: '全局快捷键配置指南',
-    preview: '按 ⌘K 进行全局搜索，按 Enter 发送消息…',
-    updatedAt: '5 天前',
-    group: '前 7 天',
-    messageCount: 2,
-  },
-  {
-    id: '5',
-    title: '多模态 AI 架构调研分析',
-    preview: '基于深度思考与流式协议的前端渲染方案对比…',
-    updatedAt: '上周',
-    group: '更早',
-    messageCount: 12,
-  },
-]
+const INITIAL_SESSIONS: HistorySession[] = []
 
 interface ChatHistorySheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSelectSession?: (session: HistorySession) => void
+  mode?: 'sheet' | 'panel'
 }
 
 /**
@@ -75,6 +35,7 @@ export function ChatHistorySheet({
   open,
   onOpenChange,
   onSelectSession,
+  mode = 'sheet',
 }: ChatHistorySheetProps) {
   const [sessions, setSessions] = useState<HistorySession[]>(INITIAL_SESSIONS)
   const [query, setQuery] = useState('')
@@ -101,7 +62,11 @@ export function ChatHistorySheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side='right' className='flex w-full flex-col sm:max-w-md'>
+      <SheetContent
+        side='right'
+        hideOverlay={mode === 'panel'}
+        className='flex w-full flex-col sm:max-w-md'
+      >
         <SheetHeader className='border-b pb-4'>
           <div className='flex items-center gap-2 pr-8'>
             <div className='bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg'>

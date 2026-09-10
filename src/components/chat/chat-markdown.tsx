@@ -1,11 +1,132 @@
-import { useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { Check, Copy, Terminal } from 'lucide-react'
 import { Highlight, themes } from 'prism-react-renderer'
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown, { type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
+
+const REMARK_PLUGINS = [remarkGfm]
+
+const MARKDOWN_COMPONENTS: Components = {
+  code({ className, children, ...props }) {
+    const match = /language-(\w+)/.exec(className || '')
+    const raw = String(children).replace(/\n$/, '')
+    const isBlock = Boolean(match) || raw.includes('\n')
+
+    if (!isBlock) {
+      return (
+        <code
+          className='bg-muted/80 text-foreground rounded-md px-1.5 py-0.5 font-mono text-[13px] font-medium'
+          {...props}
+        >
+          {children}
+        </code>
+      )
+    }
+
+    return (
+      <ChatCodeBlock language={match ? match[1] : undefined} value={raw} />
+    )
+  },
+  table({ children }) {
+    return (
+      <div className='border-border/70 my-3 w-full overflow-x-auto rounded-xl border shadow-2xs'>
+        <table className='w-full border-collapse text-left text-xs'>
+          {children}
+        </table>
+      </div>
+    )
+  },
+  thead({ children }) {
+    return (
+      <thead className='bg-muted/60 border-border/70 text-foreground border-b text-xs font-semibold'>
+        {children}
+      </thead>
+    )
+  },
+  th({ children }) {
+    return (
+      <th className='border-border/40 px-3.5 py-2 font-medium last:border-r-0'>
+        {children}
+      </th>
+    )
+  },
+  td({ children }) {
+    return (
+      <td className='border-border/40 text-muted-foreground border-t px-3.5 py-2 last:border-r-0'>
+        {children}
+      </td>
+    )
+  },
+  tr({ children }) {
+    return (
+      <tr className='hover:bg-muted/20 transition-colors'>{children}</tr>
+    )
+  },
+  a({ href, children }) {
+    return (
+      <a
+        href={href}
+        target='_blank'
+        rel='noreferrer noopener'
+        className='text-primary decoration-primary/40 hover:decoration-primary font-medium underline underline-offset-4 transition-colors'
+      >
+        {children}
+      </a>
+    )
+  },
+  ul({ children }) {
+    return (
+      <ul className='text-foreground/90 my-2.5 list-disc space-y-1 pl-6'>
+        {children}
+      </ul>
+    )
+  },
+  ol({ children }) {
+    return (
+      <ol className='text-foreground/90 my-2.5 list-decimal space-y-1 pl-6'>
+        {children}
+      </ol>
+    )
+  },
+  blockquote({ children }) {
+    return (
+      <blockquote className='border-border bg-muted/20 text-muted-foreground my-3 border-l-2 pl-4 italic'>
+        {children}
+      </blockquote>
+    )
+  },
+  h1({ children }) {
+    return (
+      <h1 className='text-foreground mt-5 mb-2.5 text-lg font-bold tracking-tight'>
+        {children}
+      </h1>
+    )
+  },
+  h2({ children }) {
+    return (
+      <h2 className='text-foreground mt-4 mb-2 text-base font-semibold tracking-tight'>
+        {children}
+      </h2>
+    )
+  },
+  h3({ children }) {
+    return (
+      <h3 className='text-foreground mt-3 mb-1.5 text-sm font-semibold tracking-tight'>
+        {children}
+      </h3>
+    )
+  },
+  p({ children }) {
+    return (
+      <p className='text-foreground/90 my-2.5 leading-7 first:mt-0 last:mb-0'>
+        {children}
+      </p>
+    )
+  },
+}
 
 export interface ChatMarkdownProps {
   /** Markdown 原文内容 */
@@ -66,7 +187,10 @@ interface ChatCodeBlockProps {
  * 3. 基于 prism-react-renderer 的语法高亮，根据系统 dark/light 主题自动切换配色
  * 4. 独立横向平滑滚动容器
  */
-export function ChatCodeBlock({ language, value }: ChatCodeBlockProps) {
+export const ChatCodeBlock = memo(function ChatCodeBlock({
+  language,
+  value,
+}: ChatCodeBlockProps) {
   const { resolvedTheme } = useTheme()
   const [copied, setCopied] = useState(false)
 
@@ -87,7 +211,7 @@ export function ChatCodeBlock({ language, value }: ChatCodeBlockProps) {
   return (
     <div className='border-border/70 bg-muted/40 my-3 overflow-hidden rounded-xl border font-mono text-xs shadow-2xs'>
       {/* 顶部 Header 工具条 */}
-      <div className='border-border/60 bg-muted/70 flex items-center justify-between border-b px-3.5 py-1.5 text-muted-foreground'>
+      <div className='border-border/60 bg-muted/70 text-muted-foreground flex items-center justify-between border-b px-3.5 py-1.5'>
         <div className='flex items-center gap-1.5 text-[11px] font-medium'>
           <Terminal className='text-muted-foreground/80 size-3.5' />
           <span className='lowercase'>{language || 'code'}</span>
@@ -117,7 +241,7 @@ export function ChatCodeBlock({ language, value }: ChatCodeBlockProps) {
       <Highlight theme={prismTheme} code={value} language={normalizedLang}>
         {({ className, tokens, getLineProps, getTokenProps }) => (
           <div
-            className='overflow-x-auto p-3.5 leading-relaxed selection:bg-primary/20'
+            className='selection:bg-primary/20 overflow-x-auto p-3.5 leading-relaxed'
             style={{ backgroundColor: 'transparent' }}
           >
             <pre
@@ -142,7 +266,7 @@ export function ChatCodeBlock({ language, value }: ChatCodeBlockProps) {
       </Highlight>
     </div>
   )
-}
+})
 
 /**
  * 深度 Markdown 渲染模块（Deep Module）
@@ -154,7 +278,7 @@ export function ChatCodeBlock({ language, value }: ChatCodeBlockProps) {
  * - 安全外链防护（noopener/noreferrer）
  * - 流式打字呼吸光标
  */
-export function ChatMarkdown({
+export const ChatMarkdown = memo(function ChatMarkdown({
   content,
   isStreaming = false,
   className,
@@ -168,135 +292,15 @@ export function ChatMarkdown({
   }
 
   return (
-    <div className={cn('relative space-y-2 text-sm leading-relaxed', className)}>
+    <div
+      className={cn('relative space-y-2 text-sm leading-relaxed', className)}
+    >
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          code({ className, children, ...props }) {
-            const match = /language-(\w+)/.exec(className || '')
-            const raw = String(children).replace(/\n$/, '')
-            const isBlock = Boolean(match) || raw.includes('\n')
-
-            if (!isBlock) {
-              return (
-                <code
-                  className='bg-muted/80 rounded-md px-1.5 py-0.5 font-mono text-[13px] font-medium text-foreground'
-                  {...props}
-                >
-                  {children}
-                </code>
-              )
-            }
-
-            return (
-              <ChatCodeBlock
-                language={match ? match[1] : undefined}
-                value={raw}
-              />
-            )
-          },
-          table({ children }) {
-            return (
-              <div className='border-border/70 my-3 w-full overflow-x-auto rounded-xl border shadow-2xs'>
-                <table className='w-full border-collapse text-left text-xs'>
-                  {children}
-                </table>
-              </div>
-            )
-          },
-          thead({ children }) {
-            return (
-              <thead className='bg-muted/60 border-border/70 border-b text-xs font-semibold text-foreground'>
-                {children}
-              </thead>
-            )
-          },
-          th({ children }) {
-            return (
-              <th className='border-border/40 px-3.5 py-2 font-medium last:border-r-0'>
-                {children}
-              </th>
-            )
-          },
-          td({ children }) {
-            return (
-              <td className='border-border/40 text-muted-foreground border-t px-3.5 py-2 last:border-r-0'>
-                {children}
-              </td>
-            )
-          },
-          tr({ children }) {
-            return (
-              <tr className='hover:bg-muted/20 transition-colors'>
-                {children}
-              </tr>
-            )
-          },
-          a({ href, children }) {
-            return (
-              <a
-                href={href}
-                target='_blank'
-                rel='noreferrer noopener'
-                className='text-primary decoration-primary/40 hover:decoration-primary font-medium underline underline-offset-4 transition-colors'
-              >
-                {children}
-              </a>
-            )
-          },
-          ul({ children }) {
-            return (
-              <ul className='my-2.5 list-disc space-y-1 pl-6 text-foreground/90'>
-                {children}
-              </ul>
-            )
-          },
-          ol({ children }) {
-            return (
-              <ol className='my-2.5 list-decimal space-y-1 pl-6 text-foreground/90'>
-                {children}
-              </ol>
-            )
-          },
-          blockquote({ children }) {
-            return (
-              <blockquote className='border-border bg-muted/20 text-muted-foreground my-3 border-l-2 pl-4 italic'>
-                {children}
-              </blockquote>
-            )
-          },
-          h1({ children }) {
-            return (
-              <h1 className='text-foreground mt-5 mb-2.5 text-lg font-bold tracking-tight'>
-                {children}
-              </h1>
-            )
-          },
-          h2({ children }) {
-            return (
-              <h2 className='text-foreground mt-4 mb-2 text-base font-semibold tracking-tight'>
-                {children}
-              </h2>
-            )
-          },
-          h3({ children }) {
-            return (
-              <h3 className='text-foreground mt-3 mb-1.5 text-sm font-semibold tracking-tight'>
-                {children}
-              </h3>
-            )
-          },
-          p({ children }) {
-            return (
-              <p className='my-2.5 leading-7 text-foreground/90 first:mt-0 last:mb-0'>
-                {children}
-              </p>
-            )
-          },
-        }}
+        remarkPlugins={REMARK_PLUGINS}
+        components={MARKDOWN_COMPONENTS}
       >
         {repairedContent}
       </ReactMarkdown>
     </div>
   )
-}
+})

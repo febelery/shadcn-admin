@@ -71,13 +71,15 @@ function SheetContent({
   className,
   children,
   side = 'right',
+  hideOverlay = false,
   ...props
 }: SheetPrimitive.Popup.Props & {
   side?: 'top' | 'right' | 'bottom' | 'left'
+  hideOverlay?: boolean
 }) {
   return (
     <SheetPortal>
-      <SheetOverlay />
+      {!hideOverlay && <SheetOverlay />}
       <SheetPrimitive.Popup
         data-slot='sheet-content'
         aria-describedby='sheet-content-description'

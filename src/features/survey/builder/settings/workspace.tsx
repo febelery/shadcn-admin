@@ -1,7 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { revalidateLogic, useForm, useStore } from '@tanstack/react-form'
 import { checkImageAccessible, mbToBytes } from '@/lib/files'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import {
   ColorPicker,
@@ -94,18 +93,16 @@ function ColorControl({
       defaultFormat='hex'
       className='w-full'
     >
-      <ColorPickerTrigger asChild>
-        <Button
-          type='button'
-          variant='outline'
-          className='w-full justify-start gap-2 font-normal'
-          aria-invalid={invalid}
-        >
-          <ColorPickerSwatch className='size-4' />
-          <span className='font-mono text-xs uppercase tabular-nums'>
-            {value}
-          </span>
-        </Button>
+      <ColorPickerTrigger
+        type='button'
+        variant='outline'
+        className='w-full justify-start gap-2 font-normal'
+        aria-invalid={invalid}
+      >
+        <ColorPickerSwatch className='size-4' />
+        <span className='font-mono text-xs uppercase tabular-nums'>
+          {value}
+        </span>
       </ColorPickerTrigger>
       <ColorPickerContent align='start' className='w-auto'>
         <ColorPickerArea />

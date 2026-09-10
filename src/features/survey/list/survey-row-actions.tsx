@@ -34,29 +34,25 @@ export function SurveyRowActions({ survey, onDelete }: SurveyRowActionsProps) {
   return (
     <div className='flex items-center justify-end gap-1'>
       <Button
-        asChild
+        render={<Link to='/survey/$id/edit' params={{ id: survey.id }} />}
         variant='ghost'
         size='sm'
         className='h-8 px-2'
         aria-label='编辑问卷'
       >
-        <Link to='/survey/$id/edit' params={{ id: survey.id }}>
-          <SquarePen data-icon='inline-start' />
-          编辑
-        </Link>
+        <SquarePen data-icon='inline-start' />
+        编辑
       </Button>
 
       <Button
-        asChild
+        render={<Link to='/survey/$id/record' params={{ id: survey.id }} />}
         variant='ghost'
         size='sm'
         className='h-8 px-2'
         aria-label='回收'
       >
-        <Link to='/survey/$id/record' params={{ id: survey.id }}>
-          <ScrollText data-icon='inline-start' />
-          回收
-        </Link>
+        <ScrollText data-icon='inline-start' />
+        回收
       </Button>
 
       <DropdownMenu modal={false}>

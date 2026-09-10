@@ -56,17 +56,19 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
       description='查看回收概况和题目统计。'
       actions={
         <div className='flex items-center gap-2'>
-          <Button variant='outline' asChild>
-            <Link to='/survey'>
-              <ArrowLeft className='h-4 w-4' />
-              列表
-            </Link>
+          <Button
+            variant='outline'
+            render={<Link to='/survey' />}
+          >
+            <ArrowLeft className='h-4 w-4' />
+            列表
           </Button>
-          <Button variant='outline' asChild>
-            <Link to={`/survey/${surveyId}/record`}>
-              <Inbox className='h-4 w-4' />
-              回收
-            </Link>
+          <Button
+            variant='outline'
+            render={<Link to={`/survey/${surveyId}/record`} />}
+          >
+            <Inbox className='h-4 w-4' />
+            回收
           </Button>
           <Button
             variant='outline'

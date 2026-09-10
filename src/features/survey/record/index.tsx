@@ -121,17 +121,18 @@ export function SurveyRecordPage({ surveyId }: SurveyRecordPageProps) {
       description={`共 ${data?.meta?.total ?? 0} 条回收记录。`}
       actions={
         <div className='flex items-center gap-2'>
-          <Button variant='outline' asChild>
-            <Link to='/survey'>
-              <ArrowLeft className='h-4 w-4' />
-              列表
-            </Link>
+          <Button variant='outline' render={<Link to='/survey' />}>
+            <ArrowLeft className='h-4 w-4' />
+            列表
           </Button>
-          <Button variant='outline' asChild>
-            <Link to='/survey/$id/analysis' params={{ id: surveyId }}>
-              <BarChart3 className='h-4 w-4' />
-              分析
-            </Link>
+          <Button
+            variant='outline'
+            render={
+              <Link to='/survey/$id/analysis' params={{ id: surveyId }} />
+            }
+          >
+            <BarChart3 className='h-4 w-4' />
+            分析
           </Button>
           <Button
             variant='outline'

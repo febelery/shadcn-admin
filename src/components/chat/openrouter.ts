@@ -1,4 +1,7 @@
-import type { ChatMessage } from './data/types'
+import { createUIMessageStream } from 'ai'
+import type { ChatTransport } from '@/components/chat/transport'
+import type { ChatMessage } from '@/components/chat/types'
+import { createDemoTransport } from './scripted-chat'
 
 const OPENROUTER_URL =
   import.meta.env.VITE_OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1'
@@ -81,7 +84,7 @@ export function isOpenRouterConfigured() {
   return Boolean(OPENROUTER_KEY)
 }
 
-export async function completeChat(
+async function completeChat(
   messages: ChatMessage[],
   signal?: AbortSignal,
   onDelta?: (text: string) => void
@@ -166,3 +169,52 @@ export async function completeChat(
   if (!content) throw new Error('OpenRouter 返回了空消息。')
   return content
 }
+
+/**
+ * 将 OpenRouter 原生 OpenAI SSE 协议转换为标准 AI SDK ChatTransport 适配器
+ */
+export function createOpenRouterTransport(): ChatTransport {
+  return {
+    sendMessages: async ({ messages, abortSignal }) => {
+      return createUIMessageStream({
+        execute: async ({ writer }) => {
+          let started = false
+          const textId = crypto.randomUUID()
+          try {
+            await completeChat(
+              messages as ChatMessage[],
+              abortSignal,
+              (delta) => {
+                if (!started) {
+                  writer.write({ type: 'start' })
+                  writer.write({ type: 'text-start', id: textId })
+                  started = true
+                }
+                writer.write({ type: 'text-delta', id: textId, delta })
+              }
+            )
+            if (started) {
+              writer.write({ type: 'text-end', id: textId })
+              writer.write({ type: 'finish', finishReason: 'stop' })
+            } else {
+              writer.write({ type: 'start' })
+              writer.write({ type: 'finish', finishReason: 'stop' })
+            }
+          } catch (cause) {
+            const errorText =
+              cause instanceof Error ? cause.message : '聊天请求失败'
+            writer.write({ type: 'error', errorText })
+          }
+        },
+      })
+    },
+    reconnectToStream: async () => null,
+  }
+}
+
+/**
+ * 默认导出的 OpenRouter 传输实例（未配置 Key 时回退至离线模拟 Transport）
+ */
+export const openRouterTransport: ChatTransport = isOpenRouterConfigured()
+  ? createOpenRouterTransport()
+  : createDemoTransport()

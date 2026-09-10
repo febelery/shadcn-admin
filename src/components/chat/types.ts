@@ -11,6 +11,11 @@ export type Tools = {
 
 export type DataParts = Record<string, never>
 
+export interface MessageMetrics {
+  ttftMs?: number
+  durationMs?: number
+}
+
 export type ChatMessage = UIMessage<unknown, DataParts, Tools>
 
 export interface PromptCard {
@@ -28,4 +33,3 @@ export interface AttachmentItem {
   url?: string
   isImage?: boolean
 }
-

@@ -133,10 +133,13 @@ function SurveyBuilderContent({ props }: { props: Props }) {
         )}
       >
         <div className='flex min-w-0 items-center gap-2 sm:gap-3'>
-          <Button variant='ghost' size='icon' className='shrink-0' asChild>
-            <Link to='/survey'>
-              <ArrowLeft className='h-4 w-4' />
-            </Link>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='shrink-0'
+            render={<Link to='/survey' />}
+          >
+            <ArrowLeft className='h-4 w-4' />
           </Button>
           <div className='flex min-w-0 items-center'>
             <h1
@@ -304,10 +307,12 @@ function BuilderErrorState({
   return (
     <div className='bg-muted/25 flex h-svh flex-col'>
       <header className='border-border/80 bg-background flex h-16 shrink-0 items-center gap-3 border-b px-4 sm:px-5'>
-        <Button variant='ghost' size='icon' asChild>
-          <Link to='/survey' aria-label='返回问卷列表'>
-            <ArrowLeft className='size-4' />
-          </Link>
+        <Button
+          variant='ghost'
+          size='icon'
+          render={<Link to='/survey' aria-label='返回问卷列表' />}
+        >
+          <ArrowLeft className='size-4' />
         </Button>
         <div className='flex flex-col gap-1'>
           <span className='text-muted-foreground text-[11px] leading-none font-medium'>
@@ -333,8 +338,11 @@ function BuilderErrorState({
             </p>
           </div>
           <div className='flex items-center gap-2'>
-            <Button variant='outline' asChild>
-              <Link to='/survey'>返回列表</Link>
+            <Button
+              variant='outline'
+              render={<Link to='/survey' />}
+            >
+              返回列表
             </Button>
             <Button onClick={onRetry} disabled={retrying}>
               <RefreshCw className={cn('size-4', retrying && 'animate-spin')} />

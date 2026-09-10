@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import {
   AlertCircle,
   ArrowUp,
@@ -16,12 +16,12 @@ import {
   Globe,
   RotateCw,
   ShieldAlert,
+  Sparkles,
   Wrench,
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { ChatMarkdown } from './chat-markdown'
 import {
   Attachment,
   AttachmentAction,
@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/attachment'
 import { Button } from '@/components/ui/button'
 import { useMessageScroller } from '@/components/ui/chat'
-import { Marker, MarkerContent } from '@/components/ui/marker'
+import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker'
 import {
   Questionnaire,
   QuestionnaireActions,
@@ -51,8 +51,35 @@ import {
   QuestionnaireSubmit,
   QuestionnaireTitle,
 } from '@/components/ui/questionnaire'
-import { PROMPT_CARDS } from '../data/scripted-chat'
-import type { ChatMessage } from '../data/types'
+import { ChatMarkdown } from './chat-markdown'
+import type { ChatMessage, MessageMetrics } from './types'
+
+const PROMPT_CARDS = [
+  {
+    icon: <Sparkles className='size-4' />,
+    title: '开始探索',
+    desc: '向 AI 助手提出任何问题',
+    prompt: '你好，请介绍一下你能做什么。',
+  },
+  {
+    icon: <Brain className='size-4' />,
+    title: '架构讨论',
+    desc: '一起分析产品与技术方案',
+    prompt: '帮我分析当前项目的架构。',
+  },
+  {
+    icon: <FileText className='size-4' />,
+    title: '内容总结',
+    desc: '总结、改写或解释复杂内容',
+    prompt: '请告诉我如何更高效地使用这个系统。',
+  },
+  {
+    icon: <ShieldAlert className='size-4 text-amber-500' />,
+    title: '获取帮助',
+    desc: '解决你正在遇到的问题',
+    prompt: '我需要一些帮助。',
+  },
+]
 
 interface ChatMessageListProps {
   messages: ChatMessage[]
@@ -64,6 +91,8 @@ interface ChatMessageListProps {
   isGenerating?: boolean
   onRetry?: () => void
   onDismissError?: () => void
+  thinkingStartTime?: number
+  metricsMap?: Record<string, MessageMetrics>
 }
 
 /**
@@ -86,6 +115,8 @@ export function ChatMessageList({
   isGenerating = false,
   onRetry,
   onDismissError,
+  thinkingStartTime,
+  metricsMap,
 }: ChatMessageListProps) {
   const { scrollToEnd } = useMessageScroller()
 
@@ -126,6 +157,7 @@ export function ChatMessageList({
         <MessageItem
           key={message.id}
           message={message}
+          metrics={metricsMap?.[message.id]}
           onApprove={onApprove}
           onAnswer={onAnswer}
           isLastAssistant={message.id === lastAssistantMessageId}
@@ -135,9 +167,7 @@ export function ChatMessageList({
       ))}
 
       {isWaitingForResponse && (
-        <Marker role='status' className='mx-1 w-fit py-2'>
-          <MarkerContent className='shimmer'>正在思考…</MarkerContent>
-        </Marker>
+        <ThinkingIndicator startTime={thinkingStartTime} />
       )}
 
       {error && (
@@ -148,6 +178,45 @@ export function ChatMessageList({
         />
       )}
     </div>
+  )
+}
+
+/**
+ * 正在思考动态指示器（方案一：自然中置点流式）
+ *
+ * 独立叶子组件：内部定时器自驱秒数递增，完全隔离父层重渲染，
+ * 采用等宽数字（tabular-nums）与优雅的中置点（·）分隔，告别生硬括号。
+ */
+function ThinkingIndicator({ startTime }: { startTime?: number }) {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+
+  useEffect(() => {
+    if (!startTime) return
+    const update = () => {
+      const secs = Math.max(
+        0,
+        Math.floor((performance.now() - startTime) / 1000)
+      )
+      setElapsedSeconds(secs)
+    }
+    update()
+    const timer = setInterval(update, 500)
+    return () => clearInterval(timer)
+  }, [startTime])
+
+  return (
+    <Marker role='status' className='mx-1 w-fit py-2 select-none'>
+      <MarkerIcon>
+        <Sparkles className='text-primary/70 size-3.5 animate-pulse' />
+      </MarkerIcon>
+      <MarkerContent className='shimmer inline-flex items-center gap-2 text-xs'>
+        <span className='text-muted-foreground font-medium'>思考中</span>
+        <span className='text-muted-foreground/30 font-bold'>·</span>
+        <span className='text-muted-foreground/80 font-mono font-medium tabular-nums'>
+          {elapsedSeconds}s
+        </span>
+      </MarkerContent>
+    </Marker>
   )
 }
 
@@ -169,7 +238,7 @@ function ChatErrorCard({
   return (
     <div className='bg-destructive/5 border-destructive/20 mx-auto my-3 w-full max-w-3xl rounded-2xl border p-4 shadow-2xs transition-all'>
       <div className='flex items-start justify-between gap-3'>
-        <div className='flex items-start gap-3 min-w-0'>
+        <div className='flex min-w-0 items-start gap-3'>
           <div className='bg-destructive/15 text-destructive ring-destructive/25 mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl ring-1'>
             <AlertCircle className='size-4' />
           </div>
@@ -183,14 +252,14 @@ function ChatErrorCard({
           </div>
         </div>
 
-        <div className='flex items-center gap-1.5 shrink-0'>
+        <div className='flex shrink-0 items-center gap-1.5'>
           {onRetry && (
             <Button
               type='button'
               size='sm'
               variant='outline'
               onClick={onRetry}
-              className='hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 h-7.5 px-2.5 text-xs font-medium cursor-pointer shadow-2xs'
+              className='hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 h-7.5 cursor-pointer px-2.5 text-xs font-medium shadow-2xs'
             >
               <RotateCw className='mr-1.5 size-3' />
               重试
@@ -213,11 +282,11 @@ function ChatErrorCard({
       </div>
 
       {isLong && (
-        <div className='mt-3 border-destructive/10 border-t pt-2.5'>
+        <div className='border-destructive/10 mt-3 border-t pt-2.5'>
           <button
             type='button'
             onClick={() => setShowDetails((prev) => !prev)}
-            className='text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-[11px] font-medium transition-colors cursor-pointer select-none'
+            className='text-muted-foreground hover:text-foreground inline-flex cursor-pointer items-center gap-1 text-[11px] font-medium transition-colors select-none'
           >
             <span>{showDetails ? '收起技术详情' : '查看技术详情'}</span>
             <ChevronDown
@@ -349,8 +418,9 @@ function FileIconBadge({
 /**
  * 单条消息多态渲染（内部私有组件）
  */
-function MessageItem({
+const MessageItem = memo(function MessageItem({
   message,
+  metrics,
   onApprove,
   onAnswer,
   isLastAssistant = false,
@@ -358,6 +428,7 @@ function MessageItem({
   onRetry,
 }: {
   message: ChatMessage
+  metrics?: MessageMetrics
   onApprove: (id: string, approved: boolean) => void
   onAnswer: (id: string, answers: Record<string, string>) => void
   isLastAssistant?: boolean
@@ -372,7 +443,7 @@ function MessageItem({
 
     return (
       <div className='flex w-full flex-col items-end gap-2 py-1.5'>
-        {/* 用户上传的附件卡片 */}
+        {/* 用户上传的附件胶囊流 */}
         {fileParts.length > 0 && (
           <div className='flex max-w-[85%] flex-wrap justify-end gap-2 sm:max-w-[75%]'>
             {fileParts.map((file, idx) => {
@@ -535,14 +606,14 @@ function MessageItem({
               return (
                 <div
                   key={index}
-                  className='bg-card my-2 max-w-md space-y-3 rounded-2xl border p-4 shadow-xs'
+                  className='border-amber-500/30 bg-amber-500/5 my-2 space-y-2 rounded-xl border p-3.5 text-xs'
                 >
-                  <div className='text-foreground flex items-center gap-2 text-xs font-semibold'>
-                    <ShieldAlert className='size-4 text-amber-500' />
-                    <span>敏感操作权限审批</span>
+                  <div className='flex items-center gap-2 font-medium text-amber-600 dark:text-amber-400'>
+                    <ShieldAlert className='size-4' />
+                    <span>敏感操作授权确认</span>
                   </div>
-                  <p className='text-muted-foreground text-xs leading-relaxed'>
-                    助手请求归档{' '}
+                  <p className='text-muted-foreground leading-relaxed'>
+                    智能助手请求为您安全归档{' '}
                     <strong className='text-foreground'>
                       {part.input.count}
                     </strong>{' '}
@@ -597,11 +668,19 @@ function MessageItem({
         <AssistantMessageActions
           content={fullAssistantText}
           isLast={isLastAssistant}
+          metrics={metrics}
           onRetry={onRetry}
         />
       )}
     </div>
   )
+})
+
+function formatDuration(ms: number): string {
+  if (ms < 1000) {
+    return `${ms}ms`
+  }
+  return `${(ms / 1000).toFixed(1)}s`
 }
 
 /**
@@ -610,14 +689,17 @@ function MessageItem({
  * 封装能力：
  * 1. 复制全文 Markdown（带复制状态图标切换与 Toast 提示）
  * 2. 重新生成按钮（仅在最新一条回复且非生成中时展示）
+ * 3. 性能指标（方案 B：一体化跟随，展示首字耗时与流式生成耗时）
  */
-function AssistantMessageActions({
+const AssistantMessageActions = memo(function AssistantMessageActions({
   content,
   isLast,
+  metrics,
   onRetry,
 }: {
   content: string
-  isLast: boolean
+  isLast?: boolean
+  metrics?: MessageMetrics
   onRetry?: () => void
 }) {
   const [copied, setCopied] = useState(false)
@@ -626,52 +708,79 @@ function AssistantMessageActions({
     try {
       await navigator.clipboard.writeText(content)
       setCopied(true)
-      toast.success('已复制回答内容')
+      toast.success('已复制助手回复')
       setTimeout(() => setCopied(false), 2000)
     } catch {
       toast.error('复制失败，请手动选择复制')
     }
   }
 
-  return (
-    <div className='flex items-center gap-1 pt-1.5 opacity-70 transition-opacity hover:opacity-100'>
-      <Button
-        type='button'
-        variant='ghost'
-        size='icon'
-        onClick={handleCopy}
-        className='text-muted-foreground hover:text-foreground size-7 cursor-pointer rounded-lg hover:bg-muted'
-        title='复制全文 Markdown'
-        aria-label='复制全文'
-      >
-        {copied ? (
-          <Check className='size-3.5 text-emerald-500' />
-        ) : (
-          <Copy className='size-3.5' />
-        )}
-      </Button>
+  const hasMetrics =
+    Boolean(metrics?.ttftMs !== undefined && metrics.ttftMs > 0) ||
+    Boolean(metrics?.durationMs !== undefined && metrics.durationMs > 0)
 
-      {isLast && onRetry && (
-        <Button
+  return (
+    <div className='text-muted-foreground mt-1 flex flex-wrap items-center gap-1.5 pt-0.5 text-xs select-none'>
+      {/* 快捷操作区 */}
+      <div className='flex items-center gap-0.5'>
+        <button
           type='button'
-          variant='ghost'
-          size='icon'
-          onClick={onRetry}
-          className='text-muted-foreground hover:text-foreground size-7 cursor-pointer rounded-lg hover:bg-muted'
-          title='重新生成'
-          aria-label='重新生成'
+          onClick={handleCopy}
+          className='hover:bg-muted/80 hover:text-foreground inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium transition-colors'
+          title='复制全文'
+          aria-label='复制回复全文'
         >
-          <RotateCw className='size-3.5' />
-        </Button>
+          {copied ? (
+            <>
+              <Check className='size-3 text-emerald-500' />
+              <span className='text-emerald-500'>已复制</span>
+            </>
+          ) : (
+            <>
+              <Copy className='size-3' />
+            </>
+          )}
+        </button>
+
+        {isLast && onRetry && (
+          <button
+            type='button'
+            onClick={onRetry}
+            className='hover:bg-muted/80 hover:text-foreground inline-flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium transition-colors'
+            title='重新生成回复'
+            aria-label='重新生成'
+          >
+            <RotateCw className='size-3' />
+          </button>
+        )}
+      </div>
+
+      {/* 方案 B：一体化跟随性能指标（首字耗时与流式生成耗时） */}
+      {hasMetrics && (
+        <div className='text-muted-foreground/60 flex items-center gap-1.5 text-[11px] font-mono'>
+          <span className='text-muted-foreground/30'>|</span>
+          {metrics?.ttftMs !== undefined && metrics.ttftMs > 0 && (
+            <span>首字 {formatDuration(metrics.ttftMs)}</span>
+          )}
+          {metrics?.durationMs !== undefined &&
+            metrics.durationMs > 0 &&
+            metrics?.ttftMs !== undefined &&
+            metrics.ttftMs > 0 && (
+              <span className='text-muted-foreground/30'>·</span>
+            )}
+          {metrics?.durationMs !== undefined && metrics.durationMs > 0 && (
+            <span>生成 {formatDuration(metrics.durationMs)}</span>
+          )}
+        </div>
       )}
     </div>
   )
-}
+})
 
 /**
  * 深度思考折叠块（内部私有组件）
  */
-function ReasoningBlock({
+const ReasoningBlock = memo(function ReasoningBlock({
   text,
   defaultOpen = true,
 }: {
@@ -708,7 +817,7 @@ function ReasoningBlock({
       )}
     </div>
   )
-}
+})
 
 const QUESTIONNAIRE_ITEMS = [
   {
