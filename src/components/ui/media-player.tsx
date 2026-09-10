@@ -1,6 +1,10 @@
 'use client'
 
 import * as React from 'react'
+import { mergeProps } from '@base-ui/react/merge-props'
+import { Slider as SliderPrimitive } from '@base-ui/react/slider'
+import { useRender } from '@base-ui/react/use-render'
+import { cn } from 'cn'
 import {
   AlertTriangleIcon,
   CaptionsOffIcon,
@@ -33,25 +37,8 @@ import {
   useMediaRef,
   useMediaSelector,
 } from 'media-chrome/react/media-store'
-import { Slider as SliderPrimitive } from '@base-ui/react/slider'
-import { mergeProps } from '@base-ui/react/merge-props'
-import { useRender } from '@base-ui/react/use-render'
-
-const SlotPrimitive = {
-  Slot: React.forwardRef<
-    HTMLElement,
-    React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }
-  >(function Slot({ children, ...props }, ref) {
-    return useRender({
-      defaultTagName: 'div',
-      render: React.isValidElement(children) ? children : undefined,
-      props: mergeProps<any>({ ref, children: undefined }, props),
-    })
-  }),
-}
 import * as ReactDOM from 'react-dom'
 import { useComposedRefs } from '@/lib/compose-refs'
-import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -70,6 +57,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+
+const SlotPrimitive = {
+  Slot: React.forwardRef<
+    HTMLElement,
+    React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }
+  >(function Slot({ children, ...props }, ref) {
+    return useRender({
+      defaultTagName: 'div',
+      render: React.isValidElement(children) ? children : undefined,
+      props: mergeProps<any>({ ref, children: undefined }, props),
+    })
+  }),
+}
 
 const ROOT_NAME = 'MediaPlayer'
 const SEEK_NAME = 'MediaPlayerSeek'
@@ -1265,7 +1265,7 @@ function MediaPlayerPlay(props: MediaPlayerPlayProps) {
 
   const onPlayToggle = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      props.onClick?.(event)
+      props.onClick?.(event as any)
 
       if (event.defaultPrevented) return
 
@@ -1332,7 +1332,7 @@ function MediaPlayerSeekBackward(props: MediaPlayerSeekBackwardProps) {
 
   const onSeekBackward = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      props.onClick?.(event)
+      props.onClick?.(event as any)
 
       if (event.defaultPrevented) return
 
@@ -1395,7 +1395,7 @@ function MediaPlayerSeekForward(props: MediaPlayerSeekForwardProps) {
 
   const onSeekForward = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      props.onClick?.(event)
+      props.onClick?.(event as any)
 
       if (event.defaultPrevented) return
 
@@ -1451,8 +1451,7 @@ interface MediaPlayerSeekProps extends React.ComponentProps<
   tooltipSideOffset?: number
   tooltipCollisionBoundary?: Element | Element[]
   tooltipCollisionPadding?:
-    | number
-    | Partial<Record<'top' | 'right' | 'bottom' | 'left', number>>
+    number | Partial<Record<'top' | 'right' | 'bottom' | 'left', number>>
 }
 
 function MediaPlayerSeek(props: MediaPlayerSeekProps) {
@@ -2091,7 +2090,9 @@ function MediaPlayerSeek(props: MediaPlayerSeekProps) {
         )}
         value={[displayValue]}
         onValueChange={(val: any) => onSeek(Array.isArray(val) ? val : [val])}
-        onValueCommitted={(val: any) => onSeekCommit(Array.isArray(val) ? val : [val])}
+        onValueCommitted={(val: any) =>
+          onSeekCommit(Array.isArray(val) ? val : [val])
+        }
         onPointerEnter={onPointerEnter}
         onPointerLeave={onPointerLeave}
         onPointerMove={onPointerMove}
@@ -2327,8 +2328,12 @@ function MediaPlayerVolume(props: MediaPlayerVolumeProps) {
         )}
         disabled={isDisabled}
         value={[effectiveVolume]}
-        onValueChange={(val: any) => onVolumeChange?.(Array.isArray(val) ? val : [val])}
-        onValueCommitted={(val: any) => onVolumeCommit?.(Array.isArray(val) ? val : [val])}
+        onValueChange={(val: any) =>
+          onVolumeChange?.(Array.isArray(val) ? val : [val])
+        }
+        onValueCommitted={(val: any) =>
+          onVolumeCommit?.(Array.isArray(val) ? val : [val])
+        }
       >
         <SliderPrimitive.Control className='relative flex touch-none items-center select-none'>
           <SliderPrimitive.Track className='relative h-1 w-full grow overflow-hidden rounded-full bg-zinc-500'>
@@ -2417,12 +2422,19 @@ function MediaPlayerTime(props: MediaPlayerTimeProps) {
 
 interface MediaPlayerPlaybackSpeedProps
   extends
-    Omit<React.ComponentProps<typeof DropdownMenuTrigger>, 'render' | 'children'>,
-    Omit<React.ComponentProps<typeof Button>, 'render'>,
-    Omit<React.ComponentProps<typeof DropdownMenu>, 'dir' | 'children' | 'onOpenChange'>,
+    Omit<
+      React.ComponentProps<typeof DropdownMenuTrigger>,
+      'render' | 'children' | 'className' | 'style'
+    >,
+    Omit<React.ComponentProps<typeof Button>, 'render' | 'style'>,
+    Omit<
+      React.ComponentProps<typeof DropdownMenu>,
+      'dir' | 'children' | 'onOpenChange'
+    >,
     Pick<React.ComponentProps<typeof DropdownMenuContent>, 'sideOffset'> {
   speeds?: number[]
   onOpenChange?: (open: boolean) => void
+  style?: React.CSSProperties
 }
 
 function MediaPlayerPlaybackSpeed(props: MediaPlayerPlaybackSpeedProps) {
@@ -2435,6 +2447,7 @@ function MediaPlayerPlaybackSpeed(props: MediaPlayerPlaybackSpeedProps) {
     modal = false,
     className,
     disabled,
+    style,
     ...playbackSpeedProps
   } = props
 
@@ -2473,18 +2486,21 @@ function MediaPlayerPlaybackSpeed(props: MediaPlayerPlaybackSpeedProps) {
       onOpenChange={onOpenChange}
     >
       <MediaPlayerTooltip tooltip='播放速度' shortcut={['<', '>']}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type='button'
-            aria-controls={context.mediaId}
-            disabled={isDisabled}
-            {...playbackSpeedProps}
-            variant='ghost'
-            size='icon'
-            className={cn('aria-expanded:bg-accent/50 h-8 w-16', className)}
-          >
-            {mediaPlaybackRate}x
-          </Button>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              type='button'
+              aria-controls={context.mediaId}
+              disabled={isDisabled}
+              style={style}
+              {...playbackSpeedProps}
+              variant='ghost'
+              size='icon'
+              className={cn('aria-expanded:bg-accent/50 h-8 w-16', className)}
+            />
+          }
+        >
+          {mediaPlaybackRate}x
         </DropdownMenuTrigger>
       </MediaPlayerTooltip>
       <DropdownMenuContent
@@ -2538,7 +2554,7 @@ function MediaPlayerLoop(props: MediaPlayerLoopProps) {
 
   const onLoopToggle = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      props.onClick?.(event)
+      props.onClick?.(event as any)
       if (event.defaultPrevented) return
 
       const mediaElement = context.mediaRef.current
@@ -2599,7 +2615,7 @@ function MediaPlayerFullscreen(props: MediaPlayerFullscreenProps) {
 
   const onFullscreen = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      props.onClick?.(event)
+      props.onClick?.(event as any)
 
       if (event.defaultPrevented) return
 
@@ -2638,8 +2654,7 @@ interface MediaPlayerPiPProps extends Omit<
   'children'
 > {
   children?:
-    | React.ReactNode
-    | ((isPictureInPicture: boolean) => React.ReactNode)
+    React.ReactNode | ((isPictureInPicture: boolean) => React.ReactNode)
   onPipError?: (error: unknown, state: 'enter' | 'exit') => void
 }
 
@@ -2656,7 +2671,7 @@ function MediaPlayerPiP(props: MediaPlayerPiPProps) {
 
   const onPictureInPicture = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      props.onClick?.(event)
+      props.onClick?.(event as any)
 
       if (event.defaultPrevented) return
 
@@ -2728,7 +2743,7 @@ function MediaPlayerCaptions(props: MediaPlayerCaptionsProps) {
   const isDisabled = disabled || context.disabled
   const onCaptionsToggle = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      props.onClick?.(event)
+      props.onClick?.(event as any)
 
       if (event.defaultPrevented) return
 
@@ -2776,7 +2791,7 @@ function MediaPlayerDownload(props: MediaPlayerDownloadProps) {
 
   const onDownload = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      props.onClick?.(event)
+      props.onClick?.(event as any)
 
       if (event.defaultPrevented) return
 
@@ -2827,6 +2842,7 @@ function MediaPlayerSettings(props: MediaPlayerSettingsProps) {
     modal = false,
     className,
     disabled,
+    style,
     ...settingsProps
   } = props
 
@@ -2931,21 +2947,24 @@ function MediaPlayerSettings(props: MediaPlayerSettingsProps) {
       onOpenChange={onOpenChange}
     >
       <MediaPlayerTooltip tooltip='设置'>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type='button'
-            aria-controls={context.mediaId}
-            aria-label='设置'
-            data-disabled={isDisabled ? '' : undefined}
-            data-slot='media-player-settings'
-            disabled={isDisabled}
-            {...settingsProps}
-            variant='ghost'
-            size='icon'
-            className={cn('aria-expanded:bg-accent/50 size-8', className)}
-          >
-            <SettingsIcon />
-          </Button>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              type='button'
+              aria-controls={context.mediaId}
+              aria-label='设置'
+              data-disabled={isDisabled ? '' : undefined}
+              data-slot='media-player-settings'
+              disabled={isDisabled}
+              style={style}
+              {...settingsProps}
+              variant='ghost'
+              size='icon'
+              className={cn('aria-expanded:bg-accent/50 size-8', className)}
+            />
+          }
+        >
+          <SettingsIcon />
         </DropdownMenuTrigger>
       </MediaPlayerTooltip>
       <DropdownMenuContent
@@ -3087,7 +3106,7 @@ interface MediaPlayerTooltipProps
   tooltip?: string
   shortcut?: string | string[]
   delayDuration?: number
-  children?: React.ReactNode
+  children?: React.ReactElement
 }
 
 function MediaPlayerTooltip(props: MediaPlayerTooltipProps) {
@@ -3107,13 +3126,11 @@ function MediaPlayerTooltip(props: MediaPlayerTooltipProps) {
   if ((!tooltip && !shortcut) || context.withoutTooltip) return <>{children}</>
 
   return (
-    <Tooltip {...tooltipProps} delayDuration={tooltipDelayDuration}>
+    <Tooltip {...tooltipProps} delay={tooltipDelayDuration}>
       <TooltipTrigger
         className='text-foreground focus-visible:ring-ring/50'
-        asChild
-      >
-        {children}
-      </TooltipTrigger>
+        render={children}
+      />
       <TooltipContent
         container={context.portalContainer as any}
         sideOffset={tooltipSideOffset}

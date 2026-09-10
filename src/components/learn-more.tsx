@@ -1,5 +1,5 @@
+import { cn } from 'cn'
 import { CircleQuestionMark } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -22,15 +22,18 @@ export function LearnMore({
   return (
     <Popover {...props}>
       <PopoverTrigger
-        asChild
+        render={
+          <Button
+            variant='outline'
+            size='icon'
+            className={cn('size-5 rounded-full', triggerProps?.className)}
+          >
+            <span className='sr-only'>了解更多</span>
+            <CircleQuestionMark className='size-4 [&>circle]:hidden' />
+          </Button>
+        }
         {...triggerProps}
-        className={cn('size-5 rounded-full', triggerProps?.className)}
-      >
-        <Button variant='outline' size='icon'>
-          <span className='sr-only'>了解更多</span>
-          <CircleQuestionMark className='size-4 [&>circle]:hidden' />
-        </Button>
-      </PopoverTrigger>
+      />
       <PopoverContent
         side='top'
         align='start'

@@ -1,5 +1,5 @@
+import { cn } from 'cn'
 import { Circle, Square, Plus, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type {
   MatrixColumn,

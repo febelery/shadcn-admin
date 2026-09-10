@@ -1,12 +1,13 @@
 import * as React from 'react'
 import type { Cell, RowData, Table } from '@tanstack/react-table'
-import type { DataGridTableFeatures } from '@/lib/table'
+import { cn } from 'cn'
 import { useComposedRefs } from '@/lib/compose-refs'
 import { getCellKey } from '@/lib/data-grid'
-import { cn } from '@/lib/utils'
+import type { DataGridTableFeatures } from '@/lib/table'
 
-interface DataGridCellWrapperProps<TData extends RowData = any>
-  extends React.ComponentProps<'div'> {
+interface DataGridCellWrapperProps<
+  TData extends RowData = any,
+> extends React.ComponentProps<'div'> {
   cell: Cell<DataGridTableFeatures, TData, unknown>
   table: Table<DataGridTableFeatures, TData>
   rowIndex: number

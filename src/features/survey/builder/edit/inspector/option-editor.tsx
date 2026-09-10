@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
+import { cn } from 'cn'
 import { GripVertical, ListPlus, Plus, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible'
 import { Input } from '@/components/ui/input'

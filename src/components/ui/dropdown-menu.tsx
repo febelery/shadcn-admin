@@ -1,46 +1,18 @@
 import * as React from 'react'
-import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 import { Menu as MenuPrimitive } from '@base-ui/react/menu'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
+import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 
-function DropdownMenu({
-  ...props
-}: MenuPrimitive.Root.Props) {
+function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
   return <MenuPrimitive.Root data-slot='dropdown-menu' {...props} />
 }
 
-function DropdownMenuPortal({
-  ...props
-}: MenuPrimitive.Portal.Props) {
-  return (
-    <MenuPrimitive.Portal data-slot='dropdown-menu-portal' {...props} />
-  )
+function DropdownMenuPortal({ ...props }: MenuPrimitive.Portal.Props) {
+  return <MenuPrimitive.Portal data-slot='dropdown-menu-portal' {...props} />
 }
 
-interface DropdownMenuTriggerProps
-  extends Omit<React.ComponentProps<'button'>, 'render'> {
-  asChild?: boolean
-  render?: MenuPrimitive.Trigger.Props['render']
-}
-
-function DropdownMenuTrigger({
-  asChild = false,
-  render,
-  children,
-  ...props
-}: DropdownMenuTriggerProps) {
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
-
-  return (
-    <MenuPrimitive.Trigger
-      data-slot='dropdown-menu-trigger'
-      render={finalRender}
-      {...(props as MenuPrimitive.Trigger.Props)}
-    >
-      {asChild && React.isValidElement(children) ? undefined : children}
-    </MenuPrimitive.Trigger>
-  )
+function DropdownMenuTrigger(props: MenuPrimitive.Trigger.Props) {
+  return <MenuPrimitive.Trigger data-slot='dropdown-menu-trigger' {...props} />
 }
 
 function DropdownMenuContent({
@@ -84,51 +56,30 @@ function DropdownMenuContent({
   )
 }
 
-function DropdownMenuGroup({
-  ...props
-}: MenuPrimitive.Group.Props) {
-  return (
-    <MenuPrimitive.Group data-slot='dropdown-menu-group' {...props} />
-  )
+function DropdownMenuGroup({ ...props }: MenuPrimitive.Group.Props) {
+  return <MenuPrimitive.Group data-slot='dropdown-menu-group' {...props} />
 }
 
 function DropdownMenuItem({
   className,
   inset,
   variant = 'default',
-  asChild = false,
-  render,
-  children,
-  onClick,
-  onSelect,
   ...props
 }: MenuPrimitive.Item.Props & {
   inset?: boolean
   variant?: 'default' | 'destructive'
-  asChild?: boolean
-  onSelect?: (event: any) => void
 }) {
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
-
   return (
     <MenuPrimitive.Item
       data-slot='dropdown-menu-item'
       data-inset={inset}
       data-variant={variant}
-      render={finalRender}
-      onClick={(e) => {
-        onClick?.(e)
-        onSelect?.(e)
-      }}
       className={cn(
         "focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:text-destructive! [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50 data-inset:ps-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}
-    >
-      {asChild && React.isValidElement(children) ? undefined : children}
-    </MenuPrimitive.Item>
+    />
   )
 }
 
@@ -158,9 +109,7 @@ function DropdownMenuCheckboxItem({
   )
 }
 
-function DropdownMenuRadioGroup({
-  ...props
-}: MenuPrimitive.RadioGroup.Props) {
+function DropdownMenuRadioGroup({ ...props }: MenuPrimitive.RadioGroup.Props) {
   return (
     <MenuPrimitive.RadioGroup
       data-slot='dropdown-menu-radio-group'
@@ -242,9 +191,7 @@ function DropdownMenuShortcut({
   )
 }
 
-function DropdownMenuSub({
-  ...props
-}: MenuPrimitive.SubmenuRoot.Props) {
+function DropdownMenuSub({ ...props }: MenuPrimitive.SubmenuRoot.Props) {
   return <MenuPrimitive.SubmenuRoot data-slot='dropdown-menu-sub' {...props} />
 }
 

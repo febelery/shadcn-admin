@@ -1,5 +1,6 @@
 import * as React from 'react'
 import type { Editor } from '@tiptap/react'
+import { cn } from 'cn'
 import {
   Bold,
   Italic,
@@ -20,7 +21,6 @@ import {
   Terminal,
   Minus,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -186,19 +186,23 @@ export function Toolbar({
           {/* 组 4: 段落对齐方式 */}
           <DropdownMenu>
             <Tooltip>
-              <DropdownMenuTrigger asChild>
-                <TooltipTrigger asChild>
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='icon'
-                    disabled={disabled}
-                    className='hover:bg-accent/80 h-8 w-8 p-0 transition-colors'
+              <TooltipTrigger
+                render={
+                  <DropdownMenuTrigger
+                    render={
+                      <Button
+                        type='button'
+                        variant='ghost'
+                        size='icon'
+                        disabled={disabled}
+                        className='hover:bg-accent/80 h-8 w-8 p-0 transition-colors'
+                      />
+                    }
                   >
                     {getActiveAlignIcon()}
-                  </Button>
-                </TooltipTrigger>
-              </DropdownMenuTrigger>
+                  </DropdownMenuTrigger>
+                }
+              />
               <TooltipContent side='bottom' className='text-xs'>
                 对齐方式: {getActiveAlignLabel()}
               </TooltipContent>

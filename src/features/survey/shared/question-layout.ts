@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 
 /** 题目块排版 token — 画布与预览共用（参考试卷悬挂缩进） */
 

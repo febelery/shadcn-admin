@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from '@tanstack/react-router'
 import { appConfig } from '@/config/env'
 import { ROUTES } from '@/constants'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import { useLayout } from '@/context/layout-provider'
 import { useMenuData } from '@/hooks/use-menu-data'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -50,16 +50,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 size='lg'
                 className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-                asChild
+                render={
+                  <Link to={ROUTES.HOME} onClick={() => setOpenMobile(false)} />
+                }
               >
-                <Link to={ROUTES.HOME} onClick={() => setOpenMobile(false)}>
-                  <AppIcon />
-                  {!isCollapsed && (
-                    <span className='truncate text-xl font-semibold'>
-                      {appConfig.title}
-                    </span>
-                  )}
-                </Link>
+                <AppIcon />
+                {!isCollapsed && (
+                  <span className='truncate text-xl font-semibold'>
+                    {appConfig.title}
+                  </span>
+                )}
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

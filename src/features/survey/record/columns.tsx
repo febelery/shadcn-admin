@@ -1,5 +1,5 @@
-import type { DataGridColumnDef } from '@/lib/table'
 import { dataGridFilterFn } from '@/lib/data-grid-filters'
+import type { DataGridColumnDef } from '@/lib/table'
 import type { SurveyRecordItem } from '../core/admin-data-schema'
 import { getQuestionReferenceLabel } from '../core/question-numbering'
 import type { QuestionElement, SurveyDocument } from '../core/types'
@@ -88,24 +88,26 @@ export function createRecordGridColumns(
       },
       minSize: 110,
     },
-    ...questions.map((question, index): DataGridColumnDef<SurveyRecordGridRow> => {
-      const titleLabel = document
-        ? getQuestionReferenceLabel(question, document)
-        : `${index + 1}. ${question.title}`
-      return {
-        id: `answer_${question.id}`,
-        accessorFn: (row) =>
-          formatAnswerForGrid(question, row.answers[question.id]),
-        header: titleLabel,
-        filterFn,
-        meta: {
-          label: titleLabel,
-          cell: getQuestionCellMeta(question),
-        },
-        enableSorting: false,
-        minSize: getQuestionColumnSize(question),
+    ...questions.map(
+      (question, index): DataGridColumnDef<SurveyRecordGridRow> => {
+        const titleLabel = document
+          ? getQuestionReferenceLabel(question, document)
+          : `${index + 1}. ${question.title}`
+        return {
+          id: `answer_${question.id}`,
+          accessorFn: (row) =>
+            formatAnswerForGrid(question, row.answers[question.id]),
+          header: titleLabel,
+          filterFn,
+          meta: {
+            label: titleLabel,
+            cell: getQuestionCellMeta(question),
+          },
+          enableSorting: false,
+          minSize: getQuestionColumnSize(question),
+        }
       }
-    }),
+    ),
   ]
 }
 

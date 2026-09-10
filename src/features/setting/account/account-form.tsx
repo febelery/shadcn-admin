@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import { revalidateLogic, useForm } from '@tanstack/react-form'
+import { cn } from 'cn'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { showSubmittedData } from '@/lib/show-submitted-data'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -140,22 +140,24 @@ export function AccountForm() {
             <Field data-invalid={isInvalid} className='flex flex-col'>
               <FieldLabel htmlFor={field.name}>Language</FieldLabel>
               <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant='outline'
-                    role='combobox'
-                    className={cn(
-                      'w-[200px] justify-between',
-                      !field.state.value && 'text-muted-foreground'
-                    )}
-                  >
-                    {field.state.value
-                      ? languages.find(
-                          (language) => language.value === field.state.value
-                        )?.label
-                      : 'Select language'}
-                    <ChevronsUpDown className='ms-2 h-4 w-4 shrink-0 opacity-50' />
-                  </Button>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      variant='outline'
+                      role='combobox'
+                      className={cn(
+                        'w-[200px] justify-between',
+                        !field.state.value && 'text-muted-foreground'
+                      )}
+                    />
+                  }
+                >
+                  {field.state.value
+                    ? languages.find(
+                        (language) => language.value === field.state.value
+                      )?.label
+                    : 'Select language'}
+                  <ChevronsUpDown className='ms-2 h-4 w-4 shrink-0 opacity-50' />
                 </PopoverTrigger>
                 <PopoverContent className='w-[200px] p-0'>
                   <Command>

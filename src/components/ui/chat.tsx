@@ -1,8 +1,8 @@
 import type React from 'react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { MessageScroller as MessageScrollerPrimitive } from '@shadcn/react/message-scroller'
+import { cn } from 'cn'
 import { ArrowDown } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 export const MessageScrollerProvider = MessageScrollerPrimitive.Provider
 export const MessageScrollerRoot = MessageScrollerPrimitive.Root

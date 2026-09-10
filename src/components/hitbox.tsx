@@ -2,7 +2,7 @@ import * as React from 'react'
 import { mergeProps } from '@base-ui/react/merge-props'
 import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 
 type Size = 'default' | 'sm' | 'lg'
 type DynamicSize = Size | (string & {})
@@ -58,7 +58,6 @@ interface HitboxProps
     useRender.ComponentProps<'div'>,
     Omit<VariantProps<typeof hitboxVariants>, 'size'> {
   size?: DynamicSize
-  asChild?: boolean
 }
 
 function Hitbox(props: HitboxProps) {
@@ -69,19 +68,16 @@ function Hitbox(props: HitboxProps) {
     position,
     radius,
     debug = false,
-    asChild = false,
     render,
     children,
     ...hitboxProps
   } = props
 
   const isDynamicSize = size && !sizes.includes(size)
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : (render ?? (React.isValidElement(children) ? children : undefined))
 
   return useRender({
     defaultTagName: 'div',
-    render: finalRender,
+    render,
     props: mergeProps<'div'>(
       {
         className: cn(
@@ -97,6 +93,7 @@ function Hitbox(props: HitboxProps) {
           ...(isDynamicSize && { '--size': size }),
           ...style,
         },
+        children,
       } as React.ComponentProps<'div'>,
       hitboxProps
     ),

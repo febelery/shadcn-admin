@@ -2,6 +2,7 @@
  * 文件列表项 / 卡片项
  */
 import * as React from 'react'
+import { cn } from 'cn'
 import {
   XIcon,
   Trash2,
@@ -11,7 +12,6 @@ import {
   CropIcon,
 } from 'lucide-react'
 import { formatBytes } from '@/lib/files'
-import { cn } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 import { useFileUploadContext } from './context'
 import { FileThumbnail } from './thumbnail'

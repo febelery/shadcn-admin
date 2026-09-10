@@ -1,11 +1,7 @@
 import { useMemo, type ReactNode } from 'react'
-import {
-  flexRender,
-  type Row,
-  type Table as TanstackTable,
-} from '@/lib/table'
 import { type DragEndEvent } from '@dnd-kit/core'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
+import { flexRender, type Row, type Table as TanstackTable } from '@/lib/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Sortable,
@@ -39,27 +35,30 @@ function DraggableRow<TData extends object & { id: string }>({
   const rowId = row.original.id
 
   return (
-    <SortableItem value={rowId} asChild>
-      <TableRow
-        data-state={row.getIsSelected() && 'selected'}
-        className={cn(
-          'group/row relative z-0',
-          'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted'
-        )}
-      >
-        {row.getVisibleCells().map((cell) => (
-          <TableCell
-            key={cell.id}
-            className={cn(
-              'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
-              cell.column.columnDef.meta?.className,
-              cell.column.columnDef.meta?.tdClassName
-            )}
-          >
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-          </TableCell>
-        ))}
-      </TableRow>
+    <SortableItem
+      value={rowId}
+      render={
+        <TableRow
+          data-state={row.getIsSelected() && 'selected'}
+          className={cn(
+            'group/row relative z-0',
+            'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted'
+          )}
+        />
+      }
+    >
+      {row.getVisibleCells().map((cell) => (
+        <TableCell
+          key={cell.id}
+          className={cn(
+            'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+            cell.column.columnDef.meta?.className,
+            cell.column.columnDef.meta?.tdClassName
+          )}
+        >
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </TableCell>
+      ))}
     </SortableItem>
   )
 }

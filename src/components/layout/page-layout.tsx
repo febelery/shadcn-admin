@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { PageHeader } from './page-header'

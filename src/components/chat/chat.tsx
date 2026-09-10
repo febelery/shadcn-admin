@@ -4,8 +4,8 @@ import {
   lastAssistantMessageIsCompleteWithApprovalResponses,
   lastAssistantMessageIsCompleteWithToolCalls,
 } from 'ai'
+import { cn } from 'cn'
 import { MessageCircle, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { MessageScroller } from '@/components/ui/chat'
 import {

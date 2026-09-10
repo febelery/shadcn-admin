@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { cn } from '@/lib/utils'
-import { Spinner } from '@/components/ui/spinner'
 import type { Application } from '@splinetool/runtime'
+import { cn } from 'cn'
+import { Spinner } from '@/components/ui/spinner'
 
 interface SplineSceneProps {
   scene: string
@@ -67,7 +67,7 @@ export function SplineScene({
     >
       {isLoading && (
         <div className='absolute inset-0 z-10 flex items-center justify-center bg-transparent'>
-          <Spinner className='size-8 text-muted-foreground' />
+          <Spinner className='text-muted-foreground size-8' />
         </div>
       )}
       <canvas
@@ -84,4 +84,3 @@ export function SplineScene({
     </div>
   )
 }
-

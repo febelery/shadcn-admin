@@ -5,6 +5,7 @@ import { applyQuestionConfigPatch } from '../../core/question-config'
 import { createQuestion } from '../../core/question-factory'
 import { EMPTY_RICH_TEXT, parseRichTextContent } from '../../core/rich-text'
 import type { SurveyDocument, SurveyElement } from '../../core/types'
+import { applySurveySettingsValues } from '../../settings/form-schema'
 import {
   cloneElement,
   collectQuestionIdsFromElement,
@@ -18,7 +19,6 @@ import {
   getRuleDraftIssues,
   hasRuleDraftChanges,
 } from './rule-draft'
-import { applySurveySettingsValues } from '../../settings/form-schema'
 import type { BuilderState } from './state'
 
 export function createBuilderStore(initialDocument: SurveyDocument) {

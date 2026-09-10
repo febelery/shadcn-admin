@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import type { FlowGraphNode } from '../../core/logic/flow-graph'
 import { getQuestionUiManifest } from '../../shared/question-ui-registry'
 

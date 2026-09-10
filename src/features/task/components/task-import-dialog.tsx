@@ -117,9 +117,7 @@ export function TaskImportDialog({
           />
         </form>
         <DialogFooter className='flex flex-col gap-2'>
-          <DialogClose asChild>
-            <Button variant='outline'>关闭</Button>
-          </DialogClose>
+          <DialogClose render={<Button variant='outline' />}>关闭</DialogClose>
           <Button
             type='submit'
             form='task-import-form'

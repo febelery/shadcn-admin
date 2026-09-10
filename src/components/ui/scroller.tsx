@@ -1,12 +1,12 @@
 'use client'
 
 import * as React from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
 import { mergeProps } from '@base-ui/react/merge-props'
 import { useRender } from '@base-ui/react/use-render'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from 'cn'
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
 import { useComposedRefs } from '@/lib/compose-refs'
-import { cn } from '@/lib/utils'
 
 const DATA_TOP_SCROLL = 'data-top-scroll'
 const DATA_BOTTOM_SCROLL = 'data-bottom-scroll'
@@ -49,11 +49,11 @@ type ScrollVisibility = {
 }
 
 interface ScrollerProps
-  extends VariantProps<typeof scrollerVariants>,
+  extends
+    VariantProps<typeof scrollerVariants>,
     useRender.ComponentProps<'div'> {
   size?: number
   offset?: number
-  asChild?: boolean
   withNavigation?: boolean
   scrollStep?: number
   scrollTriggerMode?: 'press' | 'hover' | 'click'
@@ -68,7 +68,6 @@ function Scroller(props: ScrollerProps) {
     offset = 0,
     scrollStep = 40,
     style,
-    asChild,
     render,
     children,
     withNavigation = false,
@@ -223,18 +222,17 @@ function Scroller(props: ScrollerProps) {
     return orientation === 'vertical' ? ['up', 'down'] : ['left', 'right']
   }, [orientation, withNavigation])
 
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
-
   const ScrollerImpl = useRender({
     defaultTagName: 'div',
-    render: finalRender,
+    render,
     props: mergeProps<'div'>(
       {
         'data-slot': 'scroller',
         ref: composedRef,
         style: composedStyle,
-        className: cn(scrollerVariants({ orientation, hideScrollbar, className })),
+        className: cn(
+          scrollerVariants({ orientation, hideScrollbar, className })
+        ),
       } as React.ComponentProps<'div'>,
       scrollerProps
     ),

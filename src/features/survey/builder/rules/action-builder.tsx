@@ -70,20 +70,22 @@ export function ActionBuilder({
   return (
     <Collapsible defaultOpen className='group/rule-section'>
       <section className='border-border/70 bg-background flex max-w-full min-w-0 flex-col overflow-hidden rounded-md border'>
-        <CollapsibleTrigger asChild>
-          <Button
-            type='button'
-            variant='ghost'
-            className='hover:bg-muted/50 flex h-10 w-full items-center justify-between rounded-none px-2.5'
-          >
-            <div className='flex min-w-0 items-center gap-2'>
-              <span className='flex h-5 min-w-7 items-center justify-center rounded bg-emerald-500/10 px-1.5 text-[10px] leading-none font-semibold tracking-wide text-emerald-700 dark:text-emerald-400'>
-                THEN
-              </span>
-              <p className='text-xs leading-none font-medium'>执行</p>
-            </div>
-            <ChevronDown className='text-muted-foreground size-4 shrink-0 transition-transform group-data-[state=open]/rule-section:rotate-180' />
-          </Button>
+        <CollapsibleTrigger
+          render={
+            <Button
+              type='button'
+              variant='ghost'
+              className='hover:bg-muted/50 flex h-10 w-full items-center justify-between rounded-none px-2.5'
+            />
+          }
+        >
+          <div className='flex min-w-0 items-center gap-2'>
+            <span className='flex h-5 min-w-7 items-center justify-center rounded bg-emerald-500/10 px-1.5 text-[10px] leading-none font-semibold tracking-wide text-emerald-700 dark:text-emerald-400'>
+              THEN
+            </span>
+            <p className='text-xs leading-none font-medium'>执行</p>
+          </div>
+          <ChevronDown className='text-muted-foreground size-4 shrink-0 transition-transform group-data-[state=open]/rule-section:rotate-180' />
         </CollapsibleTrigger>
         <CollapsibleContent className='overflow-hidden'>
           <div className='flex max-w-full min-w-0 flex-col gap-2.5 border-t px-2.5 py-2.5'>

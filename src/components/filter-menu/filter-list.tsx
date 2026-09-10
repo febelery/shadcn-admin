@@ -97,17 +97,19 @@ export function FilterPopoverContent({
         )}
       </div>
 
-      <SortableContent asChild>
-        <ul className='flex max-h-[360px] flex-col overflow-y-auto px-3 py-2'>
-          {editingFilters.map((filter, index) => (
-            <FilterItem
-              key={filter.id}
-              filter={filter}
-              index={index}
-              totalCount={editingFilters.length}
-            />
-          ))}
-        </ul>
+      <SortableContent
+        render={
+          <ul className='flex max-h-[360px] flex-col overflow-y-auto px-3 py-2' />
+        }
+      >
+        {editingFilters.map((filter, index) => (
+          <FilterItem
+            key={filter.id}
+            filter={filter}
+            index={index}
+            totalCount={editingFilters.length}
+          />
+        ))}
       </SortableContent>
 
       <div className='bg-muted/30 flex items-center justify-between border-t px-3 py-2.5'>
@@ -186,168 +188,170 @@ function FilterItem({
   const needsSecondValue = operator === 'between'
 
   return (
-    <SortableItem value={filter.id} asChild>
-      <li className='group flex items-start gap-2 py-1'>
-        <div className='mt-1.5 flex w-10 shrink-0 justify-center'>
-          {index === 0 ? (
-            <span className='text-muted-foreground text-[11px] font-medium'>
-              {TEXT.CONNECTOR_FIRST}
-            </span>
-          ) : (
-            <span className='bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase'>
-              {TEXT.CONNECTOR_REST}
-            </span>
-          )}
-        </div>
+    <SortableItem
+      value={filter.id}
+      render={<li className='group flex items-start gap-2 py-1' />}
+    >
+      <div className='mt-1.5 flex w-10 shrink-0 justify-center'>
+        {index === 0 ? (
+          <span className='text-muted-foreground text-[11px] font-medium'>
+            {TEXT.CONNECTOR_FIRST}
+          </span>
+        ) : (
+          <span className='bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase'>
+            {TEXT.CONNECTOR_REST}
+          </span>
+        )}
+      </div>
 
-        <div className='flex min-w-0 flex-1 flex-wrap items-center gap-1.5'>
-          <Popover open={showFieldSelector} onOpenChange={setShowFieldSelector}>
-            <PopoverTrigger asChild>
+      <div className='flex min-w-0 flex-1 flex-wrap items-center gap-1.5'>
+        <Popover open={showFieldSelector} onOpenChange={setShowFieldSelector}>
+          <PopoverTrigger
+            render={
               <Button
                 variant='outline'
                 size='sm'
                 className='h-8 w-28 justify-between gap-1 rounded-md px-2.5 font-normal'
-              >
-                <span className='truncate text-xs'>
-                  {columnLabels.get(filter.id) ?? filter.id}
-                </span>
-                <ChevronsUpDown className='h-3 w-3 shrink-0 opacity-40' />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align='start' className='w-44 p-0'>
-              <Command>
-                <CommandInput
-                  placeholder={TEXT.SEARCH_FIELD}
-                  className='h-8 text-xs'
-                />
-                <CommandList>
-                  <CommandEmpty className='text-muted-foreground py-4 text-center text-xs'>
-                    {TEXT.NO_FIELD_FOUND}
-                  </CommandEmpty>
-                  <CommandGroup>
-                    {fieldSelectorColumns.map((col) => (
-                      <CommandItem
-                        key={col.value}
-                        value={col.value}
-                        className='text-xs'
-                        onSelect={(val) => {
-                          changeFilterField(filter.id, val)
-                          setShowFieldSelector(false)
-                        }}
-                      >
-                        <span className='truncate'>{col.label}</span>
-                        {col.value === filter.id && (
-                          <CheckIcon className='ml-auto h-3.5 w-3.5' />
-                        )}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-
-          <Select
-            items={operators}
-            value={operator}
-            onValueChange={(val: FilterOperator) =>
-              updateFilter(filter.id, {
-                value: { ...filterValue, operator: val },
-              })
+              />
             }
           >
-            <SelectTrigger
-              size='sm'
-              className='h-8 w-28 rounded-md px-2.5 text-xs font-normal'
-            >
-              <SelectValue>
-                {(val: any) =>
-                  operators.find((op) => op.value === (val ?? operator))
-                    ?.label ??
-                  val ??
-                  operator
-                }
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {operators.map((op) => (
-                <SelectItem
-                  key={op.value}
-                  value={op.value}
-                  className='text-xs'
-                >
-                  {op.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <span className='truncate text-xs'>
+              {columnLabels.get(filter.id) ?? filter.id}
+            </span>
+            <ChevronsUpDown className='h-3 w-3 shrink-0 opacity-40' />
+          </PopoverTrigger>
+          <PopoverContent align='start' className='w-44 p-0'>
+            <Command>
+              <CommandInput
+                placeholder={TEXT.SEARCH_FIELD}
+                className='h-8 text-xs'
+              />
+              <CommandList>
+                <CommandEmpty className='text-muted-foreground py-4 text-center text-xs'>
+                  {TEXT.NO_FIELD_FOUND}
+                </CommandEmpty>
+                <CommandGroup>
+                  {fieldSelectorColumns.map((col) => (
+                    <CommandItem
+                      key={col.value}
+                      value={col.value}
+                      className='text-xs'
+                      onSelect={(val) => {
+                        changeFilterField(filter.id, val)
+                        setShowFieldSelector(false)
+                      }}
+                    >
+                      <span className='truncate'>{col.label}</span>
+                      {col.value === filter.id && (
+                        <CheckIcon className='ml-auto h-3.5 w-3.5' />
+                      )}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
 
-          {needsValue ? (
-            <div className='flex min-w-[120px] flex-1 flex-col gap-1'>
+        <Select
+          items={operators}
+          value={operator}
+          onValueChange={(val: FilterOperator) =>
+            updateFilter(filter.id, {
+              value: { ...filterValue, operator: val },
+            })
+          }
+        >
+          <SelectTrigger
+            size='sm'
+            className='h-8 w-28 rounded-md px-2.5 text-xs font-normal'
+          >
+            <SelectValue>
+              {(val: any) =>
+                operators.find((op) => op.value === (val ?? operator))?.label ??
+                val ??
+                operator
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {operators.map((op) => (
+              <SelectItem key={op.value} value={op.value} className='text-xs'>
+                {op.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {needsValue ? (
+          <div className='flex min-w-[120px] flex-1 flex-col gap-1'>
+            <FilterInput
+              filterId={filter.id}
+              variant={variant}
+              operator={operator}
+              value={filterValue?.value}
+              onChange={(val) =>
+                updateFilter(filter.id, {
+                  value: { ...filterValue, operator, value: val },
+                })
+              }
+            />
+            {needsSecondValue && (
               <FilterInput
                 filterId={filter.id}
                 variant={variant}
                 operator={operator}
-                value={filterValue?.value}
+                value={filterValue?.value2}
+                placeholder={TEXT.END_VALUE_PLACEHOLDER}
                 onChange={(val) =>
                   updateFilter(filter.id, {
-                    value: { ...filterValue, operator, value: val },
+                    value: {
+                      ...filterValue,
+                      operator,
+                      value2: val as string | number,
+                    },
                   })
                 }
               />
-              {needsSecondValue && (
-                <FilterInput
-                  filterId={filter.id}
-                  variant={variant}
-                  operator={operator}
-                  value={filterValue?.value2}
-                  placeholder={TEXT.END_VALUE_PLACEHOLDER}
-                  onChange={(val) =>
-                    updateFilter(filter.id, {
-                      value: {
-                        ...filterValue,
-                        operator,
-                        value2: val as string | number,
-                      },
-                    })
-                  }
-                />
-              )}
-            </div>
-          ) : (
-            <div className='bg-muted/30 h-8 min-w-[80px] flex-1 rounded-md border border-dashed' />
-          )}
-        </div>
+            )}
+          </div>
+        ) : (
+          <div className='bg-muted/30 h-8 min-w-[80px] flex-1 rounded-md border border-dashed' />
+        )}
+      </div>
 
-        <div className='mt-0.5 flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100'>
-          <Tooltip>
-            <TooltipTrigger asChild>
+      <div className='mt-0.5 flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100'>
+        <Tooltip>
+          <TooltipTrigger
+            render={
               <Button
                 variant='ghost'
                 size='icon'
                 className='text-muted-foreground hover:text-destructive h-8 w-7'
                 onClick={() => removeFilter(filter.id)}
-              >
-                <Trash2 className='h-3.5 w-3.5' />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side='top' className='text-xs'>
-              删除
-            </TooltipContent>
-          </Tooltip>
-          {totalCount > 1 && (
-            <SortableItemHandle asChild>
+              />
+            }
+          >
+            <Trash2 className='h-3.5 w-3.5' />
+          </TooltipTrigger>
+          <TooltipContent side='top' className='text-xs'>
+            删除
+          </TooltipContent>
+        </Tooltip>
+        {totalCount > 1 && (
+          <SortableItemHandle
+            render={
               <Button
                 variant='ghost'
                 size='icon'
                 className='text-muted-foreground h-8 w-7 cursor-grab active:cursor-grabbing'
-              >
-                <GripVertical className='h-3.5 w-3.5' />
-              </Button>
-            </SortableItemHandle>
-          )}
-        </div>
-      </li>
+              />
+            }
+          >
+            <GripVertical className='h-3.5 w-3.5' />
+          </SortableItemHandle>
+        )}
+      </div>
     </SortableItem>
   )
 }

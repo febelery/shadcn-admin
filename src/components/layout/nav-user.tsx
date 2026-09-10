@@ -39,30 +39,32 @@ export function NavUser() {
       <SidebarMenu>
         <SidebarMenuItem>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarMenuButton
-                size='lg'
-                className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-              >
-                <Avatar className='h-8 w-8 rounded-lg'>
-                  <AvatarImage
-                    src={user?.avatar || '/avatars/01.png'}
-                    alt={user?.name || 'User'}
-                  />
-                  <AvatarFallback className='rounded-lg'>
-                    {user?.name?.[0]?.toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className='grid flex-1 text-start text-sm leading-tight'>
-                  <span className='truncate font-semibold'>
-                    {user?.name || 'User'}
-                  </span>
-                  <span className='truncate text-xs'>
-                    {user?.email || 'user@example.com'}
-                  </span>
-                </div>
-                <ChevronsUpDown className='ms-auto size-4' />
-              </SidebarMenuButton>
+            <DropdownMenuTrigger
+              render={
+                <SidebarMenuButton
+                  size='lg'
+                  className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+                />
+              }
+            >
+              <Avatar className='h-8 w-8 rounded-lg'>
+                <AvatarImage
+                  src={user?.avatar || '/avatars/01.png'}
+                  alt={user?.name || 'User'}
+                />
+                <AvatarFallback className='rounded-lg'>
+                  {user?.name?.[0]?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div className='grid flex-1 text-start text-sm leading-tight'>
+                <span className='truncate font-semibold'>
+                  {user?.name || 'User'}
+                </span>
+                <span className='truncate text-xs'>
+                  {user?.email || 'user@example.com'}
+                </span>
+              </div>
+              <ChevronsUpDown className='ms-auto size-4' />
             </DropdownMenuTrigger>
             <DropdownMenuContent
               className='w-(--anchor-width) min-w-56 rounded-lg'
@@ -102,23 +104,17 @@ export function NavUser() {
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem asChild>
-                  <Link to={ROUTES.ACCOUNT}>
-                    <BadgeCheck />
-                    账户
-                  </Link>
+                <DropdownMenuItem render={<Link to={ROUTES.ACCOUNT} />}>
+                  <BadgeCheck />
+                  账户
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to={ROUTES.SETTING}>
-                    <CreditCard />
-                    账单
-                  </Link>
+                <DropdownMenuItem render={<Link to={ROUTES.SETTING} />}>
+                  <CreditCard />
+                  账单
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to={ROUTES.NOTIFICATION}>
-                    <Bell />
-                    通知
-                  </Link>
+                <DropdownMenuItem render={<Link to={ROUTES.NOTIFICATION} />}>
+                  <Bell />
+                  通知
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />

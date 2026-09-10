@@ -1,6 +1,6 @@
+import { type NavItem } from '@/types/navigation'
 import { describe, it, expect } from 'vitest'
 import { checkIsActive, hasActiveChild } from './nav-group'
-import { type NavItem } from '@/types/navigation'
 
 describe('Navigation active matching', () => {
   const profileItem: NavItem = {

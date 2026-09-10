@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { type Table } from '@/lib/table'
 import { AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
+import { type Table } from '@/lib/table'
 import { sleep } from '@/lib/utils'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'

@@ -15,9 +15,9 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import { cn } from 'cn'
 import { GripVertical, type LucideIcon } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   getQuestionUiManifest,

@@ -121,12 +121,17 @@ export function SurveyRecordPage({ surveyId }: SurveyRecordPageProps) {
       description={`共 ${data?.meta?.total ?? 0} 条回收记录。`}
       actions={
         <div className='flex items-center gap-2'>
-          <Button variant='outline' render={<Link to='/survey' />}>
+          <Button
+            variant='outline'
+            nativeButton={false}
+            render={<Link to='/survey' />}
+          >
             <ArrowLeft className='h-4 w-4' />
             列表
           </Button>
           <Button
             variant='outline'
+            nativeButton={false}
             render={
               <Link to='/survey/$id/analysis' params={{ id: surveyId }} />
             }

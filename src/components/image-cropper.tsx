@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { cn } from 'cn'
 import {
   Crop as CropIcon,
   Loader2,
@@ -14,7 +15,6 @@ import ReactCrop, {
   PixelCrop,
 } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,

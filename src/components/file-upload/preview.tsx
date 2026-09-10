@@ -2,6 +2,7 @@
  * 文件预览，使用 createPortal
  */
 import * as React from 'react'
+import { cn } from 'cn'
 import {
   XIcon,
   ChevronLeftIcon,
@@ -21,7 +22,6 @@ import {
 } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { getFileKind } from '@/lib/files'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -228,7 +228,7 @@ function ToolbarTooltip({
 }) {
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipTrigger render={children} />
       <TooltipContent side='bottom' sideOffset={6} className='text-xs'>
         {label}
       </TooltipContent>
@@ -473,18 +473,19 @@ export function FilePreviewDialog({
                 <Button
                   variant='ghost'
                   size='icon'
-                  asChild
+                  render={
+                    <a
+                      href={item.url}
+                      download={item.file.name}
+                      target='_blank'
+                      rel='noreferrer'
+                      aria-label='下载'
+                    />
+                  }
+                  nativeButton={false}
                   className='h-9 w-9 text-white/60 hover:bg-white/10 hover:text-white'
                 >
-                  <a
-                    href={item.url}
-                    download={item.file.name}
-                    target='_blank'
-                    rel='noreferrer'
-                    aria-label='下载'
-                  >
-                    <DownloadIcon className='size-4' />
-                  </a>
+                  <DownloadIcon className='size-4' />
                 </Button>
               </ToolbarTooltip>
             )}

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { revalidateLogic, useForm } from '@tanstack/react-form'
+import { cn } from 'cn'
 import { IconGmail, IconGithub } from '@/assets/brand-icons'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'

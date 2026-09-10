@@ -249,9 +249,13 @@ export function SettingsWorkspace() {
                     children={(field) => {
                       const invalid =
                         field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                        (field.state.meta.isTouched ||
+                          form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                        <Field
+                          data-invalid={invalid}
+                          className='flex flex-col gap-2'
+                        >
                           <FieldLabel htmlFor={field.name}>问卷标题</FieldLabel>
                           <Input
                             id={field.name}
@@ -276,9 +280,13 @@ export function SettingsWorkspace() {
                     children={(field) => {
                       const invalid =
                         field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                        (field.state.meta.isTouched ||
+                          form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                        <Field
+                          data-invalid={invalid}
+                          className='flex flex-col gap-2'
+                        >
                           <FieldLabel htmlFor={field.name}>
                             提交按钮文案
                           </FieldLabel>
@@ -306,9 +314,13 @@ export function SettingsWorkspace() {
                   children={(field) => {
                     const invalid =
                       field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                      (field.state.meta.isTouched ||
+                        form.state.submissionAttempts > 0)
                     return (
-                      <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                      <Field
+                        data-invalid={invalid}
+                        className='flex flex-col gap-2'
+                      >
                         <FieldLabel htmlFor={field.name}>描述</FieldLabel>
                         <Editor
                           id={field.name}
@@ -340,9 +352,13 @@ export function SettingsWorkspace() {
                   children={(field) => {
                     const invalid =
                       field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                      (field.state.meta.isTouched ||
+                        form.state.submissionAttempts > 0)
                     return (
-                      <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                      <Field
+                        data-invalid={invalid}
+                        className='flex flex-col gap-2'
+                      >
                         <FieldLabel>样式</FieldLabel>
                         <RadioGroup
                           name={field.name}
@@ -435,7 +451,10 @@ export function SettingsWorkspace() {
                             (field.state.meta.isTouched ||
                               form.state.submissionAttempts > 0)
                           return (
-                            <Field data-invalid={invalid} className='flex flex-col gap-3'>
+                            <Field
+                              data-invalid={invalid}
+                              className='flex flex-col gap-3'
+                            >
                               <FieldLabel>图片</FieldLabel>
                               <div className='bg-muted/15 grid gap-4 rounded-lg border p-4 sm:grid-cols-[18rem_minmax(0,1fr)]'>
                                 <div className='min-w-0'>
@@ -505,9 +524,13 @@ export function SettingsWorkspace() {
                     children={(field) => {
                       const invalid =
                         field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                        (field.state.meta.isTouched ||
+                          form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                        <Field
+                          data-invalid={invalid}
+                          className='flex flex-col gap-2'
+                        >
                           <FieldLabel htmlFor='opens-at-picker'>
                             开始时间
                           </FieldLabel>
@@ -530,9 +553,13 @@ export function SettingsWorkspace() {
                     children={(field) => {
                       const invalid =
                         field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                        (field.state.meta.isTouched ||
+                          form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                        <Field
+                          data-invalid={invalid}
+                          className='flex flex-col gap-2'
+                        >
                           <FieldLabel htmlFor='closes-at-picker'>
                             结束时间
                           </FieldLabel>
@@ -557,9 +584,13 @@ export function SettingsWorkspace() {
                     children={(field) => {
                       const invalid =
                         field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                        (field.state.meta.isTouched ||
+                          form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                        <Field
+                          data-invalid={invalid}
+                          className='flex flex-col gap-2'
+                        >
                           <FieldLabel htmlFor={field.name}>回收上限</FieldLabel>
                           <Input
                             id={field.name}
@@ -587,9 +618,13 @@ export function SettingsWorkspace() {
                     children={(field) => {
                       const invalid =
                         field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                        (field.state.meta.isTouched ||
+                          form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                        <Field
+                          data-invalid={invalid}
+                          className='flex flex-col gap-2'
+                        >
                           <FieldLabel htmlFor={field.name}>
                             每台设备上限
                           </FieldLabel>
@@ -619,9 +654,13 @@ export function SettingsWorkspace() {
                     children={(field) => {
                       const invalid =
                         field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                        (field.state.meta.isTouched ||
+                          form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                        <Field
+                          data-invalid={invalid}
+                          className='flex flex-col gap-2'
+                        >
                           <FieldLabel htmlFor={field.name}>访问密码</FieldLabel>
                           <Input
                             id={field.name}
@@ -650,9 +689,13 @@ export function SettingsWorkspace() {
                     children={(field) => {
                       const invalid =
                         field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                        (field.state.meta.isTouched ||
+                          form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                        <Field
+                          data-invalid={invalid}
+                          className='flex flex-col gap-2'
+                        >
                           <FieldLabel htmlFor={field.name}>每人上限</FieldLabel>
                           <Input
                             id={field.name}
@@ -680,9 +723,13 @@ export function SettingsWorkspace() {
                     children={(field) => {
                       const invalid =
                         field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                        (field.state.meta.isTouched ||
+                          form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                        <Field
+                          data-invalid={invalid}
+                          className='flex flex-col gap-2'
+                        >
                           <FieldLabel htmlFor={field.name}>
                             每人每日上限
                           </FieldLabel>
@@ -712,9 +759,13 @@ export function SettingsWorkspace() {
                     children={(field) => {
                       const invalid =
                         field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                        (field.state.meta.isTouched ||
+                          form.state.submissionAttempts > 0)
                       return (
-                        <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                        <Field
+                          data-invalid={invalid}
+                          className='flex flex-col gap-2'
+                        >
                           <FieldLabel htmlFor={field.name}>
                             每日总上限
                           </FieldLabel>
@@ -754,9 +805,13 @@ export function SettingsWorkspace() {
                   children={(field) => {
                     const invalid =
                       field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                      (field.state.meta.isTouched ||
+                        form.state.submissionAttempts > 0)
                     return (
-                      <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                      <Field
+                        data-invalid={invalid}
+                        className='flex flex-col gap-2'
+                      >
                         <FieldLabel htmlFor={field.name}>标题</FieldLabel>
                         <Input
                           id={field.name}
@@ -780,9 +835,13 @@ export function SettingsWorkspace() {
                   children={(field) => {
                     const invalid =
                       field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                      (field.state.meta.isTouched ||
+                        form.state.submissionAttempts > 0)
                     return (
-                      <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                      <Field
+                        data-invalid={invalid}
+                        className='flex flex-col gap-2'
+                      >
                         <FieldLabel htmlFor={field.name}>说明</FieldLabel>
                         <Textarea
                           id={field.name}
@@ -817,9 +876,13 @@ export function SettingsWorkspace() {
                   children={(field) => {
                     const invalid =
                       field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                      (field.state.meta.isTouched ||
+                        form.state.submissionAttempts > 0)
                     return (
-                      <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                      <Field
+                        data-invalid={invalid}
+                        className='flex flex-col gap-2'
+                      >
                         <FieldLabel>题号样式</FieldLabel>
                         <NumberingStyleSelect
                           value={field.state.value}
@@ -903,9 +966,13 @@ export function SettingsWorkspace() {
                   children={(field) => {
                     const invalid =
                       field.state.meta.errors.length > 0 &&
-            (field.state.meta.isTouched || form.state.submissionAttempts > 0)
+                      (field.state.meta.isTouched ||
+                        form.state.submissionAttempts > 0)
                     return (
-                      <Field data-invalid={invalid} className='flex flex-col gap-2'>
+                      <Field
+                        data-invalid={invalid}
+                        className='flex flex-col gap-2'
+                      >
                         <FieldLabel>主题色</FieldLabel>
                         <ColorControl
                           value={field.state.value}

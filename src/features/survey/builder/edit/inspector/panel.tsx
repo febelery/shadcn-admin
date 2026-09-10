@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
+import { cn } from 'cn'
 import { Settings2, ChevronDown } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -287,22 +287,24 @@ export function InspectorSection({
   return (
     <Collapsible defaultOpen={defaultOpen} className='group/panel'>
       <section className='border-border/70 border-b'>
-        <CollapsibleTrigger asChild>
-          <Button
-            type='button'
-            variant='ghost'
-            className='hover:bg-muted/45 h-auto min-h-13 w-full justify-between rounded-none px-4 py-3.5'
-          >
-            <div className='flex min-w-0 flex-col items-start gap-1 text-start'>
-              <h3 className='text-sm leading-snug font-semibold'>{title}</h3>
-              {description ? (
-                <p className='text-muted-foreground text-xs leading-relaxed'>
-                  {description}
-                </p>
-              ) : null}
-            </div>
-            <ChevronDown className='text-muted-foreground size-4 shrink-0 transition-transform group-data-[state=open]/panel:rotate-180' />
-          </Button>
+        <CollapsibleTrigger
+          render={
+            <Button
+              type='button'
+              variant='ghost'
+              className='hover:bg-muted/45 h-auto min-h-13 w-full justify-between rounded-none px-4 py-3.5'
+            />
+          }
+        >
+          <div className='flex min-w-0 flex-col items-start gap-1 text-start'>
+            <h3 className='text-sm leading-snug font-semibold'>{title}</h3>
+            {description ? (
+              <p className='text-muted-foreground text-xs leading-relaxed'>
+                {description}
+              </p>
+            ) : null}
+          </div>
+          <ChevronDown className='text-muted-foreground size-4 shrink-0 transition-transform group-data-[state=open]/panel:rotate-180' />
         </CollapsibleTrigger>
         <CollapsibleContent className='overflow-hidden'>
           <div className='flex min-w-0 flex-col gap-4 overflow-x-hidden px-4 pt-1 pb-5'>

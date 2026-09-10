@@ -1,6 +1,6 @@
 import type { KeyboardEvent } from 'react'
+import { cn } from 'cn'
 import { Circle, Square, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import type { ChoiceOption, QuestionElement } from '../../../core/types'
 import { BUILDER_TEXT_LIMITS } from '../../shared/text-limits'
 import { InlineEditable } from '../inline-editable'

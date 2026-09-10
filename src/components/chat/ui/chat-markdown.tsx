@@ -1,10 +1,10 @@
 import { memo, useMemo, useState } from 'react'
+import { cn } from 'cn'
 import { Check, Copy, Terminal } from 'lucide-react'
 import { Highlight, themes } from 'prism-react-renderer'
 import ReactMarkdown, { type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
 
 const REMARK_PLUGINS = [remarkGfm]

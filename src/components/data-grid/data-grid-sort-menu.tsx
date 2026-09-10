@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { ColumnSort, DataGridTable, SortDirection } from '@/lib/table'
+import { cn } from 'cn'
 import {
   ArrowDownUp,
   Check,
@@ -9,7 +9,7 @@ import {
   RotateCcw,
   Trash2,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import type { ColumnSort, DataGridTable, SortDirection } from '@/lib/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -247,28 +247,30 @@ export function DataGridSortMenu<TData>({
         <div className='inline-flex shrink-0 items-center gap-1.5'>
           {/* 触发按钮 */}
           <Popover open={open} onOpenChange={handleOpenChange}>
-            <PopoverTrigger asChild>
-              <Button
-                variant='outline'
-                size='sm'
-                className={cn(
-                  'h-8 shrink-0 gap-1.5 font-normal transition-all',
-                  hasApplied &&
-                    'border-primary/50 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
-                )}
-                onKeyDown={onTriggerKeyDown}
-              >
-                <ArrowDownUp className='h-3.5 w-3.5' />
-                {TEXT.SORT_BUTTON}
-                {hasApplied && (
-                  <Badge
-                    variant='secondary'
-                    className='ml-0.5 h-[18px] min-w-[18px] rounded px-1 font-mono text-[10px] font-semibold tabular-nums'
-                  >
-                    {appliedSorting.length}
-                  </Badge>
-                )}
-              </Button>
+            <PopoverTrigger
+              render={
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className={cn(
+                    'h-8 shrink-0 gap-1.5 font-normal transition-all',
+                    hasApplied &&
+                      'border-primary/50 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
+                  )}
+                  onKeyDown={onTriggerKeyDown}
+                />
+              }
+            >
+              <ArrowDownUp className='h-3.5 w-3.5' />
+              {TEXT.SORT_BUTTON}
+              {hasApplied && (
+                <Badge
+                  variant='secondary'
+                  className='ml-0.5 h-[18px] min-w-[18px] rounded px-1 font-mono text-[10px] font-semibold tabular-nums'
+                >
+                  {appliedSorting.length}
+                </Badge>
+              )}
             </PopoverTrigger>
 
             <PopoverContent
@@ -371,17 +373,19 @@ function SortPopoverContent({
 
       {/* 排序行列表 */}
       {hasItems && (
-        <SortableContent asChild>
-          <ul className='flex max-h-[360px] flex-col gap-1 overflow-y-auto px-3 py-2'>
-            {editingSorting.map((sort, index) => (
-              <SortItem
-                key={sort.id}
-                sort={sort}
-                index={index}
-                totalCount={editingSorting.length}
-              />
-            ))}
-          </ul>
+        <SortableContent
+          render={
+            <ul className='flex max-h-[360px] flex-col gap-1 overflow-y-auto px-3 py-2' />
+          }
+        >
+          {editingSorting.map((sort, index) => (
+            <SortItem
+              key={sort.id}
+              sort={sort}
+              index={index}
+              totalCount={editingSorting.length}
+            />
+          ))}
         </SortableContent>
       )}
 
@@ -455,136 +459,145 @@ function SortItem<TData>({
   )
 
   return (
-    <SortableItem value={sort.id} asChild>
-      <li
-        tabIndex={-1}
-        className='group flex items-center gap-2 py-1'
-        onKeyDown={onItemKeyDown}
-      >
-        {/* 连接符（与 FilterItem 保持一致的视觉语言） */}
-        <div className='flex w-10 shrink-0 justify-center'>
-          {index === 0 ? (
-            <span className='text-muted-foreground text-[11px] font-medium'>
-              按
-            </span>
-          ) : (
-            <span className='bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase'>
-              再
-            </span>
-          )}
-        </div>
+    <SortableItem
+      value={sort.id}
+      render={
+        <li
+          tabIndex={-1}
+          className='group flex items-center gap-2 py-1'
+          onKeyDown={onItemKeyDown}
+        />
+      }
+    >
+      {/* 连接符（与 FilterItem 保持一致的视觉语言） */}
+      <div className='flex w-10 shrink-0 justify-center'>
+        {index === 0 ? (
+          <span className='text-muted-foreground text-[11px] font-medium'>
+            按
+          </span>
+        ) : (
+          <span className='bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase'>
+            再
+          </span>
+        )}
+      </div>
 
-        {/* 字段选择器 */}
-        <Popover open={showFieldSelector} onOpenChange={setShowFieldSelector}>
-          <PopoverTrigger asChild>
+      {/* 字段选择器 */}
+      <Popover open={showFieldSelector} onOpenChange={setShowFieldSelector}>
+        <PopoverTrigger
+          render={
             <Button
               variant='outline'
               size='sm'
               className='h-8 w-36 justify-between gap-1 rounded-md px-2.5 font-normal'
-            >
-              <span className='truncate text-xs'>
-                {columnLabels.get(sort.id) ?? sort.id}
-              </span>
-              <ChevronsUpDown className='h-3 w-3 shrink-0 opacity-40' />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align='start' className='w-44 p-0'>
-            <Command>
-              <CommandInput
-                placeholder={TEXT.SEARCH_FIELD}
-                className='h-8 text-xs'
-              />
-              <CommandList>
-                <CommandEmpty className='text-muted-foreground py-4 text-center text-xs'>
-                  {TEXT.NO_FIELD_FOUND}
-                </CommandEmpty>
-                <CommandGroup>
-                  {fieldSelectorColumns.map((col) => (
-                    <CommandItem
-                      key={col.id}
-                      value={col.id}
-                      className='text-xs'
-                      onSelect={(val) => {
-                        updateSort(sort.id, { id: val })
-                        setShowFieldSelector(false)
-                      }}
-                    >
-                      <span className='truncate'>{col.label}</span>
-                      {col.id === sort.id && (
-                        <Check className='ml-auto h-3.5 w-3.5' />
-                      )}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-
-        {/* 方向选择器 */}
-        <Select
-          items={SORT_ORDERS}
-          value={sort.desc ? 'desc' : 'asc'}
-          onValueChange={(val: SortDirection) =>
-            updateSort(sort.id, { desc: val === 'desc' })
+            />
           }
         >
-          <SelectTrigger
-            size='sm'
-            className='h-8 w-20 rounded-md px-2.5 text-xs font-normal'
-          >
-            <SelectValue>
-              {(val: any) =>
-                SORT_ORDERS.find((o) => o.value === (val ?? (sort.desc ? 'desc' : 'asc')))
-                  ?.label ??
-                val
-              }
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {SORT_ORDERS.map((order) => (
-              <SelectItem
-                key={order.value}
-                value={order.value}
-                className='text-xs'
-              >
-                {order.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <span className='truncate text-xs'>
+            {columnLabels.get(sort.id) ?? sort.id}
+          </span>
+          <ChevronsUpDown className='h-3 w-3 shrink-0 opacity-40' />
+        </PopoverTrigger>
+        <PopoverContent align='start' className='w-44 p-0'>
+          <Command>
+            <CommandInput
+              placeholder={TEXT.SEARCH_FIELD}
+              className='h-8 text-xs'
+            />
+            <CommandList>
+              <CommandEmpty className='text-muted-foreground py-4 text-center text-xs'>
+                {TEXT.NO_FIELD_FOUND}
+              </CommandEmpty>
+              <CommandGroup>
+                {fieldSelectorColumns.map((col) => (
+                  <CommandItem
+                    key={col.id}
+                    value={col.id}
+                    className='text-xs'
+                    onSelect={(val) => {
+                      updateSort(sort.id, { id: val })
+                      setShowFieldSelector(false)
+                    }}
+                  >
+                    <span className='truncate'>{col.label}</span>
+                    {col.id === sort.id && (
+                      <Check className='ml-auto h-3.5 w-3.5' />
+                    )}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
 
-        {/* 行操作（悬停渐显，与 FilterItem 一致） */}
-        <div className='flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100'>
-          <Tooltip>
-            <TooltipTrigger asChild>
+      {/* 方向选择器 */}
+      <Select
+        items={SORT_ORDERS}
+        value={sort.desc ? 'desc' : 'asc'}
+        onValueChange={(val: SortDirection) =>
+          updateSort(sort.id, { desc: val === 'desc' })
+        }
+      >
+        <SelectTrigger
+          size='sm'
+          className='h-8 w-20 rounded-md px-2.5 text-xs font-normal'
+        >
+          <SelectValue>
+            {(val: any) =>
+              SORT_ORDERS.find(
+                (o) => o.value === (val ?? (sort.desc ? 'desc' : 'asc'))
+              )?.label ?? val
+            }
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {SORT_ORDERS.map((order) => (
+            <SelectItem
+              key={order.value}
+              value={order.value}
+              className='text-xs'
+            >
+              {order.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* 行操作（悬停渐显，与 FilterItem 一致） */}
+      <div className='flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100'>
+        <Tooltip>
+          <TooltipTrigger
+            render={
               <Button
                 variant='ghost'
                 size='icon'
                 className='text-muted-foreground hover:text-destructive h-8 w-7'
                 onClick={() => removeSort(sort.id)}
-              >
-                <Trash2 className='h-3.5 w-3.5' />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side='top' className='text-xs'>
-              删除
-            </TooltipContent>
-          </Tooltip>
+              />
+            }
+          >
+            <Trash2 className='h-3.5 w-3.5' />
+          </TooltipTrigger>
+          <TooltipContent side='top' className='text-xs'>
+            删除
+          </TooltipContent>
+        </Tooltip>
 
-          {totalCount > 1 && (
-            <SortableItemHandle asChild>
+        {totalCount > 1 && (
+          <SortableItemHandle
+            render={
               <Button
                 variant='ghost'
                 size='icon'
                 className='text-muted-foreground h-8 w-7 cursor-grab active:cursor-grabbing'
-              >
-                <GripVertical className='h-3.5 w-3.5' />
-              </Button>
-            </SortableItemHandle>
-          )}
-        </div>
-      </li>
+              />
+            }
+          >
+            <GripVertical className='h-3.5 w-3.5' />
+          </SortableItemHandle>
+        )}
+      </div>
     </SortableItem>
   )
 }

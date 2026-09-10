@@ -1,5 +1,5 @@
+import { cn } from 'cn'
 import { MousePointerClick, Settings2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import type { StaticIssue } from '../../core/logic/analyzer'
 import { useBuilderStore } from '../builder-session'
 import { BuilderGuidance } from '../edit/guidance'

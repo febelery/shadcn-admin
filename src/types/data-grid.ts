@@ -1,9 +1,4 @@
-import type {
-  Cell,
-  RowData,
-  Table,
-  TableFeatures,
-} from '@tanstack/react-table'
+import type { Cell, RowData, Table, TableFeatures } from '@tanstack/react-table'
 import type { DataGridTableFeatures } from '@/lib/table'
 
 export type RowHeightValue = 'short' | 'medium' | 'tall' | 'extra-tall'
@@ -117,11 +112,7 @@ export interface DataGridTableMeta {
   onPasteWithoutExpansion?: () => void
   rowHeight?: RowHeightValue
   onRowHeightChange?: (value: RowHeightValue) => void
-  onRowSelect?: (
-    rowIndex: number,
-    checked: boolean,
-    shiftKey: boolean
-  ) => void
+  onRowSelect?: (rowIndex: number, checked: boolean, shiftKey: boolean) => void
 }
 
 export interface CellPosition {
@@ -231,12 +222,7 @@ export type DateFilterOperator =
   | 'isNotEmpty'
 
 export type SelectFilterOperator =
-  | 'is'
-  | 'isNot'
-  | 'isAnyOf'
-  | 'isNoneOf'
-  | 'isEmpty'
-  | 'isNotEmpty'
+  'is' | 'isNot' | 'isAnyOf' | 'isNoneOf' | 'isEmpty' | 'isNotEmpty'
 
 export type BooleanFilterOperator = 'isTrue' | 'isFalse'
 

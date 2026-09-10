@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { cn } from 'cn'
 import {
   ArrowUp,
   Brain,
@@ -13,7 +14,6 @@ import {
   Square,
   X,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import {
   Attachment,
   AttachmentAction,

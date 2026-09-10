@@ -1,6 +1,6 @@
+import { cn } from 'cn'
 import { Eye, GitBranch } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { getQuestionRuleSummary } from '@/features/survey/core/logic/question-rule-index'
 import { useBuilderStore } from '../builder-session'

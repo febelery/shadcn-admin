@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { type Table } from '@/lib/table'
 import { Trash2, CircleArrowUp, ArrowUpDown, Download } from 'lucide-react'
 import { toast } from 'sonner'
+import { type Table } from '@/lib/table'
 import { sleep } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -74,20 +74,24 @@ export function DataTableBulkActions<TData>({
       <BulkActionsToolbar table={table} entityName='task'>
         <DropdownMenu>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant='outline'
-                  size='icon'
-                  className='size-8'
-                  aria-label='Update status'
-                  title='Update status'
-                >
-                  <CircleArrowUp />
-                  <span className='sr-only'>Update status</span>
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant='outline'
+                      size='icon'
+                      className='size-8'
+                      aria-label='Update status'
+                      title='Update status'
+                    >
+                      <CircleArrowUp />
+                      <span className='sr-only'>Update status</span>
+                    </Button>
+                  }
+                />
+              }
+            />
             <TooltipContent>
               <p>Update status</p>
             </TooltipContent>
@@ -109,20 +113,24 @@ export function DataTableBulkActions<TData>({
 
         <DropdownMenu>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant='outline'
-                  size='icon'
-                  className='size-8'
-                  aria-label='Update priority'
-                  title='Update priority'
-                >
-                  <ArrowUpDown />
-                  <span className='sr-only'>Update priority</span>
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant='outline'
+                      size='icon'
+                      className='size-8'
+                      aria-label='Update priority'
+                      title='Update priority'
+                    >
+                      <ArrowUpDown />
+                      <span className='sr-only'>Update priority</span>
+                    </Button>
+                  }
+                />
+              }
+            />
             <TooltipContent>
               <p>Update priority</p>
             </TooltipContent>
@@ -143,38 +151,42 @@ export function DataTableBulkActions<TData>({
         </DropdownMenu>
 
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant='outline'
-              size='icon'
-              onClick={() => handleBulkExport()}
-              className='size-8'
-              aria-label='Export tasks'
-              title='Export tasks'
-            >
-              <Download />
-              <span className='sr-only'>Export tasks</span>
-            </Button>
-          </TooltipTrigger>
+          <TooltipTrigger
+            render={
+              <Button
+                variant='outline'
+                size='icon'
+                onClick={() => handleBulkExport()}
+                className='size-8'
+                aria-label='Export tasks'
+                title='Export tasks'
+              >
+                <Download />
+                <span className='sr-only'>Export tasks</span>
+              </Button>
+            }
+          />
           <TooltipContent>
             <p>Export tasks</p>
           </TooltipContent>
         </Tooltip>
 
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant='destructive'
-              size='icon'
-              onClick={() => setShowDeleteConfirm(true)}
-              className='size-8'
-              aria-label='Delete selected tasks'
-              title='Delete selected tasks'
-            >
-              <Trash2 />
-              <span className='sr-only'>Delete selected tasks</span>
-            </Button>
-          </TooltipTrigger>
+          <TooltipTrigger
+            render={
+              <Button
+                variant='destructive'
+                size='icon'
+                onClick={() => setShowDeleteConfirm(true)}
+                className='size-8'
+                aria-label='Delete selected tasks'
+                title='Delete selected tasks'
+              >
+                <Trash2 />
+                <span className='sr-only'>Delete selected tasks</span>
+              </Button>
+            }
+          />
           <TooltipContent>
             <p>Delete selected tasks</p>
           </TooltipContent>

@@ -2,7 +2,7 @@ import * as React from 'react'
 import { mergeProps } from '@base-ui/react/merge-props'
 import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import { Separator } from '@/components/ui/separator'
 
 function ItemGroup({ className, ...props }: React.ComponentProps<'div'>) {
@@ -55,25 +55,18 @@ function Item({
   className,
   variant = 'default',
   size = 'default',
-  asChild = false,
   render,
-  children,
   ...props
-}: useRender.ComponentProps<'div'> &
-  VariantProps<typeof itemVariants> & { asChild?: boolean }) {
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
-
+}: useRender.ComponentProps<'div'> & VariantProps<typeof itemVariants>) {
   return useRender({
     defaultTagName: 'div',
-    render: finalRender,
+    render,
     props: mergeProps<'div'>(
       {
         'data-slot': 'item',
         'data-variant': variant,
         'data-size': size,
         className: cn(itemVariants({ variant, size, className })),
-        children: asChild ? undefined : children,
       } as React.ComponentProps<'div'>,
       props
     ),

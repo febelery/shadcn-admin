@@ -1,5 +1,5 @@
+import { cn } from 'cn'
 import { AlertCircle, AlertTriangle, Workflow } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { BuilderPanelHeader } from '../shared/panel-header'
 import { Canvas } from './canvas'
 import type { FlowProjection } from './projection'

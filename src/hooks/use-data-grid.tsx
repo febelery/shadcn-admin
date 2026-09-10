@@ -2,15 +2,6 @@
 
 import * as React from 'react'
 import { useTable } from '@tanstack/react-table'
-import {
-  dataGridTableFeatures,
-  type DataGridColumnDef,
-  type DataGridTable,
-  type DataGridTableOptions,
-  type RowSelectionState,
-  type SortingState,
-  type Updater,
-} from '@/lib/table'
 import type {
   CellPosition,
   ContextMenuState,
@@ -24,6 +15,15 @@ import type {
 import { useVirtualizer, type Virtualizer } from '@tanstack/react-virtual'
 import { toast } from 'sonner'
 import { getCellKey, getRowHeightValue, parseCellKey } from '@/lib/data-grid'
+import {
+  dataGridTableFeatures,
+  type DataGridColumnDef,
+  type DataGridTable,
+  type DataGridTableOptions,
+  type RowSelectionState,
+  type SortingState,
+  type Updater,
+} from '@/lib/table'
 import { sleep } from '@/lib/utils'
 import { DataGridCell } from '@/components/data-grid/data-grid-cell'
 
@@ -86,8 +86,10 @@ function useStore<T>(
   return React.useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
 }
 
-interface UseDataGridProps<TData>
-  extends Omit<DataGridTableOptions<TData>, 'features'> {
+interface UseDataGridProps<TData> extends Omit<
+  DataGridTableOptions<TData>,
+  'features'
+> {
   onDataChange?: (data: TData[]) => void
   onRowAdd?: (event?: React.MouseEvent<HTMLDivElement>) =>
     | Partial<CellPosition>

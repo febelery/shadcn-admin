@@ -1,8 +1,8 @@
 import { type ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
 import { type NavItem, type NavGroup } from '@/types/navigation'
+import { cn } from 'cn'
 import { ChevronRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import {
   Collapsible,
   CollapsibleContent,
@@ -68,15 +68,13 @@ function SidebarMenuLink({ item, href }: { item: NavItem; href: string }) {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
-        asChild
+        render={<Link to={item.url} onClick={() => setOpenMobile(false)} />}
         isActive={checkIsActive(href, item)}
         tooltip={item.title}
       >
-        <Link to={item.url} onClick={() => setOpenMobile(false)}>
-          {item.icon && <DynamicIcon name={item.icon} />}
-          <span>{item.title}</span>
-          {item.badge && <NavBadge>{item.badge}</NavBadge>}
-        </Link>
+        {item.icon && <DynamicIcon name={item.icon} />}
+        <span>{item.title}</span>
+        {item.badge && <NavBadge>{item.badge}</NavBadge>}
       </SidebarMenuButton>
     </SidebarMenuItem>
   )
@@ -89,89 +87,34 @@ function SidebarMenuCollapsible({
   item: NavItem
   href: string
 }) {
-  const { setOpenMobile } = useSidebar()
   const hasActive = hasActiveChild(href, item)
   return (
     <Collapsible
-      asChild
+      render={<SidebarMenuItem className='group/collapsible' />}
       defaultOpen={checkIsActive(href, item, true)}
-      className='group/collapsible'
     >
-      <SidebarMenuItem>
-        <CollapsibleTrigger asChild>
+      <CollapsibleTrigger
+        render={
           <SidebarMenuButton
             tooltip={item.title}
             className={cn(hasActive && 'text-foreground font-semibold')}
-          >
-            {item.icon && <DynamicIcon name={item.icon} />}
-            <span>{item.title}</span>
-            {item.badge && <NavBadge>{item.badge}</NavBadge>}
-            <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-open/collapsible:rotate-90' />
-          </SidebarMenuButton>
-        </CollapsibleTrigger>
-        <CollapsibleContent className='CollapsibleContent'>
-          <SidebarMenuSub className='mr-0 pr-0'>
-            {item.items?.map((subItem) => (
-              <SidebarMenuSubItem key={subItem.title}>
-                {subItem.items ? (
-                  <Collapsible
-                    asChild
-                    defaultOpen={checkIsActive(href, subItem, true)}
-                    className='group/collapsible'
-                  >
-                    <div>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuSubButton
-                          className={cn(
-                            'cursor-pointer',
-                            hasActiveChild(href, subItem) &&
-                              'text-foreground font-semibold'
-                          )}
-                        >
-                          {subItem.icon && <DynamicIcon name={subItem.icon} />}
-                          <span>{subItem.title}</span>
-                          {subItem.badge && (
-                            <NavBadge>{subItem.badge}</NavBadge>
-                          )}
-                          <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-open/collapsible:rotate-90' />
-                        </SidebarMenuSubButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className='CollapsibleContent'>
-                        <SidebarMenuSub className='mr-0 pr-0'>
-                          {subItem.items.map((subSubItem) => (
-                            <SidebarMenuSubItem key={subSubItem.title}>
-                              {/* Recursively handle more levels if needed, but for now let's stick to the requested structure or make a truly recursive component */}
-                              {/* To make it truly recursive, we should probably extract this into a component */}
-                              <RecursiveSidebarMenuSubItem
-                                item={subSubItem}
-                                href={href}
-                              />
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </div>
-                  </Collapsible>
-                ) : (
-                  <SidebarMenuSubButton
-                    asChild
-                    isActive={checkIsActive(href, subItem)}
-                  >
-                    <Link
-                      to={subItem.url!}
-                      onClick={() => setOpenMobile(false)}
-                    >
-                      {subItem.icon && <DynamicIcon name={subItem.icon} />}
-                      <span>{subItem.title}</span>
-                      {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
-                    </Link>
-                  </SidebarMenuSubButton>
-                )}
-              </SidebarMenuSubItem>
-            ))}
-          </SidebarMenuSub>
-        </CollapsibleContent>
-      </SidebarMenuItem>
+          />
+        }
+      >
+        {item.icon && <DynamicIcon name={item.icon} />}
+        <span>{item.title}</span>
+        {item.badge && <NavBadge>{item.badge}</NavBadge>}
+        <ChevronRight className='ms-auto transition-transform duration-200 group-aria-expanded/collapsible-trigger:rotate-90 group-data-panel-open/collapsible-trigger:rotate-90 [[data-panel-open]>&]:rotate-90' />
+      </CollapsibleTrigger>
+      <CollapsibleContent className='CollapsibleContent'>
+        <SidebarMenuSub className='mr-0 pr-0'>
+          {item.items?.map((subItem) => (
+            <SidebarMenuSubItem key={subItem.title}>
+              <RecursiveSidebarMenuSubItem item={subItem} href={href} />
+            </SidebarMenuSubItem>
+          ))}
+        </SidebarMenuSub>
+      </CollapsibleContent>
     </Collapsible>
   )
 }
@@ -187,44 +130,46 @@ function RecursiveSidebarMenuSubItem({
   if (item.items) {
     return (
       <Collapsible
-        asChild
         defaultOpen={checkIsActive(href, item, true)}
-        className='group/collapsible'
+        className='group/collapsible w-full'
       >
-        <div>
-          <CollapsibleTrigger asChild>
+        <CollapsibleTrigger
+          render={
             <SidebarMenuSubButton
+              render={<button type='button' />}
               className={cn(
+                'cursor-pointer',
                 hasActiveChild(href, item) && 'text-foreground font-semibold'
               )}
-            >
-              {item.icon && <DynamicIcon name={item.icon} />}
-              <span>{item.title}</span>
-              {item.badge && <NavBadge>{item.badge}</NavBadge>}
-              <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-open/collapsible:rotate-90' />
-            </SidebarMenuSubButton>
-          </CollapsibleTrigger>
-          <CollapsibleContent className='CollapsibleContent'>
-            <SidebarMenuSub>
-              {item.items.map((subItem) => (
-                <SidebarMenuSubItem key={subItem.title}>
-                  <RecursiveSidebarMenuSubItem item={subItem} href={href} />
-                </SidebarMenuSubItem>
-              ))}
-            </SidebarMenuSub>
-          </CollapsibleContent>
-        </div>
+            />
+          }
+        >
+          {item.icon && <DynamicIcon name={item.icon} />}
+          <span>{item.title}</span>
+          {item.badge && <NavBadge>{item.badge}</NavBadge>}
+          <ChevronRight className='ms-auto transition-transform duration-200 group-aria-expanded/collapsible-trigger:rotate-90 group-data-panel-open/collapsible-trigger:rotate-90 [[data-panel-open]>&]:rotate-90' />
+        </CollapsibleTrigger>
+        <CollapsibleContent className='CollapsibleContent'>
+          <SidebarMenuSub className='mr-0 pr-0'>
+            {item.items.map((subItem) => (
+              <SidebarMenuSubItem key={subItem.title}>
+                <RecursiveSidebarMenuSubItem item={subItem} href={href} />
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
       </Collapsible>
     )
   }
 
   return (
-    <SidebarMenuSubButton asChild isActive={checkIsActive(href, item)}>
-      <Link to={item.url!} onClick={() => setOpenMobile(false)}>
-        {item.icon && <DynamicIcon name={item.icon} />}
-        <span>{item.title}</span>
-        {item.badge && <NavBadge>{item.badge}</NavBadge>}
-      </Link>
+    <SidebarMenuSubButton
+      render={<Link to={item.url!} onClick={() => setOpenMobile(false)} />}
+      isActive={checkIsActive(href, item)}
+    >
+      {item.icon && <DynamicIcon name={item.icon} />}
+      <span>{item.title}</span>
+      {item.badge && <NavBadge>{item.badge}</NavBadge>}
     </SidebarMenuSubButton>
   )
 }
@@ -240,17 +185,19 @@ function SidebarMenuCollapsedDropdown({
   return (
     <SidebarMenuItem>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <SidebarMenuButton
-            tooltip={item.title}
-            isActive={checkIsActive(href, item)}
-            className={cn(hasActive && 'text-foreground font-semibold')}
-          >
-            {item.icon && <DynamicIcon name={item.icon} />}
-            <span>{item.title}</span>
-            {item.badge && <NavBadge>{item.badge}</NavBadge>}
-            <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-open/collapsible:rotate-90' />
-          </SidebarMenuButton>
+        <DropdownMenuTrigger
+          render={
+            <SidebarMenuButton
+              tooltip={item.title}
+              isActive={checkIsActive(href, item)}
+              className={cn(hasActive && 'text-foreground font-semibold')}
+            />
+          }
+        >
+          {item.icon && <DynamicIcon name={item.icon} />}
+          <span>{item.title}</span>
+          {item.badge && <NavBadge>{item.badge}</NavBadge>}
+          <ChevronRight className='ms-auto transition-transform duration-200 [[data-popup-open]>&]:rotate-90' />
         </DropdownMenuTrigger>
         <DropdownMenuContent side='right' align='start' sideOffset={4}>
           <DropdownMenuGroup>
@@ -261,40 +208,42 @@ function SidebarMenuCollapsedDropdown({
           <DropdownMenuSeparator />
           {item.items?.map((sub) => {
             const hasActive = hasActiveChild(href, sub)
+            if (sub.items) {
+              return (
+                <DropdownMenuSub key={`${sub.title}-${sub.url}`}>
+                  <DropdownMenuSubTrigger
+                    className={cn(hasActive && 'text-foreground font-semibold')}
+                  >
+                    {sub.icon && <DynamicIcon name={sub.icon} />}
+                    <span>{sub.title}</span>
+                    {sub.badge && <NavBadge>{sub.badge}</NavBadge>}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {sub.items.map((subSub) => (
+                      <RecursiveDropdownMenuItem
+                        key={`${subSub.title}-${subSub.url}`}
+                        item={subSub}
+                        href={href}
+                      />
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              )
+            }
             return (
-              <DropdownMenuItem key={`${sub.title}-${sub.url}`} asChild>
-                {sub.items ? (
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger
-                      className={cn(
-                        hasActive && 'text-foreground font-semibold'
-                      )}
-                    >
-                      {sub.icon && <DynamicIcon name={sub.icon} />}
-                      <span>{sub.title}</span>
-                      {sub.badge && <NavBadge>{sub.badge}</NavBadge>}
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent>
-                      {sub.items.map((subSub) => (
-                        <RecursiveDropdownMenuItem
-                          key={`${subSub.title}-${subSub.url}`}
-                          item={subSub}
-                          href={href}
-                        />
-                      ))}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
-                ) : (
+              <DropdownMenuItem
+                key={`${sub.title}-${sub.url}`}
+                render={
                   <Link
                     to={sub.url!}
                     className={`${checkIsActive(href, sub) ? 'bg-secondary' : ''}`}
-                  >
-                    {sub.icon && <DynamicIcon name={sub.icon} />}
-                    <span className='max-w-52 text-wrap'>{sub.title}</span>
-                    {sub.badge && (
-                      <span className='ms-auto text-xs'>{sub.badge}</span>
-                    )}
-                  </Link>
+                  />
+                }
+              >
+                {sub.icon && <DynamicIcon name={sub.icon} />}
+                <span className='max-w-52 text-wrap'>{sub.title}</span>
+                {sub.badge && (
+                  <span className='ms-auto text-xs'>{sub.badge}</span>
                 )}
               </DropdownMenuItem>
             )
@@ -337,15 +286,17 @@ function RecursiveDropdownMenuItem({
   }
 
   return (
-    <DropdownMenuItem asChild>
-      <Link
-        to={item.url!}
-        className={`${checkIsActive(href, item) ? 'bg-secondary' : ''}`}
-      >
-        {item.icon && <DynamicIcon name={item.icon} />}
-        <span className='max-w-52 text-wrap'>{item.title}</span>
-        {item.badge && <span className='ms-auto text-xs'>{item.badge}</span>}
-      </Link>
+    <DropdownMenuItem
+      render={
+        <Link
+          to={item.url!}
+          className={`${checkIsActive(href, item) ? 'bg-secondary' : ''}`}
+        />
+      }
+    >
+      {item.icon && <DynamicIcon name={item.icon} />}
+      <span className='max-w-52 text-wrap'>{item.title}</span>
+      {item.badge && <span className='ms-auto text-xs'>{item.badge}</span>}
     </DropdownMenuItem>
   )
 }

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
+import { cn } from 'cn'
 import { AlertCircle, ArrowLeft, RefreshCw, Save } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
@@ -22,10 +22,10 @@ import {
 } from './builder-session'
 import { EditWorkspace } from './edit/workspace'
 import { FlowWorkspace } from './flow/workspace'
-import { SettingsWorkspace } from './settings/workspace'
 import { useRuleAuthoring } from './session/rule-authoring'
 import { RuleAuthoringProvider } from './session/rule-authoring-provider'
 import { hasRuleDraftChanges } from './session/rule-draft'
+import { SettingsWorkspace } from './settings/workspace'
 import { UnsavedChangesBlocker } from './unsaved-changes-blocker'
 
 type Props = { mode: 'create' } | { mode: 'edit'; surveyId: string }
@@ -137,6 +137,7 @@ function SurveyBuilderContent({ props }: { props: Props }) {
             variant='ghost'
             size='icon'
             className='shrink-0'
+            nativeButton={false}
             render={<Link to='/survey' />}
           >
             <ArrowLeft className='h-4 w-4' />
@@ -310,6 +311,7 @@ function BuilderErrorState({
         <Button
           variant='ghost'
           size='icon'
+          nativeButton={false}
           render={<Link to='/survey' aria-label='返回问卷列表' />}
         >
           <ArrowLeft className='size-4' />
@@ -340,6 +342,7 @@ function BuilderErrorState({
           <div className='flex items-center gap-2'>
             <Button
               variant='outline'
+              nativeButton={false}
               render={<Link to='/survey' />}
             >
               返回列表

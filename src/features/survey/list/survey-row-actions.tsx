@@ -34,6 +34,7 @@ export function SurveyRowActions({ survey, onDelete }: SurveyRowActionsProps) {
   return (
     <div className='flex items-center justify-end gap-1'>
       <Button
+        nativeButton={false}
         render={<Link to='/survey/$id/edit' params={{ id: survey.id }} />}
         variant='ghost'
         size='sm'
@@ -45,6 +46,7 @@ export function SurveyRowActions({ survey, onDelete }: SurveyRowActionsProps) {
       </Button>
 
       <Button
+        nativeButton={false}
         render={<Link to='/survey/$id/record' params={{ id: survey.id }} />}
         variant='ghost'
         size='sm'
@@ -57,33 +59,39 @@ export function SurveyRowActions({ survey, onDelete }: SurveyRowActionsProps) {
 
       <DropdownMenu modal={false}>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant='ghost'
-                size='icon'
-                className='size-8'
-                aria-label='更多操作'
-              >
-                <MoreHorizontal />
-              </Button>
-            </DropdownMenuTrigger>
-          </TooltipTrigger>
+          <TooltipTrigger
+            render={
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    className='size-8'
+                    aria-label='更多操作'
+                  >
+                    <MoreHorizontal />
+                  </Button>
+                }
+              />
+            }
+          />
           <TooltipContent side='top' className='text-xs'>
             更多
           </TooltipContent>
         </Tooltip>
         <DropdownMenuContent align='end' sideOffset={6}>
           <DropdownMenuGroup>
-            <DropdownMenuItem asChild>
-              <Link to='/survey/$id/analysis' params={{ id: survey.id }}>
-                <BarChart3 />
-                分析
-              </Link>
+            <DropdownMenuItem
+              render={
+                <Link to='/survey/$id/analysis' params={{ id: survey.id }} />
+              }
+            >
+              <BarChart3 />
+              分析
             </DropdownMenuItem>
             <DropdownMenuItem
               variant='destructive'
-              onSelect={(e) => {
+              onClick={(e) => {
                 e.preventDefault()
                 setShowConfirm(true)
               }}

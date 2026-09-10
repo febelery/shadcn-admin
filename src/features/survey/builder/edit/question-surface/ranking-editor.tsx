@@ -50,57 +50,59 @@ export function SurfaceRankingEditor({ options, onChange }: Props) {
       onValueChange={onChange}
       getItemValue={(option) => option.id}
     >
-      <SortableContent asChild>
-        <ul className='flex flex-col gap-2'>
-          {options.map((option, index) => (
-            <SortableItem key={option.id} value={option.id} asChild>
-              <li className='group/option grid grid-cols-[1.75rem_1.5rem_1fr_1.75rem] items-center gap-x-2'>
-                <SortableItemHandle
-                  className='text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded'
-                  data-surface-chrome
-                  aria-label={`拖动选项 ${index + 1}`}
-                >
-                  <GripVertical className='size-4' />
-                </SortableItemHandle>
-                <span className='text-muted-foreground text-sm leading-relaxed tabular-nums'>
-                  {index + 1}
-                </span>
-                <InlineEditable
-                  value={option.label}
-                  onChange={(label) => updateOptionLabel(option.id, label)}
-                  placeholder={`选项 ${index + 1}`}
-                  maxLength={BUILDER_TEXT_LIMITS.choiceOption}
-                  inputRef={(element) => setEditorRef(option.id, element)}
-                  className='placeholder:text-muted-foreground/50 max-w-full min-w-0 text-sm leading-relaxed font-normal'
-                  onKeyDown={handleOptionKeyDown(index, option.id)}
-                />
-                {options.length > 1 ? (
-                  <button
-                    type='button'
-                    className='text-muted-foreground hover:text-destructive flex size-7 items-center justify-center rounded opacity-0 group-hover/option:opacity-100'
-                    data-surface-chrome
-                    aria-label='删除选项'
-                    onClick={() => removeOption(option.id)}
-                  >
-                    <Trash2 className='size-3.5' />
-                  </button>
-                ) : (
-                  <span className='size-7' />
-                )}
-              </li>
-            </SortableItem>
-          ))}
-          <li className='pl-[4.25rem]'>
-            <button
-              type='button'
-              className='text-muted-foreground hover:text-foreground py-0.5 text-sm leading-relaxed'
+      <SortableContent render={<ul className='flex flex-col gap-2' />}>
+        {options.map((option, index) => (
+          <SortableItem
+            key={option.id}
+            value={option.id}
+            render={
+              <li className='group/option grid grid-cols-[1.75rem_1.5rem_1fr_1.75rem] items-center gap-x-2' />
+            }
+          >
+            <SortableItemHandle
+              className='text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded'
               data-surface-chrome
-              onClick={() => insertAfterLast()}
+              aria-label={`拖动选项 ${index + 1}`}
             >
-              + 添加选项
-            </button>
-          </li>
-        </ul>
+              <GripVertical className='size-4' />
+            </SortableItemHandle>
+            <span className='text-muted-foreground text-sm leading-relaxed tabular-nums'>
+              {index + 1}
+            </span>
+            <InlineEditable
+              value={option.label}
+              onChange={(label) => updateOptionLabel(option.id, label)}
+              placeholder={`选项 ${index + 1}`}
+              maxLength={BUILDER_TEXT_LIMITS.choiceOption}
+              inputRef={(element) => setEditorRef(option.id, element)}
+              className='placeholder:text-muted-foreground/50 max-w-full min-w-0 text-sm leading-relaxed font-normal'
+              onKeyDown={handleOptionKeyDown(index, option.id)}
+            />
+            {options.length > 1 ? (
+              <button
+                type='button'
+                className='text-muted-foreground hover:text-destructive flex size-7 items-center justify-center rounded opacity-0 group-hover/option:opacity-100'
+                data-surface-chrome
+                aria-label='删除选项'
+                onClick={() => removeOption(option.id)}
+              >
+                <Trash2 className='size-3.5' />
+              </button>
+            ) : (
+              <span className='size-7' />
+            )}
+          </SortableItem>
+        ))}
+        <li className='pl-[4.25rem]'>
+          <button
+            type='button'
+            className='text-muted-foreground hover:text-foreground py-0.5 text-sm leading-relaxed'
+            data-surface-chrome
+            onClick={() => insertAfterLast()}
+          >
+            + 添加选项
+          </button>
+        </li>
       </SortableContent>
       <SortableOverlay>
         <div className='bg-background text-foreground flex items-center gap-2 rounded-md border px-3 py-2 shadow-lg'>

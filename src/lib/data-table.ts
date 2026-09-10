@@ -1,5 +1,5 @@
-import type { DataGridColumn } from '@/lib/table'
 import type { RowData } from '@tanstack/react-table'
+import type { DataGridColumn } from '@/lib/table'
 
 /**
  * 获取列的固定（pinning）样式

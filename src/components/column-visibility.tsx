@@ -1,6 +1,6 @@
 import * as React from 'react'
+import { cn } from 'cn'
 import { Check, Settings2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -33,8 +33,9 @@ export interface ColumnVisibilityTable {
   getAllColumns: () => ColumnVisibilityColumn[]
 }
 
-interface ColumnVisibilityProps
-  extends React.ComponentProps<typeof PopoverContent> {
+interface ColumnVisibilityProps extends React.ComponentProps<
+  typeof PopoverContent
+> {
   table: ColumnVisibilityTable
   /**
    * 按钮文本，默认为 "视图"
@@ -87,9 +88,15 @@ export function ColumnVisibility({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        {trigger ?? (showButton ? defaultTrigger : <></>)}
-      </PopoverTrigger>
+      <PopoverTrigger
+        render={
+          trigger
+            ? (trigger as React.ReactElement)
+            : showButton
+              ? defaultTrigger
+              : undefined
+        }
+      />
       <PopoverContent className='w-44 p-0' align='end' {...props}>
         <Command>
           <CommandInput placeholder='搜索列...' />

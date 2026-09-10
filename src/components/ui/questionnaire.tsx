@@ -1,7 +1,7 @@
 import type React from 'react'
 import { Questionnaire as Primitive } from '@shadcn/react/questionnaire'
 import { type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import { buttonVariants } from '@/components/ui/button'
 
 export const Questionnaire = Primitive.Root

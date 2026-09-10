@@ -1,6 +1,8 @@
 'use client'
 
 import * as React from 'react'
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
 import {
   type Announcements,
   closestCenter,
@@ -37,11 +39,9 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { mergeProps } from '@base-ui/react/merge-props'
-import { useRender } from '@base-ui/react/use-render'
+import { cn } from 'cn'
 import * as ReactDOM from 'react-dom'
 import { useComposedRefs } from '@/lib/compose-refs'
-import { cn } from '@/lib/utils'
 
 const orientationConfig = {
   vertical: {
@@ -304,7 +304,6 @@ const SortableContentContext = React.createContext<boolean>(false)
 interface SortableContentProps extends React.ComponentProps<'div'> {
   strategy?: SortableContextProps['strategy']
   children: React.ReactNode
-  asChild?: boolean
   render?: useRender.ComponentProps<'div'>['render']
   withoutSlot?: boolean
 }
@@ -312,7 +311,6 @@ interface SortableContentProps extends React.ComponentProps<'div'> {
 function SortableContent(props: SortableContentProps) {
   const {
     strategy: strategyProp,
-    asChild,
     render,
     withoutSlot,
     children,
@@ -322,17 +320,14 @@ function SortableContent(props: SortableContentProps) {
 
   const context = useSortableContext(CONTENT_NAME)
 
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
-
   const contentElement = useRender({
     defaultTagName: 'div',
-    render: finalRender,
+    render,
     props: mergeProps<'div'>(
       {
         'data-slot': 'sortable-content',
         ref,
-        children: asChild ? undefined : children,
+        children,
       } as React.ComponentProps<'div'>,
       contentProps
     ),
@@ -373,7 +368,6 @@ function useSortableItemContext(consumerName: string) {
 interface SortableItemProps extends React.ComponentProps<'div'> {
   value: UniqueIdentifier
   asHandle?: boolean
-  asChild?: boolean
   render?: useRender.ComponentProps<'div'>['render']
   disabled?: boolean
 }
@@ -383,7 +377,6 @@ function SortableItem(props: SortableItemProps) {
     value,
     style,
     asHandle,
-    asChild,
     render,
     disabled,
     className,
@@ -442,14 +435,9 @@ function SortableItem(props: SortableItemProps) {
     [id, attributes, listeners, setActivatorNodeRef, isDragging, disabled]
   )
 
-  const finalRender =
-    asChild && React.isValidElement(itemProps.children)
-      ? itemProps.children
-      : render
-
   const itemElement = useRender({
     defaultTagName: 'div',
-    render: finalRender,
+    render,
     props: mergeProps<'div'>(
       {
         id,
@@ -473,27 +461,21 @@ function SortableItem(props: SortableItemProps) {
         ...(asHandle && !disabled ? attributes : {}),
         ...(asHandle && !disabled ? listeners : {}),
       } as React.ComponentProps<'div'>,
-      {
-        ...itemProps,
-        children: asChild ? undefined : itemProps.children,
-      }
+      itemProps
     ),
   })
 
   return (
-    <SortableItemContext value={itemContext}>
-      {itemElement}
-    </SortableItemContext>
+    <SortableItemContext value={itemContext}>{itemElement}</SortableItemContext>
   )
 }
 
 interface SortableItemHandleProps extends React.ComponentProps<'button'> {
-  asChild?: boolean
   render?: useRender.ComponentProps<'button'>['render']
 }
 
 function SortableItemHandle(props: SortableItemHandleProps) {
-  const { asChild, render, disabled, className, ref, ...itemHandleProps } = props
+  const { render, disabled, className, ref, ...itemHandleProps } = props
 
   const context = useSortableContext(ITEM_HANDLE_NAME)
   const itemContext = useSortableItemContext(ITEM_HANDLE_NAME)
@@ -505,14 +487,9 @@ function SortableItemHandle(props: SortableItemHandleProps) {
     itemContext.setActivatorNodeRef(node)
   })
 
-  const finalRender =
-    asChild && React.isValidElement(itemHandleProps.children)
-      ? itemHandleProps.children
-      : render
-
   return useRender({
     defaultTagName: 'button',
-    render: finalRender,
+    render,
     props: mergeProps<'button'>(
       {
         type: 'button',
@@ -532,10 +509,7 @@ function SortableItemHandle(props: SortableItemHandleProps) {
         ...(isDisabled ? {} : itemContext.attributes),
         ...(isDisabled ? {} : itemContext.listeners),
       } as React.ComponentProps<'button'>,
-      {
-        ...itemHandleProps,
-        children: asChild ? undefined : itemHandleProps.children,
-      }
+      itemHandleProps
     ),
   })
 }

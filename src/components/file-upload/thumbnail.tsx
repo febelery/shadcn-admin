@@ -2,6 +2,7 @@
  * 文件缩略图组件
  */
 import * as React from 'react'
+import { cn } from 'cn'
 import {
   FileIcon,
   FileTextIcon,
@@ -19,7 +20,6 @@ import {
   PlayIcon,
 } from 'lucide-react'
 import { getFileKind, type FileKind } from '@/lib/files'
-import { cn } from '@/lib/utils'
 
 export type ThumbnailView = 'card' | 'list'
 

@@ -1,5 +1,5 @@
+import { cn } from 'cn'
 import { Loader } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -36,7 +36,9 @@ export function SelectDropdown({
     <Select items={items} {...defaultState}>
       <SelectTrigger disabled={disabled} className={cn(className)}>
         <SelectValue placeholder={placeholder ?? '请选择'}>
-          {(val: any) => items?.find((item) => item.value === val)?.label ?? val}
+          {(val: any) =>
+            items?.find((item) => item.value === val)?.label ?? val
+          }
         </SelectValue>
       </SelectTrigger>
       <SelectContent>

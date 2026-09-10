@@ -48,19 +48,23 @@ export function SourceViewDialog({ editor, disabled }: SourceViewDialogProps) {
   return (
     <Dialog>
       <Tooltip>
-        <DialogTrigger asChild>
-          <TooltipTrigger asChild>
-            <Button
-              type='button'
-              variant='ghost'
-              size='icon'
-              className='hover:bg-accent/80 h-8 w-8 p-0 transition-colors'
-              disabled={disabled}
-            >
-              <Code2 className='h-4 w-4' />
-            </Button>
-          </TooltipTrigger>
-        </DialogTrigger>
+        <DialogTrigger
+          render={
+            <TooltipTrigger
+              render={
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  className='hover:bg-accent/80 h-8 w-8 p-0 transition-colors'
+                  disabled={disabled}
+                >
+                  <Code2 className='h-4 w-4' />
+                </Button>
+              }
+            />
+          }
+        />
         <TooltipContent side='bottom' className='text-xs'>
           查看 HTML 源码
         </TooltipContent>

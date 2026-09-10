@@ -1,5 +1,4 @@
 import * as React from 'react'
-import type { DataGridTable } from '@/lib/table'
 import type {
   ContextMenuState,
   SelectionState,
@@ -8,6 +7,7 @@ import type {
 import { CopyIcon, EraserIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 import { parseCellKey } from '@/lib/data-grid'
+import type { DataGridTable } from '@/lib/table'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -115,7 +115,9 @@ function ContextMenuImpl<TData>({
     const rows = table.getRowModel().rows
     const columnIds: string[] = []
 
-    const selectedCellsArray = Array.from(selectionState.selectedCells) as string[]
+    const selectedCellsArray = Array.from(
+      selectionState.selectedCells
+    ) as string[]
     for (const cellKey of selectedCellsArray) {
       const { columnId } = parseCellKey(cellKey)
       if (columnId && !columnIds.includes(columnId)) {

@@ -1,6 +1,6 @@
 import type { Editor } from '@tiptap/react'
+import { cn } from 'cn'
 import { Type } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -33,20 +33,24 @@ export function FontSizeDropdown({ editor, disabled }: FontSizeDropdownProps) {
   return (
     <DropdownMenu>
       <Tooltip>
-        <DropdownMenuTrigger asChild>
-          <TooltipTrigger asChild>
-            <Button
-              type='button'
-              variant='ghost'
-              size='sm'
-              disabled={disabled}
-              className='text-muted-foreground hover:bg-accent/80 flex h-8 items-center gap-1.5 px-2 text-xs transition-colors'
-            >
-              <Type className='h-4 w-4 shrink-0' />
-              <span>{getActiveFontSizeLabel()}</span>
-            </Button>
-          </TooltipTrigger>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <TooltipTrigger
+              render={
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='sm'
+                  disabled={disabled}
+                  className='text-muted-foreground hover:bg-accent/80 flex h-8 items-center gap-1.5 px-2 text-xs transition-colors'
+                >
+                  <Type className='h-4 w-4 shrink-0' />
+                  <span>{getActiveFontSizeLabel()}</span>
+                </Button>
+              }
+            />
+          }
+        />
         <TooltipContent side='bottom' className='text-xs'>
           字号大小
         </TooltipContent>

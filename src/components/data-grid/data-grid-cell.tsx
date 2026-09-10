@@ -1,7 +1,5 @@
 import type { CellContext, RowData } from '@tanstack/react-table'
-import type {
-  DataGridTableFeatures,
-} from '@/lib/table'
+import type { DataGridTableFeatures } from '@/lib/table'
 import {
   CheckboxCell,
   DateCell,

@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import type { PaletteTypeId } from './question-type-hints'
 
 /** 题型库 HoverCard 内迷你示意（仅复杂题型） */

@@ -1,6 +1,6 @@
 import { appConfig } from '@/config/env'
+import { cn } from 'cn'
 import { Command } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 type AppIconProps = {
   className?: string

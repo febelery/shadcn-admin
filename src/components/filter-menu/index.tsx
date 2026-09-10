@@ -1,17 +1,15 @@
 import * as React from 'react'
-import type {
-  ColumnFilter,
-  ColumnFiltersState,
-} from '@/lib/table'
+import { format, isValid } from 'date-fns'
 import type {
   CellOpts,
   FilterOperator,
   FilterValue,
   Option,
 } from '@/types/data-grid'
+import { cn } from 'cn'
 import { SlidersHorizontal } from 'lucide-react'
 import { getDefaultOperator } from '@/lib/data-grid-filters'
-import { cn, formatDate } from '@/lib/utils'
+import type { ColumnFilter, ColumnFiltersState } from '@/lib/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -65,7 +63,9 @@ export function buildInitialFilterValue(variant: string): FilterValue {
 }
 
 export function formatFilterDisplayValue(value: unknown): string {
-  if (value instanceof Date) return formatDate(value)
+  if (value instanceof Date) {
+    return isValid(value) ? format(value, 'yyyy-MM-dd') : ''
+  }
   return String(value ?? '')
 }
 
@@ -76,7 +76,9 @@ export function getFilterValueText(fv: FilterValue | undefined): string {
   if (operator === 'between')
     return value != null && value2 != null ? `${value} - ${value2}` : ''
   if (Array.isArray(value)) return value.length > 0 ? `${value.length} 项` : ''
-  if (value instanceof Date) return formatDate(value)
+  if (value instanceof Date) {
+    return isValid(value) ? format(value, 'yyyy-MM-dd') : ''
+  }
   return String(value ?? '')
 }
 
@@ -99,8 +101,7 @@ export interface FilterMenuTable {
   }
   setColumnFilters: (
     updater:
-      | ColumnFiltersState
-      | ((old: ColumnFiltersState) => ColumnFiltersState)
+      ColumnFiltersState | ((old: ColumnFiltersState) => ColumnFiltersState)
   ) => void
 }
 
@@ -317,27 +318,29 @@ export function FilterMenu({
       >
         <div className='inline-flex shrink-0 items-center gap-1.5'>
           <Popover open={open} onOpenChange={handleOpenChange}>
-            <PopoverTrigger asChild>
-              <Button
-                variant='outline'
-                size='sm'
-                className={cn(
-                  'h-8 shrink-0 gap-1.5 font-normal transition-all',
-                  hasApplied &&
-                    'border-primary/50 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
-                )}
-              >
-                <SlidersHorizontal className='h-3.5 w-3.5' />
-                {TEXT.FILTER_BUTTON}
-                {hasApplied && (
-                  <Badge
-                    variant='secondary'
-                    className='ml-0.5 h-[18px] min-w-[18px] rounded px-1 font-mono text-[10px] font-semibold tabular-nums'
-                  >
-                    {appliedFilters.length}
-                  </Badge>
-                )}
-              </Button>
+            <PopoverTrigger
+              render={
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className={cn(
+                    'h-8 shrink-0 gap-1.5 font-normal transition-all',
+                    hasApplied &&
+                      'border-primary/50 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
+                  )}
+                />
+              }
+            >
+              <SlidersHorizontal className='h-3.5 w-3.5' />
+              {TEXT.FILTER_BUTTON}
+              {hasApplied && (
+                <Badge
+                  variant='secondary'
+                  className='ml-0.5 h-[18px] min-w-[18px] rounded px-1 font-mono text-[10px] font-semibold tabular-nums'
+                >
+                  {appliedFilters.length}
+                </Badge>
+              )}
             </PopoverTrigger>
 
             <PopoverContent

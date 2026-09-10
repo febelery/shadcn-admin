@@ -2,7 +2,7 @@ import * as React from 'react'
 import { z } from 'zod'
 import { defaultUpload } from '@/config/upload'
 import { Editor as TiptapEditor } from '@tiptap/react'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { defaultExtensions } from './extensions'
 import { useImageUpload } from './hooks/use-image-upload'
@@ -191,7 +191,7 @@ export function Editor({
         // 空段落过滤，向外传出空字符串方便表单依赖包（如 Zod）验证空值
         const isEmpty = editor.isEmpty || html === '<p></p>'
         const newValue = isEmpty ? '' : html
-        
+
         // 防抖/防死循环：如果实质内容没有改变，不要向外触发 onChange，防止误触发表单的 isDirty/isTouched 验证
         if (newValue !== valueRef.current) {
           onChangeRef.current?.(newValue)
@@ -250,7 +250,7 @@ export function Editor({
   }, [editor, value])
 
   return (
-    <TooltipProvider delayDuration={150}>
+    <TooltipProvider delay={150}>
       <div
         data-slot='editor'
         id={id}

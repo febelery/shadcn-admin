@@ -1,7 +1,7 @@
 import { useState, Suspense } from 'react'
 import { Outlet } from '@tanstack/react-router'
+import { cn } from 'cn'
 import { getCookie } from '@/lib/cookies'
-import { cn } from '@/lib/utils'
 import { LayoutProvider, useLayout } from '@/context/layout-provider'
 import { SearchProvider } from '@/context/search-provider'
 import {

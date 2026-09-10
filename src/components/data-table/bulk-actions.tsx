@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
+import { cn } from 'cn'
 import { X } from 'lucide-react'
 import { type Table } from '@/lib/table'
-import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -156,18 +156,20 @@ export function DataTableBulkActions<TData>({
           )}
         >
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant='outline'
-                size='icon'
-                onClick={handleClearSelection}
-                className='size-6 rounded-full'
-                aria-label='清除选中'
-                title='清除选中 (Escape)'
-              >
-                <X />
-                <span className='sr-only'>清除选中</span>
-              </Button>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant='outline'
+                  size='icon'
+                  onClick={handleClearSelection}
+                  className='size-6 rounded-full'
+                  aria-label='清除选中'
+                  title='清除选中 (Escape)'
+                />
+              }
+            >
+              <X />
+              <span className='sr-only'>清除选中</span>
             </TooltipTrigger>
             <TooltipContent>
               <p>清除选中 (Escape)</p>

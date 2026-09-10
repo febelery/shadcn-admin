@@ -1,5 +1,5 @@
+import { cn } from 'cn'
 import { Star } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import type {
   QuestionConfigPatch,
   QuestionElement,

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { cn } from 'cn'
 import {
   Check,
   ChevronLeft,
@@ -15,7 +16,6 @@ import {
 import { AnimatePresence } from 'motion/react'
 import * as ReactDOM from 'react-dom'
 import { getFileKind, getFileKindFromUrl } from '@/lib/files'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
 interface FilePreviewProps {

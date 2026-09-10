@@ -1,11 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTable } from '@tanstack/react-table'
-import {
-  standardTableFeatures,
-  type ColumnVisibilityState,
-} from '@/lib/table'
 import type { TableState } from '@/types/table'
 import { ClipboardList, FilterX, Plus } from 'lucide-react'
+import { standardTableFeatures, type ColumnVisibilityState } from '@/lib/table'
 import { Button } from '@/components/ui/button'
 import {
   Empty,

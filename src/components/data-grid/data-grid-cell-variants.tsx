@@ -16,7 +16,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { getCellKey, getLineCount } from '@/lib/data-grid'
-import { cn, sleep } from '@/lib/utils'
+import { cn } from 'cn'
+import { sleep } from '@/lib/utils'
 import { useBadgeOverflow } from '@/hooks/use-badge-overflow'
 import { useDebouncedCallback } from '@/hooks/use-debounced-callback'
 import { Badge } from '@/components/ui/badge'
@@ -314,19 +315,21 @@ export function LongTextCell<TData extends RowData>({
 
   return (
     <Popover open={isEditing} onOpenChange={onOpenChange}>
-      <PopoverAnchor asChild>
-        <DataGridCellWrapper
-          ref={containerRef}
-          cell={cell}
-          table={table}
-          rowIndex={rowIndex}
-          columnId={columnId}
-          isEditing={isEditing}
-          isFocused={isFocused}
-          isSelected={isSelected}
-        >
-          <span data-slot='grid-cell-content'>{value}</span>
-        </DataGridCellWrapper>
+      <PopoverAnchor
+        render={
+          <DataGridCellWrapper
+            ref={containerRef}
+            cell={cell}
+            table={table}
+            rowIndex={rowIndex}
+            columnId={columnId}
+            isEditing={isEditing}
+            isFocused={isFocused}
+            isSelected={isSelected}
+          />
+        }
+      >
+        <span data-slot='grid-cell-content'>{value}</span>
       </PopoverAnchor>
       <PopoverContent
         data-grid-cell-editor=''
@@ -1124,9 +1127,7 @@ export function MultiSelectCell<TData extends RowData>({
     >
       {isEditing ? (
         <Popover open={isEditing} onOpenChange={onOpenChange}>
-          <PopoverAnchor asChild>
-            <div className='absolute inset-0' />
-          </PopoverAnchor>
+          <PopoverAnchor render={<div className='absolute inset-0' />} />
           <PopoverContent
             data-grid-cell-editor=''
             align='start'
@@ -1325,11 +1326,13 @@ export function DateCell<TData extends RowData>({
       onKeyDown={onWrapperKeyDown}
     >
       <Popover open={isEditing} onOpenChange={onOpenChange}>
-        <PopoverAnchor asChild>
-          <span data-slot='grid-cell-content'>
-            {formatDateForDisplay(value)}
-          </span>
-        </PopoverAnchor>
+        <PopoverAnchor
+          render={
+            <span data-slot='grid-cell-content'>
+              {formatDateForDisplay(value)}
+            </span>
+          }
+        />
         {isEditing && (
           <PopoverContent
             data-grid-cell-editor=''
@@ -1825,9 +1828,7 @@ export function FileCell<TData extends RowData>({
     >
       {isEditing ? (
         <Popover open={isEditing} onOpenChange={onOpenChange}>
-          <PopoverAnchor asChild>
-            <div className='absolute inset-0' />
-          </PopoverAnchor>
+          <PopoverAnchor render={<div className='absolute inset-0' />} />
           <PopoverContent
             data-grid-cell-editor=''
             align='start'

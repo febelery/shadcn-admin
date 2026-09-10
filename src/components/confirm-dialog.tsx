@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -44,8 +44,8 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
       <AlertDialogContent className={cn(className)}>
         <AlertDialogHeader className='text-start'>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription asChild>
-            <div>{desc}</div>
+          <AlertDialogDescription render={<div />}>
+            {desc}
           </AlertDialogDescription>
         </AlertDialogHeader>
         {children}

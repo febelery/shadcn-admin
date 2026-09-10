@@ -177,9 +177,11 @@ export function PermissionPage() {
                           {role.label}
                           {isFullAccess && (
                             <Tooltip>
-                              <TooltipTrigger asChild>
-                                <ShieldAlert className='size-4 text-amber-500' />
-                              </TooltipTrigger>
+                              <TooltipTrigger
+                                render={
+                                  <ShieldAlert className='size-4 text-amber-500' />
+                                }
+                              />
                               <TooltipContent side='top'>全权限</TooltipContent>
                             </Tooltip>
                           )}

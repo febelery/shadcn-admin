@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import type { SurveyMeta, ThemeConfig } from '../core/types'
 
 type SurveyCoverMeta = Pick<
@@ -30,7 +30,7 @@ function SurveyDescription({
     return (
       <div
         className={cn(
-          'prose prose-sm dark:prose-invert max-w-none mt-1.5 text-sm leading-relaxed',
+          'prose prose-sm dark:prose-invert mt-1.5 max-w-none text-sm leading-relaxed',
           className
         )}
         dangerouslySetInnerHTML={{ __html: text }}

@@ -1,6 +1,6 @@
 import type { Editor } from '@tiptap/react'
+import { cn } from 'cn'
 import { Palette, Highlighter } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -32,27 +32,31 @@ export function ColorPopover({ editor, disabled }: ColorPopoverProps) {
       {/* 文字颜色 */}
       <Popover>
         <Tooltip>
-          <PopoverTrigger asChild>
-            <TooltipTrigger asChild>
-              <Button
-                type='button'
-                variant='ghost'
-                size='icon'
-                className={cn(
-                  'h-8 w-8 p-0',
-                  getActiveColor() !== '' &&
-                    'bg-accent/80 text-accent-foreground',
-                  'hover:bg-accent/80 transition-colors'
-                )}
-                disabled={disabled}
-              >
-                <Palette
-                  className='h-4 w-4'
-                  style={{ color: getActiveColor() || undefined }}
-                />
-              </Button>
-            </TooltipTrigger>
-          </PopoverTrigger>
+          <PopoverTrigger
+            render={
+              <TooltipTrigger
+                render={
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    className={cn(
+                      'h-8 w-8 p-0',
+                      getActiveColor() !== '' &&
+                        'bg-accent/80 text-accent-foreground',
+                      'hover:bg-accent/80 transition-colors'
+                    )}
+                    disabled={disabled}
+                  >
+                    <Palette
+                      className='h-4 w-4'
+                      style={{ color: getActiveColor() || undefined }}
+                    />
+                  </Button>
+                }
+              />
+            }
+          />
           <TooltipContent side='bottom' className='text-xs'>
             文字颜色
           </TooltipContent>
@@ -94,24 +98,28 @@ export function ColorPopover({ editor, disabled }: ColorPopoverProps) {
       {/* 背景高亮 */}
       <Popover>
         <Tooltip>
-          <PopoverTrigger asChild>
-            <TooltipTrigger asChild>
-              <Button
-                type='button'
-                variant='ghost'
-                size='icon'
-                className={cn(
-                  'h-8 w-8 p-0',
-                  editor.isActive('highlight') &&
-                    'bg-accent/80 text-accent-foreground',
-                  'hover:bg-accent/80 transition-colors'
-                )}
-                disabled={disabled}
-              >
-                <Highlighter className='h-4 w-4' />
-              </Button>
-            </TooltipTrigger>
-          </PopoverTrigger>
+          <PopoverTrigger
+            render={
+              <TooltipTrigger
+                render={
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    className={cn(
+                      'h-8 w-8 p-0',
+                      editor.isActive('highlight') &&
+                        'bg-accent/80 text-accent-foreground',
+                      'hover:bg-accent/80 transition-colors'
+                    )}
+                    disabled={disabled}
+                  >
+                    <Highlighter className='h-4 w-4' />
+                  </Button>
+                }
+              />
+            }
+          />
           <TooltipContent side='bottom' className='text-xs'>
             背景高亮
           </TooltipContent>

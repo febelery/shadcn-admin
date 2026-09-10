@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Slider as SliderPrimitive } from '@base-ui/react/slider'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 
 function Slider({
   className,
@@ -28,10 +28,7 @@ function Slider({
       min={min}
       max={max}
       thumbAlignment='edge'
-      className={cn(
-        'data-horizontal:w-full data-vertical:h-full',
-        className
-      )}
+      className={cn('data-horizontal:w-full data-vertical:h-full', className)}
       {...props}
     >
       <SliderPrimitive.Control className='relative flex w-full touch-none items-center select-none data-disabled:opacity-50 data-vertical:h-full data-vertical:min-h-44 data-vertical:w-auto data-vertical:flex-col'>

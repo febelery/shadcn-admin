@@ -13,7 +13,7 @@ import {
   type EdgeProps,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import { useTheme } from '@/context/theme-provider'
 import { START_ID } from '../../core/logic/flow-graph'
 import { ruleMatchesSearch } from '../../core/logic/rule-meta'

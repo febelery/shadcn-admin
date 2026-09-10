@@ -179,6 +179,20 @@ const menuData: MenuData = {
               items: [
                 {
                   title: 'Level 3',
+                  icon: 'Bug',
+                  items: [
+                    {
+                      title: 'Level 4',
+                      icon: 'Dna',
+                    },
+                    {
+                      title: 'Level 4 - 1',
+                      icon: 'Bug',
+                    },
+                  ],
+                },
+                {
+                  title: 'Level 3 - 1',
                   url: '/nested/level2/level3',
                   icon: 'Dna',
                 },

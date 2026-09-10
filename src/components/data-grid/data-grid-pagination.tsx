@@ -1,11 +1,11 @@
-import { type DataGridTable } from '@/lib/table'
+import { cn } from 'cn'
 import {
   ChevronFirstIcon,
   ChevronLastIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { type DataGridTable } from '@/lib/table'
 import { Button } from '@/components/ui/button'
 import {
   Select,

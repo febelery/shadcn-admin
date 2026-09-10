@@ -1,6 +1,6 @@
 import type { KeyboardEvent } from 'react'
+import { cn } from 'cn'
 import { Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import {
   Select,
   SelectContent,

@@ -1,6 +1,6 @@
 import React from 'react'
+import { cn } from 'cn'
 import { Filter, Plus, Search, Trash2, RotateCcw } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

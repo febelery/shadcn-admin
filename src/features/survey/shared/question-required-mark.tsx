@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import {
   Tooltip,
   TooltipContent,
@@ -75,25 +75,27 @@ export function QuestionRequiredMark({
   if (onToggle) {
     return (
       <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type='button'
-            {...{ [QUESTION_REQUIRED_TOGGLE_ATTR]: '' }}
-            className={cn(
-              questionRequiredColumn,
-              'hover:bg-muted/70 rounded-sm transition-colors',
-              'focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none'
-            )}
-            aria-label={label}
-            aria-pressed={required}
-            onPointerDown={(e) => {
-              e.stopPropagation()
-              onToggle()
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {glyph}
-          </button>
+        <TooltipTrigger
+          render={
+            <button
+              type='button'
+              {...{ [QUESTION_REQUIRED_TOGGLE_ATTR]: '' }}
+              className={cn(
+                questionRequiredColumn,
+                'hover:bg-muted/70 rounded-sm transition-colors',
+                'focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none'
+              )}
+              aria-label={label}
+              aria-pressed={required}
+              onPointerDown={(e) => {
+                e.stopPropagation()
+                onToggle()
+              }}
+              onClick={(e) => e.stopPropagation()}
+            />
+          }
+        >
+          {glyph}
         </TooltipTrigger>
         <TooltipContent side='top' className='text-xs'>
           {label}

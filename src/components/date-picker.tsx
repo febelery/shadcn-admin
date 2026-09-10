@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   addHours,
   endOfDay,
@@ -22,6 +15,7 @@ import {
   startOfMinute,
   subHours,
 } from 'date-fns'
+import { cn } from 'cn'
 import { zhCN } from 'date-fns/locale'
 import {
   Calendar as CalendarIcon,
@@ -31,7 +25,6 @@ import {
   XCircle,
 } from 'lucide-react'
 import type { Matcher } from 'react-day-picker'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
@@ -113,7 +106,7 @@ type DateTimePickerProps = DatePickerBaseProps & {
   includeTime: true
   use12HourFormat?: boolean
   timePicker?: TimePickerConfig
-  renderTrigger?: (props: DatePickerRenderTriggerProps) => ReactNode
+  renderTrigger?: (props: DatePickerRenderTriggerProps) => React.ReactElement
 }
 
 export type DatePickerProps = DateOnlyPickerProps | DateTimePickerProps
@@ -191,23 +184,25 @@ function DateOnlyPickerPanel({
 }: DateOnlyPickerProps) {
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant='outline'
-          disabled={disabled}
-          data-empty={!value}
-          className={
-            className ??
-            'data-[empty=true]:text-muted-foreground w-full justify-start text-start font-normal'
-          }
-        >
-          {value ? (
-            format(value, 'yyyy-MM-dd', { locale: zhCN })
-          ) : (
-            <span>{placeholder}</span>
-          )}
-          <CalendarIcon className='ms-auto size-4 opacity-50' />
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            variant='outline'
+            disabled={disabled}
+            data-empty={!value}
+            className={
+              className ??
+              'data-[empty=true]:text-muted-foreground w-full justify-start text-start font-normal'
+            }
+          />
+        }
+      >
+        {value ? (
+          format(value, 'yyyy-MM-dd', { locale: zhCN })
+        ) : (
+          <span>{placeholder}</span>
+        )}
+        <CalendarIcon className='ms-auto size-4 opacity-50' />
       </PopoverTrigger>
       <PopoverContent className='w-auto p-0' align='start'>
         <DatePickerCalendar
@@ -277,51 +272,54 @@ function DateTimePickerPanel({
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={modal}>
-      <PopoverTrigger asChild>
-        {renderTrigger ? (
-          renderTrigger({
-            value: displayValue,
-            open,
-            disabled,
-            use12HourFormat,
-            setOpen,
-          })
-        ) : (
-          <div
-            className={cn(
-              'border-input flex h-9 w-full cursor-pointer items-center rounded-md border ps-3 pe-1 text-sm font-normal shadow-sm',
-              !displayValue && 'text-muted-foreground',
-              (!clearable || !value) && 'pe-3',
-              disabled && 'cursor-not-allowed opacity-50',
-              classNames?.trigger
-            )}
-            tabIndex={0}
-          >
-            <div className='flex grow items-center'>
-              <CalendarIcon className='mr-2 size-4' />
-              {displayFormat}
+      <PopoverTrigger
+        nativeButton={false}
+        render={
+          renderTrigger ? (
+            renderTrigger({
+              value: displayValue,
+              open,
+              disabled,
+              use12HourFormat,
+              setOpen,
+            })
+          ) : (
+            <div
+              className={cn(
+                'border-input flex h-9 w-full cursor-pointer items-center rounded-md border ps-3 pe-1 text-sm font-normal shadow-sm',
+                !displayValue && 'text-muted-foreground',
+                (!clearable || !value) && 'pe-3',
+                disabled && 'cursor-not-allowed opacity-50',
+                classNames?.trigger
+              )}
+              tabIndex={0}
+            >
+              <div className='flex grow items-center'>
+                <CalendarIcon className='mr-2 size-4' />
+                {displayFormat}
+              </div>
+              {clearable && value ? (
+                <Button
+                  disabled={disabled}
+                  variant='ghost'
+                  size='sm'
+                  type='button'
+                  aria-label='清除'
+                  className='ms-1 size-6 p-1'
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                    onChange(undefined)
+                    setOpen(false)
+                  }}
+                >
+                  <XCircle className='size-4' />
+                </Button>
+              ) : null}
             </div>
-            {clearable && value ? (
-              <Button
-                disabled={disabled}
-                variant='ghost'
-                size='sm'
-                type='button'
-                aria-label='清除'
-                className='ms-1 size-6 p-1'
-                onClick={(e) => {
-                  e.stopPropagation()
-                  e.preventDefault()
-                  onChange(undefined)
-                  setOpen(false)
-                }}
-              >
-                <XCircle className='size-4' />
-              </Button>
-            ) : null}
-          </div>
-        )}
-      </PopoverTrigger>
+          )
+        }
+      />
       <PopoverContent className='w-auto p-0' align='start'>
         <DatePickerCalendar
           selected={date}
@@ -518,17 +516,19 @@ function TimePicker({
 
   return (
     <Popover open={timeOpen} onOpenChange={setTimeOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type='button'
-          variant='outline'
-          className='w-full justify-between'
-          aria-expanded={timeOpen}
-        >
-          <Clock className='mr-2 size-4' />
-          {display}
-          <ChevronDownIcon className='ml-2 size-4 shrink-0 opacity-50' />
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            type='button'
+            variant='outline'
+            className='w-full justify-between'
+            aria-expanded={timeOpen}
+          />
+        }
+      >
+        <Clock className='mr-2 size-4' />
+        {display}
+        <ChevronDownIcon className='ml-2 size-4 shrink-0 opacity-50' />
       </PopoverTrigger>
       <PopoverContent className='w-auto p-2' side='top' align='start'>
         <div className='flex h-48 gap-1'>

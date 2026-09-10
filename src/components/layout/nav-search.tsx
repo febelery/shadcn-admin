@@ -1,7 +1,7 @@
 'use client'
 
+import { cn } from 'cn'
 import { Search } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { useSearch } from '@/context/search-provider'
 import { SidebarHeader, useSidebar } from '@/components/ui/sidebar'
 import {
@@ -19,17 +19,19 @@ export function NavSearch({ className }: { className?: string }) {
   return (
     <SidebarHeader className={cn(className)}>
       {isCollapsed ? (
-        <TooltipProvider delayDuration={0}>
+        <TooltipProvider delay={0}>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                className='hover:bg-sidebar-accent flex size-7 items-center justify-center rounded-md transition-[width,height,padding] duration-200 ease-linear'
-                onClick={() => setOpen(true)}
-                aria-label='搜索'
-              >
-                <Search className='h-4 w-4' />
-              </button>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <button
+                  className='hover:bg-sidebar-accent flex size-7 items-center justify-center rounded-md transition-[width,height,padding] duration-200 ease-linear'
+                  onClick={() => setOpen(true)}
+                  aria-label='搜索'
+                >
+                  <Search className='h-4 w-4' />
+                </button>
+              }
+            />
             <TooltipContent
               side='right'
               align='center'

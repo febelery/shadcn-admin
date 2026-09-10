@@ -1,7 +1,8 @@
 import React, { type SVGProps } from 'react'
-import { CircleCheck, RotateCcw, Palette } from 'lucide-react'
 import { Radio } from '@base-ui/react/radio'
 import { RadioGroup } from '@base-ui/react/radio-group'
+import { cn } from 'cn'
+import { CircleCheck, RotateCcw, Palette } from 'lucide-react'
 import { IconLayoutCompact } from '@/assets/custom/icon-layout-compact'
 import { IconLayoutDefault } from '@/assets/custom/icon-layout-default'
 import { IconLayoutFull } from '@/assets/custom/icon-layout-full'
@@ -11,7 +12,6 @@ import { IconSidebarSidebar } from '@/assets/custom/icon-sidebar-sidebar'
 import { IconThemeDark } from '@/assets/custom/icon-theme-dark'
 import { IconThemeLight } from '@/assets/custom/icon-theme-light'
 import { IconThemeSystem } from '@/assets/custom/icon-theme-system'
-import { cn } from '@/lib/utils'
 import { type Collapsible, useLayout } from '@/context/layout-provider'
 import { useTheme } from '@/context/theme-provider'
 import { Button } from '@/components/ui/button'
@@ -43,18 +43,20 @@ export function ConfigDrawer({
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <Button
-          size='icon'
-          variant='ghost'
-          aria-label='打开主题设置'
-          aria-describedby='config-drawer-description'
-          className={showLabel ? 'h-auto w-auto gap-2 px-0' : 'size-4'}
-        >
-          <Palette aria-hidden='true' className='size-4 shrink-0' />
-          {showLabel && <span className='text-sm font-normal'>外观设置</span>}
-        </Button>
-      </SheetTrigger>
+      <SheetTrigger
+        render={
+          <Button
+            size='icon'
+            variant='ghost'
+            aria-label='打开主题设置'
+            aria-describedby='config-drawer-description'
+            className={showLabel ? 'h-auto w-auto gap-2 px-0' : 'size-4'}
+          >
+            <Palette aria-hidden='true' className='size-4 shrink-0' />
+            {showLabel && <span className='text-sm font-normal'>外观设置</span>}
+          </Button>
+        }
+      />
       <SheetContent className='flex flex-col'>
         <SheetHeader className='pb-0 text-start'>
           <SheetTitle>外观设置</SheetTitle>

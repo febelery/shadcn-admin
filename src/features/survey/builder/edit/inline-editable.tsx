@@ -1,5 +1,5 @@
 import type { ChangeEvent, KeyboardEvent } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import { limitText } from '../shared/text-limits'
 
 export type InlineEditableElement = HTMLInputElement | HTMLTextAreaElement

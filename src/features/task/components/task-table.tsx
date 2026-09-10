@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useTable } from '@tanstack/react-table'
-import {
-  standardTableFeatures,
-  type ColumnVisibilityState,
-} from '@/lib/table'
 import { type TableState } from '@/types/table'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
+import { standardTableFeatures, type ColumnVisibilityState } from '@/lib/table'
 import { ColumnVisibility } from '@/components/column-visibility'
 import { DataTable, DataTablePagination } from '@/components/data-table'
 import { FilterMenu } from '@/components/filter-menu'

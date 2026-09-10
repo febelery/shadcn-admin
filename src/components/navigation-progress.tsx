@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouterState } from '@tanstack/react-router'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 
 type State = 'idle' | 'running' | 'finishing' | 'fading' | 'done'
 
@@ -8,7 +8,14 @@ export function NavigationProgress() {
   const isPending = useRouterState({ select: (s) => s.status === 'pending' })
   const [state, setState] = useState<State>('idle')
   const [progress, setProgress] = useState(0)
+
+  const stateRef = useRef<State>('idle')
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const updateState = (nextState: State) => {
+    stateRef.current = nextState
+    setState(nextState)
+  }
 
   const clearTimer = () => {
     if (timerRef.current) {
@@ -21,14 +28,15 @@ export function NavigationProgress() {
     if (isPending) {
       clearTimer()
       setProgress(0)
-      setState('running')
+      updateState('running')
+
       timerRef.current = setInterval(() => {
         setProgress((prev) => prev + (90 - prev) * 0.1)
       }, 200)
-    } else if (state === 'running') {
+    } else if (stateRef.current === 'running') {
       clearTimer()
       setProgress(100)
-      setState('finishing')
+      updateState('finishing')
     }
 
     return clearTimer
@@ -37,14 +45,14 @@ export function NavigationProgress() {
   // 第一个 onTransitionEnd：progress 跑到 100% 后触发 fade-out
   const handleBarTransitionEnd = () => {
     if (state === 'finishing') {
-      setState('fading') // opacity 0 开始
+      updateState('fading')
     }
   }
 
   // 第二个 onTransitionEnd：fade-out 结束后彻底卸载
   const handleWrapperTransitionEnd = () => {
     if (state === 'fading') {
-      setState('done')
+      updateState('done')
       setProgress(0)
     }
   }

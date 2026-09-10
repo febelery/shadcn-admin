@@ -1,7 +1,7 @@
 import type { DraggableAttributes } from '@dnd-kit/core'
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities'
+import { cn } from 'cn'
 import { Copy, GripVertical, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -23,11 +23,11 @@ function ActionTooltip({
   children,
 }: {
   label: string
-  children: React.ReactNode
+  children: React.ReactElement
 }) {
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipTrigger render={children} />
       <TooltipContent side='left' className='text-xs leading-none'>
         {label}
       </TooltipContent>

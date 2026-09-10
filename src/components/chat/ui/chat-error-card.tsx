@@ -1,6 +1,6 @@
 import { useState } from 'react'
+import { cn } from 'cn'
 import { AlertCircle, ChevronDown, RotateCw, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
 export interface ChatErrorCardProps {

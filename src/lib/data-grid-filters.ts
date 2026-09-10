@@ -1,4 +1,3 @@
-import type { DataGridFilterFn, DataGridRow } from '@/lib/table'
 import type {
   BooleanFilterOperator,
   DateFilterOperator,
@@ -8,6 +7,7 @@ import type {
   SelectFilterOperator,
   TextFilterOperator,
 } from '@/types/data-grid'
+import type { DataGridFilterFn, DataGridRow } from '@/lib/table'
 
 export const TEXT_FILTER_OPERATORS: ReadonlyArray<{
   label: string
@@ -305,4 +305,3 @@ export const dataGridFilterFn: DataGridFilterFn<any> = (
 export function getFilterFn<TData>(): DataGridFilterFn<TData> {
   return dataGridFilterFn as DataGridFilterFn<TData>
 }
-

@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { useDroppable } from '@dnd-kit/core'
+import { cn } from 'cn'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { cn } from '@/lib/utils'
 import { useActiveDrag } from '../shared/dnd-provider'
 import { INSERT_DROP, type InsertDropData } from '../shared/dnd-types'
 

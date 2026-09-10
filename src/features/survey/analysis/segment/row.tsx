@@ -1,6 +1,6 @@
 import React from 'react'
+import { cn } from 'cn'
 import { AlertCircle, X, ChevronDown, Check } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { useDebouncedCallback } from '@/hooks/use-debounced-callback'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -183,23 +183,25 @@ export const SegmentRow = React.memo(function SegmentRow({
       </div>
       <div className='min-w-0 pr-8 lg:pr-0'>
         <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant='outline'
-              role='combobox'
-              aria-expanded={open}
-              className={cn(
-                'border-muted/80 hover:border-muted-foreground/30 focus-visible:ring-ring bg-background h-8 w-full justify-between px-3 text-left text-xs font-normal shadow-none transition-colors duration-200 focus-visible:ring-1',
-                !condition.questionId && 'text-muted-foreground',
-                (isQuestionError || isConflictError) &&
-                  'border-destructive/60 text-destructive focus-visible:ring-destructive'
-              )}
-            >
-              <span className='mr-2 truncate'>
-                {selectedOption ? selectedOption.label : '选择题目'}
-              </span>
-              <ChevronDown className='h-4 w-4 shrink-0 opacity-50' />
-            </Button>
+          <PopoverTrigger
+            render={
+              <Button
+                variant='outline'
+                role='combobox'
+                aria-expanded={open}
+                className={cn(
+                  'border-muted/80 hover:border-muted-foreground/30 focus-visible:ring-ring bg-background h-8 w-full justify-between px-3 text-left text-xs font-normal shadow-none transition-colors duration-200 focus-visible:ring-1',
+                  !condition.questionId && 'text-muted-foreground',
+                  (isQuestionError || isConflictError) &&
+                    'border-destructive/60 text-destructive focus-visible:ring-destructive'
+                )}
+              />
+            }
+          >
+            <span className='mr-2 truncate'>
+              {selectedOption ? selectedOption.label : '选择题目'}
+            </span>
+            <ChevronDown className='h-4 w-4 shrink-0 opacity-50' />
           </PopoverTrigger>
           <PopoverContent className='w-[350px] p-0' align='start'>
             <Command>

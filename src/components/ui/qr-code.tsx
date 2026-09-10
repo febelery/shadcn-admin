@@ -3,8 +3,8 @@
 import * as React from 'react'
 import { mergeProps } from '@base-ui/react/merge-props'
 import { useRender } from '@base-ui/react/use-render'
+import { cn } from 'cn'
 import { useComposedRefs } from '@/lib/compose-refs'
-import { cn } from '@/lib/utils'
 
 const ROOT_NAME = 'QRCode'
 const CANVAS_NAME = 'QRCodeCanvas'
@@ -91,8 +91,10 @@ function useQRCodeContext(consumerName: string) {
   return context
 }
 
-interface QRCodeRootProps
-  extends Omit<useRender.ComponentProps<'div'>, 'onError'> {
+interface QRCodeRootProps extends Omit<
+  useRender.ComponentProps<'div'>,
+  'onError'
+> {
   value: string
   size?: number
   level?: QRCodeLevel
@@ -102,7 +104,6 @@ interface QRCodeRootProps
   foregroundColor?: string
   onError?: (error: Error) => void
   onGenerated?: () => void
-  asChild?: boolean
 }
 
 function QRCodeRoot(props: QRCodeRootProps) {
@@ -118,7 +119,6 @@ function QRCodeRoot(props: QRCodeRootProps) {
     onGenerated,
     className,
     style,
-    asChild,
     render,
     children,
     ...rootProps
@@ -284,15 +284,12 @@ function QRCodeRoot(props: QRCodeRootProps) {
     }
   }, [generationKey, onQRCodeGenerate])
 
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
-
   return (
     <StoreContext value={store}>
       <QRCodeContext value={contextValue}>
         {useRender({
           defaultTagName: 'div',
-          render: finalRender,
+          render,
           props: mergeProps<'div'>(
             {
               'data-slot': 'qr-code',
@@ -313,23 +310,19 @@ function QRCodeRoot(props: QRCodeRootProps) {
   )
 }
 
-interface QRCodeCanvasProps extends useRender.ComponentProps<'canvas'> {
-  asChild?: boolean
-}
+interface QRCodeCanvasProps extends useRender.ComponentProps<'canvas'> {}
 
 function QRCodeCanvas(props: QRCodeCanvasProps) {
-  const { asChild, className, ref, render, children, ...canvasProps } = props
+  const { className, ref, render, ...canvasProps } = props
 
   const context = useQRCodeContext(CANVAS_NAME)
   const generationKey = useStore((state) => state.generationKey)
 
   const composedRef = useComposedRefs(ref, context.canvasRef)
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
 
   return useRender({
     defaultTagName: 'canvas',
-    render: finalRender,
+    render,
     props: mergeProps<'canvas'>(
       {
         'data-slot': 'qr-code-canvas',
@@ -347,24 +340,19 @@ function QRCodeCanvas(props: QRCodeCanvasProps) {
   })
 }
 
-interface QRCodeSvgProps extends useRender.ComponentProps<'div'> {
-  asChild?: boolean
-}
+interface QRCodeSvgProps extends useRender.ComponentProps<'div'> {}
 
 function QRCodeSvg(props: QRCodeSvgProps) {
-  const { asChild, className, style, render, children, ...svgProps } = props
+  const { className, style, render, ...svgProps } = props
 
   const context = useQRCodeContext(SVG_NAME)
   const svgString = useStore((state) => state.svgString)
 
   if (!svgString) return null
 
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
-
   return useRender({
     defaultTagName: 'div',
-    render: finalRender,
+    render,
     props: mergeProps<'div'>(
       {
         'data-slot': 'qr-code-svg',
@@ -380,31 +368,19 @@ function QRCodeSvg(props: QRCodeSvgProps) {
   })
 }
 
-interface QRCodeImageProps extends useRender.ComponentProps<'img'> {
-  asChild?: boolean
-}
+interface QRCodeImageProps extends useRender.ComponentProps<'img'> {}
 
 function QRCodeImage(props: QRCodeImageProps) {
-  const {
-    alt = 'QR Code',
-    asChild,
-    className,
-    render,
-    children,
-    ...imageProps
-  } = props
+  const { alt = 'QR Code', className, render, ...imageProps } = props
 
   const context = useQRCodeContext(IMAGE_NAME)
   const dataUrl = useStore((state) => state.dataUrl)
 
   if (!dataUrl) return null
 
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
-
   return useRender({
     defaultTagName: 'img',
-    render: finalRender,
+    render,
     props: mergeProps<'img'>(
       {
         'data-slot': 'qr-code-image',
@@ -425,14 +401,12 @@ function QRCodeImage(props: QRCodeImageProps) {
 interface QRCodeDownloadProps extends useRender.ComponentProps<'button'> {
   filename?: string
   format?: 'png' | 'svg'
-  asChild?: boolean
 }
 
 function QRCodeDownload(props: QRCodeDownloadProps) {
   const {
     filename = 'qrcode',
     format = 'png',
-    asChild,
     className,
     children,
     render,
@@ -471,12 +445,9 @@ function QRCodeDownload(props: QRCodeDownloadProps) {
     [dataUrl, svgString, filename, format, buttonProps.onClick]
   )
 
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
-
   return useRender({
     defaultTagName: 'button',
-    render: finalRender,
+    render,
     props: mergeProps<'button'>(
       {
         type: 'button',
@@ -490,18 +461,14 @@ function QRCodeDownload(props: QRCodeDownloadProps) {
   })
 }
 
-interface QRCodeOverlayProps extends useRender.ComponentProps<'div'> {
-  asChild?: boolean
-}
+interface QRCodeOverlayProps extends useRender.ComponentProps<'div'> {}
 
 function QRCodeOverlay(props: QRCodeOverlayProps) {
-  const { asChild, className, render, children, ...overlayProps } = props
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
+  const { className, render, ...overlayProps } = props
 
   return useRender({
     defaultTagName: 'div',
-    render: finalRender,
+    render,
     props: mergeProps<'div'>(
       {
         'data-slot': 'qr-code-overlay',
@@ -515,12 +482,10 @@ function QRCodeOverlay(props: QRCodeOverlayProps) {
   })
 }
 
-interface QRCodeSkeletonProps extends useRender.ComponentProps<'div'> {
-  asChild?: boolean
-}
+interface QRCodeSkeletonProps extends useRender.ComponentProps<'div'> {}
 
 function QRCodeSkeleton(props: QRCodeSkeletonProps) {
-  const { asChild, className, style, render, children, ...skeletonProps } = props
+  const { className, style, render, ...skeletonProps } = props
   const context = useQRCodeContext(SKELETON_NAME)
   const dataUrl = useStore((state) => state.dataUrl)
   const svgString = useStore((state) => state.svgString)
@@ -530,12 +495,9 @@ function QRCodeSkeleton(props: QRCodeSkeletonProps) {
 
   if (isLoaded) return null
 
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
-
   return useRender({
     defaultTagName: 'div',
-    render: finalRender,
+    render,
     props: mergeProps<'div'>(
       {
         'data-slot': 'qr-code-skeleton',

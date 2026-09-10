@@ -1,7 +1,8 @@
 import * as React from 'react'
+import { format, isValid } from 'date-fns'
 import type { FilterOperator } from '@/types/data-grid'
+import { cn } from 'cn'
 import { CalendarIcon, Check } from 'lucide-react'
-import { cn, formatDate } from '@/lib/utils'
 import { useDebouncedCallback } from '@/hooks/use-debounced-callback'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -142,31 +143,39 @@ function TextFilterInput({ value, onChange, placeholder }: any) {
 
 function DateFilterInput({ value, onChange, placeholder }: any) {
   const [open, setOpen] = React.useState(false)
-  const dateObj = typeof value === 'string' ? new Date(value) : undefined
+  const dateObj =
+    typeof value === 'string'
+      ? new Date(value)
+      : value instanceof Date
+        ? value
+        : undefined
+  const isDateValid = dateObj != null && isValid(dateObj)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant='outline'
-          size='sm'
-          className={cn(
-            'h-8 w-full justify-start gap-1.5 rounded-md px-2.5 text-xs font-normal',
-            !dateObj && 'text-muted-foreground'
-          )}
-        >
-          <CalendarIcon className='h-3.5 w-3.5' />
-          <span className='truncate'>
-            {dateObj ? formatDate(dateObj) : placeholder}
-          </span>
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            variant='outline'
+            size='sm'
+            className={cn(
+              'h-8 w-full justify-start gap-1.5 rounded-md px-2.5 text-xs font-normal',
+              !isDateValid && 'text-muted-foreground'
+            )}
+          />
+        }
+      >
+        <CalendarIcon className='h-3.5 w-3.5' />
+        <span className='truncate'>
+          {isDateValid ? format(dateObj, 'yyyy-MM-dd') : placeholder}
+        </span>
       </PopoverTrigger>
       <PopoverContent align='start' className='w-auto p-0'>
         <Calendar
           autoFocus
           captionLayout='dropdown'
           mode='single'
-          selected={dateObj}
+          selected={isDateValid ? dateObj : undefined}
           onSelect={(date) => {
             onChange(date?.toISOString())
             setOpen(false)
@@ -188,21 +197,23 @@ function SingleSelectFilterInput({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant='outline'
-          size='sm'
-          className='h-8 w-full justify-start gap-1.5 rounded-md px-2.5 text-xs font-normal'
-        >
-          {selected ? (
-            <>
-              {selected.icon && <selected.icon className='h-3.5 w-3.5' />}
-              <span className='truncate'>{selected.label}</span>
-            </>
-          ) : (
-            <span className='text-muted-foreground'>{placeholder}</span>
-          )}
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            variant='outline'
+            size='sm'
+            className='h-8 w-full justify-start gap-1.5 rounded-md px-2.5 text-xs font-normal'
+          />
+        }
+      >
+        {selected ? (
+          <>
+            {selected.icon && <selected.icon className='h-3.5 w-3.5' />}
+            <span className='truncate'>{selected.label}</span>
+          </>
+        ) : (
+          <span className='text-muted-foreground'>{placeholder}</span>
+        )}
       </PopoverTrigger>
       <PopoverContent align='start' className='w-52 p-0'>
         <OptionCommand
@@ -237,25 +248,27 @@ function MultiSelectFilterInput({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant='outline'
-          size='sm'
-          className='h-8 w-full justify-start gap-1.5 rounded-md px-2.5 text-xs font-normal'
-        >
-          {displayOpts.length === 0 ? (
-            <span className='text-muted-foreground'>{placeholder}</span>
-          ) : (
-            <>
-              <StackedIcons opts={displayOpts} />
-              <span className='truncate'>
-                {displayOpts.length > 1
-                  ? `${displayOpts.length} 项已选`
-                  : displayOpts[0]?.label}
-              </span>
-            </>
-          )}
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            variant='outline'
+            size='sm'
+            className='h-8 w-full justify-start gap-1.5 rounded-md px-2.5 text-xs font-normal'
+          />
+        }
+      >
+        {displayOpts.length === 0 ? (
+          <span className='text-muted-foreground'>{placeholder}</span>
+        ) : (
+          <>
+            <StackedIcons opts={displayOpts} />
+            <span className='truncate'>
+              {displayOpts.length > 1
+                ? `${displayOpts.length} 项已选`
+                : displayOpts[0]?.label}
+            </span>
+          </>
+        )}
       </PopoverTrigger>
       <PopoverContent align='start' className='w-52 p-0'>
         <OptionCommand

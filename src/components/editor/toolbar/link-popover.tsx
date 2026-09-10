@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type { Editor } from '@tiptap/react'
+import { cn } from 'cn'
 import { Link, Link2Off } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -53,23 +53,28 @@ export function LinkPopover({ editor, disabled }: LinkPopoverProps) {
   return (
     <Popover open={isPopoverOpen} onOpenChange={handleLinkOpen}>
       <Tooltip>
-        <PopoverTrigger asChild>
-          <TooltipTrigger asChild>
-            <Button
-              type='button'
-              variant='ghost'
-              size='icon'
-              className={cn(
-                'h-8 w-8 p-0',
-                editor.isActive('link') && 'bg-accent text-accent-foreground',
-                'hover:bg-accent/80 transition-colors'
-              )}
-              disabled={disabled}
-            >
-              <Link className='h-4 w-4' />
-            </Button>
-          </TooltipTrigger>
-        </PopoverTrigger>
+        <PopoverTrigger
+          render={
+            <TooltipTrigger
+              render={
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  className={cn(
+                    'h-8 w-8 p-0',
+                    editor.isActive('link') &&
+                      'bg-accent text-accent-foreground',
+                    'hover:bg-accent/80 transition-colors'
+                  )}
+                  disabled={disabled}
+                >
+                  <Link className='h-4 w-4' />
+                </Button>
+              }
+            />
+          }
+        />
         <TooltipContent side='bottom' className='text-xs'>
           超链接
         </TooltipContent>

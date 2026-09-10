@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { useDraggable } from '@dnd-kit/core'
+import { cn } from 'cn'
 import { ChevronRight, LayoutGrid, Search } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -119,13 +119,15 @@ function PaletteItemRow({
     >
       {showHelp ? (
         <HoverCard openDelay={200} closeDelay={80}>
-          <HoverCardTrigger asChild>
-            <span
-              className='bg-muted/80 text-foreground group-hover:bg-accent group-hover:text-accent-foreground flex size-7 shrink-0 cursor-help items-center justify-center rounded-sm transition-colors'
-              aria-label={`${item.label} 说明`}
-            >
-              <Icon className='size-3.5' />
-            </span>
+          <HoverCardTrigger
+            render={
+              <span
+                className='bg-muted/80 text-foreground group-hover:bg-accent group-hover:text-accent-foreground flex size-7 shrink-0 cursor-help items-center justify-center rounded-sm transition-colors'
+                aria-label={`${item.label} 说明`}
+              />
+            }
+          >
+            <Icon className='size-3.5' />
           </HoverCardTrigger>
           <HoverCardContent
             side='bottom'
@@ -172,7 +174,7 @@ function PaletteCategory({
           'hover:bg-muted/50 hover:text-foreground transition-colors duration-150'
         )}
       >
-        <ChevronRight className='size-3.5 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90 group-data-open/collapsible:rotate-90' />
+        <ChevronRight className='size-3.5 shrink-0 transition-transform group-data-open/collapsible:rotate-90 group-data-[state=open]/collapsible:rotate-90' />
         <span className='truncate'>{title}</span>
         <span className='text-muted-foreground ms-auto tabular-nums'>
           {count}

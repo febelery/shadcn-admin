@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -27,21 +27,23 @@ export function ToolbarButton({
 }: ToolbarButtonProps) {
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon'
-          className={cn(
-            'h-8 w-8 p-0',
-            active && 'bg-accent text-accent-foreground',
-            'hover:bg-accent/80 transition-colors'
-          )}
-          onClick={onClick}
-          disabled={disabled}
-        >
-          {children}
-        </Button>
+      <TooltipTrigger
+        render={
+          <Button
+            type='button'
+            variant='ghost'
+            size='icon'
+            className={cn(
+              'h-8 w-8 p-0',
+              active && 'bg-accent text-accent-foreground',
+              'hover:bg-accent/80 transition-colors'
+            )}
+            onClick={onClick}
+            disabled={disabled}
+          />
+        }
+      >
+        {children}
       </TooltipTrigger>
       <TooltipContent side='bottom' className='text-xs'>
         {tooltip}

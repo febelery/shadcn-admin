@@ -2,14 +2,14 @@ allowBuilds:
   msw: true
 minimumReleaseAgeExclude:
   - '@faker-js/faker@10.5.0'
-  - lucide-react@1.21.0 || 1.42.0 || 1.43.0
+  - lucide-react@1.21.0 || 1.42.0 || 1.43.0 || 1.44.0
   - react-image-crop@11.1.2
-  - '@tanstack/history@1.162.2'
-  - '@tanstack/react-router@1.170.33'
-  - '@tanstack/router-cli@1.167.34'
-  - '@tanstack/router-core@1.171.28'
-  - '@tanstack/router-generator@1.167.34'
-  - '@tanstack/router-plugin@1.168.36'
+  - '@tanstack/history@1.162.2 || 1.162.3'
+  - '@tanstack/react-router@1.170.33 || 1.170.34'
+  - '@tanstack/router-cli@1.167.34 || 1.167.35'
+  - '@tanstack/router-core@1.171.28 || 1.171.29'
+  - '@tanstack/router-generator@1.167.34 || 1.167.35'
+  - '@tanstack/router-plugin@1.168.36 || 1.168.37'
   - cn@0.2.6
   - '@oxlint/binding-android-arm-eabi@1.82.0'
   - '@oxlint/binding-android-arm64@1.82.0'
@@ -30,10 +30,23 @@ minimumReleaseAgeExclude:
   - '@oxlint/binding-win32-arm64-msvc@1.82.0'
   - '@oxlint/binding-win32-ia32-msvc@1.82.0'
   - '@oxlint/binding-win32-x64-msvc@1.82.0'
-  - '@splinetool/runtime@2.0.40 || 2.0.41'
+  - '@splinetool/runtime@2.0.40 || 2.0.41 || 2.0.43'
   - '@tanstack/react-virtual@3.14.11'
   - '@tanstack/virtual-core@3.17.9'
   - '@types/node@26.5.0'
   - oxlint@1.82.0
   - knip@6.35.0
   - tiptap-extension-resize-image@1.4.7
+  - '@ai-sdk/gateway@4.0.78'
+  - '@ai-sdk/mcp@2.0.48'
+  - '@ai-sdk/provider-utils@5.0.39'
+  - '@ai-sdk/provider@4.0.13'
+  - '@ai-sdk/react@4.0.100'
+  - '@tanstack/router-utils@1.162.3'
+  - '@types/react-dom@19.3.0'
+  - '@types/react@19.3.0'
+  - ai@7.0.97
+  - react-dom@19.3.0
+  - react@19.3.0
+  - scheduler@0.28.0
+  - zod@4.6.1

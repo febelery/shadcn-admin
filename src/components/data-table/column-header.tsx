@@ -1,6 +1,6 @@
-import { type Column } from '@/lib/table'
+import { cn } from 'cn'
 import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { type Column } from '@/lib/table'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -28,21 +28,23 @@ export function DataTableColumnHeader<TData, TValue>({
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant='ghost'
-            size='sm'
-            className='data-[state=open]:bg-accent h-8 gap-1.5 px-2'
-          >
-            <span>{title}</span>
-            {column.getIsSorted() === 'desc' ? (
-              <ArrowDown className='size-4' />
-            ) : column.getIsSorted() === 'asc' ? (
-              <ArrowUp className='size-4' />
-            ) : (
-              <ChevronsUpDown className='size-4' />
-            )}
-          </Button>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant='ghost'
+              size='sm'
+              className='data-[state=open]:bg-accent h-8 gap-1.5 px-2'
+            />
+          }
+        >
+          <span>{title}</span>
+          {column.getIsSorted() === 'desc' ? (
+            <ArrowDown className='size-4' />
+          ) : column.getIsSorted() === 'asc' ? (
+            <ArrowUp className='size-4' />
+          ) : (
+            <ChevronsUpDown className='size-4' />
+          )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align='start'>
           <DropdownMenuItem onClick={() => column.toggleSorting(false)}>

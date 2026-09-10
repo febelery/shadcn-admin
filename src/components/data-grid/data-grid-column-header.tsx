@@ -1,12 +1,6 @@
 import * as React from 'react'
-import type {
-  ColumnSort,
-  DataGridHeader,
-  DataGridTable,
-  SortDirection,
-  SortingState,
-} from '@/lib/table'
 import type { CellOpts } from '@/types/data-grid'
+import { cn } from 'cn'
 import {
   BaselineIcon,
   CalendarIcon,
@@ -24,7 +18,13 @@ import {
   TextInitialIcon,
   XIcon,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import type {
+  ColumnSort,
+  DataGridHeader,
+  DataGridTable,
+  SortDirection,
+  SortingState,
+} from '@/lib/table'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -141,7 +141,13 @@ export function DataGridColumnHeader<TData, TValue>({
   }, [column])
 
   const onTriggerPointerDown = React.useCallback(
-    (event: React.PointerEvent<HTMLButtonElement>) => {
+    (
+      event: Parameters<
+        NonNullable<
+          React.ComponentProps<typeof DropdownMenuTrigger>['onPointerDown']
+        >
+      >[0]
+    ) => {
       onPointerDown?.(event)
       if (event.defaultPrevented) return
 
@@ -167,10 +173,12 @@ export function DataGridColumnHeader<TData, TValue>({
         >
           <div className='flex min-w-0 flex-1 items-center gap-1.5'>
             {columnVariant && (
-              <Tooltip delayDuration={100}>
-                <TooltipTrigger asChild>
-                  <columnVariant.icon className='text-muted-foreground size-3.5 shrink-0' />
-                </TooltipTrigger>
+              <Tooltip delay={100}>
+                <TooltipTrigger
+                  render={
+                    <columnVariant.icon className='text-muted-foreground size-3.5 shrink-0' />
+                  }
+                />
                 <TooltipContent side='top'>
                   <p>{columnVariant.label}</p>
                 </TooltipContent>

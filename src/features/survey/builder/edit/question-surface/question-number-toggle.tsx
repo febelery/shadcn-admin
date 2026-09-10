@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import {
   Tooltip,
   TooltipContent,
@@ -59,32 +59,34 @@ export function SurfaceQuestionNumberToggle({
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type='button'
-          {...{ [QUESTION_NUMBER_TOGGLE_ATTR]: '' }}
-          className={cn(
-            questionNumberColumn,
-            'hover:bg-muted/70 rounded-sm transition-colors',
-            'focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none'
-          )}
-          aria-label={tooltip}
-          aria-pressed={visible}
-          onPointerDown={(e) => {
-            e.stopPropagation()
-            onToggle()
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <span
+      <TooltipTrigger
+        render={
+          <button
+            type='button'
+            {...{ [QUESTION_NUMBER_TOGGLE_ATTR]: '' }}
             className={cn(
-              getQuestionNumberTextClass(surveyDefaultNumbering),
-              !visible && 'text-muted-foreground/20'
+              questionNumberColumn,
+              'hover:bg-muted/70 rounded-sm transition-colors',
+              'focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none'
             )}
-          >
-            {label}
-          </span>
-        </button>
+            aria-label={tooltip}
+            aria-pressed={visible}
+            onPointerDown={(e) => {
+              e.stopPropagation()
+              onToggle()
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+        }
+      >
+        <span
+          className={cn(
+            getQuestionNumberTextClass(surveyDefaultNumbering),
+            !visible && 'text-muted-foreground/20'
+          )}
+        >
+          {label}
+        </span>
       </TooltipTrigger>
       <TooltipContent
         side='top'

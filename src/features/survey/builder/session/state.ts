@@ -1,6 +1,5 @@
 import type { RuleCategory } from '../../core/logic/rule-meta'
 import type { RichTextContent } from '../../core/rich-text'
-import type { SurveySettingsFormValues } from '../../settings/form-schema'
 import type {
   SurveyDocument,
   LayoutElementKind,
@@ -9,6 +8,7 @@ import type {
   QuestionType,
   BuilderMode,
 } from '../../core/types'
+import type { SurveySettingsFormValues } from '../../settings/form-schema'
 import type { BuilderNavigationIntent, LogicMobilePanel } from './navigation'
 import type {
   BeginRuleDraftResult,

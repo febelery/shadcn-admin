@@ -1,10 +1,7 @@
 import { Avatar as AvatarPrimitive } from '@base-ui/react/avatar'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 
-function Avatar({
-  className,
-  ...props
-}: AvatarPrimitive.Root.Props) {
+function Avatar({ className, ...props }: AvatarPrimitive.Root.Props) {
   return (
     <AvatarPrimitive.Root
       data-slot='avatar'

@@ -58,6 +58,7 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
         <div className='flex items-center gap-2'>
           <Button
             variant='outline'
+            nativeButton={false}
             render={<Link to='/survey' />}
           >
             <ArrowLeft className='h-4 w-4' />
@@ -65,6 +66,7 @@ export function SurveyAnalysisPage({ surveyId }: SurveyAnalysisPageProps) {
           </Button>
           <Button
             variant='outline'
+            nativeButton={false}
             render={<Link to={`/survey/${surveyId}/record`} />}
           >
             <Inbox className='h-4 w-4' />

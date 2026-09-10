@@ -1,65 +1,30 @@
 import * as React from 'react'
-import { XIcon } from 'lucide-react'
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
+import { XIcon } from 'lucide-react'
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot='sheet' {...props} />
 }
 
-function SheetTrigger({
-  asChild = false,
-  render,
-  children,
-  ...props
-}: SheetPrimitive.Trigger.Props & { asChild?: boolean }) {
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
-
-  return (
-    <SheetPrimitive.Trigger
-      data-slot='sheet-trigger'
-      render={finalRender}
-      {...props}
-    >
-      {asChild && React.isValidElement(children) ? undefined : children}
-    </SheetPrimitive.Trigger>
-  )
+function SheetTrigger(props: SheetPrimitive.Trigger.Props) {
+  return <SheetPrimitive.Trigger data-slot='sheet-trigger' {...props} />
 }
 
-function SheetClose({
-  asChild = false,
-  render,
-  children,
-  ...props
-}: SheetPrimitive.Close.Props & { asChild?: boolean }) {
-  const finalRender =
-    asChild && React.isValidElement(children) ? children : render
-
-  return (
-    <SheetPrimitive.Close
-      data-slot='sheet-close'
-      render={finalRender}
-      {...props}
-    >
-      {asChild && React.isValidElement(children) ? undefined : children}
-    </SheetPrimitive.Close>
-  )
+function SheetClose(props: SheetPrimitive.Close.Props) {
+  return <SheetPrimitive.Close data-slot='sheet-close' {...props} />
 }
 
 function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
   return <SheetPrimitive.Portal data-slot='sheet-portal' {...props} />
 }
 
-function SheetOverlay({
-  className,
-  ...props
-}: SheetPrimitive.Backdrop.Props) {
+function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   return (
     <SheetPrimitive.Backdrop
       data-slot='sheet-overlay'
       className={cn(
-        'fixed inset-0 isolate z-50 bg-black/50 transition duration-300 data-closed:duration-300 data-open:duration-500 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 data-closed:opacity-0',
+        'data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 fixed inset-0 isolate z-50 bg-black/50 transition duration-300 data-closed:opacity-0 data-closed:duration-300 data-open:duration-500',
         className
       )}
       {...props}
@@ -127,10 +92,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
-function SheetTitle({
-  className,
-  ...props
-}: SheetPrimitive.Title.Props) {
+function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   return (
     <SheetPrimitive.Title
       data-slot='sheet-title'

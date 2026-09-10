@@ -1,7 +1,7 @@
 import { memo, useCallback, type CSSProperties, type ReactNode } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import { Separator } from '@/components/ui/separator'
 import {
   buildQuestionOrdinalMap,

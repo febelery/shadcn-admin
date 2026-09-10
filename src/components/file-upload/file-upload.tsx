@@ -2,7 +2,7 @@
  * 文件上传根组件
  */
 import { defaultUpload } from '@/config/upload'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import { ImageCropper } from '../image-cropper'
 import { FileUploadProvider } from './context'
 import { FileUploadDropzone } from './dropzone'

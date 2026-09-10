@@ -1,12 +1,12 @@
 import * as React from 'react'
-import type { DataGridTable } from '@/lib/table'
+import { cn } from 'cn'
 import {
   AlignVerticalSpaceAroundIcon,
   ChevronsDownUpIcon,
   EqualIcon,
   MinusIcon,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import type { DataGridTable } from '@/lib/table'
 import {
   Select,
   SelectContent,

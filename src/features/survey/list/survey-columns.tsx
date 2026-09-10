@@ -192,26 +192,23 @@ function SurveyStatusCell({
 
   return (
     <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Badge
-          asChild
-          variant={variant}
-          className='cursor-pointer transition-opacity hover:opacity-85'
-        >
-          <button
-            type='button'
-            aria-label={`${label}，打开状态操作`}
-            className='focus-visible:outline-none'
-          >
-            {label}
-            <ChevronDown aria-hidden='true' />
-          </button>
-        </Badge>
+      <DropdownMenuTrigger
+        render={
+          <Badge
+            render={<button type='button' />}
+            variant={variant}
+            className='cursor-pointer transition-opacity hover:opacity-85 focus-visible:outline-none'
+          />
+        }
+        aria-label={`${label}，打开状态操作`}
+      >
+        {label}
+        <ChevronDown aria-hidden='true' />
       </DropdownMenuTrigger>
       <DropdownMenuContent align='start' className='min-w-32'>
         <DropdownMenuGroup>
           <DropdownMenuItem
-            onSelect={() => {
+            onClick={() => {
               if (isPublished) onPause(survey.id)
               else onPublish(survey.id)
             }}

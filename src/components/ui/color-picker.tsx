@@ -1,13 +1,13 @@
 'use client'
 
 import * as React from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { PipetteIcon } from 'lucide-react'
-import { Slider as SliderPrimitive } from '@base-ui/react/slider'
 import { mergeProps } from '@base-ui/react/merge-props'
+import { Slider as SliderPrimitive } from '@base-ui/react/slider'
 import { useRender } from '@base-ui/react/use-render'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from 'cn'
+import { PipetteIcon } from 'lucide-react'
 import { useComposedRefs } from '@/lib/compose-refs'
-import { cn } from '@/lib/utils'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -574,7 +574,7 @@ interface ColorPickerRootProps
   defaultFormat?: ColorFormat
   onFormatChange?: (format: ColorFormat) => void
   name?: string
-  asChild?: boolean
+  render?: useRender.ComponentProps<'div'>['render']
   disabled?: boolean
   inline?: boolean
   readOnly?: boolean
@@ -672,7 +672,7 @@ function ColorPickerRootImpl(props: ColorPickerRootImplProps) {
     onOpenChange,
     name,
     ref,
-    asChild,
+    render,
     disabled,
     inline,
     modal,
@@ -731,18 +731,13 @@ function ColorPickerRootImpl(props: ColorPickerRootImplProps) {
     [store.setOpen, onOpenChange]
   )
 
-  const finalRender =
-    asChild && React.isValidElement(rootProps.children)
-      ? rootProps.children
-      : undefined
-
   const rootElement = useRender({
     defaultTagName: 'div',
-    render: finalRender,
+    render,
     props: mergeProps<'div'>(
       {
         ref: composedRef,
-        children: asChild ? undefined : rootProps.children,
+        children: rootProps.children,
       } as React.ComponentProps<'div'>,
       rootProps
     ),
@@ -794,53 +789,47 @@ function ColorPickerRootImpl(props: ColorPickerRootImplProps) {
 
 interface ColorPickerTriggerProps
   extends
-    Omit<
-      React.ComponentProps<typeof PopoverTrigger>,
-      'render' | 'className' | 'style'
-    >,
+    Omit<React.ComponentProps<typeof PopoverTrigger>, 'className' | 'style'>,
     VariantProps<typeof buttonVariants> {
   className?: string
   style?: React.CSSProperties
 }
 
 function ColorPickerTrigger(props: ColorPickerTriggerProps) {
-  const { asChild, className, style, ...triggerProps } = props
+  const { className, style, render, ...triggerProps } = props
   const context = useColorPickerContext('ColorPickerTrigger')
 
   return (
-    <PopoverTrigger asChild disabled={context.disabled}>
-      <Button
-        data-slot='color-picker-trigger'
-        asChild={asChild}
-        className={className}
-        style={style}
-        {...triggerProps}
-      />
-    </PopoverTrigger>
+    <PopoverTrigger
+      disabled={context.disabled}
+      render={
+        <Button
+          data-slot='color-picker-trigger'
+          className={className}
+          style={style}
+          render={render as any}
+          {...triggerProps}
+        />
+      }
+    />
   )
 }
 
-interface ColorPickerContentProps
-  extends React.ComponentProps<typeof PopoverContent> {
-  asChild?: boolean
-}
-
-function ColorPickerContent(props: ColorPickerContentProps) {
-  const { asChild, className, children, ...popoverContentProps } = props
+function ColorPickerContent(
+  props: React.ComponentProps<typeof PopoverContent>
+) {
+  const { className, children, render, ...popoverContentProps } = props
   const context = useColorPickerContext('ColorPickerContent')
 
   if (context.inline) {
-    const finalRender =
-      asChild && React.isValidElement(children) ? children : undefined
-
     return useRender({
       defaultTagName: 'div',
-      render: finalRender,
+      render: render as any,
       props: mergeProps<'div'>(
         {
           'data-slot': 'color-picker-content',
           className: cn('flex w-[340px] flex-col gap-4 p-4', className),
-          children: asChild ? undefined : children,
+          children,
         } as React.ComponentProps<'div'>,
         popoverContentProps as React.ComponentProps<'div'>
       ),
@@ -850,7 +839,7 @@ function ColorPickerContent(props: ColorPickerContentProps) {
   return (
     <PopoverContent
       data-slot='color-picker-content'
-      asChild={asChild}
+      render={render}
       {...popoverContentProps}
       className={cn('flex w-[340px] flex-col gap-4 p-4', className)}
     >
@@ -859,12 +848,10 @@ function ColorPickerContent(props: ColorPickerContentProps) {
   )
 }
 
-interface ColorPickerAreaProps extends React.ComponentProps<'div'> {
-  asChild?: boolean
-}
+interface ColorPickerAreaProps extends useRender.ComponentProps<'div'> {}
 
 function ColorPickerArea(props: ColorPickerAreaProps) {
-  const { asChild, className, ref, ...areaProps } = props
+  const { className, ref, render, ...areaProps } = props
   const context = useColorPickerContext('ColorPickerArea')
   const store = useColorPickerStoreContext('ColorPickerArea')
 
@@ -923,14 +910,9 @@ function ColorPickerArea(props: ColorPickerAreaProps) {
   const hue = hsv?.h ?? 0
   const backgroundHue = hsvToRgb({ h: hue, s: 100, v: 100, a: 1 })
 
-  const finalRender =
-    asChild && React.isValidElement(areaProps.children)
-      ? areaProps.children
-      : undefined
-
   return useRender({
     defaultTagName: 'div',
-    render: finalRender,
+    render,
     props: mergeProps<'div'>(
       {
         'data-slot': 'color-picker-area',
@@ -1094,12 +1076,10 @@ function ColorPickerAlphaSlider(props: ColorPickerAlphaSliderProps) {
   )
 }
 
-interface ColorPickerSwatchProps extends React.ComponentProps<'div'> {
-  asChild?: boolean
-}
+interface ColorPickerSwatchProps extends useRender.ComponentProps<'div'> {}
 
 function ColorPickerSwatch(props: ColorPickerSwatchProps) {
-  const { asChild, className, ...swatchProps } = props
+  const { className, render, ...swatchProps } = props
   const context = useColorPickerContext('ColorPickerSwatch')
 
   const color = useColorPickerStore((state) => state.color)
@@ -1130,14 +1110,9 @@ function ColorPickerSwatch(props: ColorPickerSwatchProps) {
     ? 'No color selected'
     : `Current color: ${colorToString(color, format)}`
 
-  const finalRender =
-    asChild && React.isValidElement(swatchProps.children)
-      ? swatchProps.children
-      : undefined
-
   return useRender({
     defaultTagName: 'div',
-    render: finalRender,
+    render,
     props: mergeProps<'div'>(
       {
         role: 'img',

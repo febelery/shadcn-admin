@@ -1,7 +1,6 @@
-import React from 'react'
 import { Button as ButtonPrimitive } from '@base-ui/react/button'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 
 const rainbowButtonVariants = cva(
   cn(
@@ -35,33 +34,20 @@ const rainbowButtonVariants = cva(
 )
 
 interface RainbowButtonProps
-  extends
-    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'render'>,
-    VariantProps<typeof rainbowButtonVariants> {
-  asChild?: boolean
-  render?: ButtonPrimitive.Props['render']
-}
+  extends ButtonPrimitive.Props, VariantProps<typeof rainbowButtonVariants> {}
 
 const RainbowButton = ({
   className,
   variant,
   size,
-  asChild = false,
-  children,
-  render,
-  ref,
   ...props
-}: RainbowButtonProps & { ref?: React.Ref<HTMLButtonElement> }) => {
+}: RainbowButtonProps) => {
   return (
     <ButtonPrimitive
       data-slot='button'
       className={cn(rainbowButtonVariants({ variant, size, className }))}
-      render={asChild && React.isValidElement(children) ? children : render}
-      ref={ref}
       {...props}
-    >
-      {asChild && React.isValidElement(children) ? undefined : children}
-    </ButtonPrimitive>
+    />
   )
 }
 

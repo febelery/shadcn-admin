@@ -1,5 +1,5 @@
-import { type Row } from '@/lib/table'
 import { MoreHorizontal, Trash2, UserPen } from 'lucide-react'
+import { type Row } from '@/lib/table'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -21,15 +21,17 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   return (
     <>
       <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant='ghost'
-            className='data-[state=open]:bg-muted flex h-8 w-8 p-0'
-          >
-            <MoreHorizontal className='h-4 w-4' />
-            <span className='sr-only'>Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant='ghost'
+              className='data-[state=open]:bg-muted flex h-8 w-8 p-0'
+            >
+              <MoreHorizontal className='h-4 w-4' />
+              <span className='sr-only'>Open menu</span>
+            </Button>
+          }
+        />
         <DropdownMenuContent align='end' className='w-[160px]'>
           <DropdownMenuItem
             onClick={() => {

@@ -1,4 +1,5 @@
 import { memo, useState } from 'react'
+import { cn } from 'cn'
 import {
   Brain,
   Check,
@@ -16,7 +17,6 @@ import {
   Wrench,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import {
   Attachment,
   AttachmentAction,

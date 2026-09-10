@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import { useNavigate } from '@tanstack/react-router'
 import { revalidateLogic, useForm } from '@tanstack/react-form'
+import { cn } from 'cn'
 import { showSubmittedData } from '@/lib/show-submitted-data'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import {

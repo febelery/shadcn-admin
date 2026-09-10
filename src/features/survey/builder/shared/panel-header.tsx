@@ -1,5 +1,5 @@
+import { cn } from 'cn'
 import type { LucideIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 type Props = {
   title: string

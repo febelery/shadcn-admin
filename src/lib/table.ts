@@ -111,7 +111,6 @@ export type ColumnDef<TData = any, TValue = unknown> = TanstackColumnDef<
   TValue
 >
 
-
 // 复杂数据网格专用类型别名（绑定 DataGridTableFeatures，承载 Pinning / Sizing / Resizing 等专属能力）
 export type DataGridTable<TData = any> = ReactTable<
   DataGridTableFeatures,
@@ -124,12 +123,14 @@ export type DataGridColumn<TData = any, TValue = unknown> = TanstackColumn<
   TValue
 >
 
-export type DataGridColumnDef<TData = any, TValue = unknown> =
-  TanstackColumnDef<
-    DataGridTableFeatures,
-    TData extends RowData ? TData : any,
-    TValue
-  >
+export type DataGridColumnDef<
+  TData = any,
+  TValue = unknown,
+> = TanstackColumnDef<
+  DataGridTableFeatures,
+  TData extends RowData ? TData : any,
+  TValue
+>
 
 export type DataGridRow<TData = any> = TanstackRow<
   DataGridTableFeatures,

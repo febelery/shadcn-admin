@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
+import { cn } from 'cn'
 import { Menu } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -23,21 +23,26 @@ export function TopNav({ className, links, ...props }: TopNavProps) {
     <>
       <div className='lg:hidden'>
         <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
-            <Button size='icon' variant='outline' className='md:size-7'>
-              <Menu />
-            </Button>
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              <Button size='icon' variant='outline' className='md:size-7'>
+                <Menu />
+              </Button>
+            }
+          />
           <DropdownMenuContent side='bottom' align='start'>
             {links.map(({ title, href, isActive, disabled }) => (
-              <DropdownMenuItem key={`${title}-${href}`} asChild>
-                <Link
-                  to={href}
-                  className={!isActive ? 'text-muted-foreground' : ''}
-                  disabled={disabled}
-                >
-                  {title}
-                </Link>
+              <DropdownMenuItem
+                key={`${title}-${href}`}
+                render={
+                  <Link
+                    to={href}
+                    className={!isActive ? 'text-muted-foreground' : ''}
+                    disabled={disabled}
+                  />
+                }
+              >
+                {title}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

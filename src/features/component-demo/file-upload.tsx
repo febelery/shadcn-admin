@@ -4,7 +4,7 @@
 import * as React from 'react'
 import { z } from 'zod'
 import { revalidateLogic, useForm } from '@tanstack/react-form'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
 import { Button } from '@/components/ui/button'
 import {
   Card,

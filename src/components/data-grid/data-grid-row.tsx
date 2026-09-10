@@ -1,11 +1,14 @@
 import * as React from 'react'
-import { flexRender, type DataGridRow as TanstackDataGridRow } from '@/lib/table'
 import type { CellPosition, RowHeightValue } from '@/types/data-grid'
 import type { Virtualizer } from '@tanstack/react-virtual'
+import { cn } from 'cn'
 import { useComposedRefs } from '@/lib/compose-refs'
 import { getRowHeightValue } from '@/lib/data-grid'
 import { getCommonPinningStyles } from '@/lib/data-table'
-import { cn } from '@/lib/utils'
+import {
+  flexRender,
+  type DataGridRow as TanstackDataGridRow,
+} from '@/lib/table'
 
 interface DataGridRowProps<TData> extends React.ComponentProps<'div'> {
   row: TanstackDataGridRow<TData>

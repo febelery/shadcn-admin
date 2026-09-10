@@ -2,10 +2,10 @@
  * 文件拖放上传区域
  */
 import * as React from 'react'
+import { cn } from 'cn'
 import { CloudUploadIcon, UploadCloudIcon, PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatBytes } from '@/lib/files'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useFileUploadContext } from './context'
 import { FileUploadItem } from './item'
@@ -203,7 +203,7 @@ export function FileUploadDropzone({
         ) : (
           <div
             className={cn(
-              'flex flex-col items-center justify-center text-center size-full',
+              'flex size-full flex-col items-center justify-center text-center',
               variant === 'minimal' ? 'gap-2 px-3 py-6' : 'gap-4 px-6 py-12'
             )}
           >

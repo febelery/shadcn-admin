@@ -272,9 +272,7 @@ export function TaskMutateDrawer({
         </form>
 
         <SheetFooter className='flex flex-col gap-2'>
-          <SheetClose asChild>
-            <Button variant='outline'>关闭</Button>
-          </SheetClose>
+          <SheetClose render={<Button variant='outline' />}>关闭</SheetClose>
           <Button
             form='task-form'
             type='submit'

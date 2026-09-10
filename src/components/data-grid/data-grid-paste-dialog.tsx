@@ -1,7 +1,7 @@
 import * as React from 'react'
-import type { DataGridTable } from '@/lib/table'
 import type { PasteDialogState } from '@/types/data-grid'
-import { cn } from '@/lib/utils'
+import { cn } from 'cn'
+import type { DataGridTable } from '@/lib/table'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,

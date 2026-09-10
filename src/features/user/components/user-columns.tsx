@@ -1,6 +1,6 @@
-import { type ColumnDef } from '@/lib/table'
+import { cn } from 'cn'
 import { GripVertical } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { type ColumnDef } from '@/lib/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -16,15 +16,17 @@ export const userColumns: ColumnDef<User>[] = [
     id: 'drag',
     header: () => null,
     cell: () => (
-      <SortableItemHandle asChild>
-        <Button
-          variant='ghost'
-          size='icon'
-          className='text-muted-foreground size-7 cursor-grab hover:bg-transparent active:cursor-grabbing'
-        >
-          <GripVertical className='text-muted-foreground size-4' />
-          <span className='sr-only'>Drag to reorder</span>
-        </Button>
+      <SortableItemHandle
+        render={
+          <Button
+            variant='ghost'
+            size='icon'
+            className='text-muted-foreground size-7 cursor-grab hover:bg-transparent active:cursor-grabbing'
+          />
+        }
+      >
+        <GripVertical className='text-muted-foreground size-4' />
+        <span className='sr-only'>Drag to reorder</span>
       </SortableItemHandle>
     ),
     enableSorting: false,
