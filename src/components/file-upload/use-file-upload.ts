@@ -122,7 +122,15 @@ export function useFileUpload(props: FileUploadProps) {
   )
 
   const removeFile = React.useCallback((id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id))
+    setItems((prev) => {
+      const target = prev.find((i) => i.id === id)
+      // 如果是本 hook 生成的 blob URL，移除时立即 revoke
+      if (target?.url && blobUrlsRef.current.has(target.url)) {
+        URL.revokeObjectURL(target.url)
+        blobUrlsRef.current.delete(target.url)
+      }
+      return prev.filter((i) => i.id !== id)
+    })
   }, [])
 
   const clearFiles = React.useCallback(() => setItems([]), [])
@@ -221,17 +229,34 @@ export function useFileUpload(props: FileUploadProps) {
   const [cropSource, setCropSource] = React.useState<CropSource | null>(null)
   const [cropQueue, setCropQueue] = React.useState<CropSource[]>([])
 
+  // 追踪所有在本 hook 内创建的 blob URL，卸载时统一 revoke 防止内存泄漏
+  const blobUrlsRef = React.useRef<Set<string>>(new Set())
+
+  React.useEffect(() => {
+    const urls = blobUrlsRef.current
+    return () => {
+      urls.forEach((u) => URL.revokeObjectURL(u))
+    }
+  }, [])
+
   const addFilesInternal = React.useCallback(
     (accepted: File[]) => {
       if (!accepted.length) return
 
       const isSingle = validation?.maxFiles === 1
-      const newItems: FileItem[] = accepted.map((file) => ({
-        id: `new:${crypto.randomUUID()}`,
-        file,
-        progress: 0,
-        status: 'idle' as const,
-      }))
+      const newItems: FileItem[] = accepted.map((file) => {
+        // 无 upload 函数时（纯本地预览模式）：自动生成 blob URL 写入 url 字段
+        // 有 upload 时由 uploadSingle 负责赋值服务端 URL，无需预生成
+        const blobUrl = !upload ? URL.createObjectURL(file) : undefined
+        if (blobUrl) blobUrlsRef.current.add(blobUrl)
+        return {
+          id: `new:${crypto.randomUUID()}`,
+          file,
+          url: blobUrl,
+          progress: upload ? 0 : 100,
+          status: (upload ? 'idle' : 'success') as FileItem['status'],
+        }
+      })
 
       if (isSingle) {
         setItems(newItems.slice(0, 1))

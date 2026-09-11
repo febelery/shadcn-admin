@@ -280,7 +280,7 @@ const UserMessageBubble = memo(function UserMessageBubble({
           {/* 折叠淡出遮罩：展开时平滑淡出，不遮挡操作 */}
           <div
             className={cn(
-              'from-muted/95 via-muted/70 to-transparent pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t transition-opacity duration-200',
+              'from-muted/95 via-muted/70 pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t to-transparent transition-opacity duration-200',
               expanded ? 'opacity-0' : 'opacity-100'
             )}
           />

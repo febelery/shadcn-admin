@@ -1,6 +1,7 @@
 import * as React from 'react'
 import type { RowData } from '@tanstack/react-table'
 import type { CellVariantProps, FileCellData } from '@/types/data-grid'
+import { cn } from 'cn'
 import {
   Check,
   File,
@@ -16,7 +17,6 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { getCellKey, getLineCount } from '@/lib/data-grid'
-import { cn } from 'cn'
 import { sleep } from '@/lib/utils'
 import { useBadgeOverflow } from '@/hooks/use-badge-overflow'
 import { useDebouncedCallback } from '@/hooks/use-debounced-callback'
