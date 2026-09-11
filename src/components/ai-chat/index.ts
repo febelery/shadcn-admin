@@ -5,15 +5,26 @@
  * 流式消费、审批流与工具交互全部内聚在模块内部。
  */
 export {
+  AIChat,
+  AIChatLauncher,
   Chat,
   ChatLauncher,
+  type AIChatProps,
+  type AIChatLauncherProps,
   type ChatProps,
   type ChatLauncherProps,
-} from './chat'
+} from './ai-chat'
 
-export { ChatProvider, useChatTransport } from './core/chat-provider'
+export {
+  AIChatProvider,
+  ChatProvider,
+  useAIChatTransport,
+  useChatTransport,
+  type AIChatProviderProps,
+  type ChatProviderProps,
+} from './core/chat-provider'
 export { useChatStore } from './core/chat-store'
-export { type ChatTransport } from './core/transport'
+export { type AIChatTransport, type ChatTransport } from './core/transport'
 export {
   type ToolPartContext,
   type ChatToolRenderer,

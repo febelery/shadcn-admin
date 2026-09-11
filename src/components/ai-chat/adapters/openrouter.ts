@@ -1,5 +1,5 @@
 import { createUIMessageStream } from 'ai'
-import type { ChatTransport } from '../core/transport'
+import type { AIChatTransport } from '../core/transport'
 import type { ChatMessage } from '../core/types'
 import { createDemoTransport } from './scripted-chat'
 
@@ -173,7 +173,7 @@ async function completeChat(
 /**
  * 将 OpenRouter 原生 OpenAI SSE 协议转换为标准 AI SDK ChatTransport 适配器
  */
-export function createOpenRouterTransport(): ChatTransport {
+export function createOpenRouterTransport(): AIChatTransport {
   return {
     sendMessages: async ({ messages, abortSignal }) => {
       return createUIMessageStream({
@@ -215,6 +215,6 @@ export function createOpenRouterTransport(): ChatTransport {
 /**
  * 默认导出的 OpenRouter 传输实例（未配置 Key 时回退至离线模拟 Transport）
  */
-export const openRouterTransport: ChatTransport = isOpenRouterConfigured()
+export const openRouterTransport: AIChatTransport = isOpenRouterConfigured()
   ? createOpenRouterTransport()
   : createDemoTransport()

@@ -1,5 +1,5 @@
 import { createChat } from '@shadcn/helpers/ai-sdk'
-import type { ChatTransport } from '../core/transport'
+import type { AIChatTransport } from '../core/transport'
 import type { ChatMessage } from '../core/types'
 
 /**
@@ -158,7 +158,7 @@ function detailLabel(detail: string) {
  */
 export function createDemoTransport(options?: {
   delayMs?: number
-}): ChatTransport {
+}): AIChatTransport {
   const chat = createDemoChat()
 
   return chat.transport({

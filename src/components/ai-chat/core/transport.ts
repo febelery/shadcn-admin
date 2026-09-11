@@ -7,4 +7,5 @@ import type { ChatMessage } from './types'
  * 任何满足 AI SDK sendMessages 契约的通信适配器（离线脚本、BFF 后端、OpenRouter 等）
  * 均可直接接入该接缝，实现完全可插拔与前后端解耦。
  */
-export type ChatTransport = AiSdkChatTransport<ChatMessage>
+export type AIChatTransport = AiSdkChatTransport<ChatMessage>
+export type ChatTransport = AIChatTransport

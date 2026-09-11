@@ -59,8 +59,23 @@ export function NavGroup({ title, items }: NavGroup) {
   )
 }
 
-function NavBadge({ children }: { children: ReactNode }) {
-  return <Badge className='rounded-full px-1 py-0 text-xs'>{children}</Badge>
+function NavBadge({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <Badge
+      className={cn(
+        'h-5 min-w-5 rounded-full px-1.5 py-0 text-center text-xs leading-none font-semibold tabular-nums select-none',
+        className
+      )}
+    >
+      <span className='relative -top-px'>{children}</span>
+    </Badge>
+  )
 }
 
 function SidebarMenuLink({ item, href }: { item: NavItem; href: string }) {

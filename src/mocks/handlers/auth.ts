@@ -26,7 +26,7 @@ export const MOCK_USERS = {
       role: ['user'],
       permissions: [
         'task:access',
-        'chat:access',
+        'ai-chat:access',
         'setting:access',
         'help-center:access',
         'survey:access',

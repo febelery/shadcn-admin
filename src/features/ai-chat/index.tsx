@@ -1,7 +1,7 @@
-import { Chat } from '@/components/chat'
+import { AIChat } from '@/components/ai-chat'
 import { PageLayout } from '@/components/layout/page-layout'
 
-export function ChatPage() {
+export function AIChatPage() {
   return (
     <PageLayout
       variant='fixed'
@@ -9,8 +9,10 @@ export function ChatPage() {
       className='flex h-full min-h-0 flex-col rounded-[inherit] p-0'
     >
       <div className='relative flex min-h-0 flex-1 flex-col'>
-        <Chat />
+        <AIChat />
       </div>
     </PageLayout>
   )
 }
+
+export const ChatPage = AIChatPage

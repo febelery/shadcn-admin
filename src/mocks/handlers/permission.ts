@@ -23,7 +23,7 @@ const AVAILABLE_PERMISSIONS = [
   { key: 'dashboard:access', label: '仪表盘', group: '常规' },
   { key: 'task:access', label: '任务管理', group: '常规' },
   { key: 'app:access', label: '应用中心', group: '常规' },
-  { key: 'chat:access', label: '聊天', group: '常规' },
+  { key: 'ai-chat:access', label: 'AI 助手', group: '常规' },
   { key: 'user:access', label: '用户管理', group: '常规' },
   { key: 'product:access', label: '产品管理', group: '常规' },
   { key: 'permission:access', label: '权限管理', group: '系统' },
@@ -50,7 +50,7 @@ const mockRoles: MockRole[] = [
     permissions: [
       'dashboard:access',
       'task:access',
-      'chat:access',
+      'ai-chat:access',
       'setting:access',
       'help-center:access',
       'component-demo:access',

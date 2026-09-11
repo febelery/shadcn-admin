@@ -13,22 +13,24 @@ import {
   isOpenRouterConfigured,
 } from './adapters/openrouter'
 import { createDemoTransport } from './adapters/scripted-chat'
-import { useChatTransport } from './core/chat-provider'
+import { useAIChatTransport } from './core/chat-provider'
 import { useChatStore } from './core/chat-store'
-import type { ChatTransport } from './core/transport'
+import type { AIChatTransport } from './core/transport'
 import type { AttachmentItem, ChatMessage, MessageMetrics } from './core/types'
 import type { ChatToolRenderer, ToolPartContext } from './tools/types'
 import { ChatInput } from './ui/chat-input'
 import { ChatMessageList } from './ui/chat-message-list'
 
-export interface ChatProps {
+export interface AIChatProps {
   className?: string
   /** Session key shared by views that should show the same conversation. */
   sessionId?: string
-  transport?: ChatTransport
+  transport?: AIChatTransport
   initialMessages?: ChatMessage[]
   toolRenderers?: Record<string, ChatToolRenderer>
 }
+
+export type ChatProps = AIChatProps
 
 /**
  * 状态内聚且深层的对话模块（Deep Module / Facade）
@@ -46,8 +48,8 @@ function ChatView({
   transport: propTransport,
   initialMessages,
   toolRenderers,
-}: ChatProps) {
-  const contextTransport = useChatTransport()
+}: AIChatProps) {
+  const contextTransport = useAIChatTransport()
   const defaultTransport = useMemo(
     () =>
       isOpenRouterConfigured()
@@ -278,24 +280,28 @@ function ChatView({
 }
 
 /** Mounts one AI SDK chat controller per session key. */
-export function Chat(props: ChatProps) {
+export function AIChat(props: AIChatProps) {
   return <ChatView key={props.sessionId ?? 'default'} {...props} />
 }
 
-export interface ChatLauncherProps {
+export const Chat = AIChat
+
+export interface AIChatLauncherProps {
   className?: string
   label?: string
-  transport?: ChatTransport
+  transport?: AIChatTransport
 }
+
+export type ChatLauncherProps = AIChatLauncherProps
 
 /**
  * 紧凑型全局悬浮呼出挂件（可在任何路由页面中一行挂载）
  */
-export function ChatLauncher({
+export function AIChatLauncher({
   className,
   label = 'AI 助手',
   transport,
-}: ChatLauncherProps) {
+}: AIChatLauncherProps) {
   const [open, setOpen] = useState(false)
   return (
     <div className='fixed right-4 bottom-4 z-40 flex flex-col items-end gap-3 sm:right-6 sm:bottom-6'>
@@ -324,7 +330,7 @@ export function ChatLauncher({
               <X className='size-4' />
             </Button>
           </div>
-          <Chat transport={transport} />
+          <AIChat transport={transport} />
         </div>
       )}
       <Button
@@ -342,3 +348,5 @@ export function ChatLauncher({
     </div>
   )
 }
+
+export const ChatLauncher = AIChatLauncher
