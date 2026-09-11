@@ -5,11 +5,13 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
 import '@/styles/index.css'
 import { zhCN } from 'zod/locales'
+import { qiniuUpload } from '@/api/qiniu'
 import { initializeMSW } from '@/lib/msw'
 import { createAppQueryClient, setRouterInstance } from '@/lib/query-client'
 import { createAppRouter } from '@/lib/router'
 import { FontProvider } from '@/context/font-provider'
 import { ThemeProvider } from '@/context/theme-provider'
+import { UploadProvider } from '@/context/upload-provider'
 import { AIChatProvider, openRouterTransport } from '@/components/ai-chat'
 
 const renderApp = async (): Promise<void> => {
@@ -29,9 +31,11 @@ const renderApp = async (): Promise<void> => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <FontProvider>
-            <AIChatProvider transport={openRouterTransport}>
-              <RouterProvider router={router} />
-            </AIChatProvider>
+            <UploadProvider upload={qiniuUpload}>
+              <AIChatProvider transport={openRouterTransport}>
+                <RouterProvider router={router} />
+              </AIChatProvider>
+            </UploadProvider>
           </FontProvider>
         </ThemeProvider>
       </QueryClientProvider>

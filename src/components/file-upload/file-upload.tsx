@@ -1,7 +1,7 @@
 /**
  * 文件上传根组件
  */
-import { defaultUpload } from '@/config/upload'
+import { useRef, useEffect } from 'react'
 import { cn } from 'cn'
 import { ImageCropper } from '../image-cropper'
 import { FileUploadProvider } from './context'
@@ -18,7 +18,7 @@ export function FileUpload({
   view = 'list',
   cardSize = 'lg',
   variant = 'default',
-  upload = defaultUpload,
+  upload,
   disabled = false,
   className,
   onFileAccept,
@@ -49,6 +49,24 @@ export function FileUpload({
     aspect,
   })
 
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { resetFiles } = state
+
+  // 监听所属 DOM <form> 的 reset 事件，重置时自动清理错误项并恢复初始状态
+  useEffect(() => {
+    const form = containerRef.current?.closest('form')
+    if (!form) return
+
+    const handleFormReset = () => {
+      resetFiles()
+    }
+
+    form.addEventListener('reset', handleFormReset)
+    return () => {
+      form.removeEventListener('reset', handleFormReset)
+    }
+  }, [resetFiles])
+
   return (
     <FileUploadProvider
       value={{
@@ -61,7 +79,7 @@ export function FileUpload({
         aspect,
       }}
     >
-      <div className={cn('w-full', className)} {...props}>
+      <div ref={containerRef} className={cn('w-full', className)} {...props}>
         {children ?? <FileUploadDropzone />}
       </div>
 

@@ -1,6 +1,9 @@
 /**
  * 文件上传组件 — 类型定义
  */
+import type { UploadFn } from '@/context/upload-provider'
+
+export type { UploadFn }
 
 export type FileStatus = 'idle' | 'uploading' | 'success' | 'error'
 export type FileView = 'list' | 'card'
@@ -45,11 +48,6 @@ export interface FileValidation {
   validate?: (file: File) => string | null
 }
 
-export type UploadFn = (
-  file: File,
-  options: { onProgress?: (progress: number) => void }
-) => Promise<string>
-
 export interface FileUploadProps {
   /** 受控模式：当前已上传文件的 URL（单文件为 string，多文件为 string[]） */
   value?: string | string[]
@@ -62,8 +60,13 @@ export interface FileUploadProps {
   cardSize?: CardSize
   /** 上传区域变体风格 */
   variant?: FileVariant
-  /** 上传函数，不传则只做本地预览（不触发上传） */
-  upload?: UploadFn
+  /**
+   * 上传适配器：
+   * - 传入函数：显式使用该上传适配器；
+   * - 传入 null：强制关闭上传（纯本地 Blob 预览模式）；
+   * - 不传（undefined）：自动继承 UploadProvider 全局适配器，若无 Provider 则退化为本地预览。
+   */
+  upload?: UploadFn | null
   /** 是否开启图片裁剪（必须是 image/* 类型） */
   crop?: boolean
   /** 裁剪比例，不传则初始为自由比例 */

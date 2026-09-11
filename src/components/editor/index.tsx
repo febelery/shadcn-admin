@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { z } from 'zod'
-import { defaultUpload } from '@/config/upload'
 import { Editor as TiptapEditor } from '@tiptap/react'
 import { cn } from 'cn'
+import { useUpload } from '@/context/upload-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { defaultExtensions } from './extensions'
-import { useImageUpload } from './hooks/use-image-upload'
 import { Toolbar } from './toolbar/index'
+import { useImageUpload } from './use-image-upload'
 
 export interface EditorProps {
   value?: string
@@ -17,10 +17,13 @@ export interface EditorProps {
   className?: string
   /**
    * 自定义图片上传函数
-   * - 不传时默认使用全局七牛云 defaultUpload（支持实时进度可视化）
-   * - 传入则使用自定义逻辑（不支持进度回调）
+   * - 不传时自动消费全局 UploadProvider 注入的上传适配器（支持实时进度）
+   * - 传入则使用自定义上传逻辑
    */
-  uploadImage?: (file: File) => Promise<string>
+  uploadImage?: (
+    file: File,
+    options?: { onProgress?: (percent: number) => void }
+  ) => Promise<string>
   minHeight?: string
   /** 工具栏模式: 'full' 完整 | 'compact' 精简 | 'hidden' 隐藏 */
   toolbar?: 'full' | 'compact' | 'hidden'
@@ -95,8 +98,7 @@ export function Editor({
   disabled = false,
   invalid = false,
   className,
-  // 默认接入全局七牛云上传，支持编辑器内实时进度可视化
-  uploadImage = (file) => defaultUpload(file, {}),
+  uploadImage,
   minHeight = '200px',
   toolbar = 'full',
   id,
@@ -107,9 +109,12 @@ export function Editor({
 }: EditorProps) {
   const containerRef = React.useRef<HTMLDivElement>(null)
   const [editor, setEditor] = React.useState<TiptapEditor | null>(null)
+  const contextUpload = useUpload()
+  const resolvedUploadImage =
+    uploadImage !== undefined ? uploadImage : (contextUpload ?? undefined)
 
   // 1. 调用自定义 hook 管理图片上传与 DOM 控制
-  const { uploadFile } = useImageUpload(editor, uploadImage)
+  const { uploadFile } = useImageUpload(editor, resolvedUploadImage)
 
   // 使用 Ref 追踪最新的 uploadFile，避免 Tiptap 初始化闭包过期
   const uploadFileRef = React.useRef(uploadFile)

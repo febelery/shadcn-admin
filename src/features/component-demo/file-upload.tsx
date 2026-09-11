@@ -387,6 +387,10 @@ function FileUploadFormExample({
           e.stopPropagation()
           form.handleSubmit()
         }}
+        onReset={(e) => {
+          e.preventDefault()
+          form.reset()
+        }}
         className='flex flex-col gap-4'
       >
         <form.Field
@@ -430,12 +434,7 @@ function FileUploadFormExample({
           <Button type='submit' size='sm' disabled={form.state.isSubmitting}>
             提交表单
           </Button>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            onClick={() => form.reset()}
-          >
+          <Button type='reset' variant='outline' size='sm'>
             重置
           </Button>
         </div>

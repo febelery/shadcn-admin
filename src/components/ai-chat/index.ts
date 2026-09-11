@@ -7,24 +7,17 @@
 export {
   AIChat,
   AIChatLauncher,
-  Chat,
-  ChatLauncher,
   type AIChatProps,
   type AIChatLauncherProps,
-  type ChatProps,
-  type ChatLauncherProps,
 } from './ai-chat'
 
 export {
   AIChatProvider,
-  ChatProvider,
   useAIChatTransport,
-  useChatTransport,
   type AIChatProviderProps,
-  type ChatProviderProps,
 } from './core/chat-provider'
 export { useChatStore } from './core/chat-store'
-export { type AIChatTransport, type ChatTransport } from './core/transport'
+export { type AIChatTransport } from './core/transport'
 export {
   type ToolPartContext,
   type ChatToolRenderer,

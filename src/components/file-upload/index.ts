@@ -9,7 +9,7 @@ export { FileUploadItem } from './item'
 export { FileThumbnail } from './thumbnail'
 export { FilePreviewDialog } from './preview'
 
-// Context
+// Compound Component Context
 export { useFileUploadContext } from './context'
 
 // Hook（供需要自定义渲染树的场景使用）

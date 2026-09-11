@@ -8,8 +8,6 @@ export interface AIChatProviderProps {
   children: ReactNode
 }
 
-export type ChatProviderProps = AIChatProviderProps
-
 export function AIChatProvider({ transport, children }: AIChatProviderProps) {
   return (
     <AIChatTransportContext.Provider value={transport}>
@@ -18,10 +16,6 @@ export function AIChatProvider({ transport, children }: AIChatProviderProps) {
   )
 }
 
-export const ChatProvider = AIChatProvider
-
 export function useAIChatTransport() {
   return useContext(AIChatTransportContext)
 }
-
-export const useChatTransport = useAIChatTransport

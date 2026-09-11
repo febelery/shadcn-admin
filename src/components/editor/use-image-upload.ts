@@ -1,10 +1,27 @@
 import * as React from 'react'
 import type { Editor } from '@tiptap/react'
-import {
-  uploadImageWithProgress,
-  createBlobPreview,
-  revokeBlobPreview,
-} from '../image-upload'
+
+function validateImageFile(
+  file: File,
+  maxSize: number = 10 * 1024 * 1024
+): void {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('只允许上传图片文件')
+  }
+  if (file.size > maxSize) {
+    throw new Error(`图片大小不能超过 ${Math.round(maxSize / (1024 * 1024))}MB`)
+  }
+}
+
+function createBlobPreview(file: File): string {
+  return URL.createObjectURL(file)
+}
+
+function revokeBlobPreview(blobUrl: string): void {
+  if (blobUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(blobUrl)
+  }
+}
 
 /** 单张图片的上传状态 */
 export interface UploadState {
@@ -24,7 +41,10 @@ export interface UploadState {
  */
 export function useImageUpload(
   editor: Editor | null,
-  uploadImageProp?: (file: File) => Promise<string>
+  uploadImage?: (
+    file: File,
+    options?: { onProgress?: (percent: number) => void }
+  ) => Promise<string>
 ) {
   const [uploadMap, setUploadMap] = React.useState<Map<string, UploadState>>(
     new Map()
@@ -52,15 +72,8 @@ export function useImageUpload(
       let blobUrl = ''
 
       try {
-        // 1. 基础校验：只允许图片类型
-        if (!file.type.startsWith('image/')) {
-          throw new Error('只允许上传图片文件')
-        }
-
-        // 文件大小限制 10MB
-        if (file.size > 10 * 1024 * 1024) {
-          throw new Error('图片大小不能超过 10MB')
-        }
+        // 1. 基础校验：只允许图片类型且限制大小（10MB）
+        validateImageFile(file)
 
         blobUrl = createBlobPreview(file)
 
@@ -76,15 +89,16 @@ export function useImageUpload(
 
         // 4. 开始异步执行实际上传
         let finalUrl: string
-        if (uploadImageProp) {
-          finalUrl = await uploadImageProp(file)
-        } else {
-          finalUrl = await uploadImageWithProgress(file, {
+        if (uploadImage) {
+          finalUrl = await uploadImage(file, {
             onProgress: (p) => patchUpload(blobUrl, { progress: p }),
           })
+        } else {
+          // 无全局/显式上传函数时，保持本地 Blob 协议呈现（纯前端离线/单测模式）
+          finalUrl = blobUrl
         }
 
-        // 5. ✅ 成功：在 Tiptap 文档树中定位对应的 node 并替换为真实 URL
+        // 5. 成功：在 Tiptap 文档树中定位对应的 node 并替换为真实 URL
         const { state, view } = editor
         let targetPos: number | null = null
 
@@ -123,7 +137,7 @@ export function useImageUpload(
         }
       }
     },
-    [editor, uploadImageProp, patchUpload]
+    [editor, uploadImage, patchUpload]
   )
 
   // 通过 update 事件在 ProseMirror 完成 DOM 渲染后同步图片上传状态样式

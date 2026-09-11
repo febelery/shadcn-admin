@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { toast } from 'sonner'
 import { createPlaceholderFileFromUrl, validateFile } from '@/lib/files'
+import { useUpload } from '@/context/upload-provider'
 import type {
   FileItem,
   FileValidation,
@@ -18,13 +19,14 @@ function urlToItem(url: string): FileItem {
   }
 }
 
-export function useFileUpload(props: FileUploadProps) {
+export function useFileUpload(props: FileUploadProps = {}) {
+  const contextUpload = useUpload()
   const {
     value,
     defaultValue,
     onChange,
     validation,
-    upload,
+    upload: propUpload,
     disabled = false,
     onFileAccept,
     onFileReject,
@@ -33,6 +35,10 @@ export function useFileUpload(props: FileUploadProps) {
     onUploadSuccess,
     onUploadError,
   } = props
+
+  // 优先级：props.upload 显式指定（若为 null 则强制关闭） > 全局 UploadProvider 注入 > undefined（纯本地 Blob 预览）
+  const upload =
+    propUpload === null ? undefined : (propUpload ?? contextUpload ?? undefined)
 
   // defaultValue 仅作非受控模式的初始值，不参与后续 effect 同步
   const [items, setItems] = React.useState<FileItem[]>(() => {
@@ -54,21 +60,29 @@ export function useFileUpload(props: FileUploadProps) {
     const targetSet = new Set(urls)
 
     setItems((prev) => {
-      const currentSuccessUrls = new Set(
-        prev.filter((i) => i.status === 'success' && i.url).map((i) => i.url!)
-      )
+      const successItems = prev.filter((i) => i.status === 'success' && i.url)
+      const currentSuccessUrls = new Set(successItems.map((i) => i.url!))
+      const hasErrorItems = prev.some((i) => i.status === 'error')
 
-      // URL 集合无变化，提前退出，避免触发重渲染循环
+      // 只有在既无残存失败项、且 URL 集合完全一致时，才提前退出，避免重复触发渲染
       if (
+        !hasErrorItems &&
         targetSet.size === currentSuccessUrls.size &&
         [...targetSet].every((u) => currentSuccessUrls.has(u))
       ) {
         return prev
       }
 
-      // 保留上传中 / 错误的项；丢弃不在新值中的已完成项
+      // 如果外部显式传入空（例如清空/重置），仅保留进行中的上传，清理所有失败项和完成项
+      if (urls.length === 0) {
+        return prev.filter((i) => i.status === 'uploading')
+      }
+
+      // 正常受控同步：保留正在上传的项，或在 target 中的已完成项；彻底淘汰失败项（error）与已被移除项
       const kept = prev.filter(
-        (i) => i.status !== 'success' || (i.url && targetSet.has(i.url))
+        (i) =>
+          i.status === 'uploading' ||
+          (i.status === 'success' && i.url && targetSet.has(i.url))
       )
       const existingUrls = new Set(kept.filter((i) => i.url).map((i) => i.url!))
       const added = urls.filter((u) => !existingUrls.has(u)).map(urlToItem)
@@ -134,6 +148,12 @@ export function useFileUpload(props: FileUploadProps) {
   }, [])
 
   const clearFiles = React.useCallback(() => setItems([]), [])
+
+  const resetFiles = React.useCallback(() => {
+    const target = value !== undefined ? value : defaultValue
+    const urls = Array.isArray(target) ? target : target ? [target] : []
+    setItems(urls.map(urlToItem))
+  }, [value, defaultValue])
 
   const uploadSingle = React.useCallback(
     async (item: FileItem) => {
@@ -359,6 +379,7 @@ export function useFileUpload(props: FileUploadProps) {
     addFiles,
     removeFile,
     clearFiles,
+    resetFiles,
     /** 外部 disabled 或已达最大数量时为 true */
     isDisabled: disabled || isAtMax,
     isAtMax,

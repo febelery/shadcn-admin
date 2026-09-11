@@ -30,8 +30,6 @@ export interface AIChatProps {
   toolRenderers?: Record<string, ChatToolRenderer>
 }
 
-export type ChatProps = AIChatProps
-
 /**
  * 状态内聚且深层的对话模块（Deep Module / Facade）
  *
@@ -284,15 +282,11 @@ export function AIChat(props: AIChatProps) {
   return <ChatView key={props.sessionId ?? 'default'} {...props} />
 }
 
-export const Chat = AIChat
-
 export interface AIChatLauncherProps {
   className?: string
   label?: string
   transport?: AIChatTransport
 }
-
-export type ChatLauncherProps = AIChatLauncherProps
 
 /**
  * 紧凑型全局悬浮呼出挂件（可在任何路由页面中一行挂载）
@@ -348,5 +342,3 @@ export function AIChatLauncher({
     </div>
   )
 }
-
-export const ChatLauncher = AIChatLauncher
