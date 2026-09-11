@@ -13,9 +13,10 @@ import {
   FileSpreadsheet,
   FileText,
   Globe,
-  RotateCw,
+  RotateCcw,
   Wrench,
 } from 'lucide-react'
+import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import {
   Attachment,
@@ -169,7 +170,7 @@ const AssistantMessageActions = memo(function AssistantMessageActions({
             title='重新生成回复'
             aria-label='重新生成'
           >
-            <RotateCw className='size-3' />
+            <RotateCcw className='size-3' />
           </button>
         )}
       </div>
@@ -233,6 +234,73 @@ const ReasoningBlock = memo(function ReasoningBlock({
         <div className='border-border/40 bg-background/50 text-muted-foreground border-s-primary/50 border-s-2 border-t px-3.5 py-2.5 font-sans text-xs leading-relaxed whitespace-pre-wrap'>
           {text}
         </div>
+      )}
+    </div>
+  )
+})
+
+/**
+ * 用户消息气泡组件
+ *
+ * 优化点：
+ * 1. 彻底移除外层 layout 属性，避免 FLIP 矩阵变形引起的边缘缩放抖动；
+ * 2. 固定内边距，展开/收起过程中没有任何 DOM 增删或 padding 跳变；
+ * 3. 按钮绝对定位固定在右下角，仅通过旋转图标指示折叠/展开状态，克制平滑；
+ * 4. 遮罩层通过 opacity 纯 CSS 淡出，内容高度由 Motion 纯净过渡。
+ */
+const UserMessageBubble = memo(function UserMessageBubble({
+  textParts,
+}: {
+  textParts: Array<{ text: string }>
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const fullText = textParts.map((p) => p.text).join('\n')
+  const lineCount = fullText.split('\n').length
+  // 超过 10 行或超过 500 个字符认定为超长消息，开启折叠
+  const isLong = lineCount > 10 || fullText.length > 500
+
+  return (
+    <div
+      className={cn(
+        'bg-muted/80 text-foreground dark:bg-muted/50 relative max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed break-words shadow-2xs sm:max-w-[75%]',
+        isLong && 'pb-7'
+      )}
+    >
+      <motion.div
+        initial={false}
+        animate={{ height: isLong && !expanded ? 200 : 'auto' }}
+        transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
+        className='overflow-hidden'
+      >
+        <div className='whitespace-pre-wrap'>{fullText}</div>
+      </motion.div>
+
+      {isLong && (
+        <>
+          {/* 折叠淡出遮罩：展开时平滑淡出，不遮挡操作 */}
+          <div
+            className={cn(
+              'from-muted/95 via-muted/70 to-transparent pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t transition-opacity duration-200',
+              expanded ? 'opacity-0' : 'opacity-100'
+            )}
+          />
+
+          {/* 右下角固定控制按钮：原地旋转，无跳变 */}
+          <button
+            type='button'
+            onClick={() => setExpanded((prev) => !prev)}
+            className='text-muted-foreground hover:text-foreground hover:bg-muted-foreground/10 absolute right-2 bottom-1.5 z-10 inline-flex cursor-pointer items-center justify-center rounded-md p-1 transition-colors'
+            title={expanded ? '收起' : '展开全部'}
+            aria-label={expanded ? '收起' : '展开全部'}
+          >
+            <ChevronDown
+              className={cn(
+                'size-4 transition-transform duration-200',
+                expanded && 'rotate-180'
+              )}
+            />
+          </button>
+        </>
       )}
     </div>
   )
@@ -308,14 +376,8 @@ export const ChatMessageItem = memo(function ChatMessageItem({
           </div>
         )}
 
-        {/* 用户文本消息气泡 */}
-        {textParts.length > 0 && (
-          <div className='bg-muted/80 text-foreground dark:bg-muted/50 max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed break-words shadow-2xs sm:max-w-[75%]'>
-            {textParts.map((part, index) => (
-              <span key={index}>{part.text}</span>
-            ))}
-          </div>
-        )}
+        {/* 用户文本消息气泡（超长时自动折叠） */}
+        {textParts.length > 0 && <UserMessageBubble textParts={textParts} />}
       </div>
     )
   }
