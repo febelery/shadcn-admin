@@ -180,6 +180,9 @@ export function RuleEditorPanel({
             </Label>
             <Select
               value={model.action.type}
+              items={RULE_ACTION_TYPES.filter((type) =>
+                model.availableActionTypes.includes(type)
+              ).map((type) => ({ value: type, label: actionTypeLabel(type) }))}
               onValueChange={(value) => {
                 if (!isRuleActionType(value)) return
                 change({

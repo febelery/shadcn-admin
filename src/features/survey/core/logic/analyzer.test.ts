@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptySurvey } from '../document-factory'
 import type { QuestionElement, Rule, RuleCondition } from '../types'
-import { analyseSurvey } from './analyzer'
+import { analyseSurvey, hasBlockingIssues } from './analyzer'
 
 function question(
   id: string,
@@ -86,5 +86,36 @@ describe('rule analyzer', () => {
     )
 
     expect(analyseSurvey(document)).toEqual([])
+  })
+
+  it('warns about consent gates that cannot actually bind', () => {
+    const document = createEmptySurvey()
+    document.submissionPolicy.consent = {
+      clauses: [{ id: 'privacy', title: '隐私政策', content: '<p>短</p>' }],
+      minReadSeconds: 3,
+      requireScrollToEnd: true,
+    }
+
+    expect(analyseSurvey(document).map((issue) => issue.code)).toEqual(
+      expect.arrayContaining([
+        'consent_token_timing',
+        'consent_read_time',
+        'consent_scroll_vacuous',
+      ])
+    )
+  })
+
+  it('blocks publish on a broken consent configuration', () => {
+    const document = createEmptySurvey()
+    document.submissionPolicy.consent = {
+      clauses: [{ id: 'privacy', title: '隐私政策', content: '<p>   </p>' }],
+    }
+
+    expect(
+      analyseSurvey(document)
+        .filter((issue) => issue.severity === 'error')
+        .map((issue) => issue.code)
+    ).toContain('consent_config')
+    expect(hasBlockingIssues(document)).toBe(true)
   })
 })

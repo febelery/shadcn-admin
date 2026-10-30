@@ -4,8 +4,6 @@ import type { RichTextContent } from './rich-text'
 
 export type SurveyStatus = 'draft' | 'published' | 'archived'
 
-export type CoverType = 'none' | 'color' | 'image'
-
 export type SurveyDefaultNumberingStyle =
   | 'decimal'
   | 'chinese'
@@ -29,10 +27,7 @@ export interface QuestionNumbering {
 export interface SurveyMeta {
   title: string
   description: string
-  /** 头图：无 / 纯色 / 图片 */
-  coverType: CoverType
-  coverColor?: string
-  /** 头图图片 URL（coverType 为 image 时） */
+  /** 头图图片 URL；字段不存在即不显示头图 */
   cover?: string
   submitLabel: string
   endTitle: string
@@ -313,6 +308,32 @@ export interface Rule {
   action: RuleAction
 }
 
+/** 单条协议条款。勾选状态按 `id` 引用，title 与 content 只用于展示。 */
+export interface ConsentClause {
+  id: string
+  title: string
+  /** 条款正文，HTML 字符串，与 `meta.description` 同一存储约定 */
+  content: string
+  /** 字段存在即可跳过勾选（选填授权）；缺省必须同意 */
+  optional?: true
+}
+
+/**
+ * 提交前协议闸门。整个对象缺失即无协议；不写答案、不占题号、
+ * 不参与显隐与跳题，也不留任何同意痕迹。
+ */
+export interface ConsentPolicy {
+  clauses: ConsentClause[]
+  /** 最少阅读秒数，按累计可见时长计；字段缺失即不计时 */
+  minReadSeconds?: number
+  /** 字段存在即要求把正文滚动到底部 */
+  requireScrollToEnd?: true
+  /** 勾选框文案；缺失时填写端使用默认文案 */
+  checkboxLabel?: string
+  /** 未满足时的提示；缺失时由填写端按缺项生成 */
+  denyMessage?: string
+}
+
 export interface SubmissionPolicy {
   /** 问卷累计提交上限 */
   totalLimit?: number
@@ -329,6 +350,8 @@ export interface SubmissionPolicy {
   closesAt?: string
   /** 访问密码；字段不存在时不校验 */
   accessPassword?: string
+  /** 提交前协议闸门；字段不存在即无协议 */
+  consent?: ConsentPolicy
 }
 
 export interface SurveyDocument {

@@ -14,7 +14,6 @@ describe('survey settings form schema', () => {
       ...documentToSurveySettingsValues(source),
       title: '新版问卷',
       description: '问卷说明',
-      coverType: 'image' as const,
       cover: 'https://example.com/cover.jpg',
       submitLabel: '确认提交',
       opensAt: new Date('2026-07-19T08:00:00.000Z'),
@@ -25,7 +24,6 @@ describe('survey settings form schema', () => {
       perUserLimit: '2',
       dailyPerUserLimit: '1',
       dailyLimit: '50',
-      perDeviceLimit: '3',
       accessPassword: 'survey-pass',
       numberingStyle: 'chinese' as const,
       numberingMode: 'continuous' as const,
@@ -41,7 +39,6 @@ describe('survey settings form schema', () => {
       meta: {
         title: '新版问卷',
         description: '问卷说明',
-        coverType: 'image',
         cover: 'https://example.com/cover.jpg',
         submitLabel: '确认提交',
         endTitle: '提交成功',
@@ -57,7 +54,6 @@ describe('survey settings form schema', () => {
         perUserLimit: 2,
         dailyPerUserLimit: 1,
         dailyLimit: 50,
-        perDeviceLimit: 3,
         accessPassword: 'survey-pass',
       },
     })
@@ -90,8 +86,7 @@ describe('survey settings form schema', () => {
     expect(
       surveySettingsFormSchema.safeParse({
         ...values,
-        coverType: 'image',
-        cover: '',
+        cover: 'legacy-storage-key',
       }).error?.issues[0]
     ).toMatchObject({ path: ['cover'] })
     expect(
@@ -101,13 +96,12 @@ describe('survey settings form schema', () => {
       }).error?.issues[0]
     ).toMatchObject({ path: ['perUserLimit'] })
 
-    expect(
-      surveySettingsFormSchema.safeParse({
-        ...values,
-        coverType: 'none',
-        cover: 'legacy-storage-key',
-      }).success
-    ).toBe(true)
+    // 头图只有图片一种：留空即不保存 cover
+    const noCover = applySurveySettingsValues(
+      createEmptySurvey(),
+      surveySettingsFormSchema.parse({ ...values, cover: '' })
+    )
+    expect(noCover.meta.cover).toBeUndefined()
   })
 
   it('rejects an end time earlier than the start time', () => {
@@ -154,5 +148,135 @@ describe('survey settings form schema', () => {
     expect(await checkImageAccessible('')).toBe(false)
     expect(await checkImageAccessible('not-a-url')).toBe(false)
     expect(await checkImageAccessible('ftp://example.com/a.png')).toBe(false)
+  })
+
+  it('defaults new surveys to one submission per user and keeps unexposed policy fields', () => {
+    const source = createEmptySurvey()
+    expect(source.submissionPolicy).toEqual({ perUserLimit: 1 })
+    expect(documentToSurveySettingsValues(source).perUserLimit).toBe('1')
+
+    source.submissionPolicy = { perUserLimit: 1, perDeviceLimit: 2 }
+    const next = applySurveySettingsValues(
+      source,
+      documentToSurveySettingsValues(source)
+    )
+    expect(next.submissionPolicy.perDeviceLimit).toBe(2)
+  })
+
+  it('round-trips the consent gate and drops it when switched off', () => {
+    const source = createEmptySurvey()
+    const values = documentToSurveySettingsValues(source)
+
+    expect(values.consentEnabled).toBe(false)
+    expect(values.consentReadSeconds).toBe('3')
+
+    const enabled = applySurveySettingsValues(source, {
+      ...values,
+      consentEnabled: true,
+      consentClauses: [
+        {
+          id: 'privacy',
+          title: ' 隐私政策 ',
+          content: '<p>正文</p>',
+          optional: false,
+        },
+        {
+          id: 'marketing',
+          title: '营销授权',
+          content: '<p>选填</p>',
+          optional: true,
+        },
+      ],
+      consentReadSeconds: '15',
+      consentRequireScroll: true,
+      consentCheckboxLabel: ' 我同意 ',
+      consentDenyMessage: '',
+    })
+
+    expect(enabled.submissionPolicy.consent).toEqual({
+      clauses: [
+        { id: 'privacy', title: '隐私政策', content: '<p>正文</p>' },
+        {
+          id: 'marketing',
+          title: '营销授权',
+          content: '<p>选填</p>',
+          optional: true,
+        },
+      ],
+      minReadSeconds: 15,
+      requireScrollToEnd: true,
+      checkboxLabel: '我同意',
+    })
+    expect(
+      parseSurveyDocument(enabled).submissionPolicy.consent?.clauses
+    ).toHaveLength(2)
+
+    const disabled = applySurveySettingsValues(enabled, {
+      ...documentToSurveySettingsValues(enabled),
+      consentEnabled: false,
+    })
+    expect('consent' in disabled.submissionPolicy).toBe(false)
+
+    const cleared = applySurveySettingsValues(enabled, {
+      ...documentToSurveySettingsValues(enabled),
+      consentReadSeconds: '',
+      consentRequireScroll: false,
+    })
+    expect(cleared.submissionPolicy.consent).toEqual({
+      clauses: [
+        { id: 'privacy', title: '隐私政策', content: '<p>正文</p>' },
+        {
+          id: 'marketing',
+          title: '营销授权',
+          content: '<p>选填</p>',
+          optional: true,
+        },
+      ],
+      checkboxLabel: '我同意',
+    })
+  })
+
+  it('reports consent field errors without forcing a timer', () => {
+    const values = documentToSurveySettingsValues(createEmptySurvey())
+
+    const emptyClause = surveySettingsFormSchema.safeParse({
+      ...values,
+      consentEnabled: true,
+      consentClauses: [
+        { id: 'c1', title: ' ', content: '<p></p>', optional: false },
+      ],
+    })
+    expect(emptyClause.success).toBe(false)
+    expect(emptyClause.error?.issues.map((issue) => issue.path)).toEqual(
+      expect.arrayContaining([
+        ['consentClauses', 0, 'title'],
+        ['consentClauses', 0, 'content'],
+      ])
+    )
+
+    expect(
+      surveySettingsFormSchema.safeParse({
+        ...values,
+        consentEnabled: true,
+        consentReadSeconds: '0',
+      }).error?.issues[0]
+    ).toMatchObject({ path: ['consentReadSeconds'] })
+
+    expect(
+      surveySettingsFormSchema.safeParse({
+        ...values,
+        consentEnabled: true,
+        consentReadSeconds: '601',
+      }).error?.issues[0]
+    ).toMatchObject({ path: ['consentReadSeconds'] })
+
+    expect(
+      surveySettingsFormSchema.safeParse({
+        ...values,
+        consentEnabled: false,
+        consentClauses: [],
+        consentReadSeconds: '',
+      }).success
+    ).toBe(true)
   })
 })

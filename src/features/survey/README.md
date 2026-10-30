@@ -19,6 +19,8 @@ Builder UI selector 只订阅实际渲染字段；同一视图需要多个字段
 
 持久化边界：HTTP 返回值必须经 `parseSurveyDocument()` 解码。create、update、publish 均返回完整规范文档，Builder 通过 `adoptDocument()` 接管服务端事实；不能仅切换 dirty 或局部回填发布字段。
 
+配置页修改即同步进 `document`，没有第二层提交动作；唯一的拦截点是顶栏保存的 `parseValidDocument()`（校验同一套文档 schema）。因此该面板的字段错误只能按 `isTouched` 显示，`submissionAttempts` 在这里恒为 0——不要为它增加「应用设置」这类二次提交。
+
 `document-factory.ts` 只负责默认文档；`document-elements.ts` 负责从单页 `elements[]` 派生题目序列。文档实体 ID 直接使用浏览器原生 `crypto.randomUUID()`，不增加透传包装。
 
 `core/question-numbering.ts` 只包含文档序号计算与缓存；`shared/numbering-options.ts` 只包含 UI 下拉文案和 CSS class，core 不反向依赖 shared。
@@ -33,7 +35,9 @@ Builder UI selector 只订阅实际渲染字段；同一视图需要多个字段
 
 选项答案只保存稳定 `option.id`。在建立“选项身份 + 自填文本”的结构化答案契约前，不提供伪装成普通选项的「其他自填」。
 
-`submissionPolicy` 使用一套扁平配额语言：`totalLimit`、`dailyLimit`、`perUserLimit`、`dailyPerUserLimit` 与 `perDeviceLimit`。字段存在即生效，字段缺失即不限制；不保存 `enabled`、`oncePerUser` 或 `0 表示无限` 等重复状态。`opensAt` 与 `closesAt` 持久化为 UTC instant，不能保存依赖浏览器时区解释的本地时间。
+`submissionPolicy` 使用一套扁平配额语言：`totalLimit`、`dailyLimit`、`perUserLimit`、`dailyPerUserLimit` 与 `perDeviceLimit`。字段存在即生效，字段缺失即不限制；不保存 `enabled`、`oncePerUser` 或 `0 表示无限` 等重复状态。`opensAt` 与 `closesAt` 持久化为 UTC instant，不能保存依赖浏览器时区解释的本地时间。新建问卷默认 `perUserLimit: 1`（一人一份）；设置面板只暴露四个上限，`perDeviceLimit` 不再可编辑，但存量文档中的值必须原样保留。
+
+`submissionPolicy.consent` 是提交前协议闸门，遵循同一套语言：对象缺失即无闸门，`optional: true` 表示该条款可跳过勾选，`requireScrollToEnd` 只在成立时写入。它是策略而非内容——不进入 `elements[]`、没有答案身份、不参与规则，语义由 `core/consent.ts` 持有，填写端行为见 `core/logic/FILL-RUNTIME.md`。
 
 规则与问卷结构是事实来源，`rules[]` 的数组位置是唯一执行顺序，不保存第二套 priority。流程图是派生视图：`core/logic/flow-graph.ts` 只构建领域节点和规则边，`builder/flow/layout.ts` 才负责 Dagre 坐标；规则编辑使用显式草稿事务，未来 XYFlow 连线只创建规则草稿意图。
 

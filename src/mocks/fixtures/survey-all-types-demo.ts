@@ -71,7 +71,6 @@ export function createAllTypesDemoSurvey(): SurveyDocument {
   document.status = 'draft'
   document.meta.description =
     '感谢您选择云岭精品酒店。本问卷约需 5 分钟，您的反馈将帮助我们持续改进服务。'
-  document.meta.coverType = 'image'
   document.meta.cover = IMG_COVER
   document.meta.submitLabel = '提交反馈'
   document.meta.endTitle = '感谢您的宝贵意见'

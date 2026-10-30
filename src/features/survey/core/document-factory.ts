@@ -10,9 +10,6 @@ const DEFAULT_THEME = {
 export const DEFAULT_META = {
   title: '未命名问卷',
   description: '',
-  coverType: 'color' as const,
-  coverColor: '#000000',
-  cover: '',
   submitLabel: '提交',
   endTitle: '感谢参与',
   endDescription: '您的回答已记录，感谢您的宝贵时间。',
@@ -30,6 +27,7 @@ export function createEmptySurvey(title = '未命名问卷'): SurveyDocument {
     theme: { ...DEFAULT_THEME },
     elements: [],
     rules: [],
-    submissionPolicy: {},
+    // 一人一份是默认约束；解除它需要作者显式清空该字段
+    submissionPolicy: { perUserLimit: 1 },
   }
 }

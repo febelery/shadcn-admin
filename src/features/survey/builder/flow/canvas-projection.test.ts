@@ -23,7 +23,6 @@ function document(): SurveyDocument {
     meta: {
       title: '流程投影',
       description: '',
-      coverType: 'none',
       submitLabel: '提交',
       endTitle: '结束',
       endDescription: '',

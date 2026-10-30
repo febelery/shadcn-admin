@@ -46,7 +46,6 @@ function createTestDocument(
     meta: {
       title: '测试问卷',
       description: '',
-      coverType: 'none',
       submitLabel: '提交',
       endTitle: '结束',
       endDescription: '',

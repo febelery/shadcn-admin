@@ -68,6 +68,53 @@ function getNextQuestion(currentId, answers, document):
 - 跳转目标题目存在
   warn 级（显隐冲突、相同条件的导航冲突）不阻断发布，填写端可按契约保守处理。
 
+## 协议拦截
+
+`submissionPolicy.consent` 是提交前闸门，**不是题目**：它没有答案身份、不占题号、不参与显隐与跳题规则、不进统计与导出；字段缺失即完全没有闸门。
+
+### 判定式
+
+```
+// 逐条款独立判定，全部满足才放行提交
+satisfied(clause, session) =
+    (!requiresAgreement(clause) || session.checked[clause.id])
+ && (!consent.minReadSeconds
+     || session.visibleMs[clause.id] >= consent.minReadSeconds * 1000)
+ && (!consent.requireScrollToEnd
+     || !needsScroll(clause)
+     || session.scrolledEnd[clause.id])
+
+放行提交 = every(clause of consent.clauses, satisfied)
+requiresAgreement(clause) = clause.optional !== true
+```
+
+### 计时口径
+
+- 计时是**累计可见时长**：`visibilitychange` 隐藏、标签页切走、被弹窗遮挡时暂停。禁止「首次渲染起计时」，那种实现可以挂机刷满。
+- 每个条款独立计时；条款折叠在多个面板里时，只累计当前展开可见的那一个。
+- `consent.minReadSeconds` 缺失即不计时；填写端不得自行补默认秒数。
+
+### 滚动到底
+
+- 判定：`scrollTop + clientHeight >= scrollHeight - 8`（8px 容差，避免像素取整卡住）。
+- 正文短于容器（不需要滚动）时**自动视为满足**，不做隐形阻断。
+
+### 文案与交互
+
+- 勾选框文案取 `consent.checkboxLabel`，缺失使用「我已阅读并同意上述条款」。
+- 拒绝提示取 `consent.denyMessage`，缺失时按缺项生成（未勾选 / 计时不足 / 未滑到底）。
+- 协议区固定渲染在提交按钮上方，与 `elements[]` 顺序无关。
+- **不得预先禁用提交按钮**。点击时校验，滚动并把焦点移到第一个未满足项，用 `role="alert"` 播报原因。
+- 勾选必须是真实 checkbox 并与 label 关联；协议正文通过 `aria-describedby` 关联到勾选框。
+
+### 生命周期
+
+同意状态、计时与滑到底标记只存活于**本次填写会话**。刷新、返回、重新进入一律从头开始，不做 localStorage 续期。
+
+### 不留痕
+
+填写端**不上报**任何同意事实（无时间戳、无条款版本、无同意记录）。提交载荷中不得出现 `consent` 相关字段；同意与否只决定这一次提交能不能发生。因此条款文案修改后，历史提交对应哪一版条款无从对照——需要举证时，必须先扩展提交载荷与后端字段，不能由填写端单方面记录。
+
 ## 版本
 
 - Schema `schemaVersion: 2` 支持 `jump_to_question`

@@ -245,6 +245,10 @@ export const SegmentRow = React.memo(function SegmentRow({
 
       <Select
         value={condition.operator}
+        items={operators.map((operator) => ({
+          value: operator,
+          label: getConditionOperatorDefinition(operator).label,
+        }))}
         disabled={!question}
         onValueChange={(value) => {
           if (question && isConditionOperator(value)) {
@@ -308,6 +312,10 @@ export const SegmentRow = React.memo(function SegmentRow({
             ) : kind === 'choice' || kind === 'multi' ? (
               <Select
                 value={String(condition.value ?? '')}
+                items={(question.config?.options ?? []).map((option) => ({
+                  value: option.id,
+                  label: option.label,
+                }))}
                 onValueChange={(value) =>
                   onValueChange(segmentId, conditionIndex, { value })
                 }

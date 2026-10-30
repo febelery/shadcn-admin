@@ -1,3 +1,10 @@
+import {
+  CONSENT_CLAUSE_LIMIT,
+  CONSENT_TOKEN_READ_SECONDS,
+  estimateConsentReadSeconds,
+  getConsentPolicyIssues,
+  isScrollGateVacuous,
+} from '../consent'
 import { flattenQuestions } from '../document-elements'
 import type { QuestionElement, RuleCondition, SurveyDocument } from '../types'
 import { getRuleOperatorsForQuestionType } from './operators'
@@ -176,6 +183,64 @@ export function analyseSurvey(document: SurveyDocument): StaticIssue[] {
         severity: 'warn',
       })
     }
+  }
+
+  issues.push(...analyseConsent(document))
+
+  return issues
+}
+
+/**
+ * 协议闸门只影响提交前拦截，不参与规则求值，因此 issue 不带 ruleId/targetId，
+ * 避免被流程面板当作题目级问题渲染。
+ */
+function analyseConsent(document: SurveyDocument): StaticIssue[] {
+  const consent = document.submissionPolicy.consent
+  if (!consent) return []
+
+  const issues: StaticIssue[] = []
+
+  for (const issue of getConsentPolicyIssues(consent)) {
+    issues.push({
+      code: 'consent_config',
+      message: `协议配置：${issue.message}`,
+      severity: 'error',
+    })
+  }
+
+  const readSeconds = consent.minReadSeconds ?? 0
+  const estimateSeconds = estimateConsentReadSeconds(consent)
+
+  if (readSeconds > 0 && readSeconds <= CONSENT_TOKEN_READ_SECONDS) {
+    issues.push({
+      code: 'consent_token_timing',
+      message: `协议阅读计时仅 ${readSeconds} 秒，不构成实际阅读门槛`,
+      severity: 'warn',
+    })
+  }
+
+  if (estimateSeconds > 0 && readSeconds > estimateSeconds) {
+    issues.push({
+      code: 'consent_read_time',
+      message: `协议计时 ${readSeconds} 秒超过慢读预估 ${estimateSeconds} 秒，可能读不完`,
+      severity: 'warn',
+    })
+  }
+
+  if (isScrollGateVacuous(consent)) {
+    issues.push({
+      code: 'consent_scroll_vacuous',
+      message: '协议条款正文都很短，「必须滚动到底」可能永不触发',
+      severity: 'warn',
+    })
+  }
+
+  if (consent.clauses.length >= CONSENT_CLAUSE_LIMIT) {
+    issues.push({
+      code: 'consent_clause_limit',
+      message: `协议条款已达 ${CONSENT_CLAUSE_LIMIT} 条上限，考虑合并同类条款`,
+      severity: 'warn',
+    })
   }
 
   return issues

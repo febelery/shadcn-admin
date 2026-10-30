@@ -68,7 +68,7 @@ export function SurfaceLikertEditor({ question, onConfigChange }: Props) {
           {statements.map((s) => (
             <tr key={s.id} className='border-border/50 border-t'>
               <td className='overflow-hidden p-1 pr-2'>
-                <div className='flex min-w-0 items-center gap-1'>
+                <div className='group/row flex min-w-0 items-center gap-1'>
                   <InlineEditable
                     value={s.label}
                     onChange={(label) =>
@@ -88,7 +88,7 @@ export function SurfaceLikertEditor({ question, onConfigChange }: Props) {
                       type='button'
                       variant='ghost'
                       size='icon'
-                      className='text-destructive size-6 shrink-0'
+                      className='text-destructive size-6 shrink-0 opacity-0 group-hover/row:opacity-100'
                       data-surface-chrome
                       aria-label='删除陈述'
                       onPointerDown={(e) => e.stopPropagation()}

@@ -1,11 +1,17 @@
 import { z } from 'zod'
 import { zEditorString } from '@/components/editor'
-import { DEFAULT_META } from '../core/document-factory'
+import {
+  CONSENT_CLAUSE_LIMIT,
+  CONSENT_DEFAULT_READ_SECONDS,
+  CONSENT_READ_SECONDS_LIMIT,
+  getConsentTextLength,
+} from '../core/consent'
 import type {
-  CoverType,
   SurveyDefaultNumberingStyle,
   SurveyDocument,
   QuestionNumberingMode,
+  ConsentClause,
+  ConsentPolicy,
 } from '../core/types'
 
 const optionalPositiveInteger = z
@@ -30,6 +36,22 @@ const hexColor = z
   .string()
   .regex(/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i, '请输入十六进制颜色值')
 
+const consentReadSeconds = z.string().refine((value) => {
+  if (value === '') return true
+  return (
+    /^\d+$/.test(value) &&
+    Number(value) >= 1 &&
+    Number(value) <= CONSENT_READ_SECONDS_LIMIT
+  )
+}, `请输入 1-${CONSENT_READ_SECONDS_LIMIT} 的整数，留空表示不计时`)
+
+const consentClauseFormSchema = z.object({
+  id: z.string().min(1),
+  title: z.string(),
+  content: z.string(),
+  optional: z.boolean(),
+})
+
 const surveySettingsFormSchema = z
   .object({
     title: z
@@ -41,8 +63,6 @@ const surveySettingsFormSchema = z
       max: 2000,
       maxError: '问卷描述不能超过 2000 个字符',
     }),
-    coverType: z.enum(['none', 'color', 'image']),
-    coverColor: hexColor,
     cover: imageLocation,
     submitLabel: z
       .string()
@@ -56,13 +76,23 @@ const surveySettingsFormSchema = z
       .trim()
       .min(1, '请输入结束页标题')
       .max(120, '结束页标题不能超过 120 个字符'),
-    endDescription: z.string().max(2000, '结束页说明不能超过 2000 个字符'),
+    endDescription: zEditorString({
+      max: 2000,
+      maxError: '结束页说明不能超过 2000 个字符',
+    }),
     totalLimit: optionalPositiveInteger,
     perUserLimit: optionalPositiveInteger,
     dailyPerUserLimit: optionalPositiveInteger,
     dailyLimit: optionalPositiveInteger,
-    perDeviceLimit: optionalPositiveInteger,
     accessPassword: z.string().max(128, '访问密码不能超过 128 个字符'),
+    consentEnabled: z.boolean(),
+    consentClauses: z
+      .array(consentClauseFormSchema)
+      .max(CONSENT_CLAUSE_LIMIT, `协议条款不能超过 ${CONSENT_CLAUSE_LIMIT} 条`),
+    consentReadSeconds,
+    consentRequireScroll: z.boolean(),
+    consentCheckboxLabel: z.string().max(60, '勾选文案不能超过 60 个字符'),
+    consentDenyMessage: z.string().max(200, '提示文案不能超过 200 个字符'),
     numberingStyle: z.enum([
       'decimal',
       'chinese',
@@ -90,19 +120,38 @@ const surveySettingsFormSchema = z
       })
     }
 
-    if (values.coverType === 'image') {
-      if (!values.cover) {
+    if (values.cover && !isHttpUrl(values.cover)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['cover'],
+        message: '请输入有效的 http 或 https 链接',
+      })
+    }
+
+    if (values.consentEnabled) {
+      if (values.consentClauses.length === 0) {
         context.addIssue({
           code: 'custom',
-          path: ['cover'],
-          message: '请选择头图或粘贴图片链接',
+          path: ['consentClauses'],
+          message: '协议至少需要一条条款',
         })
-      } else if (!isHttpUrl(values.cover)) {
-        context.addIssue({
-          code: 'custom',
-          path: ['cover'],
-          message: '请输入有效的 http 或 https 链接',
-        })
+      }
+
+      for (const [index, clause] of values.consentClauses.entries()) {
+        if (!clause.title.trim()) {
+          context.addIssue({
+            code: 'custom',
+            path: ['consentClauses', index, 'title'],
+            message: '请填写条款名称',
+          })
+        }
+        if (getConsentTextLength(clause.content) === 0) {
+          context.addIssue({
+            code: 'custom',
+            path: ['consentClauses', index, 'content'],
+            message: '条款正文不能为空',
+          })
+        }
       }
     }
   })
@@ -134,10 +183,6 @@ export function documentToSurveySettingsValues(
   return {
     title: document.meta.title,
     description: document.meta.description,
-    coverType: document.meta.coverType,
-    coverColor: normalizeHexColor(
-      document.meta.coverColor ?? DEFAULT_META.coverColor
-    ),
     cover: document.meta.cover ?? '',
     submitLabel: document.meta.submitLabel,
     opensAt: toDate(document.submissionPolicy.opensAt),
@@ -149,8 +194,24 @@ export function documentToSurveySettingsValues(
     dailyPerUserLimit:
       document.submissionPolicy.dailyPerUserLimit?.toString() ?? '',
     dailyLimit: document.submissionPolicy.dailyLimit?.toString() ?? '',
-    perDeviceLimit: document.submissionPolicy.perDeviceLimit?.toString() ?? '',
     accessPassword: document.submissionPolicy.accessPassword ?? '',
+    consentEnabled: Boolean(document.submissionPolicy.consent),
+    consentClauses: (document.submissionPolicy.consent?.clauses ?? []).map(
+      (clause) => ({
+        id: clause.id,
+        title: clause.title,
+        content: clause.content,
+        optional: clause.optional === true,
+      })
+    ),
+    consentReadSeconds: document.submissionPolicy.consent
+      ? (document.submissionPolicy.consent.minReadSeconds?.toString() ?? '')
+      : CONSENT_DEFAULT_READ_SECONDS.toString(),
+    consentRequireScroll:
+      document.submissionPolicy.consent?.requireScrollToEnd === true,
+    consentCheckboxLabel:
+      document.submissionPolicy.consent?.checkboxLabel ?? '',
+    consentDenyMessage: document.submissionPolicy.consent?.denyMessage ?? '',
     numberingStyle: document.meta.defaultQuestionNumbering ?? 'decimal',
     numberingMode: document.meta.questionNumberingMode ?? 'global',
     primaryColor: normalizeHexColor(document.theme.primaryColor),
@@ -159,6 +220,33 @@ export function documentToSurveySettingsValues(
 
 function optionalNumber(value: string) {
   return value ? Number(value) : undefined
+}
+
+function buildConsentPolicy(
+  values: SurveySettingsFormValues
+): ConsentPolicy | undefined {
+  if (!values.consentEnabled) return undefined
+
+  const clauses: ConsentClause[] = values.consentClauses.map((clause) => {
+    const next: ConsentClause = {
+      id: clause.id,
+      title: clause.title.trim(),
+      content: clause.content,
+    }
+    if (clause.optional) next.optional = true
+    return next
+  })
+
+  const checkboxLabel = values.consentCheckboxLabel.trim()
+  const denyMessage = values.consentDenyMessage.trim()
+  const readSeconds = Number(values.consentReadSeconds)
+
+  const consent: ConsentPolicy = { clauses }
+  if (readSeconds >= 1) consent.minReadSeconds = readSeconds
+  if (values.consentRequireScroll) consent.requireScrollToEnd = true
+  if (checkboxLabel) consent.checkboxLabel = checkboxLabel
+  if (denyMessage) consent.denyMessage = denyMessage
+  return consent
 }
 
 export function applySurveySettingsValues(
@@ -171,8 +259,6 @@ export function applySurveySettingsValues(
       ...document.meta,
       title: values.title,
       description: values.description,
-      coverType: values.coverType as CoverType,
-      coverColor: values.coverColor,
       cover: values.cover || undefined,
       submitLabel: values.submitLabel,
       endTitle: values.endTitle,
@@ -193,8 +279,8 @@ export function applySurveySettingsValues(
       perUserLimit: optionalNumber(values.perUserLimit),
       dailyPerUserLimit: optionalNumber(values.dailyPerUserLimit),
       dailyLimit: optionalNumber(values.dailyLimit),
-      perDeviceLimit: optionalNumber(values.perDeviceLimit),
       accessPassword: values.accessPassword || undefined,
+      consent: buildConsentPolicy(values),
     },
   }
 

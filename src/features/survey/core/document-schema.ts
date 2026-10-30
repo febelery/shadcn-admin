@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { getConsentPolicyIssues } from './consent'
 import { getDocumentIdentityIssues } from './document-identities'
 import { SURVEY_DOCUMENT_SCHEMA_VERSION } from './document-version'
 import { getQuestionConfigIssues } from './question-config'
@@ -102,6 +103,7 @@ const submissionPolicySchema = z
     opensAt: instantSchema.optional(),
     closesAt: instantSchema.optional(),
     accessPassword: z.string().min(1).optional(),
+    consent: z.unknown().optional(),
   })
   .strict()
   .superRefine((policy, context) => {
@@ -115,6 +117,16 @@ const submissionPolicySchema = z
         path: ['closesAt'],
         message: '结束时间不能早于开始时间',
       })
+    }
+
+    if (policy.consent !== undefined) {
+      for (const issue of getConsentPolicyIssues(policy.consent)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['consent', ...issue.path],
+          message: issue.message,
+        })
+      }
     }
   })
 
@@ -130,8 +142,6 @@ const surveyDocumentSchema = z
       .object({
         title: z.string().min(1),
         description: z.string(),
-        coverType: z.enum(['none', 'color', 'image']),
-        coverColor: z.string().optional(),
         cover: z.string().optional(),
         submitLabel: z.string(),
         endTitle: z.string(),

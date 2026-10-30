@@ -95,6 +95,59 @@ describe('parseSurveyDocument', () => {
     ).toThrow()
   })
 
+  it('accepts a well-formed consent gate and rejects fake-off flags', () => {
+    const document = createEmptySurvey()
+    const consent = {
+      clauses: [
+        { id: 'privacy', title: '隐私政策', content: '<p>正文</p>' },
+        {
+          id: 'marketing',
+          title: '营销授权',
+          content: '<p>选填</p>',
+          optional: true,
+        },
+      ],
+      minReadSeconds: 15,
+      requireScrollToEnd: true,
+    }
+    const withConsent = (value: unknown) =>
+      parseSurveyDocument({
+        ...document,
+        submissionPolicy: { ...document.submissionPolicy, consent: value },
+      })
+
+    expect(withConsent(consent).submissionPolicy.consent).toMatchObject(consent)
+
+    expect(() =>
+      withConsent({ clauses: [{ id: 'c', title: '', content: '<p>正文</p>' }] })
+    ).toThrow()
+    expect(() =>
+      withConsent({
+        clauses: [{ id: 'c', title: '条款', content: '<p> </p>' }],
+      })
+    ).toThrow()
+    expect(() =>
+      withConsent({
+        clauses: [{ id: 'c', title: '条款', content: '<p>正文</p>' }],
+        requireScrollToEnd: false,
+      })
+    ).toThrow()
+    expect(() =>
+      withConsent({
+        clauses: [{ id: 'c', title: '条款', content: '<p>正文</p>' }],
+        minReadSeconds: 0,
+      })
+    ).toThrow()
+    expect(() =>
+      withConsent({
+        clauses: [
+          { id: 'c', title: '条款', content: '<p>正文</p>' },
+          { id: 'c', title: '另一条', content: '<p>正文</p>' },
+        ],
+      })
+    ).toThrow(/重复/)
+  })
+
   it('rejects removed placeholder capabilities', () => {
     const document = createEmptySurvey()
 

@@ -93,6 +93,10 @@ export function ActionBuilder({
               <FieldRow label='动作'>
                 <Select
                   value={action.type}
+                  items={actionTypes.map((type) => ({
+                    value: type,
+                    label: actionTypeLabel(type),
+                  }))}
                   onValueChange={(value) => {
                     if (!isRuleActionType(value)) return
                     onChange({

@@ -11,6 +11,10 @@ import { createEmptySurvey } from '../core/document-factory'
 import { parseSurveyDocument } from '../core/document-schema'
 import type { SurveyDocument } from '../core/types'
 import {
+  applySurveySettingsValues,
+  type SurveySettingsFormValues,
+} from '../settings/form-schema'
+import {
   useCreateSurvey,
   useSurveyDetail,
   useUpdateSurvey,
@@ -29,28 +33,6 @@ import { SettingsWorkspace } from './settings/workspace'
 import { UnsavedChangesBlocker } from './unsaved-changes-blocker'
 
 type Props = { mode: 'create' } | { mode: 'edit'; surveyId: string }
-
-function formatSchemaValidationError(err: unknown): string {
-  if (
-    err &&
-    typeof err === 'object' &&
-    'issues' in err &&
-    Array.isArray((err as { issues: unknown }).issues)
-  ) {
-    const first = (err as { issues: { message: string }[] }).issues[0]
-    if (first?.message) return first.message
-  }
-  return '问卷数据结构校验失败'
-}
-
-function parseValidDocument(document: SurveyDocument): SurveyDocument | null {
-  try {
-    return parseSurveyDocument(document)
-  } catch (err) {
-    toast.error(formatSchemaValidationError(err))
-    return null
-  }
-}
 
 function SurveyBuilderSession({
   initialDocument,
@@ -90,25 +72,27 @@ function SurveyBuilderContent({ props }: { props: Props }) {
   const { leaveToEdit } = useRuleAuthoring()
 
   const persistDocument = async (
-    document: SurveyDocument
+    doc: SurveyDocument
   ): Promise<SurveyDocument> => {
     if (isCreate) {
-      return create(document)
+      return create(doc)
     }
     return save({
       id: surveyId!,
-      data: { ...document, id: surveyId! },
+      data: { ...doc, id: surveyId! },
     })
   }
 
-  const handleSave = async () => {
+  // 配置页提交：由 TanStack Form 校验通过后回调
+  const handleSaveFromSettings = async (values: SurveySettingsFormValues) => {
     if (hasUnappliedRuleDraft) {
       toast.error('请先应用或取消当前规则草稿')
       return
     }
-    const document = parseValidDocument(getDocumentSnapshot())
-    if (!document) return
-    const persisted = await persistDocument(document)
+    const snapshot = getDocumentSnapshot()
+    const updated = applySurveySettingsValues(snapshot, values)
+    const valid = parseSurveyDocument(updated)
+    const persisted = await persistDocument(valid)
     adoptDocument(persisted)
     toast.success(isCreate ? '已新建' : '已保存')
     if (isCreate) {
@@ -118,6 +102,19 @@ function SurveyBuilderContent({ props }: { props: Props }) {
         replace: true,
       })
     }
+  }
+
+  // 题目或流程页提交：直接保存当前快照
+  const handleSaveFromOther = async () => {
+    if (hasUnappliedRuleDraft) {
+      toast.error('请先应用或取消当前规则草稿')
+      return
+    }
+    const snapshot = getDocumentSnapshot()
+    const valid = parseSurveyDocument(snapshot)
+    const persisted = await persistDocument(valid)
+    adoptDocument(persisted)
+    toast.success('已保存')
   }
 
   const saveDisabled =
@@ -191,7 +188,13 @@ function SurveyBuilderContent({ props }: { props: Props }) {
             variant='outline'
             size='icon'
             className='sm:hidden'
-            onClick={handleSave}
+            type={builderMode === 'settings' ? 'submit' : 'button'}
+            form={
+              builderMode === 'settings' ? 'survey-settings-form' : undefined
+            }
+            onClick={
+              builderMode === 'settings' ? undefined : handleSaveFromOther
+            }
             disabled={saveDisabled}
           >
             {saving || creating ? (
@@ -199,12 +202,18 @@ function SurveyBuilderContent({ props }: { props: Props }) {
             ) : (
               <Save className='size-4' />
             )}
-            <span className='sr-only'>保存</span>
+            <span className='sr-only'>{isCreate ? '新建' : '保存'}</span>
           </Button>
           <Button
             variant='outline'
             className='hidden sm:inline-flex'
-            onClick={handleSave}
+            type={builderMode === 'settings' ? 'submit' : 'button'}
+            form={
+              builderMode === 'settings' ? 'survey-settings-form' : undefined
+            }
+            onClick={
+              builderMode === 'settings' ? undefined : handleSaveFromOther
+            }
             disabled={saveDisabled}
           >
             {saving || creating ? (
@@ -217,7 +226,9 @@ function SurveyBuilderContent({ props }: { props: Props }) {
         </div>
       </header>
 
-      {builderMode === 'settings' && <SettingsWorkspace />}
+      {builderMode === 'settings' && (
+        <SettingsWorkspace onSave={handleSaveFromSettings} />
+      )}
       {builderMode === 'edit' && <EditWorkspace />}
       {builderMode === 'flow' && <FlowWorkspace />}
     </div>
@@ -260,39 +271,17 @@ export function SurveyBuilderPage(props: Props) {
 
 function BuilderLoadingState() {
   return (
-    <div className='bg-muted/25 flex h-svh flex-col'>
-      <header className='border-border/80 bg-background flex h-16 shrink-0 items-center gap-3 border-b px-4 sm:px-5'>
-        <Skeleton className='size-9 rounded-md' />
-        <Skeleton className='h-7 w-56' />
-        <div className='ms-auto flex gap-2'>
-          <Skeleton className='h-9 w-20' />
-          <Skeleton className='h-9 w-20' />
-        </div>
+    <div className='flex h-svh flex-col'>
+      <header className='border-border flex h-16 shrink-0 items-center justify-between border-b px-6'>
+        <Skeleton className='h-6 w-32' />
+        <Skeleton className='h-8 w-48' />
+        <Skeleton className='h-9 w-20' />
       </header>
-      <div className='grid min-h-0 flex-1 grid-cols-[18rem_minmax(0,1fr)_20rem]'>
-        <aside className='border-border/80 bg-background border-r p-4'>
-          <Skeleton className='mb-4 h-6 w-24' />
-          <Skeleton className='mb-5 h-9 w-full' />
-          <div className='space-y-2'>
-            {Array.from({ length: 8 }).map((_, index) => (
-              <Skeleton key={index} className='h-9 w-full' />
-            ))}
-          </div>
-        </aside>
-        <main className='min-w-0 overflow-hidden p-6'>
-          <Skeleton className='mx-auto h-full max-w-5xl rounded-lg' />
-        </main>
-        <aside className='border-border/80 bg-background border-l p-4'>
-          <Skeleton className='mb-6 h-6 w-20' />
-          <div className='space-y-5'>
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className='space-y-2'>
-                <Skeleton className='h-4 w-1/2' />
-                <Skeleton className='h-9 w-full' />
-              </div>
-            ))}
-          </div>
-        </aside>
+      <div className='flex flex-1 items-center justify-center'>
+        <div className='flex flex-col items-center gap-3'>
+          <Spinner className='text-muted-foreground size-8' />
+          <p className='text-muted-foreground text-sm'>加载问卷数据中...</p>
+        </div>
       </div>
     </div>
   )
@@ -303,57 +292,45 @@ function BuilderErrorState({
   retrying,
 }: {
   onRetry: () => void
-  retrying: boolean
+  retrying?: boolean
 }) {
   return (
-    <div className='bg-muted/25 flex h-svh flex-col'>
-      <header className='border-border/80 bg-background flex h-16 shrink-0 items-center gap-3 border-b px-4 sm:px-5'>
+    <div className='flex h-svh flex-col'>
+      <header className='border-border flex h-16 shrink-0 items-center justify-between border-b px-6'>
         <Button
           variant='ghost'
           size='icon'
           nativeButton={false}
-          render={<Link to='/survey' aria-label='返回问卷列表' />}
+          render={<Link to='/survey' />}
         >
-          <ArrowLeft className='size-4' />
+          <ArrowLeft className='h-4 w-4' />
         </Button>
-        <div className='flex flex-col gap-1'>
-          <span className='text-muted-foreground text-[11px] leading-none font-medium'>
-            问卷编辑
-          </span>
-          <span className='text-base leading-none font-semibold'>
-            暂时无法打开问卷
-          </span>
-        </div>
+        <span className='text-muted-foreground text-sm font-medium'>出错了</span>
+        <div className='w-9' />
       </header>
-      <main className='flex min-h-0 flex-1 items-center justify-center p-6'>
-        <div
-          role='alert'
-          className='border-border bg-card flex max-w-md flex-col items-center gap-4 rounded-lg border px-8 py-10 text-center'
-        >
-          <div className='bg-destructive/10 text-destructive flex size-11 items-center justify-center rounded-full'>
-            <AlertCircle className='size-5' />
-          </div>
-          <div className='space-y-1.5'>
-            <h1 className='text-xl font-semibold'>问卷加载失败</h1>
-            <p className='text-muted-foreground text-sm leading-relaxed'>
-              问卷内容没有成功返回，当前编辑未受影响。请重试或返回列表选择其他问卷。
-            </p>
-          </div>
-          <div className='flex items-center gap-2'>
-            <Button
-              variant='outline'
-              nativeButton={false}
-              render={<Link to='/survey' />}
-            >
-              返回列表
-            </Button>
-            <Button onClick={onRetry} disabled={retrying}>
-              <RefreshCw className={cn('size-4', retrying && 'animate-spin')} />
-              {retrying ? '重试中' : '重新加载'}
-            </Button>
-          </div>
+      <div className='flex flex-1 items-center justify-center'>
+        <div className='flex max-w-sm flex-col items-center gap-3 text-center'>
+          <AlertCircle className='text-destructive size-10' />
+          <h2 className='text-lg font-semibold'>问卷加载失败</h2>
+          <p className='text-muted-foreground text-sm'>
+            无法获取问卷详情，请检查网络或确认问卷是否存在。
+          </p>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={onRetry}
+            disabled={retrying}
+            className='mt-2'
+          >
+            {retrying ? (
+              <Spinner className='mr-1.5 size-3.5' />
+            ) : (
+              <RefreshCw className='mr-1.5 size-3.5' />
+            )}
+            重新加载
+          </Button>
         </div>
-      </main>
+      </div>
     </div>
   )
 }
