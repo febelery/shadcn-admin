@@ -9,10 +9,8 @@ import {
 import {
   parseQuestionAnalysis,
   parseSurveyAnalysis,
-  parseSurveySegmentAnalysis,
   type QuestionAnalysis,
   type SurveyAnalysisResult,
-  type SurveySegmentAnalysisResult,
 } from '@/features/survey/core/analysis-schema'
 import { parseSurveyDocument } from '@/features/survey/core/document-schema'
 import type { SurveyDocument } from '@/features/survey/core/types'
@@ -31,7 +29,6 @@ export const SURVEY_API = {
   analysis: (id: string) => `/api/survey/${id}/analysis`,
   questionAnalysis: (id: string, questionId: string) =>
     `/api/survey/${id}/analysis/question/${questionId}`,
-  segmentAnalysis: (id: string) => `/api/survey/${id}/analysis/segment`,
 } as const
 
 export async function listSurvey(
@@ -121,13 +118,4 @@ export async function getSurveyQuestionAnalysis(
     { params }
   )
   return parseQuestionAnalysis(data)
-}
-
-/** 获取问卷条件统计结果 */
-export async function getSurveySegmentAnalysis(
-  id: string,
-  params?: QueryParams
-): Promise<SurveySegmentAnalysisResult> {
-  const { data } = await axios.get(SURVEY_API.segmentAnalysis(id), { params })
-  return parseSurveySegmentAnalysis(data)
 }

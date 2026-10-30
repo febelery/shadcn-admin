@@ -79,24 +79,26 @@ export function SurveyRowActions({ survey, onDelete }: SurveyRowActionsProps) {
             更多
           </TooltipContent>
         </Tooltip>
-        <DropdownMenuContent align='end' sideOffset={6}>
+        <DropdownMenuContent align='end' sideOffset={6} className='min-w-[100px]'>
           <DropdownMenuGroup>
             <DropdownMenuItem
+              className='cursor-pointer text-[0.8rem] font-medium text-foreground'
               render={
                 <Link to='/survey/$id/analysis' params={{ id: survey.id }} />
               }
             >
-              <BarChart3 />
+              <BarChart3 className='size-3.5 text-foreground' />
               分析
             </DropdownMenuItem>
             <DropdownMenuItem
               variant='destructive'
+              className='cursor-pointer text-[0.8rem] font-medium'
               onClick={(e) => {
                 e.preventDefault()
                 setShowConfirm(true)
               }}
             >
-              <Trash2 />
+              <Trash2 className='size-3.5' />
               删除
             </DropdownMenuItem>
           </DropdownMenuGroup>

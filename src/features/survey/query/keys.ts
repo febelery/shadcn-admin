@@ -21,6 +21,4 @@ export const surveyKeys = {
       questionId,
       params,
     ] as const,
-  segmentAnalysis: (id: string, params?: QueryParams) =>
-    [...surveyKeys.all, 'analysis', id, 'segment', params] as const,
 }

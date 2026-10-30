@@ -85,7 +85,7 @@ export function isConditionOperator(value: string): value is ConditionOperator {
 }
 
 /** 按题型返回可用条件运算符 */
-export function getSegmentOperatorsForQuestionType(
+export function getOperatorsForQuestionType(
   type: QuestionType
 ): OperatorDef[] {
   switch (getRuleOperatorProfile(type)) {
@@ -106,7 +106,7 @@ export function getSegmentOperatorsForQuestionType(
 export function getRuleOperatorsForQuestionType(
   type: QuestionType
 ): (OperatorDef & { value: RuleConditionOperator })[] {
-  return getSegmentOperatorsForQuestionType(type).filter(
+  return getOperatorsForQuestionType(type).filter(
     (operator): operator is OperatorDef & { value: RuleConditionOperator } =>
       isRuleConditionOperator(operator.value)
   )

@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { CONDITION_OPERATORS } from './logic/operators'
 
 const countSchema = z.number().int().nonnegative()
 const percentageSchema = z.number().min(0).max(1)
@@ -213,45 +212,6 @@ const surveyAnalysisSchema = z
   })
   .strict()
 
-const segmentConditionOperatorSchema = z.enum(CONDITION_OPERATORS)
-
-const segmentConditionSchema = z
-  .object({
-    questionId: z.string(),
-    operator: segmentConditionOperatorSchema,
-    value: z.union([z.string(), z.number()]).optional(),
-    value2: z.union([z.string(), z.number()]).optional(),
-  })
-  .strict()
-
-const segmentDefinitionSchema = z
-  .object({
-    id: z.string().min(1),
-    label: z.string(),
-    conditions: z.array(segmentConditionSchema),
-  })
-  .strict()
-
-const surveySegmentAnalysisSchema = z
-  .object({
-    surveyId: z.string().min(1),
-    metric: z.literal('count'),
-    metricLabel: z.string(),
-    total: countSchema,
-    segments: z.array(
-      z
-        .object({
-          id: z.string().min(1),
-          label: z.string(),
-          count: countSchema,
-          percentage: percentageSchema,
-          conditions: z.array(segmentConditionSchema),
-        })
-        .strict()
-    ),
-  })
-  .strict()
-
 export type SurveyAnalysisOverview = z.infer<
   typeof surveyAnalysisSchema
 >['overview']
@@ -266,14 +226,6 @@ export type TextAnswerItem = z.infer<typeof textAnswerItemSchema>
 export type TextAnalysis = z.infer<typeof textAnalysisSchema>
 export type QuestionAnalysis = z.infer<typeof questionAnalysisSchema>
 export type SurveyAnalysisResult = z.infer<typeof surveyAnalysisSchema>
-export type SegmentConditionOperator = z.infer<
-  typeof segmentConditionOperatorSchema
->
-export type SegmentCondition = z.infer<typeof segmentConditionSchema>
-export type SegmentDefinition = z.infer<typeof segmentDefinitionSchema>
-export type SurveySegmentAnalysisResult = z.infer<
-  typeof surveySegmentAnalysisSchema
->
 
 export function parseSurveyAnalysis(data: unknown): SurveyAnalysisResult {
   return surveyAnalysisSchema.parse(data)
@@ -281,14 +233,4 @@ export function parseSurveyAnalysis(data: unknown): SurveyAnalysisResult {
 
 export function parseQuestionAnalysis(data: unknown): QuestionAnalysis {
   return questionAnalysisSchema.parse(data)
-}
-
-export function parseSurveySegmentAnalysis(
-  data: unknown
-): SurveySegmentAnalysisResult {
-  return surveySegmentAnalysisSchema.parse(data)
-}
-
-export function parseSegmentDefinitions(data: unknown): SegmentDefinition[] {
-  return z.array(segmentDefinitionSchema).parse(data)
 }

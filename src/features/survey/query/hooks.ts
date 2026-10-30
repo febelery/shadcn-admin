@@ -12,7 +12,6 @@ import {
   updateSurveyStatus,
   getSurveyAnalysis,
   getSurveyQuestionAnalysis,
-  getSurveySegmentAnalysis,
 } from '@/api/survey'
 import type { SurveyRecordResponse } from '../core/admin-data-schema'
 import type { SurveyDocument } from '../core/types'
@@ -162,19 +161,6 @@ export function useSurveyAnalysis(surveyId: string, params?: QueryParams) {
     queryKey: surveyKeys.analysis(surveyId, params),
     queryFn: () => getSurveyAnalysis(surveyId, params),
     enabled: !!surveyId,
-  })
-}
-
-/** 获取问卷条件统计的 query hook */
-export function useSurveySegmentAnalysis(
-  surveyId: string,
-  params?: QueryParams,
-  options?: { enabled?: boolean }
-) {
-  return useQuery({
-    queryKey: surveyKeys.segmentAnalysis(surveyId, params),
-    queryFn: () => getSurveySegmentAnalysis(surveyId, params),
-    enabled: options?.enabled !== false && !!surveyId,
   })
 }
 

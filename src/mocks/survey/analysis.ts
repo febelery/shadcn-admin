@@ -3,18 +3,9 @@ import {
   parseQueryFilterParam,
 } from '@/lib/data-grid-filters'
 import type { SurveyRecordItem } from '@/features/survey/core/admin-data-schema'
-import {
-  parseSegmentDefinitions,
-  type SegmentDefinition,
-  type SurveyAnalysisResult,
-  type SurveySegmentAnalysisResult,
-} from '@/features/survey/core/analysis-schema'
+import type { SurveyAnalysisResult } from '@/features/survey/core/analysis-schema'
 import { flattenQuestions } from '@/features/survey/core/document-elements'
-import { evaluateCondition } from '@/features/survey/core/logic/eval'
-import type {
-  QuestionElement,
-  SurveyDocument,
-} from '@/features/survey/core/types'
+import type { SurveyDocument } from '@/features/survey/core/types'
 
 export function filterSurveyRecords(
   document: SurveyDocument,
@@ -88,59 +79,4 @@ export function createSurveyAnalysis(
       })).sort((left, right) => left.date.localeCompare(right.date)),
     },
   }
-}
-
-export function decodeSegmentDefinitions(value: string | null) {
-  if (!value) return []
-  return parseSegmentDefinitions(JSON.parse(value))
-}
-
-export function createSurveySegmentAnalysis(
-  surveyId: string,
-  document: SurveyDocument,
-  records: SurveyRecordItem[],
-  segments: SegmentDefinition[]
-): SurveySegmentAnalysisResult {
-  const questions = flattenQuestions(document)
-  const questionMap = new Map(
-    questions.map((question) => [question.id, question])
-  )
-
-  return {
-    surveyId,
-    metric: 'count',
-    metricLabel: '计数',
-    total: records.length,
-    segments: segments.map((segment) => {
-      const count = records.filter((record) =>
-        recordMatchesSegment(record, segment, questionMap)
-      ).length
-      return {
-        id: segment.id,
-        label: segment.label,
-        count,
-        percentage: records.length === 0 ? 0 : count / records.length,
-        conditions: segment.conditions,
-      }
-    }),
-  }
-}
-
-function recordMatchesSegment(
-  record: SurveyRecordItem,
-  segment: SegmentDefinition,
-  questionMap: Map<string, QuestionElement>
-) {
-  if (segment.conditions.length === 0) return false
-  return segment.conditions.every((condition) => {
-    const question = questionMap.get(condition.questionId)
-    if (!question) return false
-    return evaluateCondition(
-      record.answers[condition.questionId],
-      question,
-      condition.operator,
-      condition.value,
-      condition.value2
-    )
-  })
 }

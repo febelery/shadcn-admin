@@ -4,8 +4,6 @@ import {
 } from '@/mocks/fixtures/survey-all-types-demo'
 import {
   createSurveyAnalysis,
-  createSurveySegmentAnalysis,
-  decodeSegmentDefinitions,
   filterSurveyRecords,
 } from '@/mocks/survey/analysis'
 import { createQuestionAnalysis } from '@/mocks/survey/question-analysis'
@@ -654,26 +652,6 @@ export const surveyHandlers = [
       return HttpResponse.json(analysis)
     }
   ),
-
-  http.get('/api/survey/:id/analysis/segment', async ({ params, request }) => {
-    await sleep(180)
-    const id = params.id as string
-    const url = new URL(request.url)
-    const document = detailMap.get(id)
-    if (!document) return new HttpResponse(null, { status: 404 })
-
-    const records = recordMap.get(id) ?? []
-    try {
-      const segments = decodeSegmentDefinitions(
-        url.searchParams.get('segments')
-      )
-      return HttpResponse.json(
-        createSurveySegmentAnalysis(id, document, records, segments)
-      )
-    } catch {
-      return HttpResponse.json({ message: '分群条件格式无效' }, { status: 400 })
-    }
-  }),
 
   http.get('/api/survey/:id/record', async ({ params, request }) => {
     await sleep(150)
