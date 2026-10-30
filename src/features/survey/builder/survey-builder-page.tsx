@@ -124,7 +124,7 @@ function SurveyBuilderContent({ props }: { props: Props }) {
     saving || creating || hasUnappliedRuleDraft || (!isCreate && !isDirty)
 
   return (
-    <div className='bg-background flex h-svh flex-col antialiased'>
+    <div className='bg-background flex h-svh flex-col overflow-hidden antialiased'>
       <UnsavedChangesBlocker />
       <header
         className={cn(

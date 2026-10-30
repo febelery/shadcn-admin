@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import { revalidateLogic, useForm, useStore } from '@tanstack/react-form'
+import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
 import { checkImageAccessible, mbToBytes } from '@/lib/files'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import {
@@ -33,6 +33,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { DatePicker } from '@/components/date-picker'
 import { Editor } from '@/components/editor'
 import { FileUpload } from '@/components/file-upload'
+import { PasswordInput } from '@/components/password-input'
 import { isSurveyNumberingEnabled } from '../../core/question-numbering'
 import type {
   QuestionNumberingMode,
@@ -216,7 +217,7 @@ export function SettingsWorkspace() {
   })
 
   // 当表单字段修改时同步更新全局 Builder 状态
-  const formValues = useStore(form.store, (state) => state.values)
+  const formValues = useSelector(form.store, (state) => state.values)
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
@@ -234,7 +235,7 @@ export function SettingsWorkspace() {
   }, [storeTitle, form])
 
   return (
-    <div className='bg-muted/25 flex min-h-0 flex-1 flex-col overflow-y-auto'>
+    <div className='bg-muted/25 relative flex min-h-0 flex-1 flex-col overflow-y-auto'>
       <div className='mx-auto flex w-full max-w-5xl flex-col px-5 py-6 sm:py-8'>
         <Card className='border-border bg-card text-card-foreground w-full gap-0 overflow-hidden rounded-lg border py-0 shadow-sm'>
           <CardContent className='p-0'>
@@ -662,10 +663,9 @@ export function SettingsWorkspace() {
                           className='flex flex-col gap-2'
                         >
                           <FieldLabel htmlFor={field.name}>访问密码</FieldLabel>
-                          <Input
+                          <PasswordInput
                             id={field.name}
                             name={field.name}
-                            type='password'
                             placeholder='留空则无需密码'
                             value={field.state.value}
                             aria-invalid={invalid}
