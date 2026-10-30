@@ -241,7 +241,7 @@ export function QuestionPalette({ className, onNavigate }: Props = {}) {
         className
       )}
     >
-      <BuilderPanelHeader icon={LayoutGrid} title='添加题目' />
+      <BuilderPanelHeader icon={LayoutGrid} title='题型' />
 
       <div className='bg-background text-foreground flex min-h-0 min-w-0 flex-1 flex-col'>
         <Command

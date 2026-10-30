@@ -161,7 +161,7 @@ export function OptionEditor({
             <div className='flex flex-wrap gap-1'>
               <span
                 className={cn(
-                  'text-muted-foreground text-xs leading-relaxed',
+                  'text-muted-foreground/70 text-xs leading-relaxed',
                   'w-full'
                 )}
               >
@@ -184,7 +184,7 @@ export function OptionEditor({
                 onClick={() => applyPreset(OPTION_LINE_PRESETS.frequency5)}
               />
             </div>
-            <p className='text-muted-foreground text-xs leading-relaxed'>
+            <p className='text-muted-foreground/70 text-xs leading-relaxed'>
               打开时会载入当前列表；应用修改保存全部行。追加仅在文末新增行时生效。
             </p>
           </CollapsibleContent>

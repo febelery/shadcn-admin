@@ -1,14 +1,21 @@
 import { type ReactNode } from 'react'
 import { cn } from 'cn'
-import { Settings2, ChevronDown } from 'lucide-react'
+import { ChevronDown, Info, Settings2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
+import { Field, FieldLabel } from '@/components/ui/field'
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
@@ -28,13 +35,122 @@ import type {
   QuestionContentPatch,
   QuestionConfigPatch,
   QuestionElement,
+  QuestionType,
   SurveyElement,
 } from '../../../core/types'
 import { useBuilderStore } from '../../builder-session'
 import { BuilderPanelHeader } from '../../shared/panel-header'
 import { BuilderGuidance } from '../guidance'
+import { InfoHint } from './question-fields/layout'
 import { QuestionTypeInspectorFields } from './question-inspector'
 import { getQuestionInspectorSection } from './question-inspector-section'
+
+/** 面板内的白卡片:区块之间靠 12px 间距分,不靠细线 */
+function InspectorCard({
+  className,
+  children,
+}: {
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <div
+      className={cn(
+        'border-border/70 bg-card text-card-foreground overflow-hidden rounded-xl border shadow-xs',
+        className
+      )}
+    >
+      {children}
+    </div>
+  )
+}
+
+/** 开关行:一行两端对齐,左侧文案 + info,右侧开关 */
+function InspectorSwitchRow({
+  id,
+  label,
+  hint,
+  checked,
+  onCheckedChange,
+}: {
+  id: string
+  label: string
+  hint?: string
+  checked: boolean
+  onCheckedChange: (checked: boolean) => void
+}) {
+  return (
+    <div className='flex items-center justify-between gap-3'>
+      <div className='flex min-w-0 items-center gap-1.5'>
+        <Label
+          htmlFor={id}
+          className='text-foreground/85 min-w-0 cursor-pointer truncate text-sm'
+        >
+          {label}
+        </Label>
+        {hint ? <InfoHint label={hint} /> : null}
+      </div>
+      <Switch
+        id={id}
+        checked={checked}
+        onCheckedChange={(c) => onCheckedChange(!!c)}
+        className='shrink-0'
+      />
+    </div>
+  )
+}
+
+/** 题型说明不再占一个区块:题型进 Badge,说明与图示进 info 浮层 */
+function QuestionTypeIndicator({ type }: { type: QuestionType }) {
+  const showPreview = hasQuestionTypePreview(type)
+
+  const badge = (
+    <Badge
+      variant='secondary'
+      className='h-5 rounded-md px-1.5 text-[11px] leading-none font-medium'
+    >
+      {getQuestionTypeLabel(type)}
+    </Badge>
+  )
+
+  if (!showPreview) {
+    return (
+      <div className='flex shrink-0 items-center gap-1.5'>
+        {badge}
+        <InfoHint label={getQuestionTypeHint(type)} className='mr-0.5' />
+      </div>
+    )
+  }
+
+  return (
+    <div className='flex shrink-0 items-center gap-1.5'>
+      {badge}
+      <HoverCard>
+        <HoverCardTrigger
+          render={
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon-xs'
+              className='text-muted-foreground/60 hover:text-foreground size-5 rounded-full hover:bg-transparent'
+              aria-label='题型说明'
+            />
+          }
+        >
+          <Info className='size-3.5' />
+        </HoverCardTrigger>
+        <HoverCardContent side='bottom' align='end' className='w-64'>
+          <p className='text-muted-foreground/80 text-xs leading-relaxed'>
+            {getQuestionTypeHint(type)}
+          </p>
+          <div className='mt-3'>
+            <QuestionTypePreview type={type} />
+          </div>
+        </HoverCardContent>
+      </HoverCard>
+    </div>
+  )
+}
 
 // 题目属性配置面板组件
 function QuestionInspector({ el }: { el: QuestionElement }) {
@@ -49,7 +165,6 @@ function QuestionInspector({ el }: { el: QuestionElement }) {
   const patch = (p: QuestionContentPatch) => updateQuestion(el.id, p)
   const patchConfig = (p: QuestionConfigPatch) => updateQuestionConfig(el.id, p)
 
-  const typeLabel = getQuestionTypeLabel(el.type)
   const surveyEnabled = isSurveyNumberingEnabled(surveyStyle)
   const numberVisible = isQuestionNumberVisible(el, surveyStyle)
   const surveyStyleLabel =
@@ -57,17 +172,11 @@ function QuestionInspector({ el }: { el: QuestionElement }) {
     surveyStyle
 
   return (
-    <div className='flex flex-col'>
-      <InspectorSection title='题型说明' description={typeLabel}>
-        <p className='text-muted-foreground text-xs leading-relaxed'>
-          {getQuestionTypeHint(el.type)}
-        </p>
-        {hasQuestionTypePreview(el.type) ? (
-          <QuestionTypePreview type={el.type} />
-        ) : null}
-      </InspectorSection>
-
-      <InspectorSection title='基础信息' description='与画布内联编辑同步'>
+    <div className='flex flex-col gap-3'>
+      <InspectorSection
+        title='基础信息'
+        hint='标题、选项、必/选与题号也可在画布上直接点击编辑'
+      >
         <Field className='gap-1.5'>
           <FieldLabel
             htmlFor='q-title'
@@ -98,68 +207,34 @@ function QuestionInspector({ el }: { el: QuestionElement }) {
             onChange={(e) => patch({ description: e.target.value })}
           />
         </Field>
-        <p className='text-muted-foreground text-xs leading-relaxed'>
-          标题、选项、必/选与题号也可在画布上直接点击编辑。
-        </p>
       </InspectorSection>
 
       <InspectorSection title='展示与逻辑'>
-        {!surveyEnabled ? (
-          <p className='text-muted-foreground text-xs leading-relaxed'>
+        {surveyEnabled ? (
+          <InspectorSwitchRow
+            id={`show-number-${el.id}`}
+            label='显示本题题号'
+            hint={`全卷样式：${surveyStyleLabel}，在「问卷设置」中修改`}
+            checked={numberVisible}
+            onCheckedChange={(c) => patch({ numbering: { show: c } })}
+          />
+        ) : (
+          <p className='text-muted-foreground/70 text-xs leading-relaxed'>
             全卷已关闭题号（问卷设置 → {surveyStyleLabel}
             ）。可在画布点击题号区域切换单题显隐。
           </p>
-        ) : (
-          <Field
-            orientation='horizontal'
-            className='items-start justify-between gap-3'
-          >
-            <div className='flex min-w-0 flex-col gap-0.5'>
-              <FieldLabel
-                htmlFor={`show-number-${el.id}`}
-                className='text-sm leading-relaxed font-normal'
-              >
-                显示本题题号
-              </FieldLabel>
-              <FieldDescription className='text-muted-foreground text-xs leading-relaxed'>
-                {`全卷样式：${surveyStyleLabel}，在「问卷设置」中修改`}
-              </FieldDescription>
-            </div>
-            <Switch
-              id={`show-number-${el.id}`}
-              checked={numberVisible}
-              onCheckedChange={(c) => patch({ numbering: { show: !!c } })}
-              className='mt-0.5 shrink-0'
-            />
-          </Field>
         )}
-        <Field
-          orientation='horizontal'
-          className='items-start justify-between gap-3'
-        >
-          <div className='flex min-w-0 flex-col gap-0.5'>
-            <FieldLabel
-              htmlFor={`required-${el.id}`}
-              className='text-sm leading-relaxed font-normal'
-            >
-              必填
-            </FieldLabel>
-            <FieldDescription className='text-muted-foreground text-xs leading-relaxed'>
-              画布左侧「必/选」徽章可快速切换
-            </FieldDescription>
-          </div>
-          <Switch
-            id={`required-${el.id}`}
-            checked={el.required}
-            onCheckedChange={(c) => patch({ required: !!c })}
-            className='mt-0.5 shrink-0'
-          />
-        </Field>
+        <InspectorSwitchRow
+          id={`required-${el.id}`}
+          label='必填'
+          hint='画布左侧「必/选」徽章可快速切换'
+          checked={el.required}
+          onCheckedChange={(c) => patch({ required: c })}
+        />
       </InspectorSection>
 
       <InspectorSection
         title={inspectorSection.title}
-        description='本题专属配置'
         defaultOpen={inspectorSection.defaultOpen}
       >
         <QuestionTypeInspectorFields
@@ -168,16 +243,14 @@ function QuestionInspector({ el }: { el: QuestionElement }) {
         />
       </InspectorSection>
 
-      <div className='p-4'>
-        <Button
-          variant='outline'
-          size='sm'
-          className='text-destructive hover:bg-destructive/10 hover:text-destructive w-full'
-          onClick={() => removeElement(el.id)}
-        >
-          删除此题
-        </Button>
-      </div>
+      <Button
+        variant='outline'
+        size='sm'
+        className='text-destructive hover:bg-destructive/10 hover:text-destructive w-full'
+        onClick={() => removeElement(el.id)}
+      >
+        删除此题
+      </Button>
     </div>
   )
 }
@@ -188,10 +261,12 @@ function LayoutInspector({ el }: { el: SurveyElement }) {
 
   if (el.kind === 'divider') {
     return (
-      <div className='flex max-w-full min-w-0 flex-col gap-4 overflow-x-hidden p-4'>
-        <p className='text-muted-foreground text-sm leading-relaxed'>
-          分割线无额外配置
-        </p>
+      <div className='flex flex-col gap-3'>
+        <InspectorCard className='px-4 py-3.5'>
+          <p className='text-muted-foreground/70 text-xs leading-relaxed'>
+            分割线无额外配置
+          </p>
+        </InspectorCard>
         <Button
           variant='destructive'
           size='sm'
@@ -206,7 +281,7 @@ function LayoutInspector({ el }: { el: SurveyElement }) {
 
   if (el.kind === 'rich_text') {
     return (
-      <div className='flex max-w-full min-w-0 flex-col gap-4 overflow-x-hidden p-4'>
+      <div className='flex flex-col gap-3'>
         <Button
           variant='destructive'
           size='sm'
@@ -239,10 +314,18 @@ export function InspectorPanel({ className }: Props = {}) {
         className
       )}
     >
-      <BuilderPanelHeader icon={Settings2} title='当前题目' />
-      <div className='bg-background text-foreground flex min-h-0 min-w-0 flex-1 flex-col'>
+      <BuilderPanelHeader
+        icon={Settings2}
+        title='属性'
+        action={
+          selectedEl?.kind === 'question' ? (
+            <QuestionTypeIndicator type={selectedEl.type} />
+          ) : undefined
+        }
+      />
+      <div className='bg-muted/40 text-foreground flex min-h-0 min-w-0 flex-1 flex-col'>
         <ScrollArea key={selectedEl?.id ?? 'empty'} className='min-h-0 flex-1'>
-          <div className='min-w-0 overflow-x-hidden'>
+          <div className='min-w-0 overflow-x-hidden p-3'>
             {selectedEl?.kind === 'question' && (
               <QuestionInspector el={selectedEl} />
             )}
@@ -275,43 +358,43 @@ export function InspectorPanel({ className }: Props = {}) {
 
 export function InspectorSection({
   title,
-  description,
+  hint,
   defaultOpen = true,
   children,
 }: {
   title: string
-  description?: string
+  hint?: string
   defaultOpen?: boolean
   children: ReactNode
 }) {
   return (
     <Collapsible defaultOpen={defaultOpen} className='group/panel'>
-      <section className='border-border/70 border-b'>
+      <InspectorCard>
         <CollapsibleTrigger
           render={
             <Button
               type='button'
               variant='ghost'
-              className='hover:bg-muted/45 h-auto min-h-13 w-full justify-between rounded-none px-4 py-3.5'
+              className='hover:bg-muted/50 h-auto min-h-11 w-full justify-between rounded-none px-4 py-2.5'
             />
           }
         >
-          <div className='flex min-w-0 flex-col items-start gap-1 text-start'>
-            <h3 className='text-sm leading-snug font-semibold'>{title}</h3>
-            {description ? (
-              <p className='text-muted-foreground text-xs leading-relaxed'>
-                {description}
-              </p>
-            ) : null}
-          </div>
-          <ChevronDown className='text-muted-foreground size-4 shrink-0 transition-transform group-data-[state=open]/panel:rotate-180' />
+          <span className='flex min-w-0 items-center gap-1.5 text-start'>
+            <span className='text-foreground truncate text-sm font-semibold'>
+              {title}
+            </span>
+            {hint ? <InfoHint label={hint} /> : null}
+          </span>
+          <span className='bg-muted text-muted-foreground group-data-[state=open]/panel:bg-primary/12 group-data-[state=open]/panel:text-primary flex size-6 shrink-0 items-center justify-center rounded-md transition-[color,background-color]'>
+            <ChevronDown className='size-3.5 transition-transform group-data-[state=open]/panel:rotate-180' />
+          </span>
         </CollapsibleTrigger>
         <CollapsibleContent className='overflow-hidden'>
-          <div className='flex min-w-0 flex-col gap-4 overflow-x-hidden px-4 pt-1 pb-5'>
+          <div className='border-border/60 bg-card flex min-w-0 flex-col gap-4 overflow-x-hidden border-t px-4 pt-4 pb-4'>
             {children}
           </div>
         </CollapsibleContent>
-      </section>
+      </InspectorCard>
     </Collapsible>
   )
 }

@@ -142,7 +142,7 @@ function CascaderTreeEditor({
           />
         ))}
       </div>
-      <p className='text-muted-foreground text-xs leading-relaxed'>
+      <p className='text-muted-foreground/70 text-xs leading-relaxed'>
         点击 + 为当前项添加子级；末级节点即为可选项叶子。
       </p>
     </div>

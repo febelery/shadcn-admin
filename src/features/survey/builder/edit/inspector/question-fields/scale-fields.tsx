@@ -83,10 +83,10 @@ export function NpsInspectorFields({
   const { config } = question
 
   return (
-    <InspectorFormGroup title='NPS 量表'>
-      <p className='text-muted-foreground text-xs leading-relaxed'>
-        标准 NPS 为 0–10 分；可自定义两端说明文案。
-      </p>
+    <InspectorFormGroup
+      title='NPS 量表'
+      hint='标准 NPS 为 0–10 分；可自定义两端说明文案。'
+    >
       <div className='grid grid-cols-2 gap-2'>
         <div className='flex flex-col gap-1'>
           <Label className='text-muted-foreground text-xs font-medium'>
