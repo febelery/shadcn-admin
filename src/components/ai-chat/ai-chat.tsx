@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useChat } from '@ai-sdk/react'
 import {
   lastAssistantMessageIsCompleteWithApprovalResponses,
@@ -212,8 +212,9 @@ function ChatView({
     }
   }
 
-  const retry = () => {
-    if (isBusy || messages.length === 0) return
+  const hasMessages = messages.length > 0
+  const retry = useCallback(() => {
+    if (isBusy || !hasMessages) return
     clearError()
     const now = performance.now()
     requestStartTimeRef.current = now
@@ -222,7 +223,7 @@ function ChatView({
       delete recordedTtftRef.current[lastAssistantId]
     }
     void regenerate()
-  }
+  }, [isBusy, hasMessages, lastAssistantId, clearError, regenerate])
 
   const reset = () => {
     stop()

@@ -231,7 +231,8 @@ function DateTimePickerPanel({
   modal = false,
 }: DateTimePickerProps) {
   const [open, setOpen] = useState(false)
-  const initDate = useMemo(() => value ?? new Date(), [value])
+  const [fallbackDate] = useState(() => new Date())
+  const initDate = value ?? fallbackDate
   const [date, setDate] = useState<Date>(initDate)
 
   const calendarDisabled = useMemo(

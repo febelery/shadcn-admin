@@ -143,6 +143,11 @@ export function Editor({
     valueRef.current = value
   }, [value])
 
+  const disabledRef = React.useRef(disabled)
+  React.useEffect(() => {
+    disabledRef.current = disabled
+  }, [disabled])
+
   // 初始化编辑器实例 (整个组件生命周期仅在挂载时运行一次，从根本上隔离重构开销)
   React.useEffect(() => {
     if (!containerRef.current) return
@@ -150,8 +155,8 @@ export function Editor({
     const instance = new TiptapEditor({
       element: containerRef.current,
       extensions: defaultExtensions,
-      content: value,
-      editable: !disabled,
+      content: valueRef.current,
+      editable: !disabledRef.current,
       editorProps: {
         handleDrop(_view, event, _slice, moved) {
           if (
@@ -242,17 +247,27 @@ export function Editor({
     }
   }, [editor, autoFocus])
 
-  // 字数统计逻辑，采用独立数据计算并做防爆卫语句守护
+  // 字数统计：订阅编辑器 update 事件驱动，用户输入与外部 setContent 都会同步
+  const [editorText, setEditorText] = React.useState('')
+  React.useEffect(() => {
+    if (!editor || editor.isDestroyed) return
+    const sync = () => setEditorText(editor.getText())
+    sync()
+    editor.on('update', sync)
+    return () => {
+      editor.off('update', sync)
+    }
+  }, [editor])
+
   const stats = React.useMemo(() => {
-    if (!editor || editor.isDestroyed) return { characters: 0, words: 0 }
-    const text = editor.getText().trim()
+    const text = editorText.trim()
     if (!text) return { characters: 0, words: 0 }
 
     return {
       characters: text.length,
       words: text.split(/\s+/).filter(Boolean).length,
     }
-  }, [editor, value])
+  }, [editorText])
 
   return (
     <TooltipProvider delay={150}>

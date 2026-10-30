@@ -125,7 +125,7 @@ export function RoleFormDialog({
             isAllPermissions: false,
           }
     )
-  }, [open, role])
+  }, [open, role, form])
 
   const createMutation = useMutation({
     mutationFn: createRole,

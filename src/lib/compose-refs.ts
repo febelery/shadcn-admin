@@ -55,7 +55,12 @@ function composeRefs<T>(...refs: PossibleRef<T>[]): React.RefCallback<T> {
  * Accepts callback refs and RefObject(s)
  */
 function useComposedRefs<T>(...refs: PossibleRef<T>[]): React.RefCallback<T> {
-  return React.useCallback((node) => composeRefs(...refs)(node), refs)
+  // 依赖数组必须是字面量；当前调用方最多传入 3 个 ref，第四位为冗余槽
+  const [a, b, c, d] = refs
+  return React.useCallback(
+    (node) => composeRefs(a, b, c, d)(node),
+    [a, b, c, d]
+  )
 }
 
 export { composeRefs, useComposedRefs }

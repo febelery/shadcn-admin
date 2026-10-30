@@ -74,7 +74,7 @@ export function TaskMutateDrawer({
   // 弹窗打开或当前行变化时，重置表单为最新默认值
   useEffect(() => {
     if (open) form.reset()
-  }, [open, initialValues])
+  }, [open, initialValues, form])
 
   return (
     <Sheet

@@ -6,7 +6,7 @@ export const initializeMSW = async (): Promise<void> => {
 
   try {
     const { worker } = await import('@/mocks/browser')
-    await worker.start({ onUnhandledRequest: 'bypass' })
+    await worker.start({ onUnhandledFrame: 'bypass' })
   } catch (error) {
     console.error('启动 MSW worker 失败:', error)
   }
