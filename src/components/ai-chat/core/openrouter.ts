@@ -1,7 +1,6 @@
 import { createUIMessageStream } from 'ai'
 import type { AIChatTransport } from '../core/transport'
 import type { ChatMessage } from '../core/types'
-import { createDemoTransport } from './scripted-chat'
 
 const OPENROUTER_URL =
   import.meta.env.VITE_OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1'
@@ -213,8 +212,6 @@ export function createOpenRouterTransport(): AIChatTransport {
 }
 
 /**
- * 默认导出的 OpenRouter 传输实例（未配置 Key 时回退至离线模拟 Transport）
+ * 默认导出的 OpenRouter 传输实例
  */
-export const openRouterTransport: AIChatTransport = isOpenRouterConfigured()
-  ? createOpenRouterTransport()
-  : createDemoTransport()
+export const openRouterTransport: AIChatTransport = createOpenRouterTransport()

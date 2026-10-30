@@ -25,12 +25,11 @@ export {
   renderAskQuestionsTool,
   renderArchiveDraftsTool,
 } from './tools'
-export { createDemoChat, createDemoTransport } from './adapters/scripted-chat'
 export {
   createOpenRouterTransport,
   isOpenRouterConfigured,
   openRouterTransport,
-} from './adapters/openrouter'
+} from './core/openrouter'
 
 export type {
   ChatMessage,
@@ -38,5 +37,4 @@ export type {
   Tools,
   DataParts,
   AttachmentItem,
-  PromptCard,
 } from './core/types'

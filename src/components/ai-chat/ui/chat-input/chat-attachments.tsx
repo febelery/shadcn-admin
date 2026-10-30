@@ -131,45 +131,37 @@ export function ChatInputAttachments({
   if (items.length === 0) return null
 
   return (
-    <div className='border-border/40 mb-2 border-b px-1 pb-2.5'>
-      <AttachmentGroup className='gap-2 py-0.5'>
-        {items.map((item) => {
-          const att = fileItemToAttachment(item)
-          return (
-            <Attachment
-              key={item.id}
-              size='xs'
-              orientation='horizontal'
-              className='bg-background/90 shadow-2xs'
-            >
-              <AttachmentMedia variant={att.isImage ? 'image' : 'icon'}>
-                {att.isImage && att.url ? (
-                  <img
-                    src={att.url}
-                    alt={att.name}
-                    className='size-full rounded-xs object-cover'
-                  />
-                ) : (
-                  <FileIconBadge filename={att.name} type={att.mediaType} />
-                )}
-              </AttachmentMedia>
-              <AttachmentContent>
-                <AttachmentTitle>{att.name}</AttachmentTitle>
-                <AttachmentDescription>{att.size}</AttachmentDescription>
-              </AttachmentContent>
-              <AttachmentActions>
-                <AttachmentAction
-                  aria-label={`移除 ${att.name}`}
-                  onClick={() => onRemove(item.id)}
-                  title='移除附件'
-                >
-                  <X className='size-3' />
-                </AttachmentAction>
-              </AttachmentActions>
-            </Attachment>
-          )
-        })}
-      </AttachmentGroup>
-    </div>
+    <AttachmentGroup className='w-full py-0'>
+      {items.map((item) => {
+        const att = fileItemToAttachment(item)
+        return (
+          <Attachment key={item.id} size='xs' orientation='horizontal'>
+            <AttachmentMedia variant={att.isImage ? 'image' : 'icon'}>
+              {att.isImage && att.url ? (
+                <img
+                  src={att.url}
+                  alt={att.name}
+                  className='size-full rounded-xs object-cover'
+                />
+              ) : (
+                <FileIconBadge filename={att.name} type={att.mediaType} />
+              )}
+            </AttachmentMedia>
+            <AttachmentContent>
+              <AttachmentTitle>{att.name}</AttachmentTitle>
+              <AttachmentDescription>{att.size}</AttachmentDescription>
+            </AttachmentContent>
+            <AttachmentActions>
+              <AttachmentAction
+                aria-label={`移除 ${att.name}`}
+                onClick={() => onRemove(item.id)}
+              >
+                <X />
+              </AttachmentAction>
+            </AttachmentActions>
+          </Attachment>
+        )
+      })}
+    </AttachmentGroup>
   )
 }

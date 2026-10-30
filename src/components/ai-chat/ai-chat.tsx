@@ -5,21 +5,29 @@ import {
   lastAssistantMessageIsCompleteWithToolCalls,
 } from 'ai'
 import { cn } from 'cn'
-import { MessageCircle, X } from 'lucide-react'
+import { MessageCircle, RotateCwIcon, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { MessageScroller } from '@/components/ui/chat'
 import {
-  createOpenRouterTransport,
-  isOpenRouterConfigured,
-} from './adapters/openrouter'
-import { createDemoTransport } from './adapters/scripted-chat'
+  MessageScroller,
+  MessageScrollerButton,
+  MessageScrollerContent,
+  MessageScrollerProvider,
+  MessageScrollerViewport,
+} from '@/components/ui/message-scroller'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { useAIChatTransport } from './core/chat-provider'
 import { useChatStore } from './core/chat-store'
+import { openRouterTransport } from './core/openrouter'
 import type { AIChatTransport } from './core/transport'
 import type { AttachmentItem, ChatMessage, MessageMetrics } from './core/types'
 import type { ChatToolRenderer, ToolPartContext } from './tools/types'
+import { ChatEmpty, DEFAULT_SUGGESTIONS } from './ui/chat-empty'
 import { ChatInput } from './ui/chat-input'
-import { ChatMessageList } from './ui/chat-message-list'
+import { ChatMessageList } from './ui/chat-messages'
 
 export interface AIChatProps {
   className?: string
@@ -28,6 +36,11 @@ export interface AIChatProps {
   transport?: AIChatTransport
   initialMessages?: ChatMessage[]
   toolRenderers?: Record<string, ChatToolRenderer>
+  suggestions?: string[]
+  /** Renders a close button in the header; used by the floating launcher. */
+  onClose?: () => void
+  /** Controls rendering of the built-in header. Defaults to true if onClose is provided. */
+  showHeader?: boolean
 }
 
 /**
@@ -46,19 +59,15 @@ function ChatView({
   transport: propTransport,
   initialMessages,
   toolRenderers,
+  suggestions = DEFAULT_SUGGESTIONS,
+  onClose,
+  showHeader = Boolean(onClose),
 }: AIChatProps) {
   const contextTransport = useAIChatTransport()
-  const defaultTransport = useMemo(
-    () =>
-      isOpenRouterConfigured()
-        ? createOpenRouterTransport()
-        : createDemoTransport(),
-    []
+  const resolvedTransport = useMemo(
+    () => propTransport ?? contextTransport ?? openRouterTransport,
+    [propTransport, contextTransport]
   )
-  const resolvedTransport = useMemo(() => {
-    const raw = propTransport ?? contextTransport ?? defaultTransport
-    return raw
-  }, [propTransport, contextTransport, defaultTransport])
 
   const session = useChatStore((state) => state.sessions[sessionId])
   const storedMessages = session?.messages ?? []
@@ -244,36 +253,92 @@ function ChatView({
   )
 
   return (
-    <div className={cn('relative flex min-h-0 flex-1 flex-col', className)}>
-      <MessageScroller className='px-4 sm:px-6'>
-        <div className='mx-auto flex min-h-full w-full max-w-3xl flex-1 flex-col'>
-          <ChatMessageList
-            messages={messages}
-            error={error}
-            onSelectPrompt={(prompt) => submit(prompt)}
-            isWaitingForResponse={isWaitingForResponse}
-            isGenerating={isGenerating}
-            thinkingStartTime={thinkingStartTime}
-            metricsMap={metricsMap}
-            toolContext={toolContext}
-            toolRenderers={toolRenderers}
-            onRetry={retry}
-            onDismissError={clearError}
+    <MessageScrollerProvider autoScroll>
+      <div className={cn('flex min-h-0 flex-1 flex-col text-sm', className)}>
+        {showHeader && (
+          <div className='flex shrink-0 items-center justify-between gap-3 pb-3'>
+            <div className='flex flex-col gap-0.5'>
+              <h1 className='text-base font-semibold tracking-tight'>
+                AI 助手
+              </h1>
+              <p className='text-muted-foreground text-xs'>
+                让助手阅读代码、运行命令、做出修改
+              </p>
+            </div>
+            <div className='flex items-center gap-1.5'>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant='ghost'
+                      size='icon-sm'
+                      aria-label='重置对话'
+                      onClick={reset}
+                      disabled={isBusy}
+                    />
+                  }
+                >
+                  <RotateCwIcon />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>重置</p>
+                </TooltipContent>
+              </Tooltip>
+              {onClose && (
+                <Button
+                  variant='ghost'
+                  size='icon-sm'
+                  aria-label='关闭 AI 助手'
+                  onClick={onClose}
+                >
+                  <X />
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className='relative min-h-0 flex-1'>
+          {messages.length === 0 ? (
+            <div className='flex size-full items-center justify-center py-4'>
+              <ChatEmpty />
+            </div>
+          ) : (
+            <MessageScroller>
+              <MessageScrollerViewport className='scroll-fade-t scroll-fade-b py-3'>
+                <MessageScrollerContent aria-busy={isBusy}>
+                  <ChatMessageList
+                    messages={messages}
+                    error={error}
+                    isWaitingForResponse={isWaitingForResponse}
+                    isGenerating={isGenerating}
+                    thinkingStartTime={thinkingStartTime}
+                    metricsMap={metricsMap}
+                    toolContext={toolContext}
+                    toolRenderers={toolRenderers}
+                    onRetry={retry}
+                    onDismissError={clearError}
+                  />
+                </MessageScrollerContent>
+              </MessageScrollerViewport>
+              <MessageScrollerButton />
+            </MessageScroller>
+          )}
+        </div>
+
+        <div className='from-background via-background/95 relative shrink-0 bg-gradient-to-t to-transparent pt-3 pb-2'>
+          <ChatInput
+            value={input}
+            onChange={setInput}
+            onSubmit={(attachments) => submit(undefined, attachments)}
+            onStop={stop}
+            busy={isBusy}
+            suggestions={suggestions}
+            onSelectSuggestion={(prompt) => submit(prompt)}
           />
         </div>
-      </MessageScroller>
-
-      <ChatInput
-        value={input}
-        onChange={setInput}
-        onSubmit={(attachments) => submit(undefined, attachments)}
-        onStop={stop}
-        busy={isBusy}
-        hasMessages={messages.length > 0}
-        onReset={reset}
-        onNewChat={reset}
-      />
-    </div>
+      </div>
+    </MessageScrollerProvider>
   )
 }
 
@@ -301,43 +366,23 @@ export function AIChatLauncher({
     <div className='fixed right-4 bottom-4 z-40 flex flex-col items-end gap-3 sm:right-6 sm:bottom-6'>
       {open && (
         <div className='bg-background flex h-[min(680px,calc(100vh-6rem))] w-[min(420px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border shadow-2xl'>
-          <div className='flex shrink-0 items-center justify-between border-b px-4 py-3'>
-            <div className='flex items-center gap-2'>
-              <div className='bg-primary/10 text-primary flex size-7 items-center justify-center rounded-lg'>
-                <MessageCircle className='size-4' />
-              </div>
-              <div>
-                <div className='text-sm font-semibold'>{label}</div>
-                <div className='text-muted-foreground text-[11px]'>
-                  随时为你提供帮助
-                </div>
-              </div>
-            </div>
-            <Button
-              type='button'
-              size='icon'
-              variant='ghost'
-              className='size-7 rounded-lg'
-              onClick={() => setOpen(false)}
-              aria-label='关闭 AI 助手'
-            >
-              <X className='size-4' />
-            </Button>
-          </div>
-          <AIChat transport={transport} />
+          <AIChat
+            transport={transport}
+            onClose={() => setOpen(false)}
+            className='p-4'
+          />
         </div>
       )}
       <Button
         type='button'
         size='icon'
         variant={open ? 'secondary' : 'default'}
-        className={cn('size-14 rounded-full border shadow-lg', className)}
+        className={cn('size-14 rounded-full', className)}
         onClick={() => setOpen((value) => !value)}
         aria-label={open ? `关闭 ${label}` : `打开 ${label}`}
         aria-expanded={open}
-        title={label}
       >
-        <MessageCircle className='size-6' />
+        <MessageCircle />
       </Button>
     </div>
   )

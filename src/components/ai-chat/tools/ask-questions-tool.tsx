@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { Progress } from '@/components/ui/progress'
 import {
   Questionnaire,
   QuestionnaireActions,
@@ -9,7 +11,6 @@ import {
   QuestionnaireItem,
   QuestionnaireNext,
   QuestionnairePrevious,
-  QuestionnaireProgress,
   QuestionnaireSkip,
   QuestionnaireSubmit,
   QuestionnaireTitle,
@@ -48,11 +49,39 @@ export function renderAskQuestionsTool(
     return null
   }
 
+  return <AskQuestionsCard part={part} context={context} />
+}
+
+function AskQuestionsCard({
+  part,
+  context,
+}: {
+  part: Extract<ChatPart, { type: 'tool-askQuestions' }>
+  context: ToolPartContext
+}) {
+  const [step, setStep] = useState(0)
+  const total = QUESTIONNAIRE_ITEMS.length
+  const percent = Math.round(((step + 1) / total) * 100)
+
   return (
-    <div className='bg-card my-2 w-full max-w-xl rounded-2xl border p-5 shadow-xs transition-all'>
+    <div className='bg-card w-full max-w-xl rounded-xl border p-5'>
+      <div className='mb-4 flex items-center gap-3'>
+        <span className='text-muted-foreground shrink-0 text-xs tabular-nums'>
+          {step + 1} / {total}
+        </span>
+        <Progress
+          value={percent}
+          aria-label='问卷进度'
+          className='bg-primary/15 h-1'
+        />
+      </div>
       <Questionnaire
         items={QUESTIONNAIRE_ITEMS}
         shortcuts='letters'
+        onItemChange={(item) => {
+          const index = QUESTIONNAIRE_ITEMS.findIndex((q) => q.name === item)
+          if (index >= 0) setStep(index)
+        }}
         onSubmit={(event) => {
           event.preventDefault()
           const data = new FormData(event.currentTarget)
@@ -70,26 +99,16 @@ export function renderAskQuestionsTool(
           })
         }}
       >
-        <div className='mb-4 flex items-center justify-between border-b pb-3'>
-          <div className='flex items-center gap-2'>
-            <span className='bg-primary size-2 rounded-full' />
-            <span className='text-muted-foreground text-xs font-semibold tracking-wider uppercase'>
-              原型需求问卷
-            </span>
-          </div>
-          <QuestionnaireProgress className='text-muted-foreground font-mono text-xs font-medium' />
-        </div>
-
-        <QuestionnaireItem name='direction' required className='space-y-3.5'>
+        <QuestionnaireItem name='direction' required className='gap-3'>
           <div>
-            <QuestionnaireTitle className='text-foreground text-base font-semibold tracking-tight'>
+            <QuestionnaireTitle className='text-base font-medium'>
               接下来我们应该制作什么原型？
             </QuestionnaireTitle>
-            <QuestionnaireDescription className='text-muted-foreground mt-1 text-xs'>
+            <QuestionnaireDescription>
               选择一个最贴近您需求的方向，或在下方输入自定义内容。
             </QuestionnaireDescription>
           </div>
-          <QuestionnaireChoices className='flex flex-col gap-2.5 pt-1'>
+          <QuestionnaireChoices className='gap-2'>
             {QUESTIONNAIRE_ITEMS[0].choices.map((choice) => (
               <QuestionnaireChoice key={choice.value} value={choice.value}>
                 {choice.label}
@@ -98,22 +117,21 @@ export function renderAskQuestionsTool(
             <QuestionnaireInput
               aria-label='其他回答'
               placeholder='输入其他自定义方向…'
-              className='mt-1'
             />
           </QuestionnaireChoices>
           <QuestionnaireError />
         </QuestionnaireItem>
 
-        <QuestionnaireItem name='detail' className='space-y-3.5'>
+        <QuestionnaireItem name='detail' className='gap-3'>
           <div>
-            <QuestionnaireTitle className='text-foreground text-base font-semibold tracking-tight'>
+            <QuestionnaireTitle className='text-base font-medium'>
               需要包含多少细节？
             </QuestionnaireTitle>
-            <QuestionnaireDescription className='text-muted-foreground mt-1 text-xs'>
+            <QuestionnaireDescription>
               定义原型的颗粒度与流程覆盖面，非必填。
             </QuestionnaireDescription>
           </div>
-          <QuestionnaireChoices className='flex flex-col gap-2.5 pt-1'>
+          <QuestionnaireChoices className='gap-2'>
             {QUESTIONNAIRE_ITEMS[1].choices.map((choice) => (
               <QuestionnaireChoice key={choice.value} value={choice.value}>
                 {choice.label}
@@ -123,7 +141,7 @@ export function renderAskQuestionsTool(
           <QuestionnaireError />
         </QuestionnaireItem>
 
-        <QuestionnaireActions className='mt-6 border-t pt-4'>
+        <QuestionnaireActions className='mt-5'>
           <div className='flex items-center gap-2'>
             <QuestionnairePrevious>上一步</QuestionnairePrevious>
             <QuestionnaireSkip>跳过此题</QuestionnaireSkip>
